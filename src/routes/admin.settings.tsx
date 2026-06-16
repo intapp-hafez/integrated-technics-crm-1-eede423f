@@ -235,6 +235,97 @@ function Header({ title, hint }: { title: string; hint: string }) {
   );
 }
 
+function UsersImportBar({ existingEmails, onImportRow }: { existingEmails: string[], onImportRow: (row: any) => Promise<void> }) {
+  const fileRef = React.useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function downloadTemplate() {
+    const XLSX = await import("xlsx");
+    const headers = [
+      "Name (EN)", "Name (AR)", "Email", "Password", "Phone", "Role", 
+      "Title (EN)", "Department (EN)", "Location (EN)", "Target Type",
+      "Annual Target", "Q1 Target", "Q2 Target", "Q3 Target", "Q4 Target", 
+      "Weekly Meetings Target", "Skills", "Active"
+    ];
+    const sampleRows = [
+      ["John Doe", "جون دو", "john@example.com", "password123", "0100000000", "employee", "Sales Executive", "Sales", "Cairo", "yearly", "1000000", "250000", "250000", "250000", "250000", "15", "Sales, Negotiation", "Yes"]
+    ];
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Users");
+    XLSX.writeFile(wb, "users-template.xlsx");
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBusy(true);
+    try {
+      const XLSX = await import("xlsx");
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
+      const seen = new Set(existingEmails.map((s) => s.trim().toLowerCase()));
+      let ok = 0, fail = 0, dup = 0;
+      for (const r of rows) {
+        const get = (key: string) => String(r[key] ?? "").trim();
+        const email = get("Email");
+        const nameEn = get("Name (EN)");
+        const password = get("Password");
+        
+        if (!email || !nameEn || !password) continue;
+        const key = email.toLowerCase();
+        if (seen.has(key)) { dup++; continue; }
+        seen.add(key);
+        
+        try {
+          await onImportRow({
+            email,
+            password,
+            full_name_en: nameEn,
+            full_name_ar: get("Name (AR)") || null,
+            phone: get("Phone") || null,
+            role: (get("Role").toLowerCase() as UserRoleKey) || "employee",
+            title_en: get("Title (EN)") || null,
+            department_en: get("Department (EN)") || null,
+            location_en: get("Location (EN)") || null,
+            target_type: get("Target Type").toLowerCase() || "yearly",
+            annual_target: Number(get("Annual Target")) || 0,
+            q1_target: Number(get("Q1 Target")) || 0,
+            q2_target: Number(get("Q2 Target")) || 0,
+            q3_target: Number(get("Q3 Target")) || 0,
+            q4_target: Number(get("Q4 Target")) || 0,
+            weekly_meetings_target: Number(get("Weekly Meetings Target")) || 0,
+            skills: get("Skills").split(",").map(s => s.trim()).filter(Boolean),
+            active: get("Active").toLowerCase() !== "no",
+          });
+          ok++;
+        } catch { fail++; }
+      }
+      toast.success(`Imported ${ok} users${dup ? ` · ${dup} duplicate emails skipped` : ""}${fail ? ` · ${fail} failed` : ""}`);
+    } catch (err) {
+      toast.error(`Import failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border bg-background p-3">
+      <span className="text-xs font-semibold text-muted-foreground">Bulk import users:</span>
+      <button onClick={downloadTemplate} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent">
+        <Download className="h-3.5 w-3.5" /> Download template
+      </button>
+      <button onClick={() => fileRef.current?.click()} disabled={busy} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
+        <Upload className="h-3.5 w-3.5" /> {busy ? "Importing…" : "Import from Excel"}
+      </button>
+      <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImport} className="hidden" />
+    </div>
+  );
+}
+
 function UsersEditor() {
   const { users, settings } = useStoreState();
   const qc = useQueryClient();
@@ -314,6 +405,13 @@ function UsersEditor() {
 
   return (
     <div className="space-y-4">
+      <UsersImportBar 
+        existingEmails={users.map(u => u.email)} 
+        onImportRow={async (row) => {
+          await createUser(row);
+          qc.invalidateQueries({ queryKey: ["supabase-sync"] });
+        }}
+      />
       <div className="rounded-xl border border-border bg-background p-4">
         <div className="mb-3 font-display text-sm font-bold text-foreground">Add new user</div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
