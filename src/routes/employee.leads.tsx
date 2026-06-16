@@ -221,7 +221,8 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
   const ME = profile?.full_name_en || profile?.full_name_ar || "hafez Rahim";
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
-  const { leadDistricts, settings } = useStoreState();
+  const { leadDistricts, settings, projects } = useStoreState();
+  const [projectId, setProjectId] = useState("");
   const STATUSES = settings.statuses;
   const stageLabel = (k: string) => settings.stages.find((s) => s.key === k)?.label ?? k;
   const cities = locations.map((c) => c.name);
@@ -257,6 +258,22 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
 
   const districts = locations.find((c) => c.name === city)?.districts ?? [];
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const selectedProject = projects.find((p) => p.id === projectId);
+
+  const onProjectChange = (pid: string) => {
+    setProjectId(pid);
+    const p = projects.find((x) => x.id === pid);
+    if (p) {
+      setCompany(p.name);
+      setContact(p.client);
+      setIndustry(p.category);
+      setValue(p.offeredValue ?? p.budget ?? 0);
+      if (p.clientEmail) setEmail(p.clientEmail);
+    } else {
+      setCompany("");
+    }
+  };
 
   const submit = () => {
     const parsed = leadSchema.safeParse({ company, contact, email, industry, value });
@@ -305,15 +322,25 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
           <button onClick={onClose} className="rounded-lg p-1 text-muted-foreground hover:bg-accent"><X className="h-4 w-4" /></button>
         </div>
         <div className="grid max-h-[70vh] grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-2">
+          <Field label={t("project") ?? "Account"}>
+            <select value={projectId} onChange={(e) => onProjectChange(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
+              <option value="">{t("selectProjectPlaceholder") ?? "Select account..."}</option>
+              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </Field>
           <Field label={t("company")} error={errors.company}><input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" maxLength={120} aria-invalid={!!errors.company} className={`h-9 w-full rounded-lg border bg-background px-3 text-sm ${errors.company ? "border-rose-500" : "border-border"}`} /></Field>
           <Field label={t("client")} error={errors.contact}><input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Client name" maxLength={120} aria-invalid={!!errors.contact} className={`h-9 w-full rounded-lg border bg-background px-3 text-sm ${errors.contact ? "border-rose-500" : "border-border"}`} /></Field>
           <Field label={t("companyEmail")} error={errors.email}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@company.com" maxLength={255} aria-invalid={!!errors.email} className={`h-9 w-full rounded-lg border bg-background px-3 text-sm ${errors.email ? "border-rose-500" : "border-border"}`} /></Field>
-          <Field label={t("industry")} error={errors.industry}><input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. Construction" maxLength={80} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" /></Field>
-          <Field label={t("source")}>
-            <select value={source} onChange={(e) => setSource(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
-              {SOURCES.map((s) => <option key={s.value} value={s.value}>{t(s.key as any)}</option>)}
-            </select>
-          </Field>
+          <div className="hidden">
+            <Field label={t("industry")} error={errors.industry}><input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. Construction" maxLength={80} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" /></Field>
+          </div>
+          <div className="hidden">
+            <Field label={t("source")}>
+              <select value={source} onChange={(e) => setSource(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
+                {SOURCES.map((s) => <option key={s.value} value={s.value}>{t(s.key as any)}</option>)}
+              </select>
+            </Field>
+          </div>
           <Field label={t("status")}>
             <select value={status} onChange={(e) => setStatus(e.target.value as LeadStatus)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
               {STATUSES.map((s) => <option key={s} value={s}>{stageLabel(s)}</option>)}
