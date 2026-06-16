@@ -522,6 +522,7 @@ function QuickLeadModal({ owner, cities, onClose }: { owner: string; cities: str
       setContact(p.client);
       setIndustry(p.category);
       setValue(p.offeredValue ?? p.budget ?? 0);
+      if (p.clientEmail) setEmail(p.clientEmail);
       setErrors((prev) => ({ ...prev, company: undefined }));
     }
   };
@@ -576,7 +577,7 @@ function QuickLeadModal({ owner, cities, onClose }: { owner: string; cities: str
               className={`h-9 w-full rounded-lg border bg-background px-2 text-sm ${errors.company ? "border-destructive" : "border-border"}`}
             >
               <option value="">Select account…</option>
-              {projects.map((p) => <option key={p.id} value={p.id}>{p.id} · {p.name}</option>)}
+              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </Field>
           <Field label="Client">
@@ -596,14 +597,16 @@ function QuickLeadModal({ owner, cities, onClose }: { owner: string; cities: str
               className={`h-9 w-full rounded-lg border bg-background px-3 text-sm ${errors.email ? "border-destructive" : "border-border"}`}
             />
           </Field>
-          <Field label={t("industry")}>
-            <input
-              value={industry}
-              readOnly={!!selectedProject}
-              onChange={(e) => setIndustry(e.target.value)}
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm read-only:bg-muted/40 read-only:text-muted-foreground"
-            />
-          </Field>
+          <div className="hidden">
+            <Field label={t("industry")}>
+              <input
+                value={industry}
+                readOnly={!!selectedProject}
+                onChange={(e) => setIndustry(e.target.value)}
+                className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm read-only:bg-muted/40 read-only:text-muted-foreground"
+              />
+            </Field>
+          </div>
           <Field label={`${t("value")} ($)`}>
             <input type="number" value={value} onChange={(e) => setValue(Number(e.target.value))} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>

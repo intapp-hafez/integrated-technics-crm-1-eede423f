@@ -247,7 +247,7 @@ interface State {
   settings: Settings;
   leadDistricts: Record<string, string>;
   projectLocations: Record<string, ProjectLocation>;
-  projects: typeof projects;
+  projects: Project[];
   quotations: typeof quotations;
   attendance: AttendanceRecord[];
   profile: Profile;

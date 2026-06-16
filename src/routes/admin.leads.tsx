@@ -607,6 +607,7 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
       setContact(p.client);
       setIndustry(p.category);
       setValue(p.offeredValue ?? p.budget ?? 0);
+      if (p.clientEmail) setEmail(p.clientEmail);
     } else {
       setCompany("");
     }
@@ -638,19 +639,21 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
           <Field label={t("project")}>
             <select value={projectId} onChange={(e) => onProjectChange(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
               <option value="">{t("selectProjectPlaceholder")}</option>
-              {projects.map((p) => <option key={p.id} value={p.id}>{shortId(p.id)} · {p.name}</option>)}
+              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </Field>
           <Field label={t("client")}>
             <input value={contact} readOnly={!!selectedProject} onChange={(e) => setContact(e.target.value)} placeholder={selectedProject ? "" : t("autoFilledFromProject")} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm read-only:bg-muted/40 read-only:text-muted-foreground" />
           </Field>
           <Field label={t("companyEmail")}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@company.com" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" /></Field>
-          <Field label={t("industry")}><input value={industry} readOnly={!!selectedProject} onChange={(e) => setIndustry(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm read-only:bg-muted/40 read-only:text-muted-foreground" /></Field>
-          <Field label={t("source")}>
-            <select value={source} onChange={(e) => setSource(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
-              {SOURCES.map((s) => <option key={s.value} value={s.value}>{t(s.key as any)}</option>)}
-            </select>
-          </Field>
+          <div className="hidden">
+            <Field label={t("industry")}><input value={industry} readOnly={!!selectedProject} onChange={(e) => setIndustry(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm read-only:bg-muted/40 read-only:text-muted-foreground" /></Field>
+            <Field label={t("source")}>
+              <select value={source} onChange={(e) => setSource(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
+                {SOURCES.map((s) => <option key={s.value} value={s.value}>{t(s.key as any)}</option>)}
+              </select>
+            </Field>
+          </div>
           <Field label={t("status")}>
             <select value={status} onChange={(e) => setStatus(e.target.value as LeadStatus)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
               {STATUSES.map((s) => <option key={s} value={s}>{stageLabel(s)}</option>)}
