@@ -20,7 +20,16 @@ import {
 import { ArrowLeft, Paperclip, FileText, Plus, MapPin, Building2, User, DollarSign, History as HistoryIcon, CalendarCheck, Workflow, Clock4, Timer, Trash2, Download, Loader2, AlertCircle } from "lucide-react";
 
 const isUuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
-const newId = () => (typeof crypto !== "undefined" && (crypto as any).randomUUID ? (crypto as any).randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+const newId = () => {
+  if (typeof crypto !== "undefined" && (crypto as any).randomUUID) {
+    return (crypto as any).randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
 function fmtBytes(n?: number | null) {
   if (!n && n !== 0) return "—";
   if (n < 1024) return `${n} B`;
