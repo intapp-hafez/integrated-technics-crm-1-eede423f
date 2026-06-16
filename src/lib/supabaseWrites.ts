@@ -178,8 +178,23 @@ export async function sbAddProject(id: string, p: Project) {
     street_en: (p as any).street ?? null,
     start_date: (p as any).startDate || null,
     end_date: (p as any).endDate || null,
-  });
+    account_type: (p as any).accountType || null,
+    other_account_type: (p as any).otherAccountType || null,
+    extra_contacts: (p as any).extraContacts?.length ? JSON.stringify((p as any).extraContacts) : null,
+    client_name: p.client || null,
+    client_email: p.clientEmail || null,
+    client_phone: p.clientPhone || null,
+  } as any);
   if (error) warn("Save project", error);
+  else if (p.teamMembers && p.teamMembers.length > 0) {
+    const inserts = p.teamMembers
+      .map(name => profileByName.get(name))
+      .filter(Boolean)
+      .map(pid => ({ project_id: id, profile_id: pid as string }));
+    if (inserts.length > 0) {
+      await supabase.from("project_members").insert(inserts);
+    }
+  }
 }
 
 export async function sbUpdateProject(id: string, patch: Partial<Project>) {
@@ -194,9 +209,26 @@ export async function sbUpdateProject(id: string, patch: Partial<Project>) {
   if (patch.competitors !== undefined) row.competitors = patch.competitors;
   if ((patch as any).startDate !== undefined) row.start_date = (patch as any).startDate || null;
   if ((patch as any).endDate !== undefined) row.end_date = (patch as any).endDate || null;
-  if (Object.keys(row).length === 0) return;
-  const { error } = await supabase.from("projects").update(row as any).eq("id", id);
-  if (error) warn("Update project", error);
+  if (patch.accountType !== undefined) row.account_type = patch.accountType;
+  if (patch.otherAccountType !== undefined) row.other_account_type = patch.otherAccountType;
+  if (patch.extraContacts !== undefined) row.extra_contacts = patch.extraContacts?.length ? JSON.stringify(patch.extraContacts) : null;
+  if (patch.client !== undefined) row.client_name = patch.client;
+  if (patch.clientEmail !== undefined) row.client_email = patch.clientEmail;
+  if (patch.clientPhone !== undefined) row.client_phone = patch.clientPhone;
+  if (Object.keys(row).length > 0) {
+    const { error } = await supabase.from("projects").update(row as any).eq("id", id);
+    if (error) warn("Update project", error);
+  }
+  if (patch.teamMembers !== undefined) {
+    await supabase.from("project_members").delete().eq("project_id", id);
+    const inserts = patch.teamMembers
+      .map(name => profileByName.get(name))
+      .filter(Boolean)
+      .map(pid => ({ project_id: id, profile_id: pid as string }));
+    if (inserts.length > 0) {
+      await supabase.from("project_members").insert(inserts);
+    }
+  }
 }
 
 export async function sbDeleteProject(id: string) {

@@ -184,6 +184,9 @@ export interface Project {
   memberUserIds?: string[];
   startDate?: string; // YYYY-MM-DD
   endDate?: string;   // YYYY-MM-DD
+  accountType?: string;
+  otherAccountType?: string;
+  extraContacts?: Array<{ name: string; title: string; phone: string }>;
 }
 
 export interface AttendanceRecord {

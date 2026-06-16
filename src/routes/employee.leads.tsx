@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney, type Lead, type LeadStatus } from "@/lib/mock-data";
@@ -35,10 +36,15 @@ function LeadsPage() {
 
   if (isDetailRoute) return <Outlet />;
 
-  const filtered = statusFilter === "all" ? leads : leads.filter((l) => l.status === statusFilter);
+  const { profile } = useAuth();
+  const ME = profile?.full_name_en || profile?.full_name_ar || "hafez Rahim";
+  const safeCurrentName = ME.toLowerCase();
+  
+  const myLeads = leads.filter((l) => (l.owner || "").toLowerCase() === safeCurrentName);
+  const filtered = statusFilter === "all" ? myLeads : myLeads.filter((l) => l.status === statusFilter);
 
   return (
-    <AppShell panel="employee" user={{ name: "hafez Rahim", role: t("employee"), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" }} pageTitle={t("myLeads")}>
+    <AppShell panel="employee" user={{ name: ME, role: t("employee"), initials: ME.split(" ").map(w => w[0]).join("").substring(0,2).toUpperCase(), photo: profile?.avatar_url || "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" }} pageTitle={t("myLeads")}>
       <div className="sticky top-16 z-10 -mx-4 mb-4 border-b border-border bg-background/85 px-4 py-3 backdrop-blur md:static md:mx-0 md:rounded-xl md:border md:bg-card md:px-4 md:py-3">
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -211,6 +217,8 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
 }
 
 function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; locations: LocationCity[]; onClose: () => void }) {
+  const { profile } = useAuth();
+  const ME = profile?.full_name_en || profile?.full_name_ar || "hafez Rahim";
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const { leadDistricts, settings } = useStoreState();
@@ -281,7 +289,7 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
       actions.updateLead(initial.id, safePayload);
       leadId = initial.id;
     } else {
-      actions.addLead({ ...safePayload, owner: "hafez Rahim", lat: 30.0444, lng: 31.2357 });
+      actions.addLead({ ...safePayload, owner: ME, lat: 30.0444, lng: 31.2357 });
       const latest = (typeof window !== "undefined" ? JSON.parse(localStorage.getItem("int-crm:leads") || "[]") : []) as Lead[];
       leadId = latest[0]?.id ?? "";
     }

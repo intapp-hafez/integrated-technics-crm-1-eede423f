@@ -31,9 +31,9 @@ function ProjectsPage() {
   return (
     <AppShell panel="employee" user={{ name: profile.name, role: t("employee"), initials: profile.name.split(" ").map(w => w[0]).join("") }} pageTitle={t("myProjects")}>
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">Submit a new project for manager/admin approval.</p>
+        <p className="text-xs text-muted-foreground">Submit a new account for manager/admin approval.</p>
         <button onClick={() => setShowDialog(true)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90">
-          <Plus className="h-3.5 w-3.5" /> Request New Project
+          <Plus className="h-3.5 w-3.5" /> Request New account
         </button>
       </div>
 

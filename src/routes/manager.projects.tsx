@@ -11,6 +11,7 @@ import type { Project } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { Plus, Users2, Pencil, Trash2, X, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { useState } from "react";
+import { PhoneInput } from "@/components/PhoneInput";
 
 export const Route = createFileRoute("/manager/projects")({
   component: ProjectsPage,
@@ -244,6 +245,15 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
   const [city, setCity] = useState(initial?.city ?? "");
   const [district, setDistrict] = useState(initial?.district ?? "");
   const [street, setStreet] = useState(initial?.street ?? "");
+  const [accountType, setAccountType] = useState(initial?.accountType ?? "");
+  const [otherAccountType, setOtherAccountType] = useState(initial?.otherAccountType ?? "");
+  const [extraContacts, setExtraContacts] = useState<Array<{ name: string; title: string; phone: string }>>(
+    initial?.extraContacts ?? []
+  );
+  const addExtraContact = () => setExtraContacts(prev => [...prev, { name: "", title: "", phone: "" }]);
+  const removeExtraContact = (i: number) => setExtraContacts(prev => prev.filter((_, idx) => idx !== i));
+  const updateExtraContact = (i: number, field: "name" | "title" | "phone", val: string) =>
+    setExtraContacts(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
 
   const [teamMembers, setTeamMembers] = useState<string[]>(initial?.teamMembers ?? []);
   const [memberOpen, setMemberOpen] = useState(false);
@@ -268,6 +278,9 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
       budget,
       team: teamMembers.length || 1,
       teamMembers,
+      accountType,
+      otherAccountType: accountType === "Other" ? otherAccountType : undefined,
+      extraContacts: extraContacts.filter(c => c.name.trim()),
     };
     if (initial) {
       actions.updateProject(initial.id, payload);
@@ -304,16 +317,24 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
             <input value={name} onChange={(e) => setName(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("projectType")}</span>
-            <select value={projectType} onChange={(e) => setProjectType(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Account Type</span>
+            <select value={accountType} onChange={(e) => setAccountType(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
               <option value="">—</option>
-              {PROJECT_TYPES.map((tp) => <option key={tp} value={tp}>{tp}</option>)}
+              <option value="End User">End User</option>
+              <option value="Contractor">Contractor</option>
+              <option value="System Integrator">System Integrator</option>
+              <option value="Other">Other</option>
             </select>
           </label>
-          <label className="block sm:col-span-2">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("budget")} ($)</span>
-            <input type="number" min={0} value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
-          </label>
+          {accountType === "Other" && (
+            <label className="block sm:col-span-2 mt-[-4px]">
+              <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Specify Account Type</span>
+              <input value={otherAccountType} onChange={(e) => setOtherAccountType(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" placeholder="Please specify..." />
+            </label>
+          )}
+          <div className="hidden">
+            <input type="number" min={0} value={budget} onChange={(e) => setBudget(Number(e.target.value))} />
+          </div>
         </div>
 
         <div className="mt-5 mb-2 text-[11px] font-bold uppercase tracking-wider text-primary">{t("clientInfo")}</div>
@@ -326,10 +347,10 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("email")}</span>
             <input type="email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </label>
-          <label className="block">
+          <div className="block">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("phone")}</span>
-            <input value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
-          </label>
+            <PhoneInput value={clientPhone || "+20"} onChange={(val) => setClientPhone(val)} />
+          </div>
           <label className="block">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("city")}</span>
             <select value={city} onChange={(e) => { setCity(e.target.value); setDistrict(""); }} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
@@ -344,10 +365,44 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
               {districts.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
           </label>
+
           <label className="block sm:col-span-2">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("street")}</span>
             <input value={street} onChange={(e) => setStreet(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </label>
+        </div>
+
+        <div className="mt-5 mb-2 flex items-center justify-between">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Extra Contacts</span>
+          <button type="button" onClick={addExtraContact} className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/20">
+            <Plus className="h-3 w-3" /> Add Contact
+          </button>
+        </div>
+        {extraContacts.length === 0 && (
+          <p className="text-xs text-muted-foreground mb-3">No extra contacts yet. Click "Add Contact" to add one.</p>
+        )}
+        <div className="space-y-3 mb-4">
+          {extraContacts.map((c, i) => (
+            <div key={i} className="rounded-lg border border-border p-3 relative">
+              <button type="button" onClick={() => removeExtraContact(i)} className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                <X className="h-3.5 w-3.5" />
+              </button>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 pr-8">
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Name</span>
+                  <input value={c.name} onChange={e => updateExtraContact(i, "name", e.target.value)} placeholder="Full name" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Title</span>
+                  <input value={c.title} onChange={e => updateExtraContact(i, "title", e.target.value)} placeholder="Job title" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                </label>
+                <div className="block sm:col-span-2">
+                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Phone</span>
+                  <PhoneInput value={c.phone || "+20"} onChange={val => updateExtraContact(i, "phone", val)} />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="mt-5 mb-2 text-[11px] font-bold uppercase tracking-wider text-primary">{t("teamMembers")}</div>

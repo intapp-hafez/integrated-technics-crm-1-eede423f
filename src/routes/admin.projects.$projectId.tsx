@@ -58,10 +58,9 @@ function ProjectDetailsPage() {
   const members = memberNames && memberNames.length
     ? employees.filter((e) => memberNames.includes(e.name))
     : employees.slice(0, project.team);
-  // Prefer real client contact info from store; fall back to synthesized values
-  const slug = (project.client || "client").toLowerCase().replace(/[^a-z]+/g, "");
-  const clientEmail = (project as any).clientEmail || (clientLead ? `${clientLead.contact.toLowerCase().replace(/\s+/g, ".")}@${slug || "client"}.com` : `info@${slug || "client"}.com`);
-  const clientPhone = (project as any).clientPhone || `+966 5${String((project.id.charCodeAt(2) * 17) % 10)}${String((project.id.charCodeAt(3) * 31) % 10)} ${String(100 + (project.id.charCodeAt(0) % 900))} ${String(1000 + (project.id.charCodeAt(1) * 7) % 9000)}`;
+  // Prefer real client contact info from store
+  const clientEmail = (project as any).clientEmail;
+  const clientPhone = (project as any).clientPhone;
   const projectLoc = projectLocations[projectId];
   const clientCity = projectLoc?.city || clientLead?.city || "";
   const clientDistrict = projectLoc?.district || "";
@@ -125,24 +124,73 @@ function ProjectDetailsPage() {
             </div>
             <div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1"><Mail className="h-3 w-3" /> Email</div>
-              <a href={`mailto:${clientEmail}`} className="mt-1 block truncate font-mono text-sm text-primary hover:underline">{clientEmail}</a>
+              {clientEmail ? (
+                <a href={`mailto:${clientEmail}`} className="mt-1 block truncate font-mono text-sm text-primary hover:underline">{clientEmail}</a>
+              ) : (
+                <div className="mt-1 font-semibold text-muted-foreground">—</div>
+              )}
             </div>
             <div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1"><Phone className="h-3 w-3" /> Phone</div>
-              <a href={`tel:${clientPhone.replace(/\s+/g, "")}`} className="mt-1 block font-mono text-sm text-primary hover:underline">{clientPhone}</a>
+              {clientPhone ? (
+                <a href={`tel:${clientPhone.replace(/\s+/g, "")}`} className="mt-1 block font-mono text-sm text-primary hover:underline">{clientPhone}</a>
+              ) : (
+                <div className="mt-1 font-semibold text-muted-foreground">—</div>
+              )}
             </div>
+            {(project as any).accountType && (
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Account Type</div>
+                <div className="mt-1 font-semibold text-foreground">
+                  {(project as any).accountType}
+                  {(project as any).accountType === "Other" && (project as any).otherAccountType ? ` (${(project as any).otherAccountType})` : ""}
+                </div>
+              </div>
+            )}
             <div className="sm:col-span-2 lg:col-span-4">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> Location</div>
-              <LocationPicker
-                cities={settings.locations}
-                city={clientCity}
-                district={clientDistrict}
-                onChange={(city, district) => actions.setProjectLocation(projectId, city, district)}
-                label="Site"
-              />
+              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1 mb-1"><MapPin className="h-3 w-3" /> Location</div>
+              {(clientCity || clientDistrict || (project as any).street) ? (
+                <div className="text-sm font-semibold text-foreground">
+                  {[(project as any).street, clientDistrict, clientCity].filter(Boolean).join(", ")}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">—</div>
+              )}
+              <div className="mt-2">
+                <LocationPicker
+                  cities={settings.locations}
+                  city={clientCity}
+                  district={clientDistrict}
+                  onChange={(city, district) => actions.setProjectLocation(projectId, city, district)}
+                  label="Change site location"
+                />
+              </div>
             </div>
           </div>
         </div>
+
+        {(() => {
+          const contacts: Array<{ name: string; title: string; phone: string }> =
+            (project as any).extraContacts ?? [];
+          if (!contacts.length) return null;
+          return (
+            <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+              <div className="mb-4 flex items-center gap-2">
+                <Users2 className="h-4 w-4 text-primary" />
+                <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Extra Contacts</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {contacts.map((c, i) => (
+                  <div key={i} className="rounded-xl border border-border p-3">
+                    <div className="font-semibold text-foreground">{c.name}</div>
+                    {c.title && <div className="text-xs text-muted-foreground">{c.title}</div>}
+                    {c.phone && <a href={`tel:${c.phone.replace(/\s+/g, "")}`} className="mt-1 block font-mono text-xs text-primary hover:underline">{c.phone}</a>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()} 
 
         <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
           <div className="mb-4 flex items-center gap-2">
@@ -166,9 +214,42 @@ function ProjectDetailsPage() {
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-          <div className="mb-4 flex items-center gap-2">
-            <Users2 className="h-4 w-4 text-primary" />
-            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Team Members ({members.length})</h3>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users2 className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Team Members ({members.length})</h3>
+            </div>
+            <div className="relative">
+              <button 
+                onClick={(e) => {
+                  e.currentTarget.nextElementSibling?.classList.toggle('hidden');
+                }} 
+                className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/20"
+              >
+                + Assign Employee
+              </button>
+              <div className="absolute right-0 top-full z-10 mt-1 hidden w-48 max-h-60 overflow-y-auto rounded-lg border border-border bg-card p-1 shadow-lg">
+                {employees.map((emp) => {
+                  const checked = memberNames?.includes(emp.name);
+                  return (
+                    <label key={emp.id} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent">
+                      <input 
+                        type="checkbox" 
+                        checked={checked} 
+                        onChange={(e) => {
+                          const newMembers = e.target.checked 
+                            ? [...(memberNames || []), emp.name]
+                            : (memberNames || []).filter(n => n !== emp.name);
+                          actions.updateProject(projectId, { teamMembers: newMembers, team: newMembers.length });
+                        }} 
+                        className="h-4 w-4" 
+                      />
+                      <span className="font-medium text-foreground">{emp.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {members.map((m) => (
@@ -178,7 +259,6 @@ function ProjectDetailsPage() {
                   <div className="truncate font-semibold text-foreground">{m.name}</div>
                   <div className="truncate text-xs text-muted-foreground">{m.role}</div>
                 </div>
-                <span className="font-mono text-xs text-muted-foreground">{shortId(m.id)}</span>
               </Link>
             ))}
           </div>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { PhoneInput } from "@/components/PhoneInput";
 import { supabase } from "@/integrations/supabase/client";
 
 const schema = z.object({
@@ -180,7 +181,7 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-card p-5 shadow-xl" onClick={e => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold">Request New Project</h2>
+          <h2 className="font-display text-lg font-bold">Request New account</h2>
           <button onClick={onClose} className="rounded-md p-1 hover:bg-accent"><X className="h-4 w-4" /></button>
         </div>
 
@@ -259,7 +260,10 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
             <F label="Contact Person (EN) *" k="contact_name_en" />
             <F label="Contact Person (AR)" k="contact_name_ar" />
             <F label="Email *" k="email" type="email" />
-            <F label="Phone *" k="phone" type="tel" />
+            <div className="block">
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Phone *</div>
+              <PhoneInput value={v.phone || "+20"} onChange={(val) => set("phone")({ target: { value: val } } as any)} />
+            </div>
           </div>
         </section>
 

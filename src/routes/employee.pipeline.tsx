@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
@@ -22,7 +23,12 @@ function PipelinePage() {
   const { leads, settings } = useStoreState();
   const navigate = useNavigate();
   const { role } = useRole();
-  const user = { name: ME, role: t(role as any), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" };
+  const { profile } = useAuth();
+  
+  const currentName = profile?.full_name_en || profile?.full_name_ar || ME;
+  const initials = currentName.split(" ").map(w => w[0]).join("").substring(0,2).toUpperCase() || "HR";
+  
+  const user = { name: currentName, role: t(role as any), initials, photo: profile?.avatar_url || "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" };
   const [dragId, setDragId] = useState<string | null>(null);
   const [overStage, setOverStage] = useState<LeadStatus | null>(null);
   const [activeStage, setActiveStage] = useState<string | null>(null);
@@ -34,7 +40,8 @@ function PipelinePage() {
   const allStages = settings.stages.filter((s) => s.key !== "archived");
   const stages = stageFilter.length === 0 ? allStages : allStages.filter((s) => stageFilter.includes(s.key));
 
-  const myLeads = leads.filter((l) => l.owner === ME);
+  const safeCurrentName = (currentName || "").toLowerCase();
+  const myLeads = leads.filter((l) => (l.owner || "").toLowerCase() === safeCurrentName);
 
   const stageOptions = allStages.map((s) => ({
     value: s.key,

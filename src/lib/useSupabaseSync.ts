@@ -212,9 +212,9 @@ export function useSupabaseSync() {
       return {
         id: p.id,
         name: pick(p.name_en, p.name_ar),
-        client: client ? pick(client.name_en, client.name_ar) : "",
-        clientEmail: client?.email ?? undefined,
-        clientPhone: client?.phone ?? undefined,
+        client: p.client_name ?? (client ? pick(client.name_en, client.name_ar) : ""),
+        clientEmail: p.client_email ?? client?.email ?? undefined,
+        clientPhone: p.client_phone ?? client?.phone ?? undefined,
         progress: p.progress ?? 0,
         budget: Number(p.budget ?? 0),
         offeredValue: Number(p.offered_value ?? 0),
@@ -232,6 +232,14 @@ export function useSupabaseSync() {
         street: pick(p.street_en, p.street_ar) || undefined,
         startDate: p.start_date ?? undefined,
         endDate: p.end_date ?? undefined,
+        accountType: p.account_type ?? undefined,
+        otherAccountType: p.other_account_type ?? undefined,
+        extraContacts: (() => {
+          const raw = p.extra_contacts;
+          if (!raw) return undefined;
+          if (Array.isArray(raw)) return raw;
+          try { return JSON.parse(raw); } catch { return undefined; }
+        })(),
       };
     });
 

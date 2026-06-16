@@ -79,7 +79,7 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm font-bold">{mode === "approver" ? "Project Requests · Pending Approval" : "My Project Requests"}</h3>
+        <h3 className="font-display text-sm font-bold">{mode === "approver" ? "Accounts · Pending Approval" : "My accounts"}</h3>
         <button onClick={load} className="text-[11px] font-semibold text-primary hover:underline">Refresh</button>
       </div>
       {loading && <div className="text-xs text-muted-foreground">Loading…</div>}
