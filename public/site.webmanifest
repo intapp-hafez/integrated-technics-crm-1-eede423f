@@ -1,0 +1,13 @@
+{
+  "name": "INT-CRM — Integrated Technics",
+  "short_name": "INT-CRM",
+  "description": "Enterprise CRM for Integrated Technics",
+  "icons": [
+    { "src": "/logo.png", "sizes": "any", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "theme_color": "#ea580c",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}

@@ -1,0 +1,11 @@
+project_id = "wzbeyuohnyxacghxkbea"
+
+# email-dispatch is called by pg_cron with the project's anon key in the
+# `apikey` header. Allow that by disabling JWT verification — the function
+# itself reads/writes only via the service role and is safe to call.
+[functions.email-dispatch]
+verify_jwt = false
+
+# admin-users requires the caller's user JWT to validate the admin role.
+[functions.admin-users]
+verify_jwt = true

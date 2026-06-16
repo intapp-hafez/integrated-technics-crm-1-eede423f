@@ -1,0 +1,1 @@
+ALTER TYPE public.activity_status ADD VALUE 'delayed';

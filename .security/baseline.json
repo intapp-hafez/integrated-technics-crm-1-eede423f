@@ -1,0 +1,4 @@
+{
+  "_comment": "Fingerprints of pre-existing Supabase lint findings that have been reviewed and accepted. New findings outside this list will fail CI. Format: '{name}|{level}|{schema}|{name_or_cache_key}'.",
+  "fingerprints": []
+}
