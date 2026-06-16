@@ -24,6 +24,9 @@ type Req = {
   created_at: string;
   requested_by: string;
   requester?: { full_name_en: string | null } | null;
+  account_type?: string | null;
+  other_account_type?: string | null;
+  category_en?: string | null;
 };
 
 export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
@@ -38,7 +41,7 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("project_requests")
-      .select("id,name_en,client_name_en,contact_name_en,email,phone,budget,status,decision_note,created_at,requested_by,requester:profiles!project_requests_requested_by_fkey(full_name_en)")
+      .select("id,name_en,client_name_en,contact_name_en,email,phone,budget,status,decision_note,created_at,requested_by,account_type,other_account_type,category_en,requester:profiles!project_requests_requested_by_fkey(full_name_en)")
       .order("created_at", { ascending: false });
     setLoading(false);
     if (error) { toast.error(error.message); return; }
@@ -92,6 +95,11 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="font-bold text-foreground">{r.name_en}</div>
+                {(r.account_type || r.category_en) && (
+                  <div className="text-[11px] text-muted-foreground mb-0.5">
+                    {r.account_type ? (r.account_type === "Other" && r.other_account_type ? r.other_account_type : r.account_type) : r.category_en}
+                  </div>
+                )}
                 <div className="text-muted-foreground">{r.client_name_en} · {r.contact_name_en}</div>
                 <div className="text-muted-foreground">{r.email} · {r.phone}</div>
                 {mode === "approver" && r.requester?.full_name_en && (

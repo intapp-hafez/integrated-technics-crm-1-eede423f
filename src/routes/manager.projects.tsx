@@ -85,7 +85,11 @@ function ProjectsPage() {
                     </td>
                     <td className="px-3 py-2.5">
                       <Link to="/manager/projects/$projectId" params={{ projectId: p.id }} className="font-semibold text-foreground hover:text-primary">{p.name}</Link>
-                      {p.category && <div className="text-[11px] text-muted-foreground">{p.category}</div>}
+                      {(p.accountType || p.category) && (
+                        <div className="text-[11px] text-muted-foreground">
+                          {p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : p.category}
+                        </div>
+                      )}
                     </td>
                     <td className="px-3 py-2.5 text-foreground">{p.client}</td>
                     <td className="px-3 py-2.5"><StatusBadge status={p.status} /></td>
@@ -130,7 +134,10 @@ function ProjectsPage() {
             <Link to="/manager/projects/$projectId" params={{ projectId: p.id }} className="block">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{shortId(p.id)} {p.category && `· ${p.category}`}</div>
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {shortId(p.id)}
+                    {(p.accountType || p.category) && ` · ${p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : p.category}`}
+                  </div>
                   <h3 className="mt-1 font-display text-base font-bold text-foreground">{p.name}</h3>
                   <p className="text-xs text-muted-foreground">{p.client}</p>
                 </div>

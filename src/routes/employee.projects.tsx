@@ -46,7 +46,10 @@ function ProjectsPage() {
           <Link key={p.id} to="/admin/projects/$projectId" params={{ projectId: p.id }} className="block rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] transition hover:border-primary">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{shortId(p.id)} {p.category && `· ${p.category}`}</div>
+                <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {shortId(p.id)}
+                  {(p.accountType || p.category) && ` · ${p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : p.category}`}
+                </div>
                 <h3 className="mt-1 font-display text-base font-bold text-foreground">{p.name}</h3>
                 <p className="text-xs text-muted-foreground">{p.client}</p>
               </div>
