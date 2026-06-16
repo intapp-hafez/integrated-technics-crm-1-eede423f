@@ -417,6 +417,50 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
   );
 }
 
+const inputCls = "h-9 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary";
+
+function EditField({
+  label, name, type = "number", min, max, step, form, errors, setForm,
+}: {
+  label: string;
+  name: keyof ReturnType<typeof defaultForm>;
+  type?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  form: ReturnType<typeof defaultForm>;
+  errors: Record<string, string>;
+  setForm: React.Dispatch<React.SetStateAction<ReturnType<typeof defaultForm>>>;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <input
+        type={type}
+        min={min}
+        max={max}
+        step={step}
+        value={form[name] as any}
+        onChange={(e) => setForm((f) => ({ ...f, [name]: type === "number" ? Number(e.target.value) : e.target.value }))}
+        className={inputCls}
+      />
+      {errors[name as string] && <span className="mt-1 block text-[11px] font-semibold text-rose-600">{errors[name as string]}</span>}
+    </label>
+  );
+}
+
+function defaultForm(initial: ProfileTargets) {
+  return {
+    start_date: initial.start_date ?? "",
+    annual_target: Number(initial.annual_target ?? 0),
+    q1_target: Number(initial.q1_target ?? 0),
+    q2_target: Number(initial.q2_target ?? 0),
+    q3_target: Number(initial.q3_target ?? 0),
+    q4_target: Number(initial.q4_target ?? 0),
+    weekly_meetings_target: Number(initial.weekly_meetings_target ?? 0),
+  };
+}
+
 function EditTargetsModal({
   profileId, initial, onClose, onSaved,
 }: {
@@ -425,15 +469,7 @@ function EditTargetsModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [form, setForm] = useState({
-    start_date: initial.start_date ?? "",
-    annual_target: Number(initial.annual_target ?? 0),
-    q1_target: Number(initial.q1_target ?? 0),
-    q2_target: Number(initial.q2_target ?? 0),
-    q3_target: Number(initial.q3_target ?? 0),
-    q4_target: Number(initial.q4_target ?? 0),
-    weekly_meetings_target: Number(initial.weekly_meetings_target ?? 0),
-  });
+  const [form, setForm] = useState(() => defaultForm(initial));
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -495,24 +531,6 @@ function EditTargetsModal({
     }
   };
 
-  const inputCls = "h-9 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary";
-  const Field = ({ label, name, type = "number", min, max, step, dirRtl }: { label: string; name: keyof typeof form; type?: string; min?: number; max?: number; step?: number; dirRtl?: boolean }) => (
-    <label className="block">
-      <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
-      <input
-        type={type}
-        min={min}
-        max={max}
-        step={step}
-        value={form[name] as any}
-        onChange={(e) => setForm((f) => ({ ...f, [name]: type === "number" ? Number(e.target.value) : e.target.value }))}
-        className={inputCls}
-        dir={dirRtl ? "rtl" : undefined}
-      />
-      {errors[name as string] && <span className="mt-1 block text-[11px] font-semibold text-rose-600">{errors[name as string]}</span>}
-    </label>
-  );
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose}>
       <div className="w-full max-w-xl rounded-2xl border border-border bg-card p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -521,14 +539,14 @@ function EditTargetsModal({
           <button onClick={onClose} className="rounded-lg p-1 text-muted-foreground hover:bg-accent"><X className="h-4 w-4" /></button>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Employment start date" name="start_date" type="date" />
-          <Field label="Weekly meetings target" name="weekly_meetings_target" type="number" min={0} max={100} step={1} />
-          <Field label="Annual target" name="annual_target" type="number" min={0} step={100} />
+          <EditField label="Employment start date" name="start_date" type="date" form={form} errors={errors} setForm={setForm} />
+          <EditField label="Weekly meetings target" name="weekly_meetings_target" type="number" min={0} max={100} step={1} form={form} errors={errors} setForm={setForm} />
+          <EditField label="Annual target" name="annual_target" type="number" min={0} step={100} form={form} errors={errors} setForm={setForm} />
           <div />
-          <Field label="Q1 target" name="q1_target" type="number" min={0} step={100} />
-          <Field label="Q2 target" name="q2_target" type="number" min={0} step={100} />
-          <Field label="Q3 target" name="q3_target" type="number" min={0} step={100} />
-          <Field label="Q4 target" name="q4_target" type="number" min={0} step={100} />
+          <EditField label="Q1 target" name="q1_target" type="number" min={0} step={100} form={form} errors={errors} setForm={setForm} />
+          <EditField label="Q2 target" name="q2_target" type="number" min={0} step={100} form={form} errors={errors} setForm={setForm} />
+          <EditField label="Q3 target" name="q3_target" type="number" min={0} step={100} form={form} errors={errors} setForm={setForm} />
+          <EditField label="Q4 target" name="q4_target" type="number" min={0} step={100} form={form} errors={errors} setForm={setForm} />
         </div>
         <div className="mt-6 flex justify-end gap-2 border-t border-border pt-4">
           <button onClick={onClose} className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent">Cancel</button>
