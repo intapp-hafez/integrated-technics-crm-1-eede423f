@@ -51,6 +51,7 @@ import { Route as AdminProjectsRouteImport } from './routes/admin.projects'
 import { Route as AdminPipelineRouteImport } from './routes/admin.pipeline'
 import { Route as AdminOffersRouteImport } from './routes/admin.offers'
 import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
+import { Route as AdminManagersRouteImport } from './routes/admin.managers'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 import { Route as AdminHistoryRouteImport } from './routes/admin.history'
 import { Route as AdminEmployeesRouteImport } from './routes/admin.employees'
@@ -75,6 +76,7 @@ import { Route as EmployeeActivitiesActivityIdRouteImport } from './routes/emplo
 import { Route as AdminProjectsProjectIdRouteImport } from './routes/admin.projects.$projectId'
 import { Route as AdminOffersQuotationIdRouteImport } from './routes/admin.offers.$quotationId'
 import { Route as AdminNotificationsSettingsRouteImport } from './routes/admin.notifications.settings'
+import { Route as AdminManagersManagerIdRouteImport } from './routes/admin.managers.$managerId'
 import { Route as AdminLeadsLeadIdRouteImport } from './routes/admin.leads.$leadId'
 import { Route as AdminEmployeesEmployeeIdRouteImport } from './routes/admin.employees.$employeeId'
 import { Route as AdminActivitiesActivityIdRouteImport } from './routes/admin.activities.$activityId'
@@ -289,6 +291,11 @@ const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminManagersRoute = AdminManagersRouteImport.update({
+  id: '/managers',
+  path: '/managers',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLeadsRoute = AdminLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -419,6 +426,11 @@ const AdminNotificationsSettingsRoute =
     path: '/settings',
     getParentRoute: () => AdminNotificationsRoute,
   } as any)
+const AdminManagersManagerIdRoute = AdminManagersManagerIdRouteImport.update({
+  id: '/$managerId',
+  path: '/$managerId',
+  getParentRoute: () => AdminManagersRoute,
+} as any)
 const AdminLeadsLeadIdRoute = AdminLeadsLeadIdRouteImport.update({
   id: '/$leadId',
   path: '/$leadId',
@@ -451,6 +463,7 @@ export interface FileRoutesByFullPath {
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
   '/admin/leads': typeof AdminLeadsRouteWithChildren
+  '/admin/managers': typeof AdminManagersRouteWithChildren
   '/admin/notifications': typeof AdminNotificationsRouteWithChildren
   '/admin/offers': typeof AdminOffersRouteWithChildren
   '/admin/pipeline': typeof AdminPipelineRoute
@@ -491,6 +504,7 @@ export interface FileRoutesByFullPath {
   '/admin/activities/$activityId': typeof AdminActivitiesActivityIdRoute
   '/admin/employees/$employeeId': typeof AdminEmployeesEmployeeIdRoute
   '/admin/leads/$leadId': typeof AdminLeadsLeadIdRoute
+  '/admin/managers/$managerId': typeof AdminManagersManagerIdRoute
   '/admin/notifications/settings': typeof AdminNotificationsSettingsRoute
   '/admin/offers/$quotationId': typeof AdminOffersQuotationIdRoute
   '/admin/projects/$projectId': typeof AdminProjectsProjectIdRoute
@@ -518,6 +532,7 @@ export interface FileRoutesByTo {
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
   '/admin/leads': typeof AdminLeadsRouteWithChildren
+  '/admin/managers': typeof AdminManagersRouteWithChildren
   '/admin/notifications': typeof AdminNotificationsRouteWithChildren
   '/admin/offers': typeof AdminOffersRouteWithChildren
   '/admin/pipeline': typeof AdminPipelineRoute
@@ -558,6 +573,7 @@ export interface FileRoutesByTo {
   '/admin/activities/$activityId': typeof AdminActivitiesActivityIdRoute
   '/admin/employees/$employeeId': typeof AdminEmployeesEmployeeIdRoute
   '/admin/leads/$leadId': typeof AdminLeadsLeadIdRoute
+  '/admin/managers/$managerId': typeof AdminManagersManagerIdRoute
   '/admin/notifications/settings': typeof AdminNotificationsSettingsRoute
   '/admin/offers/$quotationId': typeof AdminOffersQuotationIdRoute
   '/admin/projects/$projectId': typeof AdminProjectsProjectIdRoute
@@ -590,6 +606,7 @@ export interface FileRoutesById {
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
   '/admin/leads': typeof AdminLeadsRouteWithChildren
+  '/admin/managers': typeof AdminManagersRouteWithChildren
   '/admin/notifications': typeof AdminNotificationsRouteWithChildren
   '/admin/offers': typeof AdminOffersRouteWithChildren
   '/admin/pipeline': typeof AdminPipelineRoute
@@ -630,6 +647,7 @@ export interface FileRoutesById {
   '/admin/activities/$activityId': typeof AdminActivitiesActivityIdRoute
   '/admin/employees/$employeeId': typeof AdminEmployeesEmployeeIdRoute
   '/admin/leads/$leadId': typeof AdminLeadsLeadIdRoute
+  '/admin/managers/$managerId': typeof AdminManagersManagerIdRoute
   '/admin/notifications/settings': typeof AdminNotificationsSettingsRoute
   '/admin/offers/$quotationId': typeof AdminOffersQuotationIdRoute
   '/admin/projects/$projectId': typeof AdminProjectsProjectIdRoute
@@ -663,6 +681,7 @@ export interface FileRouteTypes {
     | '/admin/employees'
     | '/admin/history'
     | '/admin/leads'
+    | '/admin/managers'
     | '/admin/notifications'
     | '/admin/offers'
     | '/admin/pipeline'
@@ -703,6 +722,7 @@ export interface FileRouteTypes {
     | '/admin/activities/$activityId'
     | '/admin/employees/$employeeId'
     | '/admin/leads/$leadId'
+    | '/admin/managers/$managerId'
     | '/admin/notifications/settings'
     | '/admin/offers/$quotationId'
     | '/admin/projects/$projectId'
@@ -730,6 +750,7 @@ export interface FileRouteTypes {
     | '/admin/employees'
     | '/admin/history'
     | '/admin/leads'
+    | '/admin/managers'
     | '/admin/notifications'
     | '/admin/offers'
     | '/admin/pipeline'
@@ -770,6 +791,7 @@ export interface FileRouteTypes {
     | '/admin/activities/$activityId'
     | '/admin/employees/$employeeId'
     | '/admin/leads/$leadId'
+    | '/admin/managers/$managerId'
     | '/admin/notifications/settings'
     | '/admin/offers/$quotationId'
     | '/admin/projects/$projectId'
@@ -801,6 +823,7 @@ export interface FileRouteTypes {
     | '/admin/employees'
     | '/admin/history'
     | '/admin/leads'
+    | '/admin/managers'
     | '/admin/notifications'
     | '/admin/offers'
     | '/admin/pipeline'
@@ -841,6 +864,7 @@ export interface FileRouteTypes {
     | '/admin/activities/$activityId'
     | '/admin/employees/$employeeId'
     | '/admin/leads/$leadId'
+    | '/admin/managers/$managerId'
     | '/admin/notifications/settings'
     | '/admin/offers/$quotationId'
     | '/admin/projects/$projectId'
@@ -1163,6 +1187,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminNotificationsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/managers': {
+      id: '/admin/managers'
+      path: '/managers'
+      fullPath: '/admin/managers'
+      preLoaderRoute: typeof AdminManagersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/leads': {
       id: '/admin/leads'
       path: '/leads'
@@ -1331,6 +1362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminNotificationsSettingsRouteImport
       parentRoute: typeof AdminNotificationsRoute
     }
+    '/admin/managers/$managerId': {
+      id: '/admin/managers/$managerId'
+      path: '/$managerId'
+      fullPath: '/admin/managers/$managerId'
+      preLoaderRoute: typeof AdminManagersManagerIdRouteImport
+      parentRoute: typeof AdminManagersRoute
+    }
     '/admin/leads/$leadId': {
       id: '/admin/leads/$leadId'
       path: '/$leadId'
@@ -1391,6 +1429,18 @@ const AdminLeadsRouteWithChildren = AdminLeadsRoute._addFileChildren(
   AdminLeadsRouteChildren,
 )
 
+interface AdminManagersRouteChildren {
+  AdminManagersManagerIdRoute: typeof AdminManagersManagerIdRoute
+}
+
+const AdminManagersRouteChildren: AdminManagersRouteChildren = {
+  AdminManagersManagerIdRoute: AdminManagersManagerIdRoute,
+}
+
+const AdminManagersRouteWithChildren = AdminManagersRoute._addFileChildren(
+  AdminManagersRouteChildren,
+)
+
 interface AdminNotificationsRouteChildren {
   AdminNotificationsSettingsRoute: typeof AdminNotificationsSettingsRoute
 }
@@ -1435,6 +1485,7 @@ interface AdminRouteChildren {
   AdminEmployeesRoute: typeof AdminEmployeesRouteWithChildren
   AdminHistoryRoute: typeof AdminHistoryRoute
   AdminLeadsRoute: typeof AdminLeadsRouteWithChildren
+  AdminManagersRoute: typeof AdminManagersRouteWithChildren
   AdminNotificationsRoute: typeof AdminNotificationsRouteWithChildren
   AdminOffersRoute: typeof AdminOffersRouteWithChildren
   AdminPipelineRoute: typeof AdminPipelineRoute
@@ -1455,6 +1506,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminEmployeesRoute: AdminEmployeesRouteWithChildren,
   AdminHistoryRoute: AdminHistoryRoute,
   AdminLeadsRoute: AdminLeadsRouteWithChildren,
+  AdminManagersRoute: AdminManagersRouteWithChildren,
   AdminNotificationsRoute: AdminNotificationsRouteWithChildren,
   AdminOffersRoute: AdminOffersRouteWithChildren,
   AdminPipelineRoute: AdminPipelineRoute,

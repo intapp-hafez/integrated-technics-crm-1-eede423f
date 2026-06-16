@@ -20,6 +20,8 @@ export const ar: Dict = {
   activities: "الأنشطة",
   projects: "الحسابات",
   employees: "الموظفون",
+  managers: "المديرون",
+  backToManagers: "العودة إلى المديرين",
   attendance: "الحضور والانصراف",
   history: "سجل العمليات",
   settings: "الإعدادات",

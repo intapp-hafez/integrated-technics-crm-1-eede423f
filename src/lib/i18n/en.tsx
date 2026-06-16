@@ -18,6 +18,8 @@ export const en = {
   activities: "Activities",
   projects: "Accounts",
   employees: "Employees",
+  managers: "Managers",
+  backToManagers: "Back to managers",
   attendance: "Attendance",
   history: "History",
   settings: "Settings",

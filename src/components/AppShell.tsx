@@ -42,6 +42,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/activities", icon: CalendarCheck, key: "activities" },
   { to: "/admin/projects", icon: Briefcase, key: "projects" },
   { to: "/admin/offers", icon: FileBadge, key: "offers" },
+  { to: "/admin/managers", icon: Users, key: "managers" },
   { to: "/admin/employees", icon: UserCircle2, key: "employees" },
   
   { to: "/admin/attendance", icon: Clock4, key: "attendance" },
