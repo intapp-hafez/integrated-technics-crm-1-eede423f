@@ -767,8 +767,29 @@ function UserRow({ user }: { user: AppUser }) {
                 <option value="monthly">Monthly</option>
               </select>
             </Field>
+            <Field label="Annual target">
+              <input type="number" min={0} value={(draft as any).annualTarget ?? (draft.targetValue ?? 0)} onChange={(e) => upd({ annualTarget: Number(e.target.value), targetValue: Number(e.target.value) } as any)} className={inputCls} />
+            </Field>
             <Field label="Skills (comma-separated)">
               <input value={skillsText} onChange={(e) => { setSkillsText(e.target.value); upd({ skills: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }); }} className={inputCls} />
+            </Field>
+            <Field label="Employment start date">
+              <input type="date" value={(draft as any).startDate ?? ""} onChange={(e) => upd({ startDate: e.target.value } as any)} className={inputCls} />
+            </Field>
+            <Field label="Q1 target">
+              <input type="number" min={0} value={(draft as any).q1Target ?? 0} onChange={(e) => upd({ q1Target: Number(e.target.value) } as any)} className={inputCls} />
+            </Field>
+            <Field label="Q2 target">
+              <input type="number" min={0} value={(draft as any).q2Target ?? 0} onChange={(e) => upd({ q2Target: Number(e.target.value) } as any)} className={inputCls} />
+            </Field>
+            <Field label="Q3 target">
+              <input type="number" min={0} value={(draft as any).q3Target ?? 0} onChange={(e) => upd({ q3Target: Number(e.target.value) } as any)} className={inputCls} />
+            </Field>
+            <Field label="Q4 target">
+              <input type="number" min={0} value={(draft as any).q4Target ?? 0} onChange={(e) => upd({ q4Target: Number(e.target.value) } as any)} className={inputCls} />
+            </Field>
+            <Field label="Meetings per week (target)">
+              <input type="number" min={0} value={(draft as any).weeklyMeetingsTarget ?? 0} onChange={(e) => upd({ weeklyMeetingsTarget: Number(e.target.value) } as any)} className={inputCls} />
             </Field>
           </div>
           <div className="mt-4 flex justify-end gap-2">

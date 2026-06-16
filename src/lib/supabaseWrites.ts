@@ -444,6 +444,13 @@ export async function sbUpdateProfile(profileId: string | undefined, patch: Part
   if (patch.avatarUrl !== undefined) row.avatar_url = patch.avatarUrl || null;
   if (patch.targetType !== undefined) row.target_type = patch.targetType;
   if (patch.targetValue !== undefined) row.target_value = patch.targetValue;
+  if ((patch as any).annualTarget !== undefined) { row.target_value = Number((patch as any).annualTarget); row.annual_target = Number((patch as any).annualTarget); }
+  if ((patch as any).q1Target !== undefined) row.q1_target = Number((patch as any).q1Target);
+  if ((patch as any).q2Target !== undefined) row.q2_target = Number((patch as any).q2Target);
+  if ((patch as any).q3Target !== undefined) row.q3_target = Number((patch as any).q3Target);
+  if ((patch as any).q4Target !== undefined) row.q4_target = Number((patch as any).q4Target);
+  if ((patch as any).weeklyMeetingsTarget !== undefined) row.weekly_meetings_target = Number((patch as any).weeklyMeetingsTarget);
+  if ((patch as any).startDate !== undefined) row.start_date = (patch as any).startDate || null;
   if (patch.skills !== undefined) row.skills = patch.skills;
   if (patch.active !== undefined) row.active = patch.active;
   if (patch.managerId !== undefined) row.manager_id = patch.managerId || null;
