@@ -179,7 +179,7 @@ function EmployeeDashboard() {
   const achieveRate = annualTarget > 0 ? (achievedTarget / annualTarget) * 100 : 0;
   const targetScore = Math.min(100, achieveRate);
 
-  const overallKpi = Math.round(targetScore * 0.4 + attendanceRate * 0.3 + activityScore * 0.3);
+  const overallKpi = Math.round(targetScore * 0.5 + activityScore * 0.5);
 
   return (
     <AppShell panel="employee" user={user} pageTitle={`${t("welcome")}, ${(profile.name || "there").split(" ")[0]} 👋`}>
@@ -387,7 +387,7 @@ function EmployeeDashboard() {
               <div className="flex-1 w-full space-y-2.5">
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-muted-foreground">Target Achievement KPI (Weight: 40%)</span>
+                    <span className="text-muted-foreground">Target Achievement KPI (Weight: 50%)</span>
                     <span className="text-foreground">{Math.min(100, achieveRate).toFixed(0)}%</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-secondary">
@@ -397,17 +397,7 @@ function EmployeeDashboard() {
 
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-muted-foreground">Attendance Rate (Weight: 30%)</span>
-                    <span className="text-foreground">{attendanceRate.toFixed(0)}%</span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-secondary">
-                    <div className="h-full bg-emerald-500" style={{ width: `${attendanceRate}%` }} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-muted-foreground">Activity Performance (Weight: 30%)</span>
+                    <span className="text-muted-foreground">Activity Performance (Weight: 50%)</span>
                     <span className="text-foreground">{activityScore.toFixed(0)}%</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-secondary">
