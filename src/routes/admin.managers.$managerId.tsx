@@ -73,7 +73,7 @@ function ManagerDetailsPage() {
   const mePhoto = authProfile?.avatar_url || undefined;
   const meInitials = meName.split(/\s+/).filter(Boolean).map((w) => w[0]?.toUpperCase()).join("").slice(0, 2) || "AD";
   const user = { name: meName, role: t("admin"), initials: meInitials, photo: mePhoto };
-  const [tab, setTab] = useState<"overview" | "attendance" | "leads" | "chat">("overview");
+  const [tab, setTab] = useState<"overview" | "attendance" | "leads" | "chat" | "team">("overview");
   const [monthOffset, setMonthOffset] = useState(0);
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>({});
   useEffect(() => { setActiveMap(loadActive()); }, []);
@@ -319,6 +319,7 @@ function ManagerDetailsPage() {
           { k: "overview", label: t("overview"), Icon: ActivityIcon },
           { k: "attendance", label: t("attendance"), Icon: CalendarDays },
           { k: "leads", label: `${t("relatedLeads")} (${empLeads.length})`, Icon: Users2 },
+          { k: "team", label: `${t("teamMembers") ?? "Team"} (${teamMembers.length})`, Icon: Users2 },
           { k: "chat", label: t("chat"), Icon: MessageCircle },
         ] as const).map(({ k, label, Icon }) => (
           <button
@@ -630,8 +631,10 @@ function ManagerDetailsPage() {
             </ol>
           </div>
         </div>
-        
-        {/* Team Members Section */}
+        </>
+      )}
+
+      {tab === "team" && (
         <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] lg:col-span-2">
           <div className="mb-4 flex items-center gap-2">
             <Users2 className="h-4 w-4 text-primary" />
@@ -667,7 +670,6 @@ function ManagerDetailsPage() {
             ))}
           </div>
         </div>
-        </>
       )}
     </AppShell>
   );
