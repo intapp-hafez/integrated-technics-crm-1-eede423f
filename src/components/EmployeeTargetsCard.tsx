@@ -209,30 +209,30 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
     <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-widest text-primary mb-1">Performance Metrics</div>
+          <div className={`text-[11px] font-bold uppercase ${isAr ? "" : "tracking-widest"} text-primary mb-1`}>{L.perfMetrics}</div>
           <h3 className="font-display text-xl font-bold text-foreground tracking-tight inline-flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" /> {title ?? "Employee Targets"}
+            <Target className="h-5 w-5 text-primary" /> {title ?? L.employeeTargets}
           </h3>
         </div>
         {canEdit && data?.id && (
           <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-accent">
-            <Pencil className="h-3.5 w-3.5" /> Edit
+            <Pencil className="h-3.5 w-3.5" /> {L.edit}
           </button>
         )}
       </div>
 
       {profileQuery.isLoading ? (
-        <div className="text-sm text-muted-foreground">Loading targets…</div>
+        <div className="text-sm text-muted-foreground">{L.loading}</div>
       ) : (
         <>
           {/* Employment start pill */}
           <div className="mb-5 flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 rounded-xl bg-secondary/40 px-4 py-2 border border-border">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl bg-secondary/40 px-4 py-2 border border-border">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Employment Start</span>
+              <span className={`text-[10px] font-bold uppercase ${isAr ? "" : "tracking-wider"} text-muted-foreground`}>{L.employmentStart}</span>
               <span className="text-sm font-bold text-foreground">{fmtDate(startDate)}</span>
               {tenureDays !== null && (
-                <span className="text-xs text-muted-foreground">· {tenureDays} days · {(tenureDays / 365).toFixed(1)} yrs</span>
+                <span className="text-xs text-muted-foreground">· {tenureDays} {L.days} · {(tenureDays / 365).toFixed(1)} {L.yrs}</span>
               )}
             </div>
           </div>
@@ -243,20 +243,20 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
             <div className="md:col-span-2 relative overflow-hidden rounded-2xl bg-slate-900 p-6 text-white shadow-lg">
               <div className="relative z-10 flex flex-col h-full justify-between">
                 <div>
-                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Annual Revenue Target ({y})</p>
+                  <p className={`text-slate-400 text-xs font-semibold uppercase ${isAr ? "" : "tracking-wider"} mb-2`}>{L.annualRevenueTarget} ({y})</p>
                   <div className="flex items-baseline gap-3 flex-wrap">
-                    <h3 className="text-3xl sm:text-4xl font-black tracking-tight">{fmtMoney(annualTarget)}</h3>
+                    <h3 className="text-3xl sm:text-4xl font-black tracking-tight" dir="ltr">{fmtMoney(annualTarget)}</h3>
                     {annualTarget > 0 && (
-                      <span className="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full ring-1 ring-primary/30">{annualPct.toFixed(0)}% Achieved</span>
+                      <span className="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full ring-1 ring-primary/30">{annualPct.toFixed(0)}% {L.achieved}</span>
                     )}
                   </div>
                 </div>
                 <div className="mt-6">
-                  <div className="flex justify-between text-xs font-bold mb-2">
-                    <span className="text-slate-400">Progress: {annualPct.toFixed(0)}%</span>
-                    <span className="text-primary">{fmtMoney(annualAchieved)} Achieved</span>
+                  <div className="flex justify-between gap-3 text-xs font-bold mb-2">
+                    <span className="text-slate-400">{L.progress}: {annualPct.toFixed(0)}%</span>
+                    <span className="text-primary" dir={isAr ? "rtl" : "ltr"}>{fmtMoney(annualAchieved)} {L.achieved}</span>
                   </div>
-                  <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner">
+                  <div className="flex w-full bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner">
                     <div
                       className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.4)]"
                       style={{ width: `${Math.min(100, annualPct)}%` }}
@@ -264,20 +264,20 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                   </div>
                 </div>
               </div>
-              <div className="absolute -right-12 -top-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
+              <div className={`absolute ${isAr ? "-left-12" : "-right-12"} -top-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl`} />
             </div>
 
             {/* Meetings this week */}
             <div className="rounded-2xl border-2 border-secondary/60 bg-card p-5 flex flex-col justify-between shadow-sm">
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start gap-3">
                 <div>
-                  <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Meetings this Week</p>
-                  <h3 className="text-4xl font-black text-foreground mt-2">
+                  <p className={`text-muted-foreground text-xs font-semibold uppercase ${isAr ? "" : "tracking-wider"}`}>{L.meetingsThisWeek}</p>
+                  <h3 className="text-4xl font-black text-foreground mt-2" dir="ltr">
                     {meetingsDone}
                     <span className="text-muted-foreground text-2xl font-medium">/{meetingsTarget}</span>
                   </h3>
                 </div>
-                <div className="bg-primary/10 p-2.5 rounded-xl">
+                <div className="bg-primary/10 p-2.5 rounded-xl shrink-0">
                   <Users2 className="h-6 w-6 text-primary" />
                 </div>
               </div>
@@ -294,7 +294,7 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                   <span className="text-[10px] font-black text-muted-foreground w-8 text-end">{meetingsPct.toFixed(0)}%</span>
                 </div>
                 <div className={`text-[11px] font-bold ${meetingsPct >= 100 ? "text-emerald-600" : meetingsPct >= 60 ? "text-amber-600" : "text-rose-600"}`}>
-                  {meetingsDone} of {meetingsTarget} required
+                  {meetingsDone} {L.of} {meetingsTarget} {L.required}
                 </div>
               </div>
             </div>
