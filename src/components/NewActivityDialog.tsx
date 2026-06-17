@@ -221,11 +221,11 @@ export function NewActivityDialog({ onClose }: Props) {
 
           {step === 3 && !canAssignOthers && (
             <div>
-              <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700 ring-1 ring-amber-200">
-                <Lock className="h-3 w-3" />
+              <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                <CheckCircle2 className="h-3 w-3" />
                 {dir === "rtl"
-                  ? "سيتم تعيين هذا النشاط لك بانتظار اعتماد المدير"
-                  : "This activity will be assigned to you, pending manager approval"}
+                  ? "سيتم تعيين هذا النشاط لك وتمت الموافقة عليه تلقائياً"
+                  : "This activity will be assigned to you and auto-approved"}
               </div>
               <div className="flex items-center gap-3 rounded-xl border border-primary/40 bg-primary/5 p-3">
                 {profile?.avatarUrl ? (
