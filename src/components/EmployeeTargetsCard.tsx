@@ -395,17 +395,17 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                         Q{qn}{isCurrent && <span className={`${isAr ? "mr-1" : "ml-1"} rounded-sm bg-primary/15 px-1 py-0.5 text-[9px] uppercase tracking-wider text-primary`}>{L.now}</span>}
                       </td>
                       <td className="py-2.5 text-xs text-muted-foreground" dir="ltr">{period}</td>
-                      <td className="py-2.5 text-end font-mono text-xs text-foreground">{fmtMoney(tg)}</td>
-                      <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground">{fmtMoney(ach)}</td>
-                      <td className={`py-2.5 text-end font-mono text-xs font-semibold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                      <td className="py-2.5 text-end font-mono text-xs text-foreground" dir="ltr">{fmtMoney(tg)}</td>
+                      <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground" dir="ltr">{fmtMoney(ach)}</td>
+                      <td className={`py-2.5 text-end font-mono text-xs font-semibold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`} dir="ltr">
                         {gap >= 0 ? "+" : ""}{fmtMoney(gap)}
                       </td>
-                      <td className="py-2.5 text-end text-xs text-foreground">{qWonCounts[i]}</td>
-                      <td className="py-2.5 text-end text-xs text-foreground">{qMeetings[i]}</td>
+                      <td className="py-2.5 text-end text-xs text-foreground" dir="ltr">{qWonCounts[i]}</td>
+                      <td className="py-2.5 text-end text-xs text-foreground" dir="ltr">{qMeetings[i]}</td>
                       <td className="py-2.5 px-2">
                         <div className="flex items-center gap-2">
                           <div className="flex-1"><Bar value={ach} max={tg} tone={tone} /></div>
-                          <span className={`w-10 text-end text-[11px] font-bold ${pct >= 100 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-rose-600"}`}>{pct.toFixed(0)}%</span>
+                          <span className={`w-10 text-end text-[11px] font-bold ${pct >= 100 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-rose-600"}`} dir="ltr">{pct.toFixed(0)}%</span>
                         </div>
                       </td>
                     </tr>
@@ -420,17 +420,17 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                   return (
                     <tr className="bg-secondary/40">
                       <td className="py-2.5 font-bold text-foreground" colSpan={2}>{L.yearTotal}</td>
-                      <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground">{fmtMoney(tg)}</td>
-                      <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground">{fmtMoney(ach)}</td>
-                      <td className={`py-2.5 text-end font-mono text-xs font-bold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                      <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground" dir="ltr">{fmtMoney(tg)}</td>
+                      <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground" dir="ltr">{fmtMoney(ach)}</td>
+                      <td className={`py-2.5 text-end font-mono text-xs font-bold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`} dir="ltr">
                         {gap >= 0 ? "+" : ""}{fmtMoney(gap)}
                       </td>
-                      <td className="py-2.5 text-end text-xs font-bold text-foreground">{qWonCounts.reduce((s, v) => s + v, 0)}</td>
-                      <td className="py-2.5 text-end text-xs font-bold text-foreground">{qMeetings.reduce((s, v) => s + v, 0)}</td>
+                      <td className="py-2.5 text-end text-xs font-bold text-foreground" dir="ltr">{qWonCounts.reduce((s, v) => s + v, 0)}</td>
+                      <td className="py-2.5 text-end text-xs font-bold text-foreground" dir="ltr">{qMeetings.reduce((s, v) => s + v, 0)}</td>
                       <td className="py-2.5 px-2">
                         <div className="flex items-center gap-2">
                           <div className="flex-1"><Bar value={ach} max={tg} tone={tone} /></div>
-                          <span className={`w-10 text-end text-[11px] font-bold ${pct >= 100 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-rose-600"}`}>{pct.toFixed(0)}%</span>
+                          <span className={`w-10 text-end text-[11px] font-bold ${pct >= 100 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-rose-600"}`} dir="ltr">{pct.toFixed(0)}%</span>
                         </div>
                       </td>
                     </tr>
