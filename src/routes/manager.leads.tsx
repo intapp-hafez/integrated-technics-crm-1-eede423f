@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";
@@ -72,12 +73,14 @@ function ManagerLeadsListPage() {
   const totalValue = filtered.reduce((s, l) => s + (l.value || 0), 0);
   const wonCount = filtered.filter((l) => l.status === "won").length;
 
+  const { profile } = useAuth();
+  const meName = profile?.full_name_en || profile?.full_name_ar || "hafez Rahim";
+
   const user = {
-    name: "hafez Rahim",
+    name: meName,
     role: t("manager"),
-    initials: "HR",
-    photo:
-      "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
+    initials: meName.split(/\s+/).filter(Boolean).map((w: string) => w[0]?.toUpperCase()).join("").slice(0, 2) || "HR",
+    photo: profile?.avatar_url || "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
   };
 
   return (
@@ -306,9 +309,9 @@ function LeadFormModal({ initial, locations, teamEmployees, user, onClose }: { i
           <button onClick={onClose} className="rounded-lg p-1 text-muted-foreground hover:bg-accent"><X className="h-4 w-4" /></button>
         </div>
         <div className="grid max-h-[70vh] grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-2">
-          <Field label={t("project") ?? "Account"}>
+          <Field label={t("account" as any) ?? "Account"}>
             <select value={projectId} onChange={(e) => onProjectChange(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
-              <option value="">{t("selectProjectPlaceholder") ?? "Select account..."}</option>
+              <option value="">{t("selectAccountPlaceholder" as any) ?? "Select account..."}</option>
               {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </Field>
