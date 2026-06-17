@@ -95,7 +95,7 @@ function Bar({ value, max, tone }: { value: number; max: number; tone: "primary"
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   const cls = tone === "emerald" ? "bg-emerald-500" : tone === "amber" ? "bg-amber-500" : tone === "rose" ? "bg-rose-500" : tone === "sky" ? "bg-sky-500" : "bg-primary";
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+    <div className="flex h-2 w-full overflow-hidden rounded-full bg-secondary">
       <div className={`h-full ${cls}`} style={{ width: `${pct}%` }} />
     </div>
   );
