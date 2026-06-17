@@ -4,7 +4,8 @@ import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
-import { LayoutGrid, List, TrendingUp, Clock4, Phone, Mail, Building2 } from "lucide-react";
+import { LayoutGrid, List, TrendingUp, Clock4, Phone, Mail } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/manager/employees/")({
@@ -135,8 +136,8 @@ function ManagerEmployeesPage() {
 
                 {/* ── COMPANY BRANDING top-right ── */}
                 <div className="absolute top-3 right-4 z-20 flex flex-col items-end gap-0.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-                    <Building2 className="h-4 w-4 text-primary" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20 p-1">
+                    <img src={logo} alt="INT-CRM Logo" className="h-full w-full object-contain drop-shadow-sm" />
                   </div>
                   <span className="text-[9px] font-extrabold uppercase tracking-widest text-primary">INT-CRM</span>
                 </div>
