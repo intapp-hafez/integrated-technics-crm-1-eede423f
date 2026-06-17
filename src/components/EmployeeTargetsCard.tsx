@@ -319,23 +319,23 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                       : 'bg-secondary/40 border border-transparent hover:bg-card hover:shadow-lg hover:shadow-primary/5 hover:border-border'
                   }`}
                 >
-                  <div className="flex justify-between items-center mb-4">
-                    <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${
+                  <div className="flex justify-between items-center mb-4 gap-2">
+                    <span className={`text-[10px] font-black uppercase ${isAr ? "" : "tracking-widest"} transition-colors ${
                       isFuture ? 'text-muted-foreground' : 'text-muted-foreground group-hover:text-primary'
-                    }`}>Q{qn} Focus</span>
-                    <div className={`w-2 h-2 rounded-full ${
+                    }`}>{isAr ? `${L.focus} الربع ${qn}` : `Q${qn} ${L.focus}`}</span>
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${
                       isPast ? 'bg-emerald-500 ring-4 ring-emerald-500/20' :
                       isCurrent ? 'bg-primary animate-pulse ring-4 ring-primary/20' :
                       'bg-muted-foreground/30'
                     }`} />
                   </div>
-                  <p className={`text-xl font-extrabold ${isFuture ? 'text-muted-foreground' : 'text-foreground'}`}>
+                  <p className={`text-xl font-extrabold ${isFuture ? 'text-muted-foreground' : 'text-foreground'}`} dir="ltr">
                     {fmtMoney(t)}
                   </p>
                   <p className={`text-[10px] font-medium mb-3 ${isFuture ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
-                    {isPast ? 'Completed' : isCurrent ? `${pct.toFixed(0)}% Progress` : 'Scheduled'}
+                    {isPast ? L.completed : isCurrent ? `${pct.toFixed(0)}% ${L.progressShort}` : L.scheduled}
                   </p>
-                  <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
+                  <div className="flex w-full bg-secondary rounded-full h-1.5 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
                         isPast ? 'bg-emerald-500' :
@@ -346,8 +346,8 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                     />
                   </div>
                   {!isFuture && (
-                    <p className="mt-2 text-[10px] font-bold text-muted-foreground">
-                      {fmtMoney(ach)} achieved
+                    <p className="mt-2 text-[10px] font-bold text-muted-foreground" dir={isAr ? "rtl" : "ltr"}>
+                      {isAr ? `${fmtMoney(ach)} ${L.achieved}` : `${fmtMoney(ach)} achieved`}
                     </p>
                   )}
                 </div>
