@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
-import { LayoutGrid, List, TrendingUp, Clock4 } from "lucide-react";
+import { LayoutGrid, List, TrendingUp, Clock4, Phone, Mail, Building2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/manager/employees/")({
@@ -110,60 +110,121 @@ function ManagerEmployeesPage() {
 
       {/* ─── CARD VIEW ─── */}
       {view === "card" && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((e) => {
             const myLeads = empLeads(e.name);
             const won = myLeads.filter((l) => l.status === "won").length;
+            const targetPerc = e.annualTarget ? Math.round(((e.achievedTarget ?? 0) / e.annualTarget) * 100) : e.perf;
+            const perfColor = targetPerc >= 100 ? "text-emerald-500" : targetPerc >= 75 ? "text-amber-500" : "text-rose-500";
+            const perfBg = targetPerc >= 100 ? "from-emerald-400 to-emerald-600" : targetPerc >= 75 ? "from-amber-400 to-amber-600" : "from-rose-400 to-rose-600";
             return (
               <div
                 key={e.id}
-                className="group rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] transition hover:-translate-y-0.5 hover:border-primary hover:shadow-lg overflow-hidden"
+                className="group relative overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
-                {/* Card header with gradient */}
-                <div className="relative flex items-center gap-4 p-5 pb-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.08), hsl(var(--primary)/0.02))" }}>
-                  <Avatar initials={e.avatar} photo={e.photo} name={e.name} size="lg" />
-                  <div className="min-w-0 flex-1">
-                    <div className="font-display text-base font-bold text-foreground">{e.name}</div>
-                    <div className="text-xs text-muted-foreground">{e.role}</div>
-                    <span className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${DEPT_COLORS[e.department] ?? "bg-secondary text-foreground"}`}>
+                {/* === ID CARD HEADER STRIP === */}
+                <div
+                  className="relative h-24 w-full"
+                  style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.6), hsl(20 95% 55%))" }}
+                >
+                  {/* Decorative circles */}
+                  <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10" />
+                  <div className="absolute -left-4 bottom-0 h-16 w-16 rounded-full bg-white/10" />
+                  {/* Company tag */}
+                  <div className="absolute left-4 top-3 flex items-center gap-1.5">
+                    <div className="h-5 w-5 rounded bg-white/20 flex items-center justify-center">
+                      <Building2 className="h-3 w-3 text-white" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/80">INT-CRM</span>
+                  </div>
+                  {/* Dept badge */}
+                  <div className="absolute right-3 bottom-3">
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white backdrop-blur-sm`}>
                       {e.department}
                     </span>
                   </div>
-                  <div className="text-end">
-                    <div className="font-mono text-2xl font-extrabold text-primary">{e.perf}%</div>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("performance")}</div>
+                </div>
+
+                {/* === AVATAR overlapping header === */}
+                <div className="relative flex justify-center">
+                  <div className="absolute -top-9 flex flex-col items-center">
+                    {e.photo ? (
+                      <img
+                        src={e.photo}
+                        alt={e.name}
+                        loading="lazy"
+                        className="h-[72px] w-[72px] rounded-2xl object-cover ring-4 ring-card shadow-xl"
+                      />
+                    ) : (
+                      <div className="h-[72px] w-[72px] flex items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-orange-600 text-2xl font-bold text-white ring-4 ring-card shadow-xl">
+                        {e.avatar}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="px-5 pb-2">
-                  <PerfBar value={e.perf} />
-                </div>
+                {/* === NAME / INFO BLOCK === */}
+                <div className="px-5 pb-0 pt-12 text-center">
+                  <div className="font-display text-lg font-extrabold text-foreground leading-tight">{e.name}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">{e.role}</div>
 
-                {/* Stats row */}
-                <div className="grid grid-cols-3 divide-x divide-border border-t border-border text-center">
-                  <div className="py-3">
-                    <div className="font-mono text-lg font-bold text-foreground">{myLeads.length}</div>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("leads")}</div>
+                  {/* Contact chips */}
+                  <div className="mt-3 flex flex-col items-center gap-1.5 text-[11px] text-muted-foreground">
+                    {e.phone && (
+                      <div className="inline-flex items-center gap-1.5">
+                        <Phone className="h-3 w-3 text-primary" />
+                        <span className="font-mono">{e.phone}</span>
+                      </div>
+                    )}
+                    {e.email && (
+                      <div className="inline-flex items-center gap-1.5 truncate max-w-full">
+                        <Mail className="h-3 w-3 shrink-0 text-primary" />
+                        <span className="font-mono truncate">{e.email}</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="py-3">
-                    <div className="font-mono text-lg font-bold text-emerald-600">{won}</div>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("won")}</div>
-                  </div>
-                  <div className="py-3">
-                    <div className="inline-flex items-center gap-1 font-mono text-lg font-bold text-foreground">
-                      <Clock4 className="h-3.5 w-3.5 text-primary" /> {hoursToday(e.name)}
+
+                  {/* Performance bar */}
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between text-[10px] font-bold mb-1">
+                      <span className="text-muted-foreground uppercase tracking-wider">{t("performance")}</span>
+                      <span className={perfColor}>{targetPerc}%</span>
                     </div>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("today")}</div>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                      <div
+                        className={`h-full rounded-full bg-gradient-to-r ${perfBg} transition-all duration-700`}
+                        style={{ width: `${Math.min(targetPerc, 100)}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="border-t border-border px-5 py-3">
+                {/* === STATS ROW === */}
+                <div className="mx-4 my-4 grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-secondary/40 text-center">
+                  <div className="py-2.5">
+                    <div className="font-mono text-base font-extrabold text-foreground">{myLeads.length}</div>
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{t("leads")}</div>
+                  </div>
+                  <div className="py-2.5">
+                    <div className="font-mono text-base font-extrabold text-emerald-600">{won}</div>
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{t("won")}</div>
+                  </div>
+                  <div className="py-2.5">
+                    <div className="inline-flex items-center gap-0.5 font-mono text-base font-extrabold text-foreground">
+                      <Clock4 className="h-3 w-3 text-primary" /> {hoursToday(e.name)}
+                    </div>
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{t("today")}</div>
+                  </div>
+                </div>
+
+                {/* === VIEW PROFILE BUTTON === */}
+                <div className="px-4 pb-4">
                   <Link
                     to="/manager/employees/$employeeId"
                     params={{ employeeId: e.id }}
-                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary ring-1 ring-primary/20 transition hover:bg-primary hover:text-primary-foreground"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-orange-500 px-4 py-2.5 text-sm font-bold text-white shadow-[var(--shadow-brand)] transition hover:opacity-90"
                   >
-                    <TrendingUp className="h-3.5 w-3.5" />
+                    <TrendingUp className="h-4 w-4" />
                     {dir === "rtl" ? "عرض الملف" : "View Profile"}
                   </Link>
                 </div>
