@@ -104,6 +104,7 @@ export async function sbAddActivity(id: string, a: Activity) {
     est_minutes: a.estMinutes ?? 60,
     presales_team: (a.presalesTeam ?? []).map((n) => ownerId(n)).filter(Boolean) as string[],
     created_by: currentUserId,
+    approval_status: a.approvalStatus ?? "approved",
   });
   if (error) warn("Save activity", error);
 }
