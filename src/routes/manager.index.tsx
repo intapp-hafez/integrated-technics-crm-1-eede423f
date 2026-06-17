@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { useI18n } from "@/lib/i18n";
@@ -17,7 +18,25 @@ function ManagerDashboard() {
   const { t, dir } = useI18n();
   const { activities: storeActivities, leads: storeLeads } = useStoreState();
   const { teamEmployees: employees, includesOwner } = useMyTeam();
-  const user = { name: "hafez Rahim", role: t("manager"), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" };
+  const { profile } = useAuth();
+  const meName = profile?.full_name_en || profile?.full_name_ar || "hafez Rahim";
+  const user = { 
+    name: meName, 
+    role: t("manager"), 
+    initials: meName.split(/\s+/).filter(Boolean).map((w: string) => w[0]?.toUpperCase()).join("").slice(0, 2) || "HR", 
+    photo: profile?.avatar_url || "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" 
+  };
+
+  const managerEmployee = employees.find((e: any) => e.name === meName || e.id === profile?.id);
+  const myEmployees = employees.filter((e: any) => e !== managerEmployee);
+
+  const managerTarget = managerEmployee?.annualTarget || 0;
+  const managerAchieved = managerEmployee?.achievedTarget || 0;
+  const teamTarget = myEmployees.reduce((sum: number, e: any) => sum + (e.annualTarget || 0), 0);
+  const teamAchieved = myEmployees.reduce((sum: number, e: any) => sum + (e.achievedTarget || 0), 0);
+
+  const totalTarget = managerTarget + teamTarget;
+  const totalAchieved = managerAchieved + teamAchieved;
 
   const teamLeads = useMemo(() => storeLeads.filter((l) => includesOwner(l.owner)), [storeLeads, includesOwner]);
   const teamActivities = useMemo(() => storeActivities.filter((a) => includesOwner(a.owner)), [storeActivities, includesOwner]);
@@ -28,9 +47,9 @@ function ManagerDashboard() {
   const todayActs = teamActivities.filter((a) => a.dueDate === new Date().toISOString().slice(0, 10));
   const doneToday = todayActs.filter((a) => a.status === "done").length;
 
-  const topEmployees = useMemo(() =>
-    [...employees].sort((a, b) => b.perf - a.perf).slice(0, 5),
-    [employees]
+  const teamMembers = useMemo(() =>
+    [...myEmployees].sort((a, b) => b.perf - a.perf),
+    [myEmployees]
   );
 
   const recentActivities = useMemo(() =>
@@ -49,14 +68,36 @@ function ManagerDashboard() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Team performance */}
+        {/* Targets Breakdown */}
+        <div className="lg:col-span-3 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
+          <h3 className="mb-4 font-display text-base font-bold text-foreground">{dir === "rtl" ? "تفصيل المستهدف" : "Target Breakdown"}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="rounded-xl bg-primary/10 p-5 border border-primary/20 flex flex-col justify-center">
+               <div className="text-xs text-primary font-bold uppercase tracking-wider">{dir === "rtl" ? "المستهدف الإجمالي" : "Total Team Target"}</div>
+               <div className="mt-1 font-mono text-3xl font-black text-foreground">{fmtMoney(totalTarget)}</div>
+               <div className="text-sm text-primary/80 mt-2 font-semibold">Achieved: {fmtMoney(totalAchieved)}</div>
+            </div>
+            <div className="rounded-xl bg-secondary/50 p-5 border border-border flex flex-col justify-center">
+               <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{dir === "rtl" ? "مستهدفي الشخصي" : "My Target"}</div>
+               <div className="mt-1 font-mono text-2xl font-bold text-foreground">{fmtMoney(managerTarget)}</div>
+               <div className="text-sm text-muted-foreground mt-2 font-medium">Achieved: {fmtMoney(managerAchieved)}</div>
+            </div>
+            <div className="rounded-xl bg-secondary/50 p-5 border border-border flex flex-col justify-center">
+               <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{dir === "rtl" ? "مستهدف الموظفين" : "Employees Target"}</div>
+               <div className="mt-1 font-mono text-2xl font-bold text-foreground">{fmtMoney(teamTarget)}</div>
+               <div className="text-sm text-muted-foreground mt-2 font-medium">Achieved: {fmtMoney(teamAchieved)}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Team Members */}
         <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-base font-bold text-foreground">{t("teamPerformance")}</h3>
+            <h3 className="font-display text-base font-bold text-foreground">{dir === "rtl" ? "أعضاء الفريق" : "Team Members"}</h3>
             <Link to="/manager/employees" className="text-xs font-semibold text-primary hover:underline">{t("viewAll")}</Link>
           </div>
           <div className="space-y-3">
-            {topEmployees.map((e, i) => {
+            {teamMembers.map((e, i) => {
               const targetPerc = e.annualTarget ? Math.round(((e.achievedTarget ?? 0) / e.annualTarget) * 100) : e.perf;
               const barColor = targetPerc >= 100 ? "from-emerald-400 to-emerald-600" : targetPerc >= 75 ? "from-amber-400 to-amber-600" : "from-rose-400 to-rose-600";
               const textColor = targetPerc >= 100 ? "text-emerald-600" : targetPerc >= 75 ? "text-amber-600" : "text-rose-600";
