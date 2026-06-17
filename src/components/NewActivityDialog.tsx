@@ -4,6 +4,7 @@ import { actions, useStoreState, type ActivityType } from "@/lib/store";
 import { employees as employeesData } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useRole } from "@/lib/role";
+import { useMyTeam } from "@/lib/useMyTeam";
 import { shortId } from "@/lib/utils";
 
 const ACT_I18N: Record<string, any> = {
@@ -17,7 +18,8 @@ interface Props {
 
 export function NewActivityDialog({ onClose }: Props) {
   const { t, dir } = useI18n();
-  const { leads, projects, settings, profile, employees: storeEmployees } = useStoreState();
+  const { leads, projects, settings, profile } = useStoreState();
+  const { teamEmployees } = useMyTeam();
   const { isAdmin, isManager } = useRole();
   const canAssignOthers = isAdmin || isManager;
   const myName = profile?.name && profile.name !== "—" ? profile.name : "";
@@ -51,12 +53,12 @@ export function NewActivityDialog({ onClose }: Props) {
     return Array.from(names);
   }, [lead, projectLeads]);
 
-  // Use real DB-synced employees only; fall back to mock data only when DB is empty.
+  // Use real DB-synced team employees only; fall back to mock data only when DB is empty.
   const allEmployees = useMemo(() => {
-    const real = (storeEmployees as any[]).filter((e) => e?.name);
+    const real = (teamEmployees as any[]).filter((e) => e?.name);
     if (real.length > 0) return real;
     return employeesData;
-  }, [storeEmployees]);
+  }, [teamEmployees]);
 
   // Keep employee assignee locked to self
   useEffect(() => { if (!canAssignOthers && myName && owner !== myName) setOwner(myName); }, [canAssignOthers, myName, owner]);
@@ -98,7 +100,7 @@ export function NewActivityDialog({ onClose }: Props) {
             <div>
               <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">{dir === "rtl" ? "نشاط جديد" : "New Activity"}</div>
               <h3 className="font-display text-lg font-bold text-foreground">
-                {dir === "rtl" ? "ابدأ بالمشروع، ثم العميل، ثم الموظف" : "Start with the project, then the lead, then the assignee"}
+                {dir === "rtl" ? "ابدأ بالحساب، ثم العميل، ثم الموظف" : "Start with the account, then the lead, then the assignee"}
               </h3>
             </div>
             <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="h-5 w-5" /></button>
@@ -135,7 +137,7 @@ export function NewActivityDialog({ onClose }: Props) {
           {step === 1 && (
             <div>
               <div className="mb-3 text-xs font-semibold text-muted-foreground">
-                {dir === "rtl" ? "اختر المشروع المرتبط بهذا النشاط" : "Pick the project this activity belongs to"}
+                {dir === "rtl" ? "اختر الحساب المرتبط بهذا النشاط" : "Pick the account this activity belongs to"}
               </div>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 max-h-[300px] overflow-y-auto pr-1">
                 {projects.map((p) => {
@@ -244,7 +246,7 @@ export function NewActivityDialog({ onClose }: Props) {
           {step === 3 && canAssignOthers && (
             <div>
               <div className="mb-3 text-xs font-semibold text-muted-foreground">
-                {dir === "rtl" ? "الموظفون المقترحون لهذا المشروع/العميل" : "Suggested assignees based on this project & lead"}
+                {dir === "rtl" ? "الموظفون المقترحون لهذا الحساب/العميل" : "Suggested assignees based on this account & lead"}
               </div>
               {suggestedOwners.length > 0 && (
                 <div className="mb-4">
