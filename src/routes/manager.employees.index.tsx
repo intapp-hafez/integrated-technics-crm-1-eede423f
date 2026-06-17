@@ -110,7 +110,7 @@ function ManagerEmployeesPage() {
 
       {/* ─── CARD VIEW ─── */}
       {view === "card" && (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((e) => {
             const myLeads = empLeads(e.name);
             const won = myLeads.filter((l) => l.status === "won").length;
@@ -120,112 +120,124 @@ function ManagerEmployeesPage() {
             return (
               <div
                 key={e.id}
-                className="group relative overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                className="group relative overflow-hidden rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-primary/30"
               >
-                {/* === ID CARD HEADER STRIP === */}
+                {/* ── TOP-LEFT orange triangle corner ── */}
                 <div
-                  className="relative h-24 w-full"
-                  style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.6), hsl(20 95% 55%))" }}
-                >
-                  {/* Decorative circles */}
-                  <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10" />
-                  <div className="absolute -left-4 bottom-0 h-16 w-16 rounded-full bg-white/10" />
-                  {/* Company tag */}
-                  <div className="absolute left-4 top-3 flex items-center gap-1.5">
-                    <div className="h-5 w-5 rounded bg-white/20 flex items-center justify-center">
-                      <Building2 className="h-3 w-3 text-white" />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/80">INT-CRM</span>
+                  className="absolute top-0 left-0 w-0 h-0 z-10"
+                  style={{ borderTop: "72px solid hsl(var(--primary))", borderRight: "72px solid transparent" }}
+                />
+                {/* ── BOTTOM-RIGHT orange triangle corner ── */}
+                <div
+                  className="absolute bottom-0 right-0 w-0 h-0 z-10"
+                  style={{ borderBottom: "72px solid hsl(var(--primary))", borderLeft: "72px solid transparent" }}
+                />
+
+                {/* ── COMPANY BRANDING top-right ── */}
+                <div className="absolute top-3 right-4 z-20 flex flex-col items-end gap-0.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+                    <Building2 className="h-4 w-4 text-primary" />
                   </div>
-                  {/* Dept badge */}
-                  <div className="absolute right-3 bottom-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white backdrop-blur-sm`}>
-                      {e.department}
+                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-primary">INT-CRM</span>
+                </div>
+
+                {/* ── PHOTO BLOCK ── */}
+                <div className="flex justify-center pt-6 pb-2">
+                  {e.photo ? (
+                    <img
+                      src={e.photo}
+                      alt={e.name}
+                      loading="lazy"
+                      className="h-28 w-28 rounded-xl object-cover shadow-lg ring-2 ring-primary/20"
+                    />
+                  ) : (
+                    <div className="h-28 w-28 flex items-center justify-center rounded-xl bg-gradient-to-br from-primary to-orange-500 text-4xl font-extrabold text-white shadow-lg ring-2 ring-primary/20">
+                      {e.avatar}
+                    </div>
+                  )}
+                </div>
+
+                {/* ── NAME + ROLE ── */}
+                <div className="px-5 text-start">
+                  <div className="font-display text-xl font-extrabold leading-tight text-foreground">{e.name}</div>
+                  <div className="mt-2">
+                    <span className="inline-block rounded-md bg-primary px-3 py-1 text-xs font-bold text-white tracking-wide shadow-sm">
+                      {e.role}
                     </span>
                   </div>
                 </div>
 
-                {/* === AVATAR overlapping header === */}
-                <div className="relative flex justify-center">
-                  <div className="absolute -top-9 flex flex-col items-center">
-                    {e.photo ? (
-                      <img
-                        src={e.photo}
-                        alt={e.name}
-                        loading="lazy"
-                        className="h-[72px] w-[72px] rounded-2xl object-cover ring-4 ring-card shadow-xl"
-                      />
-                    ) : (
-                      <div className="h-[72px] w-[72px] flex items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-orange-600 text-2xl font-bold text-white ring-4 ring-card shadow-xl">
-                        {e.avatar}
-                      </div>
-                    )}
+                {/* ── DIVIDER ── */}
+                <div className="mx-5 my-3 border-t border-dashed border-border" />
+
+                {/* ── INFO ROWS ── */}
+                <div className="px-5 space-y-1.5 text-[11px] font-medium">
+                  <div className="flex gap-2">
+                    <span className="w-14 font-bold text-foreground">{dir === "rtl" ? "القسم" : "Dept"}</span>
+                    <span className="text-muted-foreground">: {e.department}</span>
                   </div>
+                  {e.email && (
+                    <div className="flex gap-2 min-w-0">
+                      <span className="w-14 shrink-0 font-bold text-foreground">{dir === "rtl" ? "الإيميل" : "Email"}</span>
+                      <span className="truncate text-muted-foreground">: {e.email}</span>
+                    </div>
+                  )}
+                  {e.phone && (
+                    <div className="flex gap-2">
+                      <span className="w-14 font-bold text-foreground">{dir === "rtl" ? "الهاتف" : "Phone"}</span>
+                      <span className="font-mono text-muted-foreground">: {e.phone}</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* === NAME / INFO BLOCK === */}
-                <div className="px-5 pb-0 pt-12 text-center">
-                  <div className="font-display text-lg font-extrabold text-foreground leading-tight">{e.name}</div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">{e.role}</div>
-
-                  {/* Contact chips */}
-                  <div className="mt-3 flex flex-col items-center gap-1.5 text-[11px] text-muted-foreground">
-                    {e.phone && (
-                      <div className="inline-flex items-center gap-1.5">
-                        <Phone className="h-3 w-3 text-primary" />
-                        <span className="font-mono">{e.phone}</span>
-                      </div>
-                    )}
-                    {e.email && (
-                      <div className="inline-flex items-center gap-1.5 truncate max-w-full">
-                        <Mail className="h-3 w-3 shrink-0 text-primary" />
-                        <span className="font-mono truncate">{e.email}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Performance bar */}
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between text-[10px] font-bold mb-1">
-                      <span className="text-muted-foreground uppercase tracking-wider">{t("performance")}</span>
-                      <span className={perfColor}>{targetPerc}%</span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-                      <div
-                        className={`h-full rounded-full bg-gradient-to-r ${perfBg} transition-all duration-700`}
-                        style={{ width: `${Math.min(targetPerc, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* === STATS ROW === */}
-                <div className="mx-4 my-4 grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-secondary/40 text-center">
-                  <div className="py-2.5">
-                    <div className="font-mono text-base font-extrabold text-foreground">{myLeads.length}</div>
+                {/* ── STATS ROW ── */}
+                <div className="mx-5 mt-3 grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-secondary/50 text-center">
+                  <div className="py-2">
+                    <div className="font-mono text-sm font-extrabold text-foreground">{myLeads.length}</div>
                     <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{t("leads")}</div>
                   </div>
-                  <div className="py-2.5">
-                    <div className="font-mono text-base font-extrabold text-emerald-600">{won}</div>
+                  <div className="py-2">
+                    <div className="font-mono text-sm font-extrabold text-emerald-600">{won}</div>
                     <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{t("won")}</div>
                   </div>
-                  <div className="py-2.5">
-                    <div className="inline-flex items-center gap-0.5 font-mono text-base font-extrabold text-foreground">
-                      <Clock4 className="h-3 w-3 text-primary" /> {hoursToday(e.name)}
-                    </div>
+                  <div className="py-2">
+                    <div className="font-mono text-sm font-extrabold text-foreground">{hoursToday(e.name)}</div>
                     <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{t("today")}</div>
                   </div>
                 </div>
 
-                {/* === VIEW PROFILE BUTTON === */}
-                <div className="px-4 pb-4">
+                {/* ── PERFORMANCE BAR ── */}
+                <div className="mx-5 mt-3">
+                  <div className="flex items-center justify-between text-[10px] font-bold mb-1">
+                    <span className="text-muted-foreground uppercase tracking-wider">{t("performance")}</span>
+                    <span className={perfColor}>{targetPerc}%</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                    <div
+                      className={`h-full rounded-full bg-gradient-to-r ${perfBg} transition-all duration-700`}
+                      style={{ width: `${Math.min(targetPerc, 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* ── BARCODE FOOTER ── */}
+                <div className="mt-4 flex items-center gap-2 border-t border-border bg-secondary/30 px-5 py-2.5">
+                  <div className="flex flex-1 items-end gap-[2px] overflow-hidden" style={{ height: 28 }}>
+                    {Array.from({ length: 34 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="bg-foreground/40 rounded-[1px]"
+                        style={{ width: i % 3 === 0 ? 3 : 2, height: i % 5 === 0 ? 28 : i % 2 === 0 ? 20 : 24 }}
+                      />
+                    ))}
+                  </div>
                   <Link
                     to="/manager/employees/$employeeId"
                     params={{ employeeId: e.id }}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-orange-500 px-4 py-2.5 text-sm font-bold text-white shadow-[var(--shadow-brand)] transition hover:opacity-90"
+                    className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition hover:bg-primary/90"
                   >
-                    <TrendingUp className="h-4 w-4" />
-                    {dir === "rtl" ? "عرض الملف" : "View Profile"}
+                    <TrendingUp className="h-3 w-3" />
+                    {dir === "rtl" ? "عرض" : "View"}
                   </Link>
                 </div>
               </div>
