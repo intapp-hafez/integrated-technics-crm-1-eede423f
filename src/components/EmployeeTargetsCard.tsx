@@ -359,24 +359,24 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
 
       {!profileQuery.isLoading && (
         <div className="mt-6 rounded-lg border border-border bg-background p-4">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between gap-3 flex-wrap">
             <h4 className="font-display text-sm font-bold text-foreground inline-flex items-center gap-2">
-              <Target className="h-3.5 w-3.5 text-primary" /> Quarterly KPI breakdown ({y})
+              <Target className="h-3.5 w-3.5 text-primary" /> {L.quarterlyKpi} ({y})
             </h4>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Actual vs Target</div>
+            <div className={`text-[10px] uppercase ${isAr ? "" : "tracking-wider"} text-muted-foreground`}>{L.actualVsTarget}</div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
-                <tr className="border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <th className="py-2 text-start font-semibold">Quarter</th>
-                  <th className="py-2 text-start font-semibold">Period</th>
-                  <th className="py-2 text-end font-semibold">Target</th>
-                  <th className="py-2 text-end font-semibold">Achieved</th>
-                  <th className="py-2 text-end font-semibold">Δ Gap</th>
-                  <th className="py-2 text-end font-semibold">Won deals</th>
-                  <th className="py-2 text-end font-semibold">Meetings</th>
-                  <th className="py-2 px-2 text-start font-semibold w-[28%]">Progress</th>
+                <tr className={`border-b border-border text-[10px] uppercase ${isAr ? "" : "tracking-wider"} text-muted-foreground`}>
+                  <th className="py-2 text-start font-semibold">{L.quarter}</th>
+                  <th className="py-2 text-start font-semibold">{L.period}</th>
+                  <th className="py-2 text-end font-semibold">{L.target}</th>
+                  <th className="py-2 text-end font-semibold">{L.achieved}</th>
+                  <th className="py-2 text-end font-semibold">{L.gap}</th>
+                  <th className="py-2 text-end font-semibold">{L.wonDeals}</th>
+                  <th className="py-2 text-end font-semibold">{L.meetings}</th>
+                  <th className="py-2 px-2 text-start font-semibold w-[28%]">{L.progress}</th>
                 </tr>
               </thead>
               <tbody>
@@ -387,14 +387,14 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                   const pct = tg > 0 ? Math.min(100, (ach / tg) * 100) : 0;
                   const tone: Parameters<typeof Bar>[0]["tone"] = pct >= 100 ? "emerald" : pct >= 60 ? "amber" : qn === currentQ ? "primary" : "rose";
                   const b = quarterBounds(y, qn);
-                  const period = `${isoDay(b.startMs).slice(5)} → ${isoDay(b.endMs).slice(5)}`;
+                  const period = `${isoDay(b.startMs).slice(5)} – ${isoDay(b.endMs).slice(5)}`;
                   const isCurrent = qn === currentQ;
                   return (
                     <tr key={qn} className={`border-b border-border/60 last:border-0 ${isCurrent ? "bg-primary/5" : ""}`}>
                       <td className="py-2.5 font-bold text-foreground">
-                        Q{qn}{isCurrent && <span className="ml-1 rounded-sm bg-primary/15 px-1 py-0.5 text-[9px] uppercase tracking-wider text-primary">now</span>}
+                        Q{qn}{isCurrent && <span className={`${isAr ? "mr-1" : "ml-1"} rounded-sm bg-primary/15 px-1 py-0.5 text-[9px] uppercase tracking-wider text-primary`}>{L.now}</span>}
                       </td>
-                      <td className="py-2.5 text-xs text-muted-foreground">{period}</td>
+                      <td className="py-2.5 text-xs text-muted-foreground" dir="ltr">{period}</td>
                       <td className="py-2.5 text-end font-mono text-xs text-foreground">{fmtMoney(tg)}</td>
                       <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground">{fmtMoney(ach)}</td>
                       <td className={`py-2.5 text-end font-mono text-xs font-semibold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
