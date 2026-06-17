@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fmtMoney } from "@/lib/mock-data";
 import { CalendarDays, Target, Users2, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export interface EmployeeTargetsCardProps {
   /** The employee's auth user id — used to fetch the profile row. */
@@ -94,7 +95,7 @@ function Bar({ value, max, tone }: { value: number; max: number; tone: "primary"
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   const cls = tone === "emerald" ? "bg-emerald-500" : tone === "amber" ? "bg-amber-500" : tone === "rose" ? "bg-rose-500" : tone === "sky" ? "bg-sky-500" : "bg-primary";
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+    <div className="flex h-2 w-full overflow-hidden rounded-full bg-secondary">
       <div className={`h-full ${cls}`} style={{ width: `${pct}%` }} />
     </div>
   );
@@ -102,6 +103,37 @@ function Bar({ value, max, tone }: { value: number; max: number; tone: "primary"
 
 export function EmployeeTargetsCard({ userId, profileId, leads, activities, canEdit, title }: EmployeeTargetsCardProps) {
   const qc = useQueryClient();
+  const { lang } = useI18n();
+  const isAr = lang === "ar";
+  const L = {
+    perfMetrics: isAr ? "مؤشرات الأداء" : "Performance Metrics",
+    employeeTargets: isAr ? "أهداف الموظف" : "Employee Targets",
+    edit: isAr ? "تعديل" : "Edit",
+    loading: isAr ? "جارٍ تحميل الأهداف…" : "Loading targets…",
+    employmentStart: isAr ? "تاريخ بدء العمل" : "Employment Start",
+    days: isAr ? "يوم" : "days",
+    yrs: isAr ? "سنة" : "yrs",
+    annualRevenueTarget: isAr ? "هدف الإيرادات السنوي" : "Annual Revenue Target",
+    achieved: isAr ? "مُحقَّق" : "Achieved",
+    progress: isAr ? "التقدم" : "Progress",
+    meetingsThisWeek: isAr ? "اجتماعات هذا الأسبوع" : "Meetings this Week",
+    required: isAr ? "مطلوب" : "required",
+    of: isAr ? "من" : "of",
+    focus: isAr ? "تركيز" : "Focus",
+    completed: isAr ? "مكتمل" : "Completed",
+    progressShort: isAr ? "تقدم" : "Progress",
+    scheduled: isAr ? "مجدول" : "Scheduled",
+    quarterlyKpi: isAr ? "تفصيل مؤشرات الأداء الربعي" : "Quarterly KPI breakdown",
+    actualVsTarget: isAr ? "الفعلي مقابل الهدف" : "Actual vs Target",
+    quarter: isAr ? "الربع" : "Quarter",
+    period: isAr ? "الفترة" : "Period",
+    target: isAr ? "الهدف" : "Target",
+    gap: isAr ? "الفارق" : "Δ Gap",
+    wonDeals: isAr ? "صفقات مكتسبة" : "Won deals",
+    meetings: isAr ? "الاجتماعات" : "Meetings",
+    now: isAr ? "الآن" : "now",
+    yearTotal: isAr ? "إجمالي السنة" : "Year total",
+  };
   const [editing, setEditing] = useState(false);
 
   const profileQuery = useQuery({
@@ -177,30 +209,30 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
     <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-widest text-primary mb-1">Performance Metrics</div>
+          <div className={`text-[11px] font-bold uppercase ${isAr ? "" : "tracking-widest"} text-primary mb-1`}>{L.perfMetrics}</div>
           <h3 className="font-display text-xl font-bold text-foreground tracking-tight inline-flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" /> {title ?? "Employee Targets"}
+            <Target className="h-5 w-5 text-primary" /> {title ?? L.employeeTargets}
           </h3>
         </div>
         {canEdit && data?.id && (
           <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-accent">
-            <Pencil className="h-3.5 w-3.5" /> Edit
+            <Pencil className="h-3.5 w-3.5" /> {L.edit}
           </button>
         )}
       </div>
 
       {profileQuery.isLoading ? (
-        <div className="text-sm text-muted-foreground">Loading targets…</div>
+        <div className="text-sm text-muted-foreground">{L.loading}</div>
       ) : (
         <>
           {/* Employment start pill */}
           <div className="mb-5 flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 rounded-xl bg-secondary/40 px-4 py-2 border border-border">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl bg-secondary/40 px-4 py-2 border border-border">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Employment Start</span>
+              <span className={`text-[10px] font-bold uppercase ${isAr ? "" : "tracking-wider"} text-muted-foreground`}>{L.employmentStart}</span>
               <span className="text-sm font-bold text-foreground">{fmtDate(startDate)}</span>
               {tenureDays !== null && (
-                <span className="text-xs text-muted-foreground">· {tenureDays} days · {(tenureDays / 365).toFixed(1)} yrs</span>
+                <span className="text-xs text-muted-foreground">· {tenureDays} {L.days} · {(tenureDays / 365).toFixed(1)} {L.yrs}</span>
               )}
             </div>
           </div>
@@ -211,20 +243,20 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
             <div className="md:col-span-2 relative overflow-hidden rounded-2xl bg-slate-900 p-6 text-white shadow-lg">
               <div className="relative z-10 flex flex-col h-full justify-between">
                 <div>
-                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Annual Revenue Target ({y})</p>
+                  <p className={`text-slate-400 text-xs font-semibold uppercase ${isAr ? "" : "tracking-wider"} mb-2`}>{L.annualRevenueTarget} ({y})</p>
                   <div className="flex items-baseline gap-3 flex-wrap">
-                    <h3 className="text-3xl sm:text-4xl font-black tracking-tight">{fmtMoney(annualTarget)}</h3>
+                    <h3 className="text-3xl sm:text-4xl font-black tracking-tight" dir="ltr">{fmtMoney(annualTarget)}</h3>
                     {annualTarget > 0 && (
-                      <span className="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full ring-1 ring-primary/30">{annualPct.toFixed(0)}% Achieved</span>
+                      <span className="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full ring-1 ring-primary/30">{annualPct.toFixed(0)}% {L.achieved}</span>
                     )}
                   </div>
                 </div>
                 <div className="mt-6">
-                  <div className="flex justify-between text-xs font-bold mb-2">
-                    <span className="text-slate-400">Progress: {annualPct.toFixed(0)}%</span>
-                    <span className="text-primary">{fmtMoney(annualAchieved)} Achieved</span>
+                  <div className="flex justify-between gap-3 text-xs font-bold mb-2">
+                    <span className="text-slate-400">{L.progress}: {annualPct.toFixed(0)}%</span>
+                    <span className="text-primary" dir={isAr ? "rtl" : "ltr"}>{fmtMoney(annualAchieved)} {L.achieved}</span>
                   </div>
-                  <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner">
+                  <div className="flex w-full bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner">
                     <div
                       className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.4)]"
                       style={{ width: `${Math.min(100, annualPct)}%` }}
@@ -232,20 +264,20 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                   </div>
                 </div>
               </div>
-              <div className="absolute -right-12 -top-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
+              <div className={`absolute ${isAr ? "-left-12" : "-right-12"} -top-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl`} />
             </div>
 
             {/* Meetings this week */}
             <div className="rounded-2xl border-2 border-secondary/60 bg-card p-5 flex flex-col justify-between shadow-sm">
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start gap-3">
                 <div>
-                  <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Meetings this Week</p>
-                  <h3 className="text-4xl font-black text-foreground mt-2">
+                  <p className={`text-muted-foreground text-xs font-semibold uppercase ${isAr ? "" : "tracking-wider"}`}>{L.meetingsThisWeek}</p>
+                  <h3 className="text-4xl font-black text-foreground mt-2" dir="ltr">
                     {meetingsDone}
                     <span className="text-muted-foreground text-2xl font-medium">/{meetingsTarget}</span>
                   </h3>
                 </div>
-                <div className="bg-primary/10 p-2.5 rounded-xl">
+                <div className="bg-primary/10 p-2.5 rounded-xl shrink-0">
                   <Users2 className="h-6 w-6 text-primary" />
                 </div>
               </div>
@@ -262,7 +294,7 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                   <span className="text-[10px] font-black text-muted-foreground w-8 text-end">{meetingsPct.toFixed(0)}%</span>
                 </div>
                 <div className={`text-[11px] font-bold ${meetingsPct >= 100 ? "text-emerald-600" : meetingsPct >= 60 ? "text-amber-600" : "text-rose-600"}`}>
-                  {meetingsDone} of {meetingsTarget} required
+                  {meetingsDone} {L.of} {meetingsTarget} {L.required}
                 </div>
               </div>
             </div>
@@ -287,23 +319,23 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                       : 'bg-secondary/40 border border-transparent hover:bg-card hover:shadow-lg hover:shadow-primary/5 hover:border-border'
                   }`}
                 >
-                  <div className="flex justify-between items-center mb-4">
-                    <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${
+                  <div className="flex justify-between items-center mb-4 gap-2">
+                    <span className={`text-[10px] font-black uppercase ${isAr ? "" : "tracking-widest"} transition-colors ${
                       isFuture ? 'text-muted-foreground' : 'text-muted-foreground group-hover:text-primary'
-                    }`}>Q{qn} Focus</span>
-                    <div className={`w-2 h-2 rounded-full ${
+                    }`}>{isAr ? `${L.focus} الربع ${qn}` : `Q${qn} ${L.focus}`}</span>
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${
                       isPast ? 'bg-emerald-500 ring-4 ring-emerald-500/20' :
                       isCurrent ? 'bg-primary animate-pulse ring-4 ring-primary/20' :
                       'bg-muted-foreground/30'
                     }`} />
                   </div>
-                  <p className={`text-xl font-extrabold ${isFuture ? 'text-muted-foreground' : 'text-foreground'}`}>
+                  <p className={`text-xl font-extrabold ${isFuture ? 'text-muted-foreground' : 'text-foreground'}`} dir="ltr">
                     {fmtMoney(t)}
                   </p>
                   <p className={`text-[10px] font-medium mb-3 ${isFuture ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
-                    {isPast ? 'Completed' : isCurrent ? `${pct.toFixed(0)}% Progress` : 'Scheduled'}
+                    {isPast ? L.completed : isCurrent ? `${pct.toFixed(0)}% ${L.progressShort}` : L.scheduled}
                   </p>
-                  <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
+                  <div className="flex w-full bg-secondary rounded-full h-1.5 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
                         isPast ? 'bg-emerald-500' :
@@ -314,8 +346,8 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                     />
                   </div>
                   {!isFuture && (
-                    <p className="mt-2 text-[10px] font-bold text-muted-foreground">
-                      {fmtMoney(ach)} achieved
+                    <p className="mt-2 text-[10px] font-bold text-muted-foreground" dir={isAr ? "rtl" : "ltr"}>
+                      {isAr ? `${fmtMoney(ach)} ${L.achieved}` : `${fmtMoney(ach)} achieved`}
                     </p>
                   )}
                 </div>
@@ -327,24 +359,24 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
 
       {!profileQuery.isLoading && (
         <div className="mt-6 rounded-lg border border-border bg-background p-4">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between gap-3 flex-wrap">
             <h4 className="font-display text-sm font-bold text-foreground inline-flex items-center gap-2">
-              <Target className="h-3.5 w-3.5 text-primary" /> Quarterly KPI breakdown ({y})
+              <Target className="h-3.5 w-3.5 text-primary" /> {L.quarterlyKpi} ({y})
             </h4>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Actual vs Target</div>
+            <div className={`text-[10px] uppercase ${isAr ? "" : "tracking-wider"} text-muted-foreground`}>{L.actualVsTarget}</div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
-                <tr className="border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <th className="py-2 text-start font-semibold">Quarter</th>
-                  <th className="py-2 text-start font-semibold">Period</th>
-                  <th className="py-2 text-end font-semibold">Target</th>
-                  <th className="py-2 text-end font-semibold">Achieved</th>
-                  <th className="py-2 text-end font-semibold">Δ Gap</th>
-                  <th className="py-2 text-end font-semibold">Won deals</th>
-                  <th className="py-2 text-end font-semibold">Meetings</th>
-                  <th className="py-2 px-2 text-start font-semibold w-[28%]">Progress</th>
+                <tr className={`border-b border-border text-[10px] uppercase ${isAr ? "" : "tracking-wider"} text-muted-foreground`}>
+                  <th className="py-2 text-start font-semibold">{L.quarter}</th>
+                  <th className="py-2 text-start font-semibold">{L.period}</th>
+                  <th className="py-2 text-end font-semibold">{L.target}</th>
+                  <th className="py-2 text-end font-semibold">{L.achieved}</th>
+                  <th className="py-2 text-end font-semibold">{L.gap}</th>
+                  <th className="py-2 text-end font-semibold">{L.wonDeals}</th>
+                  <th className="py-2 text-end font-semibold">{L.meetings}</th>
+                  <th className="py-2 px-2 text-start font-semibold w-[28%]">{L.progress}</th>
                 </tr>
               </thead>
               <tbody>
@@ -355,14 +387,14 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                   const pct = tg > 0 ? Math.min(100, (ach / tg) * 100) : 0;
                   const tone: Parameters<typeof Bar>[0]["tone"] = pct >= 100 ? "emerald" : pct >= 60 ? "amber" : qn === currentQ ? "primary" : "rose";
                   const b = quarterBounds(y, qn);
-                  const period = `${isoDay(b.startMs).slice(5)} → ${isoDay(b.endMs).slice(5)}`;
+                  const period = `${isoDay(b.startMs).slice(5)} – ${isoDay(b.endMs).slice(5)}`;
                   const isCurrent = qn === currentQ;
                   return (
                     <tr key={qn} className={`border-b border-border/60 last:border-0 ${isCurrent ? "bg-primary/5" : ""}`}>
                       <td className="py-2.5 font-bold text-foreground">
-                        Q{qn}{isCurrent && <span className="ml-1 rounded-sm bg-primary/15 px-1 py-0.5 text-[9px] uppercase tracking-wider text-primary">now</span>}
+                        Q{qn}{isCurrent && <span className={`${isAr ? "mr-1" : "ml-1"} rounded-sm bg-primary/15 px-1 py-0.5 text-[9px] uppercase tracking-wider text-primary`}>{L.now}</span>}
                       </td>
-                      <td className="py-2.5 text-xs text-muted-foreground">{period}</td>
+                      <td className="py-2.5 text-xs text-muted-foreground" dir="ltr">{period}</td>
                       <td className="py-2.5 text-end font-mono text-xs text-foreground">{fmtMoney(tg)}</td>
                       <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground">{fmtMoney(ach)}</td>
                       <td className={`py-2.5 text-end font-mono text-xs font-semibold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
@@ -387,7 +419,7 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                   const tone: Parameters<typeof Bar>[0]["tone"] = pct >= 100 ? "emerald" : pct >= 60 ? "amber" : "primary";
                   return (
                     <tr className="bg-secondary/40">
-                      <td className="py-2.5 font-bold text-foreground" colSpan={2}>Year total</td>
+                      <td className="py-2.5 font-bold text-foreground" colSpan={2}>{L.yearTotal}</td>
                       <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground">{fmtMoney(tg)}</td>
                       <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground">{fmtMoney(ach)}</td>
                       <td className={`py-2.5 text-end font-mono text-xs font-bold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}>

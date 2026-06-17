@@ -1126,6 +1126,7 @@ export type Database = {
       }
       project_requests: {
         Row: {
+          account_type: string | null
           budget: number | null
           category_ar: string | null
           category_en: string | null
@@ -1148,10 +1149,12 @@ export type Database = {
           district_en: string | null
           email: string
           end_date: string | null
+          extra_contacts: Json | null
           id: string
           name_ar: string | null
           name_en: string
           offered_value: number | null
+          other_account_type: string | null
           phone: string
           project_type_ar: string | null
           project_type_en: string | null
@@ -1163,6 +1166,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_type?: string | null
           budget?: number | null
           category_ar?: string | null
           category_en?: string | null
@@ -1185,10 +1189,12 @@ export type Database = {
           district_en?: string | null
           email: string
           end_date?: string | null
+          extra_contacts?: Json | null
           id?: string
           name_ar?: string | null
           name_en: string
           offered_value?: number | null
+          other_account_type?: string | null
           phone: string
           project_type_ar?: string | null
           project_type_en?: string | null
@@ -1200,6 +1206,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_type?: string | null
           budget?: number | null
           category_ar?: string | null
           category_en?: string | null
@@ -1222,10 +1229,12 @@ export type Database = {
           district_en?: string | null
           email?: string
           end_date?: string | null
+          extra_contacts?: Json | null
           id?: string
           name_ar?: string | null
           name_en?: string
           offered_value?: number | null
+          other_account_type?: string | null
           phone?: string
           project_type_ar?: string | null
           project_type_en?: string | null
@@ -1283,12 +1292,16 @@ export type Database = {
       }
       projects: {
         Row: {
+          account_type: string | null
           budget: number | null
           category_ar: string | null
           category_en: string | null
           city_ar: string | null
           city_en: string | null
+          client_email: string | null
           client_id: string | null
+          client_name: string | null
+          client_phone: string | null
           code: string | null
           competitors: string[] | null
           created_at: string
@@ -1297,11 +1310,13 @@ export type Database = {
           district_ar: string | null
           district_en: string | null
           end_date: string | null
+          extra_contacts: Json | null
           id: string
           manager_id: string | null
           name_ar: string | null
           name_en: string
           offered_value: number | null
+          other_account_type: string | null
           progress: number | null
           project_type_ar: string | null
           project_type_en: string | null
@@ -1312,12 +1327,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_type?: string | null
           budget?: number | null
           category_ar?: string | null
           category_en?: string | null
           city_ar?: string | null
           city_en?: string | null
+          client_email?: string | null
           client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
           code?: string | null
           competitors?: string[] | null
           created_at?: string
@@ -1326,11 +1345,13 @@ export type Database = {
           district_ar?: string | null
           district_en?: string | null
           end_date?: string | null
+          extra_contacts?: Json | null
           id?: string
           manager_id?: string | null
           name_ar?: string | null
           name_en: string
           offered_value?: number | null
+          other_account_type?: string | null
           progress?: number | null
           project_type_ar?: string | null
           project_type_en?: string | null
@@ -1341,12 +1362,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_type?: string | null
           budget?: number | null
           category_ar?: string | null
           category_en?: string | null
           city_ar?: string | null
           city_en?: string | null
+          client_email?: string | null
           client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
           code?: string | null
           competitors?: string[] | null
           created_at?: string
@@ -1355,11 +1380,13 @@ export type Database = {
           district_ar?: string | null
           district_en?: string | null
           end_date?: string | null
+          extra_contacts?: Json | null
           id?: string
           manager_id?: string | null
           name_ar?: string | null
           name_en?: string
           offered_value?: number | null
+          other_account_type?: string | null
           progress?: number | null
           project_type_ar?: string | null
           project_type_en?: string | null
