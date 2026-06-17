@@ -408,7 +408,7 @@ function EmployeesPage() {
                           <AvatarSm initials={e.avatar} photo={e.photo} name={e.name} />
                           <div>
                             <div className="font-semibold text-foreground">{e.name}</div>
-                            <div className="font-mono text-[10px] text-muted-foreground">{shortId(e.id)}</div>
+                            <div className="font-mono text-[10px] text-muted-foreground">{e.phone || shortId(e.id)}</div>
                           </div>
                         </div>
                       </td>
