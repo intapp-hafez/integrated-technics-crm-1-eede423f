@@ -5,7 +5,8 @@ import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
 import { useMemo } from "react";
-import { TrendingUp, Users, CheckCircle2, Clock } from "lucide-react";
+import { TrendingUp, Users, CheckCircle2, Clock, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/manager/reports")({
   component: ManagerReportsPage,
@@ -47,6 +48,27 @@ function ManagerReportsPage() {
     revenue: report.reduce((s, r) => s + r.revenue, 0),
   };
 
+  const exportExcel = () => {
+    const wb = XLSX.utils.book_new();
+    const stamp = new Date().toISOString().slice(0, 10);
+    const rows = report.map((r) => ({
+      Name: r.name,
+      Department: r.department,
+      TotalLeads: r.totalLeads,
+      WonLeads: r.wonLeads,
+      ConversionRate: `${r.convRate}%`,
+      TotalActivities: r.totalActs,
+      DoneActivities: r.doneActs,
+      TodayHours: r.todayHours,
+      Revenue: r.revenue,
+      Performance: r.annualTarget ? `${Math.round(((r.achievedTarget ?? 0) / r.annualTarget) * 100)}%` : `${r.perf}%`,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws["!cols"] = [{ wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 15 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, ws, "Team Report");
+    XLSX.writeFile(wb, `INT-CRM-Team-Report-${stamp}.xlsx`);
+  };
+
   return (
     <AppShell panel="manager" user={{ name: "hafez Rahim", role: t("manager"), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" }} pageTitle={t("reports")}>
       {/* Summary KPIs */}
@@ -73,10 +95,17 @@ function ManagerReportsPage() {
 
       {/* Per-employee report table */}
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-        <div className="border-b border-border px-6 py-4">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h3 className="font-display text-base font-bold text-foreground">
             {dir === "rtl" ? "تقرير أداء الفريق" : "Team Performance Report"}
           </h3>
+          <button
+            onClick={exportExcel}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary hover:text-primary-foreground"
+          >
+            <Download className="h-3.5 w-3.5" />
+            {dir === "rtl" ? "تصدير إلى Excel" : "Export to Excel"}
+          </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
