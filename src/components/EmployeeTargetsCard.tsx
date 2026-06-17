@@ -103,6 +103,37 @@ function Bar({ value, max, tone }: { value: number; max: number; tone: "primary"
 
 export function EmployeeTargetsCard({ userId, profileId, leads, activities, canEdit, title }: EmployeeTargetsCardProps) {
   const qc = useQueryClient();
+  const { lang } = useI18n();
+  const isAr = lang === "ar";
+  const L = {
+    perfMetrics: isAr ? "مؤشرات الأداء" : "Performance Metrics",
+    employeeTargets: isAr ? "أهداف الموظف" : "Employee Targets",
+    edit: isAr ? "تعديل" : "Edit",
+    loading: isAr ? "جارٍ تحميل الأهداف…" : "Loading targets…",
+    employmentStart: isAr ? "تاريخ بدء العمل" : "Employment Start",
+    days: isAr ? "يوم" : "days",
+    yrs: isAr ? "سنة" : "yrs",
+    annualRevenueTarget: isAr ? "هدف الإيرادات السنوي" : "Annual Revenue Target",
+    achieved: isAr ? "مُحقَّق" : "Achieved",
+    progress: isAr ? "التقدم" : "Progress",
+    meetingsThisWeek: isAr ? "اجتماعات هذا الأسبوع" : "Meetings this Week",
+    required: isAr ? "مطلوب" : "required",
+    of: isAr ? "من" : "of",
+    focus: isAr ? "تركيز" : "Focus",
+    completed: isAr ? "مكتمل" : "Completed",
+    progressShort: isAr ? "تقدم" : "Progress",
+    scheduled: isAr ? "مجدول" : "Scheduled",
+    quarterlyKpi: isAr ? "تفصيل مؤشرات الأداء الربعي" : "Quarterly KPI breakdown",
+    actualVsTarget: isAr ? "الفعلي مقابل الهدف" : "Actual vs Target",
+    quarter: isAr ? "الربع" : "Quarter",
+    period: isAr ? "الفترة" : "Period",
+    target: isAr ? "الهدف" : "Target",
+    gap: isAr ? "الفارق" : "Δ Gap",
+    wonDeals: isAr ? "صفقات مكتسبة" : "Won deals",
+    meetings: isAr ? "الاجتماعات" : "Meetings",
+    now: isAr ? "الآن" : "now",
+    yearTotal: isAr ? "إجمالي السنة" : "Year total",
+  };
   const [editing, setEditing] = useState(false);
 
   const profileQuery = useQuery({
