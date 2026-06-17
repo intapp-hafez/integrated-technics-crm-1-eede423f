@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fmtMoney } from "@/lib/mock-data";
 import { CalendarDays, Target, Users2, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export interface EmployeeTargetsCardProps {
   /** The employee's auth user id — used to fetch the profile row. */
