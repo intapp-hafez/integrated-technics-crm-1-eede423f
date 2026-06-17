@@ -619,7 +619,7 @@ export const actions = {
       id: id("A"),
       createdAt: now(),
       status: a.status ?? "pending",
-      approvalStatus: "pending",
+      approvalStatus: "approved",
       ...a,
       owner: ownerName,
       createdBy: a.createdBy ?? me,
@@ -641,6 +641,12 @@ export const actions = {
         audience: [ownerName],
       });
     }
+    
+    const ownerUser = state.users.find((u) => u.name === ownerName);
+    const managerName = state.users.find((u) => u.id === ownerUser?.managerId)?.name;
+    const admins = state.users.filter((u) => u.role === "admin").map((u) => u.name);
+    const notifyAudience = [...new Set([...admins, managerName].filter(Boolean))] as string[];
+
     pushNotificationInternal({
       type: "activity",
       titleEn: "New activity created",
@@ -648,6 +654,7 @@ export const actions = {
       bodyEn: `${act.type} "${act.title}" — owner: ${ownerName}`,
       bodyAr: `${act.type} "${act.title}" — المالك: ${ownerName}`,
       href: `/admin/activities/${act.id}`,
+      audience: notifyAudience.length > 0 ? notifyAudience : undefined,
     });
   },
   setActivityStatus(actId: string, status: ActivityStatus, actor = "hafez Rahim") {
