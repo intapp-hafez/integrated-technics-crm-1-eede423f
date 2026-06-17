@@ -419,7 +419,7 @@ export function EmployeeTargetsCard({ userId, profileId, leads, activities, canE
                   const tone: Parameters<typeof Bar>[0]["tone"] = pct >= 100 ? "emerald" : pct >= 60 ? "amber" : "primary";
                   return (
                     <tr className="bg-secondary/40">
-                      <td className="py-2.5 font-bold text-foreground" colSpan={2}>Year total</td>
+                      <td className="py-2.5 font-bold text-foreground" colSpan={2}>{L.yearTotal}</td>
                       <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground">{fmtMoney(tg)}</td>
                       <td className="py-2.5 text-end font-mono text-xs font-bold text-foreground">{fmtMoney(ach)}</td>
                       <td className={`py-2.5 text-end font-mono text-xs font-bold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
