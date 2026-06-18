@@ -16,6 +16,7 @@ import { RoleProvider } from "@/lib/role";
 import { SupabasePreflight } from "@/lib/supabase-preflight";
 import { Toaster } from "sonner";
 import { useCsrfBootstrap } from "@/lib/security/use-csrf";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 function NotFoundComponent() {
   return (
@@ -160,6 +161,7 @@ function RootComponent() {
           <RoleProvider>
             <CsrfBootstrap />
             <Outlet />
+            <PWAInstallPrompt />
             <Toaster position="top-right" richColors closeButton />
           </RoleProvider>
         </I18nProvider>

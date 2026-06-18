@@ -350,6 +350,10 @@ export const en = {
   realtimeReconnecting: "Reconnecting…",
   realtimeDisconnected: "Disconnected",
   realtimeError: "Error",
+  installAppTitle: "Install INT-CRM",
+  installAppDesc: "Add to your home screen for quick access",
+  install: "Install",
+  dismiss: "Dismiss",
 };
 
 
