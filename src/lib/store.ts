@@ -31,7 +31,7 @@ export interface HistoryEntry {
 
 }
 
-export type ActivityType = "Call" | "Meeting" | "Site Visit" | "Follow-up" | "Inspection" | "Email";
+export type ActivityType = "Call" | "Meeting" | "Site Visit" | "Follow-up" | "Inspection" | "Email" | (string & {});
 export type ActivityStatus = "pending" | "in_progress" | "done" | "cancelled" | "delayed";
 export type ActivityApprovalStatus = "pending" | "approved" | "rejected";
 export interface Activity {
@@ -350,7 +350,7 @@ const seedSettings: Settings = {
     { key: "lost", label: "Lost", color: "#ef4444" },
     { key: "archived", label: "Archived", color: "#9ca3af" },
   ],
-  activityTypes: ["Call", "Meeting", "Site Visit", "Follow-up", "Inspection", "Email"],
+  activityTypes: ["Call", "Meeting", "Site Visit", "Follow-up", "Inspection", "Email", "Demo", "Workshop", "Presentation", "Negotiation", "Proposal", "Training", "Contract Signing", "Handover"],
   automations: [
     { id: "AU-1", name: "Auto-assign new web leads", trigger: "Lead created from Website", action: "Assign to Nour Khaled", enabled: true },
     { id: "AU-2", name: "Notify owner on stage change", trigger: "Pipeline stage moved", action: "Send push notification", enabled: true },
@@ -811,8 +811,15 @@ export const actions = {
     logHistory({ module: "settings", actor: "hafez Rahim", target: "Workday", action: "Updated standard workday", details: `${v}h` });
   },
   addActivityType(t: string) {
-    set((s) => ({ ...s, settings: { ...s.settings, activityTypes: [...s.settings.activityTypes, t as ActivityType] } }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: "Activities", action: "Added activity type", details: t });
+    const n = t.trim();
+    if (!n) return;
+    if (state.settings.activityTypes.some((x) => x.toLowerCase() === n.toLowerCase())) return;
+    set((s) => ({ ...s, settings: { ...s.settings, activityTypes: [...s.settings.activityTypes, n as ActivityType] } }));
+    logHistory({ module: "settings", actor: "hafez Rahim", target: "Activities", action: "Added activity type", details: n });
+  },
+  removeActivityType(t: string) {
+    set((s) => ({ ...s, settings: { ...s.settings, activityTypes: s.settings.activityTypes.filter((x) => x !== t) } }));
+    logHistory({ module: "settings", actor: "hafez Rahim", target: "Activities", action: "Removed activity type", details: t });
   },
   addCity(name: string, nameAr?: string) {
     const n = name.trim();
