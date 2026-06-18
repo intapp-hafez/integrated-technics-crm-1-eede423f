@@ -811,8 +811,15 @@ export const actions = {
     logHistory({ module: "settings", actor: "hafez Rahim", target: "Workday", action: "Updated standard workday", details: `${v}h` });
   },
   addActivityType(t: string) {
-    set((s) => ({ ...s, settings: { ...s.settings, activityTypes: [...s.settings.activityTypes, t as ActivityType] } }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: "Activities", action: "Added activity type", details: t });
+    const n = t.trim();
+    if (!n) return;
+    if (state.settings.activityTypes.some((x) => x.toLowerCase() === n.toLowerCase())) return;
+    set((s) => ({ ...s, settings: { ...s.settings, activityTypes: [...s.settings.activityTypes, n as ActivityType] } }));
+    logHistory({ module: "settings", actor: "hafez Rahim", target: "Activities", action: "Added activity type", details: n });
+  },
+  removeActivityType(t: string) {
+    set((s) => ({ ...s, settings: { ...s.settings, activityTypes: s.settings.activityTypes.filter((x) => x !== t) } }));
+    logHistory({ module: "settings", actor: "hafez Rahim", target: "Activities", action: "Removed activity type", details: t });
   },
   addCity(name: string, nameAr?: string) {
     const n = name.trim();
