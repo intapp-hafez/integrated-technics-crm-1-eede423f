@@ -350,7 +350,7 @@ const seedSettings: Settings = {
     { key: "lost", label: "Lost", color: "#ef4444" },
     { key: "archived", label: "Archived", color: "#9ca3af" },
   ],
-  activityTypes: ["Call", "Meeting", "Site Visit", "Follow-up", "Inspection", "Email"],
+  activityTypes: ["Call", "Meeting", "Site Visit", "Follow-up", "Inspection", "Email", "Demo", "Workshop", "Presentation", "Negotiation", "Proposal", "Training", "Contract Signing", "Handover"],
   automations: [
     { id: "AU-1", name: "Auto-assign new web leads", trigger: "Lead created from Website", action: "Assign to Nour Khaled", enabled: true },
     { id: "AU-2", name: "Notify owner on stage change", trigger: "Pipeline stage moved", action: "Send push notification", enabled: true },
