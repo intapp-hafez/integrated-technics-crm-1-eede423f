@@ -119,8 +119,20 @@ function SettingsPage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {settings.activityTypes.map((tp) => (
-                  <span key={tp} className="rounded-full bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground ring-1 ring-border">{tp}</span>
+                  <span key={tp} className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground ring-1 ring-border">
+                    {tp}
+                    <button
+                      onClick={() => actions.removeActivityType(tp)}
+                      className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={`Remove ${tp}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
                 ))}
+                {settings.activityTypes.length === 0 && (
+                  <span className="text-sm text-muted-foreground">No activity types yet. Add one above.</span>
+                )}
               </div>
             </section>
           )}
