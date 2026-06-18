@@ -353,6 +353,10 @@ export const ar: Dict = {
   realtimeReconnecting: "إعادة الاتصال…",
   realtimeDisconnected: "غير متصل",
   realtimeError: "خطأ",
+  installAppTitle: "تثبيت INT-CRM",
+  installAppDesc: "أضفه إلى شاشتك الرئيسية للوصول السريع",
+  install: "تثبيت",
+  dismiss: "إخفاء",
 };
 
 
