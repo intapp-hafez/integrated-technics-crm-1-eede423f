@@ -31,7 +31,7 @@ export interface HistoryEntry {
 
 }
 
-export type ActivityType = "Call" | "Meeting" | "Site Visit" | "Follow-up" | "Inspection" | "Email";
+export type ActivityType = "Call" | "Meeting" | "Site Visit" | "Follow-up" | "Inspection" | "Email" | (string & {});
 export type ActivityStatus = "pending" | "in_progress" | "done" | "cancelled" | "delayed";
 export type ActivityApprovalStatus = "pending" | "approved" | "rejected";
 export interface Activity {
