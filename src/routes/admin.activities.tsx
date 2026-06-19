@@ -156,6 +156,7 @@ function ActivitiesPage() {
   };
 
   const activePeriod = PERIODS.find((p) => p.key === period)!;
+  console.log("DEBUG lang:", lang, "t('activitiesCommandCenter'):", t("activitiesCommandCenter"));
   const periodLabelMap: Record<Period, string> = {
     today: t("periodToday"),
     yesterday: t("periodYesterday"),

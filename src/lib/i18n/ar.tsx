@@ -392,9 +392,4 @@ export const ar: Dict = {
   sendVia: "إرسال عبر",
   noActivitiesFilters: "لا توجد أنشطة تطابق هذه الفلاتر.",
   sendRemindBtn: "إرسال تذكير",
-};
-
-
-
-
-
+};// Force HMR reload

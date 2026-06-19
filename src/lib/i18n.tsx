@@ -1,12 +1,10 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { en } from "./i18n/en";
+import { en, type Dict } from "./i18n/en";
 import { ar } from "./i18n/ar";
-import type { Dict } from "./i18n/en";
 
 type Lang = "en" | "ar";
 
-const dict: Record<Lang, Dict> = { en, ar };
-
+const getDict = (): Record<Lang, Dict> => ({ en, ar });
 
 interface I18nCtx {
   lang: Lang;
@@ -41,7 +39,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const value: I18nCtx = {
     lang,
     setLang,
-    t: (k) => dict[lang][k] ?? dict.en[k],
+    t: (k) => getDict()[lang][k] ?? getDict().en[k],
     dir: lang === "ar" ? "rtl" : "ltr",
   };
 
