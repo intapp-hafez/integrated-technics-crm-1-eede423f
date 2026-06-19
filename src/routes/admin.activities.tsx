@@ -33,12 +33,12 @@ const STATUS_TONE: Record<ActivityStatus, string> = {
 const ACT_I18N: Record<string, any> = { Call: "actCall", Meeting: "actMeeting", "Site Visit": "actSiteVisit", "Follow-up": "actFollowUp", Inspection: "actInspection", Email: "actEmail" };
 
 type Period = "today" | "yesterday" | "week" | "month" | "all";
-const PERIODS: { key: Period; labelKey: string; subKey: string }[] = [
-  { key: "today", labelKey: "periodToday", subKey: "periodTodaySub" },
-  { key: "yesterday", labelKey: "periodYesterday", subKey: "periodYesterdaySub" },
-  { key: "week", labelKey: "periodWeek", subKey: "periodWeekSub" },
-  { key: "month", labelKey: "periodMonth", subKey: "periodMonthSub" },
-  { key: "all", labelKey: "periodAll", subKey: "periodAllSub" },
+const PERIODS: { key: Period }[] = [
+  { key: "today" },
+  { key: "yesterday" },
+  { key: "week" },
+  { key: "month" },
+  { key: "all" },
 ];
 
 function startOfDay(d: Date) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
@@ -156,8 +156,22 @@ function ActivitiesPage() {
   };
 
   const activePeriod = PERIODS.find((p) => p.key === period)!;
-  const activePeriodLabel = t(activePeriod.labelKey as any);
-  const activePeriodSub = t(activePeriod.subKey as any);
+  const periodLabelMap: Record<Period, string> = {
+    today: t("periodToday"),
+    yesterday: t("periodYesterday"),
+    week: t("periodWeek"),
+    month: t("periodMonth"),
+    all: t("periodAll"),
+  };
+  const periodSubMap: Record<Period, string> = {
+    today: t("periodTodaySub"),
+    yesterday: t("periodYesterdaySub"),
+    week: t("periodWeekSub"),
+    month: t("periodMonthSub"),
+    all: t("periodAllSub"),
+  };
+  const activePeriodLabel = periodLabelMap[period];
+  const activePeriodSub = periodSubMap[period];
 
   return (
     <AppShell panel={role} user={{ name: "hafez Rahim", role: t(role as any), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" }} pageTitle={t("activities")}>
@@ -196,7 +210,7 @@ function ActivitiesPage() {
                 }`}
               >
                 <CalendarDays className={`h-4 w-4 ${active ? "text-primary" : ""}`} />
-                {t(p.labelKey as any)}
+                {periodLabelMap[p.key]}
                 {active && <span className="ms-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">{activities.filter(a => inPeriod(a.dueDate, p.key)).length}</span>}
               </button>
             );
