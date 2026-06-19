@@ -33,12 +33,12 @@ const STATUS_TONE: Record<ActivityStatus, string> = {
 const ACT_I18N: Record<string, any> = { Call: "actCall", Meeting: "actMeeting", "Site Visit": "actSiteVisit", "Follow-up": "actFollowUp", Inspection: "actInspection", Email: "actEmail" };
 
 type Period = "today" | "yesterday" | "week" | "month" | "all";
-const PERIODS: { key: Period; label: string; sub: string }[] = [
-  { key: "today", label: "Today", sub: "Live snapshot" },
-  { key: "yesterday", label: "Yesterday", sub: "Recap" },
-  { key: "week", label: "This Week", sub: "Last 7 days" },
-  { key: "month", label: "This Month", sub: "Last 30 days" },
-  { key: "all", label: "All Time", sub: "Everything" },
+const PERIODS: { key: Period; labelKey: string; subKey: string }[] = [
+  { key: "today", labelKey: "periodToday", subKey: "periodTodaySub" },
+  { key: "yesterday", labelKey: "periodYesterday", subKey: "periodYesterdaySub" },
+  { key: "week", labelKey: "periodWeek", subKey: "periodWeekSub" },
+  { key: "month", labelKey: "periodMonth", subKey: "periodMonthSub" },
+  { key: "all", labelKey: "periodAll", subKey: "periodAllSub" },
 ];
 
 function startOfDay(d: Date) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
@@ -54,7 +54,8 @@ function inPeriod(dateStr: string, period: Period): boolean {
 }
 
 function ActivitiesPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isAr = lang === "ar";
   const { isAdmin, isManager, role } = useRole();
   const canApprove = isAdmin || isManager;
   const { activities, leads, settings } = useStoreState();
@@ -147,13 +148,16 @@ function ActivitiesPage() {
     const d = new Date(iso + "T00:00:00");
     const today = startOfDay(new Date());
     const diff = Math.round((today.getTime() - startOfDay(d).getTime()) / 86400000);
-    if (diff === 0) return "Today";
-    if (diff === 1) return "Yesterday";
-    if (diff > 1 && diff < 7) return d.toLocaleDateString(undefined, { weekday: "long" });
-    return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    const locale = isAr ? "ar-EG" : undefined;
+    if (diff === 0) return t("periodToday");
+    if (diff === 1) return t("periodYesterday");
+    if (diff > 1 && diff < 7) return d.toLocaleDateString(locale, { weekday: "long" });
+    return d.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" });
   };
 
   const activePeriod = PERIODS.find((p) => p.key === period)!;
+  const activePeriodLabel = t(activePeriod.labelKey as any);
+  const activePeriodSub = t(activePeriod.subKey as any);
 
   return (
     <AppShell panel={role} user={{ name: "hafez Rahim", role: t(role as any), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" }} pageTitle={t("activities")}>
@@ -162,11 +166,11 @@ function ActivitiesPage() {
         <div className="flex flex-wrap items-start justify-between gap-4 p-5 pb-3">
           <div>
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-              <ActivityIcon className="h-3.5 w-3.5" /> Activities Command Center
+              <ActivityIcon className="h-3.5 w-3.5" /> {t("activitiesCommandCenter")}
             </div>
             <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-foreground">
-              {activePeriod.label}{" "}
-              <span className="text-base font-medium text-muted-foreground">· {activePeriod.sub}</span>
+              {activePeriodLabel}{" "}
+              <span className="text-base font-medium text-muted-foreground">· {activePeriodSub}</span>
             </h2>
           </div>
           <button
@@ -192,7 +196,7 @@ function ActivitiesPage() {
                 }`}
               >
                 <CalendarDays className={`h-4 w-4 ${active ? "text-primary" : ""}`} />
-                {p.label}
+                {t(p.labelKey as any)}
                 {active && <span className="ms-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">{activities.filter(a => inPeriod(a.dueDate, p.key)).length}</span>}
               </button>
             );
@@ -201,11 +205,11 @@ function ActivitiesPage() {
 
         {/* KPI strip */}
         <div className="grid grid-cols-2 gap-3 border-t border-border bg-card p-5 md:grid-cols-5">
-          <Kpi icon={ActivityIcon} label="Total" value={String(kpis.total)} tone="text-foreground" />
-          <Kpi icon={CheckCircle2} label="Done" value={String(kpis.done)} tone="text-emerald-600" />
-          <Kpi icon={PlayCircle} label="In progress" value={String(kpis.inprog)} tone="text-amber-600" />
-          <Kpi icon={Circle} label="Pending" value={String(kpis.pending)} tone="text-muted-foreground" />
-          <Kpi icon={TrendingUp} label="Completion" value={`${kpis.completion}%`} tone="text-primary" sub={`${fmtH(kpis.mins)} planned`} />
+          <Kpi icon={ActivityIcon} label={t("kpiTotal")} value={String(kpis.total)} tone="text-foreground" />
+          <Kpi icon={CheckCircle2} label={t("kpiDone")} value={String(kpis.done)} tone="text-emerald-600" />
+          <Kpi icon={PlayCircle} label={t("kpiInProgress")} value={String(kpis.inprog)} tone="text-amber-600" />
+          <Kpi icon={Circle} label={t("kpiPending")} value={String(kpis.pending)} tone="text-muted-foreground" />
+          <Kpi icon={TrendingUp} label={t("kpiCompletion")} value={`${kpis.completion}%`} tone="text-primary" sub={fmtH(kpis.mins)} />
         </div>
       </div>
 
@@ -214,17 +218,17 @@ function ActivitiesPage() {
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Flame className="h-4 w-4 text-primary" />
-            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Employee Pulse · {activePeriod.label}</h3>
+            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">{t("employeePulse")} · {activePeriodLabel}</h3>
           </div>
           {ownerFilter !== "all" && (
             <button onClick={() => setOwnerFilter("all")} className="text-xs font-semibold text-primary hover:underline">
-              Clear filter ({ownerFilter})
+              {t("clearFilter")} ({ownerFilter})
             </button>
           )}
         </div>
         {empSummary.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-            No activity recorded for this period.
+            {t("noActivityPeriod")}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -251,12 +255,12 @@ function ActivitiesPage() {
                       <div className="truncate font-semibold text-foreground">{e.name}</div>
                       <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                         <TopIcon className="h-3 w-3" />
-                        <span>{topType ?? "—"} · {e.total} action{e.total === 1 ? "" : "s"}</span>
+                        <span>{topType ?? "—"} · {e.total}</span>
                       </div>
                     </div>
                     <div className="text-end">
                       <div className={`font-mono text-xl font-extrabold ${completion >= 75 ? "text-emerald-600" : completion >= 40 ? "text-amber-600" : "text-rose-600"}`}>{completion}%</div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">done</div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("kpiDone")}</div>
                     </div>
                   </div>
 
@@ -268,10 +272,10 @@ function ActivitiesPage() {
                   </div>
 
                   <div className="mt-3 grid grid-cols-4 gap-1.5 text-center">
-                    <Mini label="Done" value={e.done} tone="bg-emerald-50 text-emerald-700 ring-emerald-200" />
-                    <Mini label="Live" value={e.inprog} tone="bg-amber-50 text-amber-700 ring-amber-200" />
-                    <Mini label="Pend" value={e.pending} tone="bg-secondary text-muted-foreground ring-border" />
-                    <Mini label="Time" value={fmtH(e.mins)} tone="bg-primary/10 text-primary ring-primary/20" />
+                    <Mini label={t("kpiDone")} value={e.done} tone="bg-emerald-50 text-emerald-700 ring-emerald-200" />
+                    <Mini label={t("inProgress")} value={e.inprog} tone="bg-amber-50 text-amber-700 ring-amber-200" />
+                    <Mini label={t("kpiPending")} value={e.pending} tone="bg-secondary text-muted-foreground ring-border" />
+                    <Mini label={t("time")} value={fmtH(e.mins)} tone="bg-primary/10 text-primary ring-primary/20" />
                   </div>
                 </button>
               );
@@ -323,7 +327,7 @@ function ActivitiesPage() {
           <option value="delayed">{t("delayed")}</option>
         </select>
         <div className="ms-auto inline-flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground">
-          <Target className="h-3.5 w-3.5" /> {list.length} match{list.length === 1 ? "" : "es"}
+          <Target className="h-3.5 w-3.5" /> {list.length} {t("matches")}
         </div>
       </div>
 
@@ -336,12 +340,12 @@ function ActivitiesPage() {
                   <TableHead className="w-[40px]"></TableHead>
                   <TableHead>{t("title")}</TableHead>
                   <TableHead>{t("owner")}</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Lead</TableHead>
+                  <TableHead>{t("date")}</TableHead>
+                  <TableHead>{t("time")}</TableHead>
+                  <TableHead>{t("leads")}</TableHead>
                   <TableHead>{t("status")}</TableHead>
-                  <TableHead>Approval</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("pending_approval")}</TableHead>
+                  <TableHead className="text-right">{t("action")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -391,23 +395,23 @@ function ActivitiesPage() {
                             onChange={(e) => actions.setActivityStatus(a.id, e.target.value as ActivityStatus)}
                             className={`bg-transparent text-xs font-semibold capitalize focus:outline-none cursor-pointer ${STATUS_TONE[a.status]}`}
                           >
-                            <option value="pending">Postponed</option>
-                            <option value="in_progress">In progress</option>
-                            <option value="done">Attended</option>
-                            <option value="cancelled">Not Attended</option>
-                            <option value="delayed">Delayed</option>
+                            <option value="pending">{t("actPostponed")}</option>
+                            <option value="in_progress">{t("inProgress")}</option>
+                            <option value="done">{t("actAttended")}</option>
+                            <option value="cancelled">{t("actNotAttended")}</option>
+                            <option value="delayed">{t("actDelayed")}</option>
                           </select>
                         </div>
                       </TableCell>
                       <TableCell>
                         {a.approvalStatus === "pending" && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">Pending</span>
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">{t("approvalPending")}</span>
                         )}
                         {a.approvalStatus === "approved" && (
-                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">Approved</span>
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">{t("approvalApproved")}</span>
                         )}
                         {a.approvalStatus === "rejected" && (
-                          <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700" title={a.rejectionReason}>Rejected</span>
+                          <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700" title={a.rejectionReason}>{t("approvalRejected")}</span>
                         )}
                         {!a.approvalStatus && <span className="text-xs text-muted-foreground">—</span>}
                       </TableCell>
@@ -416,13 +420,13 @@ function ActivitiesPage() {
                           {a.approvalStatus === "pending" && canApprove && (
                             <>
                               <button
-                                onClick={() => { actions.approveActivity(a.id); toast.success("Activity approved"); }}
+                                onClick={() => { actions.approveActivity(a.id); toast.success(t("approvalApproved")); }}
                                 className="rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
-                              >Approve</button>
+                              >{t("approveActivity")}</button>
                               <button
                                 onClick={() => setRejectFor({ id: a.id, title: a.title })}
                                 className="rounded-md bg-rose-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-rose-700"
-                              >Reject</button>
+                              >{t("rejectActivity")}</button>
                             </>
                           )}
                           {a.status !== "done" && (
@@ -430,7 +434,7 @@ function ActivitiesPage() {
                               onClick={() => setReminderFor(a.id)}
                               className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/20 hover:bg-primary/20"
                             >
-                              <Bell className="h-3 w-3" /> Remind
+                              <Bell className="h-3 w-3" /> {t("remind")}
                             </button>
                           )}
                         </div>
@@ -440,7 +444,7 @@ function ActivitiesPage() {
                 })}
                 {list.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">No activities match these filters.</TableCell>
+                    <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">{t("noActivitiesFilters")}</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -505,28 +509,28 @@ function ActivitiesPage() {
                       <div className={`flex items-center gap-1.5 text-xs font-semibold ${STATUS_TONE[a.status]}`}>
                         <SIcon className="h-4 w-4" />
                         <span className="capitalize">
-                          {a.status === "done" ? "Attended" : a.status === "cancelled" ? "Not Attended" : "Postponed"}
+                          {a.status === "done" ? t("actAttended") : a.status === "cancelled" ? t("actNotAttended") : t("actPostponed")}
                         </span>
                       </div>
                       {a.approvalStatus === "pending" && (
                         <div className="flex items-center gap-1.5">
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">Pending</span>
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">{t("approvalPending")}</span>
                           {canApprove && (
                             <>
                               <button
-                                onClick={(e) => { e.stopPropagation(); actions.approveActivity(a.id); toast.success("Activity approved"); }}
+                                onClick={(e) => { e.stopPropagation(); actions.approveActivity(a.id); toast.success(t("approvalApproved")); }}
                                 className="rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
-                              >Approve</button>
+                              >{t("approveActivity")}</button>
                               <button
                                 onClick={(e) => { e.stopPropagation(); setRejectFor({ id: a.id, title: a.title }); }}
                                 className="rounded-md bg-rose-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-rose-700"
-                              >Reject</button>
+                              >{t("rejectActivity")}</button>
                             </>
                           )}
                         </div>
                       )}
                       {a.approvalStatus === "rejected" && (
-                        <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700" title={a.rejectionReason}>Rejected</span>
+                        <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700" title={a.rejectionReason}>{t("approvalRejected")}</span>
                       )}
                       {a.status !== "done" && (
                         <button
@@ -534,7 +538,7 @@ function ActivitiesPage() {
                           className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary ring-1 ring-primary/20 hover:bg-primary/20"
                           title="Send reminder"
                         >
-                          <Bell className="h-3.5 w-3.5" /> Remind
+                          <Bell className="h-3.5 w-3.5" /> {t("remind")}
                         </button>
                       )}
                       {a.status !== "done" && (
@@ -553,7 +557,7 @@ function ActivitiesPage() {
           ))}
           {grouped.length === 0 && (
             <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center text-sm text-muted-foreground">
-              No activities match these filters.
+              {t("noActivitiesFilters")}
             </div>
           )}
         </div>
@@ -609,7 +613,7 @@ function ReminderDialog({ activityId, onClose }: { activityId: string; onClose: 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-lg font-bold text-foreground inline-flex items-center gap-2"><Bell className="h-5 w-5 text-primary" /> Send Reminder</h3>
+          <h3 className="font-display text-lg font-bold text-foreground inline-flex items-center gap-2"><Bell className="h-5 w-5 text-primary" /> {t("sendRemindBtn")}</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="h-5 w-5" /></button>
         </div>
         <div className="mb-3 rounded-lg bg-secondary/50 p-3 text-xs">
@@ -644,7 +648,7 @@ function ReminderDialog({ activityId, onClose }: { activityId: string; onClose: 
             }}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90 disabled:opacity-60"
           >
-            <Send className="h-4 w-4" /> {sent ? "Sent" : `Send via ${template?.channel ?? ""}`}
+            <Send className="h-4 w-4" /> {sent ? t("sent") : `${t("sendVia")} ${template?.channel ?? ""}`}
           </button>
         </div>
       </div>

@@ -354,7 +354,43 @@ export const en = {
   installAppDesc: "Add to your home screen for quick access",
   install: "Install",
   dismiss: "Dismiss",
+  // Pipeline
+  stage: "Stage",
+  // Activities page
+  activitiesCommandCenter: "Activities Command Center",
+  periodToday: "Today",
+  periodYesterday: "Yesterday",
+  periodWeek: "This Week",
+  periodWeekSub: "Last 7 days",
+  periodMonth: "This Month",
+  periodMonthSub: "Last 30 days",
+  periodAll: "All Time",
+  periodAllSub: "Everything",
+  periodTodaySub: "Live snapshot",
+  periodYesterdaySub: "Recap",
+  kpiTotal: "Total",
+  kpiDone: "Done",
+  kpiInProgress: "In Progress",
+  kpiPending: "Pending",
+  kpiCompletion: "Completion",
+  employeePulse: "Employee Pulse",
+  noActivityPeriod: "No activity recorded for this period.",
+  clearFilter: "Clear filter",
+  matches: "match(es)",
+  actAttended: "Attended",
+  actNotAttended: "Not Attended",
+  actPostponed: "Postponed",
+  actDelayed: "Delayed",
+  approvalPending: "Pending",
+  approvalApproved: "Approved",
+  approvalRejected: "Rejected",
+  approveActivity: "Approve",
+  rejectActivity: "Reject",
+  sendVia: "Send via",
+  noActivitiesFilters: "No activities match these filters.",
+  sendRemindBtn: "Send Reminder",
 };
+
 
 
 

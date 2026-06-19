@@ -357,7 +357,43 @@ export const ar: Dict = {
   installAppDesc: "أضفه إلى شاشتك الرئيسية للوصول السريع",
   install: "تثبيت",
   dismiss: "إخفاء",
+  // Pipeline
+  stage: "المرحلة",
+  // Activities page
+  activitiesCommandCenter: "مركز إدارة الأنشطة",
+  periodToday: "اليوم",
+  periodYesterday: "أمس",
+  periodWeek: "هذا الأسبوع",
+  periodWeekSub: "آخر 7 أيام",
+  periodMonth: "هذا الشهر",
+  periodMonthSub: "آخر 30 يومًا",
+  periodAll: "كل الوقت",
+  periodAllSub: "كل السجلات",
+  periodTodaySub: "لحظي مباشر",
+  periodYesterdaySub: "ملخص الأمس",
+  kpiTotal: "الإجمالي",
+  kpiDone: "منجز",
+  kpiInProgress: "جارٍ التنفيذ",
+  kpiPending: "قيد الانتظار",
+  kpiCompletion: "نسبة الإنجاز",
+  employeePulse: "نبض الموظفين",
+  noActivityPeriod: "لا توجد أنشطة مسجّلة في هذه الفترة.",
+  clearFilter: "مسح الفلتر",
+  matches: "نتيجة",
+  actAttended: "تم الحضور",
+  actNotAttended: "لم يُحضَر",
+  actPostponed: "مؤجّل",
+  actDelayed: "متأخر",
+  approvalPending: "في الانتظار",
+  approvalApproved: "معتمد",
+  approvalRejected: "مرفوض",
+  approveActivity: "اعتماد",
+  rejectActivity: "رفض",
+  sendVia: "إرسال عبر",
+  noActivitiesFilters: "لا توجد أنشطة تطابق هذه الفلاتر.",
+  sendRemindBtn: "إرسال تذكير",
 };
+
 
 
 

@@ -66,7 +66,7 @@ function PipelinePage() {
             onChange={setEmployeeFilter}
           />
           <MultiSelect
-            label="Stage"
+            label={(t("stage") as string) ?? "Stage"}
             options={stageOptions}
             selected={stageFilter}
             onChange={setStageFilter}
