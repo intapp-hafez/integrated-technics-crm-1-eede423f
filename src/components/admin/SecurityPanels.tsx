@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ShieldCheck, ShieldAlert, Activity, Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, Info, Ban, ListChecks } from "lucide-react";
@@ -27,13 +27,11 @@ function StatusIcon({ status }: { status: ScanFinding["status"] }) {
 }
 
 export function ScannerPanel() {
-  const runFn = useServerFn(runSecurityScan);
-  const listFn = useServerFn(listScanRuns);
   const qc = useQueryClient();
-  const runs = useQuery({ queryKey: ["sec-runs"], queryFn: () => listFn({}) });
+  const runs = useQuery({ queryKey: ["sec-runs"], queryFn: () => listScanRuns() });
   const [lastResult, setLastResult] = useState<{ score: number; findings: ScanFinding[]; summary: any } | null>(null);
   const scan = useMutation({
-    mutationFn: () => runFn({}),
+    mutationFn: () => runSecurityScan(),
     onSuccess: (r: any) => { setLastResult(r); qc.invalidateQueries({ queryKey: ["sec-runs"] }); toast.success(`Scan complete — score ${r.score}/100`); },
     onError: (e: any) => toast.error(e?.message ?? "Scan failed"),
   });
@@ -115,20 +113,12 @@ export function ScannerPanel() {
 }
 
 export function FirewallPanel() {
-  const blockFn = useServerFn(listBlocklist);
-  const whiteFn = useServerFn(listWhitelist);
-  const eventsFn = useServerFn(listSecurityEvents);
-  const statsFn = useServerFn(firewallStats);
-  const addBlockFn = useServerFn(blockIp);
-  const removeBlockFn = useServerFn(unblockIp);
-  const addWhiteFn = useServerFn(whitelistIp);
-  const removeWhiteFn = useServerFn(removeWhitelist);
   const qc = useQueryClient();
 
-  const block = useQuery({ queryKey: ["fw-block"], queryFn: () => blockFn({}) });
-  const white = useQuery({ queryKey: ["fw-white"], queryFn: () => whiteFn({}) });
-  const events = useQuery({ queryKey: ["fw-events"], queryFn: () => eventsFn({ data: { limit: 50 } }) });
-  const stats = useQuery({ queryKey: ["fw-stats"], queryFn: () => statsFn({}), refetchInterval: 30_000 });
+  const block = useQuery({ queryKey: ["fw-block"], queryFn: () => listBlocklist() });
+  const white = useQuery({ queryKey: ["fw-white"], queryFn: () => listWhitelist() });
+  const events = useQuery({ queryKey: ["fw-events"], queryFn: () => listSecurityEvents({ data: { limit: 50 } }) });
+  const stats = useQuery({ queryKey: ["fw-stats"], queryFn: () => firewallStats(), refetchInterval: 30_000 });
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["fw-block"] });
@@ -142,21 +132,21 @@ export function FirewallPanel() {
   const [newWhiteNote, setNewWhiteNote] = useState("");
 
   const addBlock = useMutation({
-    mutationFn: () => addBlockFn({ data: { ip: newBlockIp.trim(), reason: newBlockReason || "Manual block", minutes: 1440 } }),
+    mutationFn: () => blockIp({ data: { ip: newBlockIp.trim(), reason: newBlockReason || "Manual block", minutes: 1440 } }),
     onSuccess: () => { setNewBlockIp(""); setNewBlockReason(""); toast.success("IP blocked"); invalidate(); },
     onError: (e: any) => toast.error(e?.message ?? "Failed"),
   });
   const addWhite = useMutation({
-    mutationFn: () => addWhiteFn({ data: { ip: newWhiteIp.trim(), note: newWhiteNote } }),
+    mutationFn: () => whitelistIp({ data: { ip: newWhiteIp.trim(), note: newWhiteNote } }),
     onSuccess: () => { setNewWhiteIp(""); setNewWhiteNote(""); toast.success("IP whitelisted"); invalidate(); },
     onError: (e: any) => toast.error(e?.message ?? "Failed"),
   });
   const remBlock = useMutation({
-    mutationFn: (ip: string) => removeBlockFn({ data: { ip } }),
+    mutationFn: (ip: string) => unblockIp({ data: { ip } }),
     onSuccess: () => { toast.success("IP removed from blocklist"); invalidate(); },
   });
   const remWhite = useMutation({
-    mutationFn: (ip: string) => removeWhiteFn({ data: { ip } }),
+    mutationFn: (ip: string) => removeWhitelist({ data: { ip } }),
     onSuccess: () => { toast.success("Removed from whitelist"); invalidate(); },
   });
 
