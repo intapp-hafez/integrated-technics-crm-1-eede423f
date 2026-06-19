@@ -123,7 +123,16 @@ export function useSupabaseSync() {
     ].filter((p) => p.id || p.user_id);
     const profileById = new Map(directoryProfiles.filter((p: any) => p.id).map((p: any) => [p.id, p]));
     const profileByCreatedUserId = new Map<string, any>(directoryProfiles.filter((p: any) => p.user_id).map((p: any) => [p.user_id, p]));
+    // nameOf always returns the English name — used as a stable identity key for
+    // filtering (owner, actor). Arabic display is resolved at render time in the UI.
     const nameOf = (id: string | null) => {
+      if (!id) return "Unassigned";
+      const p: any = profileById.get(id);
+      if (!p) return "Unassigned";
+      return p.full_name_en || p.full_name_ar || "Unassigned";
+    };
+    // nameOfAr is used only for display-only fields like history.actor (when we want Arabic)
+    const nameOfAr = (id: string | null) => {
       if (!id) return "Unassigned";
       const p: any = profileById.get(id);
       if (!p) return "Unassigned";
@@ -150,8 +159,9 @@ export function useSupabaseSync() {
       const effectiveOwnerProfile: any = l.owner_id
         ? profileById.get(l.owner_id)
         : creatorProfile;
+      // Always use English name as the stable owner key for filtering.
       const effectiveOwnerName = effectiveOwnerProfile
-        ? pick(effectiveOwnerProfile.full_name_en, effectiveOwnerProfile.full_name_ar)
+        ? (effectiveOwnerProfile.full_name_en || effectiveOwnerProfile.full_name_ar || "Unassigned")
         : "Unassigned";
       return {
         id: l.id,
@@ -316,7 +326,7 @@ export function useSupabaseSync() {
         projectId: a.project_id ?? undefined,
         dueDate: a.due_date,
         time: a.time ? String(a.time).slice(0, 5) : "—",
-        owner: nameOf(a.owner_id),
+        owner: nameOf(a.owner_id), // always English — stable filter key
         ownerId: a.owner_id ?? undefined,
         presalesIds: (a.presales_team ?? []) as string[],
         status: a.status,
@@ -344,7 +354,7 @@ export function useSupabaseSync() {
       checkOut: r.check_out ? String(r.check_out).slice(0, 5) : "",
       hours: r.hours ? `${Number(r.hours).toFixed(1)}h` : "—",
       location: pick(r.location_en, r.location_ar) || "—",
-      owner: nameOf(r.profile_id),
+      owner: nameOf(r.profile_id), // always English — stable filter key
       lat: r.lat !== null && r.lat !== undefined ? Number(r.lat) : null,
       lng: r.lng !== null && r.lng !== undefined ? Number(r.lng) : null,
     }));
@@ -355,7 +365,7 @@ export function useSupabaseSync() {
       ts: h.created_at,
       module: h.module,
       action: pick(h.action_en, h.action_ar),
-      actor: nameOf(h.actor_id),
+      actor: nameOfAr(h.actor_id),
       target: pick(h.target_en, h.target_ar) || h.target_table || "",
       targetId: h.target_id ?? undefined,
       targetTable: h.target_table ?? undefined,
@@ -410,7 +420,8 @@ export function useSupabaseSync() {
       ? (data.profiles as any[]).filter((p) => employeeUserIds.has(p.user_id))
       : (data.profiles as any[]); // fallback when admin RPC unavailable
     const employees = employeeProfiles.map((p) => {
-      const name = pick(p.full_name_en, p.full_name_ar);
+      // Employee name must always be English — used as filter key matching lead.owner
+      const name = p.full_name_en || p.full_name_ar || "—";
       const myLeads = leads.filter((l) => l.owner === name);
       const won = myLeads.filter((l: any) => l.status === "won");
       const achieved = won.reduce((s, l: any) => s + Number(l.value ?? 0), 0);
@@ -442,7 +453,8 @@ export function useSupabaseSync() {
     const mapUser = (u: any, p: any | undefined) => ({
       id: u.user_id ?? p?.user_id,
       profileId: u.profile_id ?? p?.id,
-      name: pick(p?.full_name_en ?? u.full_name_en, p?.full_name_ar ?? u.full_name_ar) || (u.email ?? "—"),
+      // AppUser.name must be English — used as filter key in useMyTeam, leads filtering, etc.
+      name: (p?.full_name_en ?? u.full_name_en) || (p?.full_name_ar ?? u.full_name_ar) || (u.email ?? "—"),
       nameAr: p?.full_name_ar ?? u.full_name_ar ?? "",
       email: u.email ?? p?.email ?? "",
       phone: p?.phone ?? "",

@@ -104,7 +104,7 @@ function ProjectDetailsPage() {
   return (
     <AppShell panel={panel} user={user} pageTitle={project.name}>
       <button onClick={() => router.history.back()} className="mb-5 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
-        <ArrowLeft className="h-4 w-4" /> Back to projects
+        <ArrowLeft className="h-4 w-4" /> Back to Accounts
       </button>
 
       {/* Hero */}
@@ -153,9 +153,7 @@ function ProjectDetailsPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard icon={<DollarSign className="h-5 w-5" />} label="Budget" value={fmtMoney(project.budget)} />
-        <StatCard icon={<TrendingUp className="h-5 w-5" />} label="Offered" value={fmtMoney(project.offeredValue)} />
+      <div className="mb-6 grid grid-cols-2 gap-3">
         <StatCard icon={<Users2 className="h-5 w-5" />} label="Team" value={`${members.length} member${members.length !== 1 ? "s" : ""}`} />
         <StatCard icon={<ActivityIcon className="h-5 w-5" />} label="Activities" value={`${projectActivities.length}`} sub={`${projectActivities.filter(a => a.status === "done").length} done`} />
       </div>
@@ -291,6 +289,7 @@ function ProjectDetailsPage() {
               <Users2 className="h-4 w-4 text-primary" />
               <h2 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Team</h2>
               <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">{members.length}</span>
+              {role !== "employee" && (
               <div className="relative ml-1">
                 <button
                   onClick={(e) => e.currentTarget.nextElementSibling?.classList.toggle("hidden")}
@@ -321,6 +320,7 @@ function ProjectDetailsPage() {
                   })}
                 </div>
               </div>
+              )}
             </div>
             {members.length === 0
               ? <p className="px-5 py-6 text-sm text-center text-muted-foreground">No team members assigned.</p>

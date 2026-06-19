@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { PhoneInput } from "@/components/PhoneInput";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 const schema = z.object({
   name_en: z.string().trim().min(2).max(120),
@@ -79,6 +80,62 @@ const labelCls = "mb-1 block text-[11px] font-bold uppercase tracking-wider text
 const sectionCls = "mb-1 text-[11px] font-bold uppercase tracking-wider text-primary";
 
 export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { profileId?: string | null; onClose: () => void; onSubmitted?: () => void }) {
+  const { lang } = useI18n();
+  const isAr = lang === "ar";
+  const L = {
+    title: isAr ? "طلب حساب جديد" : "Request New Account",
+    subtitle: isAr ? "قم بملء التفاصيل أدناه — سيقوم مديرك بمراجعتها والموافقة عليها" : "Fill in the details below — your manager will review and approve",
+    accountInfo: isAr ? "معلومات الحساب" : "Account Info",
+    accountName: isAr ? "اسم الحساب *" : "Account Name *",
+    accountNamePh: isAr ? "مثال: تجهيز مكتب – وسط المدينة" : "e.g. Office Fit-out – Downtown",
+    accountType: isAr ? "نوع الحساب" : "Account Type",
+    select: isAr ? "— اختر —" : "— Select —",
+    endUser: isAr ? "مستخدم نهائي" : "End User",
+    contractor: isAr ? "مقاول" : "Contractor",
+    systemIntegrator: isAr ? "متكامل أنظمة" : "System Integrator",
+    other: isAr ? "أخرى" : "Other",
+    specifyType: isAr ? "حدد نوع الحساب" : "Specify Account Type",
+    specifyPh: isAr ? "يرجى التحديد…" : "Please specify…",
+    category: isAr ? "الفئة" : "Category",
+    selectCategory: isAr ? "اختر الفئة…" : "Select category…",
+    projectType: isAr ? "نوع المشروع" : "Project Type",
+    selectType: isAr ? "اختر النوع…" : "Select type…",
+    budget: isAr ? "الميزانية" : "Budget",
+    startDate: isAr ? "تاريخ البدء" : "Start Date",
+    endDate: isAr ? "تاريخ الانتهاء" : "End Date",
+    description: isAr ? "الوصف" : "Description",
+    descriptionPh: isAr ? "وصف موجز للمشروع…" : "Brief project description…",
+    competitors: isAr ? "المنافسين (مفصولين بفاصلة)" : "Competitors (comma-separated)",
+    competitorsPh: isAr ? "المنافس أ، المنافس ب…" : "Competitor A, Competitor B…",
+    location: isAr ? "الموقع" : "Location",
+    city: isAr ? "المدينة" : "City",
+    selectCity: isAr ? "اختر المدينة…" : "Select city…",
+    district: isAr ? "المنطقة / الحي" : "District",
+    selectDistrictFirst: isAr ? "اختر مدينة أولاً" : "Select a city first",
+    selectDistrict: isAr ? "اختر المنطقة…" : "Select district…",
+    street: isAr ? "الشارع / العنوان" : "Street / Address",
+    streetPh: isAr ? "اسم المبنى / الشارع…" : "Building / Street name…",
+    clientInfo: isAr ? "معلومات العميل" : "Client Info",
+    fullName: isAr ? "الاسم الكامل *" : "Full Name *",
+    fullNamePh: isAr ? "اسم مسؤول الاتصال" : "Contact person name",
+    company: isAr ? "الشركة / العميل *" : "Company / Client *",
+    companyPh: isAr ? "الشركة أو اسم العميل" : "Company or client name",
+    email: isAr ? "البريد الإلكتروني *" : "Email *",
+    phoneLabel: isAr ? "رقم الهاتف *" : "Phone *",
+    extraContacts: isAr ? "جهات اتصال إضافية" : "Extra Contacts",
+    addContact: isAr ? "إضافة جهة اتصال" : "Add Contact",
+    noExtraContacts: isAr ? "لا توجد جهات اتصال إضافية. انقر فوق 'إضافة جهة اتصال' لإضافة واحدة." : "No extra contacts yet. Click \"Add Contact\" to add one.",
+    name: isAr ? "الاسم" : "Name",
+    namePh: isAr ? "الاسم الكامل" : "Full name",
+    titleRole: isAr ? "المسمى الوظيفي / الدور" : "Title / Role",
+    titleRolePh: isAr ? "مثال: مدير الموقع" : "e.g. Site Manager",
+    cancel: isAr ? "إلغاء" : "Cancel",
+    submit: isAr ? "إرسال للموافقة" : "Send for Approval",
+    submitting: isAr ? "جاري الإرسال…" : "Submitting…",
+    errorFix: isAr ? "يرجى إصلاح الأخطاء" : "Please fix errors",
+    errorNoProfile: isAr ? "لم يتم تحميل الملف الشخصي" : "Profile not loaded",
+    successSent: isAr ? "تم إرسال الطلب إلى مديرك والمسؤول" : "Request sent to your manager and admin",
+  };
   const [v, setV] = useState<Record<string, string>>({});
   const [phone, setPhone] = useState("+20");
   const [busy, setBusy] = useState(false);
@@ -144,8 +201,8 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
 
   const submit = async () => {
     const parsed = schema.safeParse({ ...v, phone });
-    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Please fix errors"); return; }
-    if (!profileId) { toast.error("Profile not loaded"); return; }
+    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? L.errorFix); return; }
+    if (!profileId) { toast.error(L.errorNoProfile); return; }
     const d = parsed.data;
     setBusy(true);
     const { error } = await supabase.from("project_requests").insert({
@@ -171,13 +228,13 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
     } as any);
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Request sent to your manager and admin");
+    toast.success(L.successSent);
     onSubmitted?.();
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose} dir={isAr ? "rtl" : "ltr"}>
       <div
         className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl"
         onClick={e => e.stopPropagation()}
@@ -185,8 +242,8 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
         {/* Header */}
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <h2 className="font-display text-lg font-bold text-foreground">Request New Account</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">Fill in the details below — your manager will review and approve</p>
+            <h2 className="font-display text-lg font-bold text-foreground">{L.title}</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">{L.subtitle}</p>
           </div>
           <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent transition-colors">
             <X className="h-4 w-4" />
@@ -194,41 +251,41 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
         </div>
 
         {/* ── Project Info ── */}
-        <div className={`${sectionCls} mt-1`}>Account Info</div>
+        <div className={`${sectionCls} mt-1`}>{L.accountInfo}</div>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className={labelCls}>Account Name *</span>
-            <input value={v.name_en ?? ""} onChange={set("name_en")} className={inputCls} placeholder="e.g. Office Fit-out – Downtown" />
+            <span className={labelCls}>{L.accountName}</span>
+            <input value={v.name_en ?? ""} onChange={set("name_en")} className={inputCls} placeholder={L.accountNamePh} />
           </label>
           <label className="block">
-            <span className={labelCls}>Account Type</span>
-            <select value={v.account_type ?? ""} onChange={set("account_type")} className={selectCls}>
-              <option value="">— Select —</option>
-              <option value="End User">End User</option>
-              <option value="Contractor">Contractor</option>
-              <option value="System Integrator">System Integrator</option>
-              <option value="Other">Other</option>
+            <span className={labelCls}>{L.accountType}</span>
+            <select value={v.account_type ?? ""} onChange={set("account_type")} className={selectCls} dir={isAr ? "rtl" : "ltr"}>
+              <option value="">{L.select}</option>
+              <option value="End User">{L.endUser}</option>
+              <option value="Contractor">{L.contractor}</option>
+              <option value="System Integrator">{L.systemIntegrator}</option>
+              <option value="Other">{L.other}</option>
             </select>
           </label>
           {v.account_type === "Other" && (
             <label className="block sm:col-span-2">
-              <span className={labelCls}>Specify Account Type</span>
-              <input value={v.other_account_type ?? ""} onChange={set("other_account_type")} className={inputCls} placeholder="Please specify…" />
+              <span className={labelCls}>{L.specifyType}</span>
+              <input value={v.other_account_type ?? ""} onChange={set("other_account_type")} className={inputCls} placeholder={L.specifyPh} />
             </label>
           )}
           <div className="hidden">
           <label className="block">
-            <span className={labelCls}>Category</span>
+            <span className={labelCls}>{L.category}</span>
             <select className={selectCls} value={v.category_en ?? ""} onChange={e => onCategory(e.target.value)}>
-              <option value="">Select category…</option>
-              {categories.map(c => <option key={c.en} value={c.en}>{c.en}</option>)}
+              <option value="">{L.selectCategory}</option>
+              {categories.map(c => <option key={c.en} value={c.en}>{isAr && c.ar ? c.ar : c.en}</option>)}
             </select>
           </label>
           <label className="block">
-            <span className={labelCls}>Project Type</span>
+            <span className={labelCls}>{L.projectType}</span>
             <select className={selectCls} value={v.project_type_en ?? ""} onChange={e => onType(e.target.value)}>
-              <option value="">Select type…</option>
-              {types.map(c => <option key={c.en} value={c.en}>{c.en}</option>)}
+              <option value="">{L.selectType}</option>
+              {types.map(c => <option key={c.en} value={c.en}>{isAr && c.ar ? c.ar : c.en}</option>)}
             </select>
           </label>
 
@@ -237,85 +294,85 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
           <input type="hidden" value={v.project_type_ar ?? ""} readOnly />
 
           <label className="block">
-            <span className={labelCls}>Budget</span>
+            <span className={labelCls}>{L.budget}</span>
             <input type="number" min={0} value={v.budget ?? ""} onChange={set("budget")} className={inputCls} placeholder="0" />
           </label>
           <label className="block">
-            <span className={labelCls}>Start Date</span>
+            <span className={labelCls}>{L.startDate}</span>
             <input type="date" value={v.start_date ?? ""} onChange={set("start_date")} className={inputCls} />
           </label>
           <label className="block">
-            <span className={labelCls}>End Date</span>
+            <span className={labelCls}>{L.endDate}</span>
             <input type="date" value={v.end_date ?? ""} min={v.start_date || undefined} onChange={set("end_date")} className={inputCls} />
           </label>
           </div>
           <label className="block sm:col-span-2">
-            <span className={labelCls}>Description</span>
-            <textarea value={v.description_en ?? ""} onChange={set("description_en")} rows={2} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" placeholder="Brief project description…" />
+            <span className={labelCls}>{L.description}</span>
+            <textarea value={v.description_en ?? ""} onChange={set("description_en")} rows={2} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" placeholder={L.descriptionPh} />
           </label>
           <label className="block sm:col-span-2">
-            <span className={labelCls}>Competitors (comma-separated)</span>
-            <input value={v.competitors ?? ""} onChange={set("competitors")} className={inputCls} placeholder="Competitor A, Competitor B…" />
+            <span className={labelCls}>{L.competitors}</span>
+            <input value={v.competitors ?? ""} onChange={set("competitors")} className={inputCls} placeholder={L.competitorsPh} />
           </label>
         </div>
 
         {/* ── Location ── */}
-        <div className={`${sectionCls} mt-5`}>Location</div>
+        <div className={`${sectionCls} mt-5`}>{L.location}</div>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className={labelCls}>City</span>
+            <span className={labelCls}>{L.city}</span>
             <select className={selectCls} value={v.city_en ?? ""} onChange={e => onCity(e.target.value)}>
-              <option value="">Select city…</option>
-              {locations.map(l => <option key={l.city_en} value={l.city_en}>{l.city_en}{l.city_ar ? ` — ${l.city_ar}` : ""}</option>)}
+              <option value="">{L.selectCity}</option>
+              {locations.map(l => <option key={l.city_en} value={l.city_en}>{isAr && l.city_ar ? l.city_ar : l.city_en}</option>)}
             </select>
           </label>
           <label className="block">
-            <span className={labelCls}>District</span>
+            <span className={labelCls}>{L.district}</span>
             <select className={selectCls} value={v.district_en ?? ""} onChange={e => onDistrict(e.target.value)} disabled={!selectedCity}>
-              <option value="">{selectedCity ? "Select district…" : "Select a city first"}</option>
-              {districtPairs.map(d => <option key={d.en} value={d.en}>{d.en}{d.ar ? ` — ${d.ar}` : ""}</option>)}
+              <option value="">{selectedCity ? L.selectDistrict : L.selectDistrictFirst}</option>
+              {districtPairs.map(d => <option key={d.en} value={d.en}>{isAr && d.ar ? d.ar : d.en}</option>)}
             </select>
           </label>
           <label className="block sm:col-span-2">
-            <span className={labelCls}>Street / Address</span>
-            <input value={v.street_en ?? ""} onChange={set("street_en")} className={inputCls} placeholder="Building / Street name…" />
+            <span className={labelCls}>{L.street}</span>
+            <input value={v.street_en ?? ""} onChange={set("street_en")} className={inputCls} placeholder={L.streetPh} />
           </label>
         </div>
 
         {/* ── Client Info ── */}
-        <div className={`${sectionCls} mt-5`}>Client Info</div>
+        <div className={`${sectionCls} mt-5`}>{L.clientInfo}</div>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className={labelCls}>Full Name *</span>
-            <input value={v.contact_name_en ?? ""} onChange={set("contact_name_en")} className={inputCls} placeholder="Contact person name" />
+            <span className={labelCls}>{L.fullName}</span>
+            <input value={v.contact_name_en ?? ""} onChange={set("contact_name_en")} className={inputCls} placeholder={L.fullNamePh} />
           </label>
           <label className="block">
-            <span className={labelCls}>Company / Client *</span>
-            <input value={v.client_name_en ?? ""} onChange={set("client_name_en")} className={inputCls} placeholder="Company or client name" />
+            <span className={labelCls}>{L.company}</span>
+            <input value={v.client_name_en ?? ""} onChange={set("client_name_en")} className={inputCls} placeholder={L.companyPh} />
           </label>
           <label className="block">
-            <span className={labelCls}>Email *</span>
-            <input type="email" value={v.email ?? ""} onChange={set("email")} className={inputCls} placeholder="email@example.com" />
+            <span className={labelCls}>{L.email}</span>
+            <input type="email" value={v.email ?? ""} onChange={set("email")} className={inputCls} placeholder="email@example.com" dir="ltr" />
           </label>
           <div className="block">
-            <span className={labelCls}>Phone *</span>
+            <span className={labelCls}>{L.phoneLabel}</span>
             <PhoneInput value={phone} onChange={setPhone} />
           </div>
         </div>
 
         {/* ── Extra Contacts ── */}
         <div className="mt-5 mb-2 flex items-center justify-between">
-          <span className={sectionCls}>Extra Contacts</span>
+          <span className={sectionCls}>{L.extraContacts}</span>
           <button
             type="button"
             onClick={addContact}
             className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/20 transition-colors"
           >
-            <Plus className="h-3 w-3" /> Add Contact
+            <Plus className="h-3 w-3" /> {L.addContact}
           </button>
         </div>
         {extraContacts.length === 0 && (
-          <p className="mb-3 text-xs text-muted-foreground">No extra contacts yet. Click "Add Contact" to add one.</p>
+          <p className="mb-3 text-xs text-muted-foreground">{L.noExtraContacts}</p>
         )}
         <div className="space-y-3 mb-2">
           {extraContacts.map((c, i) => (
@@ -323,21 +380,21 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
               <button
                 type="button"
                 onClick={() => removeContact(i)}
-                className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                className={`absolute top-2 ${isAr ? "left-2" : "right-2"} flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors`}
               >
                 <X className="h-3.5 w-3.5" />
               </button>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 pr-8">
+              <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${isAr ? "pl-8" : "pr-8"}`}>
                 <label className="block">
-                  <span className={labelCls}>Name</span>
-                  <input value={c.name} onChange={e => updateContact(i, "name", e.target.value)} placeholder="Full name" className={inputCls} />
+                  <span className={labelCls}>{L.name}</span>
+                  <input value={c.name} onChange={e => updateContact(i, "name", e.target.value)} placeholder={L.namePh} className={inputCls} />
                 </label>
                 <label className="block">
-                  <span className={labelCls}>Title / Role</span>
-                  <input value={c.title} onChange={e => updateContact(i, "title", e.target.value)} placeholder="e.g. Site Manager" className={inputCls} />
+                  <span className={labelCls}>{L.titleRole}</span>
+                  <input value={c.title} onChange={e => updateContact(i, "title", e.target.value)} placeholder={L.titleRolePh} className={inputCls} />
                 </label>
                 <div className="block sm:col-span-2">
-                  <span className={labelCls}>Phone</span>
+                  <span className={labelCls}>{L.phoneLabel}</span>
                   <PhoneInput value={c.phone || "+20"} onChange={val => updateContact(i, "phone", val)} />
                 </div>
               </div>
@@ -351,14 +408,14 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
             onClick={onClose}
             className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground ring-1 ring-border hover:bg-accent transition-colors"
           >
-            Cancel
+            {L.cancel}
           </button>
           <button
             onClick={submit}
             disabled={busy}
             className="rounded-lg bg-primary px-5 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
-            {busy ? "Submitting…" : "Send for Approval"}
+            {busy ? L.submitting : L.submit}
           </button>
         </div>
       </div>
