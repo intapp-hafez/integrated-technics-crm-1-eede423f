@@ -63,6 +63,18 @@ function Index() {
         return;
       }
 
+      const { data: profileRow, error: profileErr } = await supabase
+        .from("profiles")
+        .select("active")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+
+      if (profileRow && profileRow.active === false) {
+        await supabase.auth.signOut();
+        setError(dir === "rtl" ? "هذا الحساب معطّل. تواصل مع المسؤول." : "This account is deactivated. Contact your administrator.");
+        return;
+      }
+
       const { data: rolesRows, error: rolesErr } = await supabase
         .from("user_roles")
         .select("role")

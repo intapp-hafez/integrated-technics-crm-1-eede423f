@@ -17,14 +17,22 @@ function AdminOffersPage() {
   const { t, dir } = useI18n();
   const { quotations } = useStoreState();
   const [search, setSearch] = useState("");
+  const [filterOwner, setFilterOwner] = useState("");
+  const [filterClient, setFilterClient] = useState("");
   const isDetail = useRouterState({ select: (s) => s.location.pathname.startsWith("/admin/offers/") });
 
+  const ownersList = useMemo(() => Array.from(new Set(quotations.map(q => q.owner).filter(Boolean))), [quotations]);
+  const clientsList = useMemo(() => Array.from(new Set(quotations.map(q => q.client).filter(Boolean))), [quotations]);
+
   const filtered = useMemo(() => {
-    return quotations.filter((q) => 
-      q.client.toLowerCase().includes(search.toLowerCase()) || 
-      q.id.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [quotations, search]);
+    return quotations.filter((q) => {
+      const matchSearch = q.client.toLowerCase().includes(search.toLowerCase()) || 
+                          q.id.toLowerCase().includes(search.toLowerCase());
+      const matchOwner = filterOwner ? q.owner === filterOwner : true;
+      const matchClient = filterClient ? q.client === filterClient : true;
+      return matchSearch && matchOwner && matchClient;
+    });
+  }, [quotations, search, filterOwner, filterClient]);
 
   if (isDetail) return <Outlet />;
 
@@ -34,6 +42,25 @@ function AdminOffersPage() {
     accepted: quotations.filter(q => q.status === "accepted").length,
     negotiating: quotations.filter(q => q.status === "negotiating").length,
     value: quotations.reduce((s, q) => s + (q.status !== "rejected" ? q.value : 0), 0)
+  };
+
+  const exportCsv = async () => {
+    const XLSX = await import("xlsx");
+    const data = filtered.map(q => ({
+      "ID": shortId(q.id),
+      "Client / العميل": q.client,
+      "Date / التاريخ": q.submissionDate,
+      "Value / القيمة": q.value,
+      "Status / الحالة": t(q.status as any) || q.status.replace("_", " "),
+      "Revisions / المراجعات": q.revisions,
+      "Owner / المالك": q.owner,
+      "Feedback / الملاحظات": q.feedback || "—"
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Offers");
+    XLSX.writeFile(wb, `offers-export-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (
@@ -63,11 +90,24 @@ function AdminOffersPage() {
             style={{ paddingInlineStart: "2.25rem" }}
           />
         </div>
-        <button className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-semibold hover:bg-accent ms-auto">
+        <select
+          value={filterOwner}
+          onChange={(e) => setFilterOwner(e.target.value)}
+          className="h-10 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none"
+        >
+          <option value="">{dir === "rtl" ? "جميع المُلّاك" : "All Owners"}</option>
+          {ownersList.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <select
+          value={filterClient}
+          onChange={(e) => setFilterClient(e.target.value)}
+          className="h-10 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none"
+        >
+          <option value="">{dir === "rtl" ? "جميع العملاء" : "All Clients"}</option>
+          {clientsList.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <button onClick={exportCsv} className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-semibold hover:bg-accent ms-auto">
           <Download className="h-4 w-4" /> Export
-        </button>
-        <button className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-          <Plus className="h-4 w-4" /> {dir === "rtl" ? "إنشاء عرض" : "New Offer"}
         </button>
       </div>
 

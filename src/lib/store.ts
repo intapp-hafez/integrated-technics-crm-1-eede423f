@@ -746,6 +746,44 @@ export const actions = {
     }));
     logHistory({ module: "settings", actor: "hafez Rahim", target: name, action: enabled ? "Enabled automation" : "Disabled automation" });
   },
+  addAutomation(name: string, trigger: string, action: string) {
+    set((s) => ({
+      ...s,
+      settings: {
+        ...s.settings,
+        automations: [...s.settings.automations, { id: id("AU"), name, trigger, action, enabled: true }],
+      },
+    }));
+    logHistory({ module: "settings", actor: "hafez Rahim", target: name, action: "Added automation rule" });
+  },
+  updateAutomation(ruleId: string, payload: Partial<AutomationRule>) {
+    let name = "";
+    set((s) => ({
+      ...s,
+      settings: {
+        ...s.settings,
+        automations: s.settings.automations.map((r) => {
+          if (r.id === ruleId) { name = payload.name ?? r.name; return { ...r, ...payload }; }
+          return r;
+        }),
+      },
+    }));
+    logHistory({ module: "settings", actor: "hafez Rahim", target: name, action: "Updated automation rule" });
+  },
+  deleteAutomation(ruleId: string) {
+    let name = "";
+    set((s) => {
+      name = s.settings.automations.find(r => r.id === ruleId)?.name ?? "";
+      return {
+        ...s,
+        settings: {
+          ...s.settings,
+          automations: s.settings.automations.filter((r) => r.id !== ruleId),
+        },
+      };
+    });
+    logHistory({ module: "settings", actor: "hafez Rahim", target: name, action: "Deleted automation rule" });
+  },
   renameStage(key: string, label: string) {
     set((s) => ({ ...s, settings: { ...s.settings, stages: s.settings.stages.map((st) => st.key === key ? { ...st, label } : st) } }));
     logHistory({ module: "settings", actor: "hafez Rahim", target: "Pipeline", action: "Renamed stage", details: `${key} → ${label}` });

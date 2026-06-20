@@ -6,7 +6,7 @@ import { useRole } from "@/lib/role";
 import React, { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Workflow, Tag, CalendarCheck, Zap, MessageSquare, Plus, Check, ShieldAlert, ShieldCheck, MapPin, X, Users as UsersIcon, Trash2, Building2, Briefcase, Download, Upload, Clock, Mail, Eye, EyeOff, Loader2, UserCircle2, Search, GripVertical, ChevronDown, ChevronRight } from "lucide-react";
+import { Workflow, Tag, CalendarCheck, Zap, MessageSquare, Plus, Check, ShieldAlert, ShieldCheck, MapPin, X, Users as UsersIcon, Trash2, Building2, Briefcase, Download, Upload, Clock, Mail, Eye, EyeOff, Loader2, UserCircle2, Search, GripVertical, ChevronDown, ChevronRight, Pencil, ArrowRight } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
@@ -203,31 +203,7 @@ function SettingsPage() {
             </section>
           )}
 
-          {tab === "automations" && (
-            <section>
-              <Header title={t("automations")} hint={t("automationsDesc")} />
-              <div className="divide-y divide-border rounded-lg border border-border">
-                {settings.automations.map((r) => (
-                  <div key={r.id} className="flex items-center gap-4 p-4">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
-                      <Zap className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-foreground">{r.name}</div>
-                      <div className="text-xs text-muted-foreground"><b>{t("when")}</b> {r.trigger} <b>→</b> {r.action}</div>
-                    </div>
-                    <button
-                      onClick={() => actions.toggleAutomation(r.id)}
-                      className={`relative h-6 w-11 rounded-full transition ${r.enabled ? "bg-primary" : "bg-muted"}`}
-                      aria-label="Toggle"
-                    >
-                      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${r.enabled ? "left-[22px]" : "left-0.5"}`} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+          {tab === "automations" && <AutomationsEditor />}
 
           {tab === "templates" && <TemplatesEditor />}
           {tab === "send" && <SendEmailEditor />}
@@ -355,6 +331,8 @@ function UsersEditor() {
   const [password, setPassword] = useState("");
   const [skillsText, setSkillsText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const upd = (patch: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...patch }));
   const departments = settings.departments ?? [];
   const positions = settings.positions ?? [];
@@ -370,6 +348,12 @@ function UsersEditor() {
   const selectedDeptId = departments.find((d) => d.nameEn === draft.departmentEn)?.id ?? "";
   const selectedPosId = positions.find((p) => p.nameEn === draft.titleEn)?.id ?? "";
   const managers = users.filter((u) => u.role === "manager");
+
+  const filteredUsers = users.filter(u => 
+    (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) || 
+    (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (u.nameAr && u.nameAr.includes(searchQuery))
+  );
 
   const submit = async () => {
     if (!draft.name.trim() || !draft.email.trim() || password.length < 6) {
@@ -425,8 +409,16 @@ function UsersEditor() {
         }}
       />
       <div className="rounded-xl border border-border bg-background p-4">
-        <div className="mb-3 font-display text-sm font-bold text-foreground">Add new user</div>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <button 
+          onClick={() => setIsAddUserOpen(!isAddUserOpen)} 
+          className="flex w-full items-center justify-between font-display text-sm font-bold text-foreground hover:opacity-80"
+        >
+          <span>Add new user</span>
+          <ChevronDown className={`h-4 w-4 transition-transform ${isAddUserOpen ? "rotate-180" : ""}`} />
+        </button>
+        {isAddUserOpen && (
+          <div className="mt-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           <Field label="Full name (EN)" required>
             <input value={draft.name} onChange={(e) => upd({ name: e.target.value })} className={inputCls} />
           </Field>
@@ -520,6 +512,23 @@ function UsersEditor() {
             <Plus className="h-4 w-4" /> {busy ? "Creating…" : "Add user"}
           </button>
         </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 mb-3 flex items-center justify-between">
+         <h3 className="font-display text-base font-bold text-foreground">Users Directory</h3>
+         <div className="relative w-64">
+           <Search className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
+           <input 
+             type="text" 
+             placeholder="Search users..." 
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+             className="h-9 w-full rounded-lg border border-border bg-background text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+             style={{ paddingInlineStart: "2.25rem" }}
+           />
+         </div>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border">
@@ -534,9 +543,9 @@ function UsersEditor() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {users.map((u) => <UserRow key={u.id} user={u} />)}
-            {users.length === 0 && (
-              <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No users yet</td></tr>
+            {filteredUsers.map((u) => <UserRow key={u.id} user={u} />)}
+            {filteredUsers.length === 0 && (
+              <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No users found</td></tr>
             )}
           </tbody>
         </table>
@@ -1874,5 +1883,100 @@ function UserRolesEditor() {
         </div>
       )}
     </div>
+  );
+}
+
+function AutomationsEditor() {
+  const { t } = useI18n();
+  const { settings } = useStoreState();
+  const automations = settings.automations ?? [];
+  const [editing, setEditing] = useState<Partial<typeof automations[0]> | null>(null);
+
+  const save = () => {
+    if (!editing?.name?.trim() || !editing?.trigger?.trim() || !editing?.action?.trim()) return;
+    if (editing.id) {
+      actions.updateAutomation(editing.id, { name: editing.name, trigger: editing.trigger, action: editing.action });
+    } else {
+      actions.addAutomation(editing.name, editing.trigger, editing.action);
+    }
+    setEditing(null);
+  };
+
+  const remove = (id: string) => {
+    if (confirm("Delete this automation rule?")) {
+      actions.deleteAutomation(id);
+    }
+  };
+
+  return (
+    <section>
+      <div className="mb-5 flex items-center justify-between border-b border-border pb-4">
+        <div>
+          <h2 className="font-display text-lg font-bold text-foreground">{t("automations")}</h2>
+          <p className="text-sm text-muted-foreground">{t("automationsDesc")}</p>
+        </div>
+        <button onClick={() => setEditing({ name: "", trigger: "", action: "" })} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+          <Plus className="h-4 w-4" /> Add Rule
+        </button>
+      </div>
+
+      <div className="divide-y divide-border rounded-xl border border-border bg-card">
+        {automations.map((r) => (
+          <div key={r.id} className="flex items-center gap-4 p-5 transition hover:bg-accent/30">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${r.enabled ? "bg-amber-100 text-amber-600" : "bg-muted text-muted-foreground"}`}>
+              <Zap className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className={`font-semibold ${r.enabled ? "text-foreground" : "text-muted-foreground line-through"}`}>{r.name}</span>
+                {!r.enabled && <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">Disabled</span>}
+              </div>
+              <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="rounded bg-secondary px-1.5 py-0.5 font-medium text-foreground">When: {r.trigger}</span>
+                <ArrowRight className="h-3 w-3 text-muted-foreground/50" />
+                <span className="rounded bg-secondary px-1.5 py-0.5 font-medium text-foreground">Then: {r.action}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={() => actions.toggleAutomation(r.id)} className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${r.enabled ? "bg-primary" : "bg-muted"}`} aria-label="Toggle">
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${r.enabled ? "left-[22px]" : "left-0.5"}`} />
+              </button>
+              <div className="h-6 w-px bg-border" />
+              <button onClick={() => setEditing(r)} className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"><Pencil className="h-4 w-4" /></button>
+              <button onClick={() => remove(r.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+            </div>
+          </div>
+        ))}
+        {automations.length === 0 && <div className="p-8 text-center text-sm text-muted-foreground">No automation rules yet. Create your first rule to automate workflows.</div>}
+      </div>
+
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-sm" onClick={() => setEditing(null)}>
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="font-display text-lg font-bold text-foreground">{editing.id ? "Edit Automation Rule" : "New Automation Rule"}</h3>
+              <button onClick={() => setEditing(null)} className="rounded-lg p-1 text-muted-foreground hover:bg-accent"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="space-y-4">
+              <Field label="Rule Name" required>
+                <input value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} placeholder="e.g. Auto-assign new web leads" className={inputCls} autoFocus />
+              </Field>
+              <Field label="Trigger (When)" required>
+                <input value={editing.trigger} onChange={e => setEditing({ ...editing, trigger: e.target.value })} placeholder="e.g. Lead created from Website" className={inputCls} />
+              </Field>
+              <Field label="Action (Then)" required>
+                <input value={editing.action} onChange={e => setEditing({ ...editing, action: e.target.value })} placeholder="e.g. Assign to Sales Team" className={inputCls} />
+              </Field>
+            </div>
+            <div className="mt-8 flex justify-end gap-3">
+              <button onClick={() => setEditing(null)} className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent">Cancel</button>
+              <button onClick={save} disabled={!editing.name?.trim() || !editing.trigger?.trim() || !editing.action?.trim()} className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50">
+                {editing.id ? "Save Changes" : "Create Rule"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
