@@ -456,6 +456,8 @@ export const ar: Dict = {
   typeWorkshop: "ورشة عمل",
   typeDemo: "عرض توضيحي",
 
+  more: "المزيد",
+
   // Filters & Actions
   exportCSV: "تصدير CSV",
   refresh: "تحديث",

@@ -324,7 +324,7 @@ function ActivitiesPage() {
           </button>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {(["all", ...settings.activityTypes] as const).map((tp) => (
+          {(["all", "Call", "Email", "Meeting", "Site Visit", "Follow-up"] as const).map((tp) => (
             <button
               key={tp}
               onClick={() => setFilter(tp as any)}
@@ -334,6 +334,25 @@ function ActivitiesPage() {
               {tp === "all" ? t("all") : (ACT_I18N[tp] ? t(ACT_I18N[tp]) : tp)}
             </button>
           ))}
+          {(() => {
+            const primary = ["Call", "Email", "Meeting", "Site Visit", "Follow-up"];
+            const moreTypes = settings.activityTypes.filter((t) => !primary.includes(t));
+            const isMore = moreTypes.includes(filter as string);
+            return moreTypes.length > 0 ? (
+              <select
+                value={isMore ? (filter as string) : ""}
+                onChange={(e) => { const v = e.target.value; if (v) setFilter(v as any); }}
+                className={`h-8 rounded-full px-3 text-xs font-semibold focus:outline-none ${isMore ? "bg-primary text-primary-foreground" : "bg-card text-foreground ring-1 ring-border"}`}
+              >
+                <option value="">{t("more")}</option>
+                {moreTypes.map((tp) => (
+                  <option key={tp} value={tp}>
+                    {ACT_I18N[tp] ? t(ACT_I18N[tp]) : tp}
+                  </option>
+                ))}
+              </select>
+            ) : null;
+          })()}
         </div>
         <select
           value={statusFilter}
