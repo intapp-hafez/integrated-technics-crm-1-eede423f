@@ -39,7 +39,7 @@ export async function listWhitelist(): Promise<{ entries: WhitelistRow[] }> {
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) throw error;
-    return { entries: data ?? [] };
+    return { entries: (data ?? []) as unknown as WhitelistRow[] };
   } catch {
     return { entries: [] };
   }
