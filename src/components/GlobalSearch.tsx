@@ -6,6 +6,19 @@ import { useI18n } from "@/lib/i18n";
 
 type Panel = "admin" | "manager" | "employee" | "finance";
 
+function highlight(text: string, term: string) {
+  const t = term.trim();
+  if (!t) return text;
+  const parts = text.split(new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "ig"));
+  return parts.map((p, i) =>
+    p.toLowerCase() === t.toLowerCase() ? (
+      <mark key={i} className="rounded-sm bg-primary/25 px-0.5 text-foreground">{p}</mark>
+    ) : (
+      <span key={i}>{p}</span>
+    )
+  );
+}
+
 type Result = {
   id: string;
   label: string;
