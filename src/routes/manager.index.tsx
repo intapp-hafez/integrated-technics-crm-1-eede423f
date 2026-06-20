@@ -63,29 +63,29 @@ function ManagerDashboard() {
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <KpiCard label={t("totalLeads")} value={String(totalLeads)} delta={12.4} icon={Users} accent="primary" />
         <KpiCard label={t("conversionRate")} value={`${convRate}%`} delta={2.1} icon={Target} accent="warning" />
-        <KpiCard label={dir === "rtl" ? "أنشطة اليوم" : "Today's Activities"} value={String(todayActs.length)} delta={0} icon={Clock} accent="info" />
-        <KpiCard label={dir === "rtl" ? "مُنجز اليوم" : "Done Today"} value={String(doneToday)} delta={0} icon={CheckCircle2} accent="success" />
+        <KpiCard label={t("todayActivities")} value={String(todayActs.length)} delta={0} icon={Clock} accent="info" />
+        <KpiCard label={t("doneToday")} value={String(doneToday)} delta={0} icon={CheckCircle2} accent="success" />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Targets Breakdown */}
         <div className="lg:col-span-3 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-          <h3 className="mb-4 font-display text-base font-bold text-foreground">{dir === "rtl" ? "تفصيل المستهدف" : "Target Breakdown"}</h3>
+          <h3 className="mb-4 font-display text-base font-bold text-foreground">{t("targetBreakdown")}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="rounded-xl bg-primary/10 p-5 border border-primary/20 flex flex-col justify-center">
-               <div className="text-xs text-primary font-bold uppercase tracking-wider">{dir === "rtl" ? "المستهدف الإجمالي" : "Total Team Target"}</div>
+               <div className="text-xs text-primary font-bold uppercase tracking-wider">{t("totalTeamTarget")}</div>
                <div className="mt-1 font-mono text-3xl font-black text-foreground">{fmtMoney(totalTarget)}</div>
-               <div className="text-sm text-primary/80 mt-2 font-semibold">Achieved: {fmtMoney(totalAchieved)}</div>
+               <div className="text-sm text-primary/80 mt-2 font-semibold">{t("achieved")}: {fmtMoney(totalAchieved)}</div>
             </div>
             <div className="rounded-xl bg-secondary/50 p-5 border border-border flex flex-col justify-center">
-               <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{dir === "rtl" ? "مستهدفي الشخصي" : "My Target"}</div>
+               <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{t("myTarget")}</div>
                <div className="mt-1 font-mono text-2xl font-bold text-foreground">{fmtMoney(managerTarget)}</div>
-               <div className="text-sm text-muted-foreground mt-2 font-medium">Achieved: {fmtMoney(managerAchieved)}</div>
+               <div className="text-sm text-muted-foreground mt-2 font-medium">{t("achieved")}: {fmtMoney(managerAchieved)}</div>
             </div>
             <div className="rounded-xl bg-secondary/50 p-5 border border-border flex flex-col justify-center">
-               <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{dir === "rtl" ? "مستهدف الموظفين" : "Employees Target"}</div>
+               <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{t("employeesTarget")}</div>
                <div className="mt-1 font-mono text-2xl font-bold text-foreground">{fmtMoney(teamTarget)}</div>
-               <div className="text-sm text-muted-foreground mt-2 font-medium">Achieved: {fmtMoney(teamAchieved)}</div>
+               <div className="text-sm text-muted-foreground mt-2 font-medium">{t("achieved")}: {fmtMoney(teamAchieved)}</div>
             </div>
           </div>
         </div>
@@ -93,7 +93,7 @@ function ManagerDashboard() {
         {/* Team Members */}
         <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-base font-bold text-foreground">{dir === "rtl" ? "أعضاء الفريق" : "Team Members"}</h3>
+            <h3 className="font-display text-base font-bold text-foreground">{t("teamMembers")}</h3>
             <Link to="/manager/employees" className="text-xs font-semibold text-primary hover:underline">{t("viewAll")}</Link>
           </div>
           <div className="space-y-3">
@@ -135,10 +135,10 @@ function ManagerDashboard() {
           <h3 className="mb-4 font-display text-base font-bold text-foreground">{t("teamOverview")}</h3>
           <div className="space-y-3">
             {[
-              { label: dir === "rtl" ? "إجمالي الموظفين" : "Total Employees", value: employees.length, color: "text-primary" },
-              { label: dir === "rtl" ? "إجمالي العملاء" : "Total Leads", value: teamLeads.length, color: "text-sky-600" },
-              { label: dir === "rtl" ? "عملاء مُغلقة" : "Won Deals", value: wonLeads, color: "text-emerald-600" },
-              { label: dir === "rtl" ? "أنشطة معلقة" : "Pending Activities", value: teamActivities.filter((a) => a.status === "pending").length, color: "text-amber-600" },
+              { label: t("totalEmployees"), value: employees.length, color: "text-primary" },
+              { label: t("totalLeads"), value: teamLeads.length, color: "text-sky-600" },
+              { label: t("wonDeals"), value: wonLeads, color: "text-emerald-600" },
+              { label: t("pendingActivities"), value: teamActivities.filter((a) => a.status === "pending").length, color: "text-amber-600" },
             ].map((s) => (
               <div key={s.label} className="flex items-center justify-between rounded-lg bg-secondary/40 px-4 py-2.5">
                 <span className="text-sm text-muted-foreground">{s.label}</span>
@@ -166,7 +166,7 @@ function ManagerDashboard() {
                 <div className="text-[11px] text-muted-foreground">{a.owner} · {a.dueDate} {a.time}</div>
               </div>
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${a.status === "done" ? "bg-emerald-50 text-emerald-700" : a.status === "in_progress" ? "bg-amber-50 text-amber-700" : "bg-secondary text-muted-foreground"}`}>
-                {a.status.replace("_", " ")}
+                {t(a.status as any)}
               </span>
             </div>
           ))}

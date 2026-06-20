@@ -30,7 +30,13 @@ const STATUS_TONE: Record<ActivityStatus, string> = {
   cancelled: "text-rose-600",
   delayed: "text-sky-600",
 };
-const ACT_I18N: Record<string, any> = { Call: "actCall", Meeting: "actMeeting", "Site Visit": "actSiteVisit", "Follow-up": "actFollowUp", Inspection: "actInspection", Email: "actEmail" };
+const ACT_I18N: Record<string, any> = {
+  Call: "actCall", Meeting: "actMeeting", "Site Visit": "actSiteVisit",
+  "Follow-up": "actFollowUp", Inspection: "actInspection", Email: "actEmail",
+  Demo: "typeDemo", Workshop: "typeWorkshop", Presentation: "typePresentation",
+  Negotiation: "typeNegotiation", Proposal: "typeProposal", Training: "typeTraining",
+  "Contract Signing": "typeContractSigning", Handover: "typeHandover",
+};
 
 type Period = "today" | "yesterday" | "week" | "month" | "all";
 const PERIODS: { key: Period }[] = [

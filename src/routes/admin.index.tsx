@@ -37,11 +37,8 @@ const QUOTE_STATUS_COLORS: Record<string, string> = {
 
 const SOURCE_PALETTE = ["#6366f1", "#10b981", "#f59e0b", "#ec4899", "#0ea5e9", "#a855f7", "#ef4444", "#64748b"];
 
-type RangeKey = "7d" | "30d" | "90d" | "ytd" | "all";
-const RANGE_LABELS: Record<RangeKey, string> = {
-  "7d": "Last 7 days", "30d": "Last 30 days", "90d": "Last 90 days",
-  ytd: "Year to date", all: "All time",
-};
+type RangeKey = "7d" | "30d" | "90d" | "ytd" | "allTime";
+const RANGE_KEYS: RangeKey[] = ["7d", "30d", "90d", "ytd", "allTime"];
 
 function rangeStart(range: RangeKey): Date | null {
   const d = new Date();
@@ -222,7 +219,7 @@ function useDashboardData(range: RangeKey) {
         pipeline, funnel, trend, revenueMonths, performers, quick,
         quotesByStatus, totalQuoteValue, totalQuotes: quotations.length,
         sources, upcoming, overdue, recentActivities,
-        rangeLabel: RANGE_LABELS[range],
+        rangeKey: range,
       };
     },
   });
@@ -261,6 +258,14 @@ function AdminDashboard() {
   const maxRevenue = useMemo(() => Math.max(1, ...(data?.revenueMonths.map((m) => m.value) ?? [1])), [data]);
   const maxFunnel = useMemo(() => Math.max(1, ...(data?.funnel.map((s) => s.count) ?? [1])), [data]);
 
+  const rangeLabels: Record<RangeKey, string> = {
+    "7d": t("7d") as string,
+    "30d": t("30d") as string,
+    "90d": t("90d") as string,
+    ytd: t("ytd") as string,
+    allTime: t("allTime") as string,
+  };
+
   const handleExport = () => {
     if (!data) return;
     const rows = [
@@ -289,7 +294,7 @@ function AdminDashboard() {
       {/* Header: range, refresh, export */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-center gap-1">
-          {(Object.keys(RANGE_LABELS) as RangeKey[]).map((k) => (
+          {RANGE_KEYS.map((k) => (
             <button
               key={k}
               onClick={() => setRange(k)}
@@ -299,7 +304,7 @@ function AdminDashboard() {
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
               }`}
             >
-              {RANGE_LABELS[k]}
+              {rangeLabels[k]}
             </button>
           ))}
         </div>
@@ -309,14 +314,14 @@ function AdminDashboard() {
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-accent"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
-            Refresh
+            {t("refresh")}
           </button>
           <button
             onClick={handleExport}
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-accent"
           >
             <Download className="h-3.5 w-3.5" />
-            Export CSV
+            {t("exportCSV")}
           </button>
         </div>
       </div>
@@ -326,32 +331,32 @@ function AdminDashboard() {
         <Link to="/admin/leads" className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:border-primary hover:shadow-md">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><Plus className="h-5 w-5" /></div>
           <div className="min-w-0">
-            <div className="text-sm font-bold text-foreground">New Lead</div>
-            <div className="text-xs text-muted-foreground">Capture opportunity</div>
+            <div className="text-sm font-bold text-foreground">{t("newLead")}</div>
+            <div className="text-xs text-muted-foreground">{t("captureOpportunity")}</div>
           </div>
           <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
         </Link>
         <Link to="/admin/offers" className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:border-primary hover:shadow-md">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600"><FileText className="h-5 w-5" /></div>
           <div className="min-w-0">
-            <div className="text-sm font-bold text-foreground">New Quotation</div>
-            <div className="text-xs text-muted-foreground">Draft an offer</div>
+            <div className="text-sm font-bold text-foreground">{t("newQuotation")}</div>
+            <div className="text-xs text-muted-foreground">{t("draftOffer")}</div>
           </div>
           <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
         </Link>
         <Link to="/admin/activities" className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:border-primary hover:shadow-md">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600"><ActivityIcon className="h-5 w-5" /></div>
           <div className="min-w-0">
-            <div className="text-sm font-bold text-foreground">New Activity</div>
-            <div className="text-xs text-muted-foreground">Log a touchpoint</div>
+            <div className="text-sm font-bold text-foreground">{t("addActivity")}</div>
+            <div className="text-xs text-muted-foreground">{t("logTouchpoint")}</div>
           </div>
           <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
         </Link>
         <Link to="/admin/settings" className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:border-primary hover:shadow-md">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600"><UserPlus className="h-5 w-5" /></div>
           <div className="min-w-0">
-            <div className="text-sm font-bold text-foreground">Invite User</div>
-            <div className="text-xs text-muted-foreground">Onboard teammate</div>
+            <div className="text-sm font-bold text-foreground">{t("inviteUser")}</div>
+            <div className="text-xs text-muted-foreground">{t("onboardTeammate")}</div>
           </div>
           <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
         </Link>
@@ -370,8 +375,8 @@ function AdminDashboard() {
         <div className="lg:col-span-2 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-display text-base font-bold text-foreground">Revenue (Won Deals)</h3>
-              <p className="text-xs text-muted-foreground">Last 12 months · Total won: <span className="font-mono font-bold text-emerald-600">{fmtMoney(kpis.wonValue)}</span></p>
+              <h3 className="font-display text-base font-bold text-foreground">{t("revenueWonDeals")}</h3>
+              <p className="text-xs text-muted-foreground">{t("last12MonthsTotalWon")}: <span className="font-mono font-bold text-emerald-600">{fmtMoney(kpis.wonValue)}</span></p>
             </div>
             <DollarSign className="h-5 w-5 text-emerald-600" />
           </div>
@@ -384,7 +389,7 @@ function AdminDashboard() {
                     <div
                       className="w-full rounded-t-md bg-gradient-to-t from-emerald-500/40 to-emerald-500 transition-all hover:from-emerald-500 hover:to-emerald-400"
                       style={{ height: `${Math.max(h, 2)}%` }}
-                      title={`${m.label}: ${fmtMoney(m.value)} (${m.count} deals)`}
+                      title={`${m.label}: ${fmtMoney(m.value)} (${m.count} ${t("leadsCount")})`}
                     />
                     <div className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-1.5 py-0.5 text-[10px] font-bold text-background opacity-0 transition group-hover:opacity-100">
                       {fmtMoney(m.value)}
@@ -398,8 +403,8 @@ function AdminDashboard() {
         </div>
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-          <h3 className="font-display text-base font-bold text-foreground">Pipeline Funnel</h3>
-          <p className="text-xs text-muted-foreground">Drop-off between stages</p>
+          <h3 className="font-display text-base font-bold text-foreground">{t("pipelineFunnel")}</h3>
+          <p className="text-xs text-muted-foreground">{t("dropOffBetweenStages")}</p>
           <div className="mt-5 space-y-2">
             {funnel.map((s, idx) => {
               const widthPct = (s.count / maxFunnel) * 100;
@@ -415,7 +420,7 @@ function AdminDashboard() {
                       className="flex h-full items-center justify-between px-3 text-xs font-bold text-white transition-all"
                       style={{ width: `${Math.max(widthPct, 18)}%`, background: s.color }}
                     >
-                      <span>{s.label}</span>
+                      <span>{t(("stage" + s.key.charAt(0).toUpperCase() + s.key.slice(1)) as any)}</span>
                       <span className="font-mono">{s.count}</span>
                     </div>
                   </div>
@@ -431,7 +436,7 @@ function AdminDashboard() {
         <div className="lg:col-span-2 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-base font-bold text-foreground">{t("pipelineByStage")}</h3>
-            <span className="text-xs text-muted-foreground">{data.rangeLabel}</span>
+            <span className="text-xs text-muted-foreground">{rangeLabels[range]}</span>
           </div>
           <div className="mt-5 space-y-3">
             {pipeline.map((s) => {
@@ -441,7 +446,7 @@ function AdminDashboard() {
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
-                      <span className="font-semibold text-foreground">{s.label}</span>
+                      <span className="font-semibold text-foreground">{t(("stage" + s.key.charAt(0).toUpperCase() + s.key.slice(1)) as any)}</span>
                       <span className="text-muted-foreground">· {s.count} {t("leadsCount")}</span>
                     </div>
                     <span className="font-mono font-semibold text-foreground">{fmtMoney(s.value)}</span>
@@ -515,8 +520,8 @@ function AdminDashboard() {
         <div className="lg:col-span-2 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-display text-base font-bold text-foreground">Quotations Overview</h3>
-              <p className="text-xs text-muted-foreground">{totalQuotes} quotations · Total value <span className="font-mono font-bold text-foreground">{fmtMoney(totalQuoteValue)}</span></p>
+              <h3 className="font-display text-base font-bold text-foreground">{t("quotationsOverview")}</h3>
+              <p className="text-xs text-muted-foreground">{totalQuotes} {t("quotations")} · {t("totalValue")} <span className="font-mono font-bold text-foreground">{fmtMoney(totalQuoteValue)}</span></p>
             </div>
             <Link to="/admin/offers" className="text-xs font-semibold text-primary hover:underline">{t("viewAll")}</Link>
           </div>
@@ -525,7 +530,7 @@ function AdminDashboard() {
               <div key={q.key} className="rounded-lg border border-border bg-secondary/40 p-3">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full" style={{ background: q.color }} />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{q.label}</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t(("quote" + q.key.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join('')) as any)}</span>
                 </div>
                 <div className="mt-1 font-mono text-xl font-bold text-foreground">{q.count}</div>
                 <div className="font-mono text-xs text-muted-foreground">{fmtMoney(q.value)}</div>
@@ -535,10 +540,10 @@ function AdminDashboard() {
         </div>
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-          <h3 className="font-display text-base font-bold text-foreground">Lead Sources</h3>
-          <p className="text-xs text-muted-foreground">Where leads come from</p>
+          <h3 className="font-display text-base font-bold text-foreground">{t("leadSources")}</h3>
+          <p className="text-xs text-muted-foreground">{t("whereLeadsComeFrom")}</p>
           {sources.length === 0 ? (
-            <div className="mt-6 text-xs text-muted-foreground">No source data</div>
+            <div className="mt-6 text-xs text-muted-foreground">{t("noSourceData")}</div>
           ) : (
             <>
               <div className="mt-5 flex items-center gap-4">
@@ -588,14 +593,14 @@ function AdminDashboard() {
         <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-display text-base font-bold text-foreground">Upcoming Activities</h3>
-              <p className="text-xs text-muted-foreground">Next 7 days</p>
+              <h3 className="font-display text-base font-bold text-foreground">{t("upcomingActivities")}</h3>
+              <p className="text-xs text-muted-foreground">{t("next7Days")}</p>
             </div>
             <Link to="/admin/activities" className="text-xs font-semibold text-primary hover:underline">{t("viewAll")}</Link>
           </div>
           <div className="mt-4 divide-y divide-border">
             {upcoming.length === 0 && (
-              <div className="py-6 text-center text-xs text-muted-foreground">Nothing scheduled in the next 7 days</div>
+              <div className="py-6 text-center text-xs text-muted-foreground">{t("nothingScheduled7Days")}</div>
             )}
             {upcoming.map((a: any) => {
               const Icon = iconMap[String(a.type).toLowerCase() as keyof typeof iconMap] ?? Calendar;
@@ -630,13 +635,13 @@ function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-600" />
-              <h3 className="font-display text-base font-bold text-foreground">Overdue Follow-ups</h3>
+              <h3 className="font-display text-base font-bold text-foreground">{t("overdueFollowUps")}</h3>
             </div>
-            <span className="text-xs text-muted-foreground">No touch in 14+ days</span>
+            <span className="text-xs text-muted-foreground">{t("noTouch14Days")}</span>
           </div>
           <div className="mt-4 divide-y divide-border">
             {overdue.length === 0 && (
-              <div className="py-6 text-center text-xs text-emerald-600">All caught up — no overdue leads</div>
+              <div className="py-6 text-center text-xs text-emerald-600">{t("allCaughtUp")}</div>
             )}
             {overdue.map((l: any) => {
               const days = Math.floor((Date.now() - new Date(l.lastTouch).getTime()) / (1000 * 60 * 60 * 24));
@@ -647,8 +652,8 @@ function AdminDashboard() {
                     <AlertTriangle className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-foreground">{l.company_en}</div>
-                    <div className="text-xs text-muted-foreground">{days} days inactive · <StatusBadge status={l.status} /></div>
+                    <div className="truncate text-sm font-semibold text-foreground">{lang === "ar" && l.company_ar ? l.company_ar : l.company_en}</div>
+                    <div className="text-xs text-muted-foreground">{days} {t("daysInactive")} · <StatusBadge status={l.status} label={t(("stage" + l.status.charAt(0).toUpperCase() + l.status.slice(1)) as any)} /></div>
                   </div>
                   <div className="text-end">
                     <div className="font-mono text-sm font-bold text-foreground">{fmtMoney(Number(l.value ?? 0))}</div>
