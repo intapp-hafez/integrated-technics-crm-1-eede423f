@@ -29,6 +29,7 @@ import { useChatNotifications } from "@/lib/useChatNotifications";
 import { useState, type ReactNode } from "react";
 import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { RealtimeStatus } from "@/components/RealtimeStatus";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 
 
