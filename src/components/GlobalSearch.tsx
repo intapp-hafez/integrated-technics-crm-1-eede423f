@@ -219,8 +219,8 @@ export function GlobalSearch({ panel }: { panel: Panel }) {
                     >
                       <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                       <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium">{r.label}</div>
-                        {r.sub && <div className="truncate text-xs text-muted-foreground">{r.sub}</div>}
+                        <div className="truncate font-medium">{highlight(r.label, q)}</div>
+                        {r.sub && <div className="truncate text-xs text-muted-foreground">{highlight(r.sub, q)}</div>}
                       </div>
                     </button>
                   );
