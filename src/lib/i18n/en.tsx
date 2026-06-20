@@ -453,6 +453,8 @@ export const en = {
   typeWorkshop: "Workshop",
   typeDemo: "Demo",
 
+  more: "More",
+
   // Filters & Actions
   exportCSV: "Export CSV",
   refresh: "Refresh",
