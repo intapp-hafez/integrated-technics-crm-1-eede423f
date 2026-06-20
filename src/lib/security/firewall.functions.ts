@@ -25,7 +25,7 @@ export async function listBlocklist(): Promise<{ entries: BlocklistRow[] }> {
       .order("last_seen", { ascending: false })
       .limit(500);
     if (error) throw error;
-    return { entries: data ?? [] };
+    return { entries: (data ?? []) as unknown as BlocklistRow[] };
   } catch {
     return { entries: [] };
   }
@@ -39,7 +39,7 @@ export async function listWhitelist(): Promise<{ entries: WhitelistRow[] }> {
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) throw error;
-    return { entries: data ?? [] };
+    return { entries: (data ?? []) as unknown as WhitelistRow[] };
   } catch {
     return { entries: [] };
   }
@@ -55,7 +55,7 @@ export async function listSecurityEvents(args: { data?: { limit?: number; type?:
     if (args.data?.type) q = q.eq("event_type", args.data.type);
     const { data: rows, error } = await q;
     if (error) throw error;
-    return { events: rows ?? [] };
+    return { events: (rows ?? []) as unknown as SecurityEventRow[] };
   } catch {
     return { events: [] };
   }

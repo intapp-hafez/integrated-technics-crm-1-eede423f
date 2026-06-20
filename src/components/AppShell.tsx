@@ -29,6 +29,7 @@ import { useChatNotifications } from "@/lib/useChatNotifications";
 import { useState, type ReactNode } from "react";
 import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { RealtimeStatus } from "@/components/RealtimeStatus";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 
 
@@ -228,14 +229,7 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
             </div>
           </div>
 
-          <div className="relative ms-auto hidden max-w-md flex-1 md:block">
-            <Search className="pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
-            <input
-              placeholder={t("search")}
-              className="h-10 w-full rounded-lg border border-border bg-secondary/60 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
-              style={{ paddingInlineStart: "2.25rem", paddingInlineEnd: "0.75rem" }}
-            />
-          </div>
+          <GlobalSearch panel={panel} />
 
           <LangToggle />
 
