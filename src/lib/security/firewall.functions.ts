@@ -25,7 +25,7 @@ export async function listBlocklist(): Promise<{ entries: BlocklistRow[] }> {
       .order("last_seen", { ascending: false })
       .limit(500);
     if (error) throw error;
-    return { entries: data ?? [] };
+    return { entries: (data ?? []) as unknown as BlocklistRow[] };
   } catch {
     return { entries: [] };
   }
