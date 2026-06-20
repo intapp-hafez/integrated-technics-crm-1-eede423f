@@ -55,7 +55,7 @@ export async function listSecurityEvents(args: { data?: { limit?: number; type?:
     if (args.data?.type) q = q.eq("event_type", args.data.type);
     const { data: rows, error } = await q;
     if (error) throw error;
-    return { events: rows ?? [] };
+    return { events: (rows ?? []) as unknown as SecurityEventRow[] };
   } catch {
     return { events: [] };
   }
