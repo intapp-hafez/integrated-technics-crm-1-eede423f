@@ -272,7 +272,7 @@ function CalendarView({ activities, onPick }: { activities: ReturnType<typeof us
       </div>
       <div className="grid grid-cols-7 gap-1">
         {cells.map((c, i) => {
-          if (!c) return <div key={i} className="aspect-square" />;
+          if (!c) return <div key={i} className="mx-auto w-full max-w-[44px] aspect-square" />;
           const isToday = c.date === today.toISOString().slice(0, 10);
           const isSelected = c.date === selected;
           const count = countByDate.get(c.date) ?? 0;
@@ -280,14 +280,16 @@ function CalendarView({ activities, onPick }: { activities: ReturnType<typeof us
             <button
               key={i}
               onClick={() => setSelected(c.date)}
-              className={`relative aspect-square rounded-lg text-sm font-semibold transition ${isSelected ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" :
+              className={`relative mx-auto w-full max-w-[44px] aspect-square rounded-lg text-sm font-semibold transition ${isSelected ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" :
                 isToday ? "bg-primary/10 text-primary ring-1 ring-primary/30" :
                   "text-foreground hover:bg-accent"
                 }`}
             >
-              {c.day}
+              <span className={count > 0 ? "relative -top-2" : ""}>{c.day}</span>
               {count > 0 && (
-                <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full ${isSelected ? "bg-primary-foreground" : "bg-primary"}`} />
+                <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${isSelected ? "bg-primary-foreground text-primary" : "bg-emerald-100 text-emerald-700"}`}>
+                  {count}
+                </span>
               )}
             </button>
           );
