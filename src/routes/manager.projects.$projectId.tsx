@@ -12,7 +12,7 @@ import {
   ArrowLeft, Briefcase, Users2, DollarSign,
   Activity as ActivityIcon, History as HistoryIcon,
   Mail, Phone, Building2, MapPin, Calendar,
-  TrendingUp, UserPlus, CheckCircle2, Clock, Tag,
+  TrendingUp, UserPlus, CheckCircle2, Clock, Tag, Check,
   ChevronRight,
 } from "lucide-react";
 
@@ -284,8 +284,8 @@ function ProjectDetailsPage() {
         <div className="space-y-6">
 
           {/* Team Members */}
-          <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-            <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30">
+          <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+            <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30 rounded-t-2xl">
               <Users2 className="h-4 w-4 text-primary" />
               <h2 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Team</h2>
               <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">{members.length}</span>
@@ -297,24 +297,27 @@ function ProjectDetailsPage() {
                 >
                   <UserPlus className="h-3 w-3" /> Assign
                 </button>
-                <div className="absolute right-0 top-full z-20 mt-1 hidden w-52 max-h-64 overflow-y-auto rounded-xl border border-border bg-card p-1.5 shadow-xl">
+                <div className="absolute right-0 top-full z-20 mt-1 hidden w-64 max-h-72 overflow-y-auto rounded-xl border border-border bg-card p-1.5 shadow-2xl [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
                   {employees.map((emp) => {
                     const checked = memberNames?.includes(emp.name) ?? false;
                     return (
-                      <label key={emp.id} className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-accent transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(e) => {
-                            const newMembers = e.target.checked
-                              ? [...(memberNames || []), emp.name]
-                              : (memberNames || []).filter(n => n !== emp.name);
-                            actions.updateProject(projectId, { teamMembers: newMembers, team: newMembers.length });
-                          }}
-                          className="h-4 w-4 accent-primary"
-                        />
-                        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-500 text-[10px] font-bold text-white">{emp.avatar}</div>
-                        <span className="font-medium text-foreground truncate">{emp.name}</span>
+                      <label key={emp.id} className={`group flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-all duration-200 ${checked ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-accent"}`}>
+                        <div className={`relative flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${checked ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 bg-transparent group-hover:border-primary/50"}`}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              const newMembers = e.target.checked
+                                ? [...(memberNames || []), emp.name]
+                                : (memberNames || []).filter(n => n !== emp.name);
+                              actions.updateProject(projectId, { teamMembers: newMembers, team: newMembers.length });
+                            }}
+                            className="absolute opacity-0 cursor-pointer w-full h-full m-0"
+                          />
+                          {checked && <Check className="h-3 w-3" />}
+                        </div>
+                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-500 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20">{emp.avatar}</div>
+                        <span className={`flex-1 font-medium truncate ${checked ? "text-primary" : "text-foreground"}`}>{emp.name}</span>
                       </label>
                     );
                   })}
@@ -322,21 +325,28 @@ function ProjectDetailsPage() {
               </div>
               )}
             </div>
-            {members.length === 0
-              ? <p className="px-5 py-6 text-sm text-center text-muted-foreground">No team members assigned.</p>
-              : (
-                <div className="divide-y divide-border">
-                  {members.map((m) => (
-                    <div key={m.id} className="flex items-center gap-3 px-4 py-3">
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 text-xs font-bold text-white shadow-sm">{m.avatar}</div>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-semibold text-foreground">{m.name}</div>
-                        <div className="truncate text-xs text-muted-foreground">{m.role}</div>
+            <div className="rounded-b-2xl overflow-hidden">
+              {members.length === 0
+                ? <p className="px-5 py-6 text-sm text-center text-muted-foreground">No team members assigned.</p>
+                : (
+                  <div className="divide-y divide-border">
+                    {members.map((m) => (
+                      <div key={m.id} className="flex items-center gap-3 px-4 py-3">
+                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 text-xs font-bold text-white shadow-sm">{m.avatar}</div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <div className="truncate text-sm font-semibold text-foreground">{m.name}</div>
+                            {project.createdByName === m.name && (
+                              <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Owner</span>
+                            )}
+                          </div>
+                          <div className="truncate text-xs text-muted-foreground">{m.role}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+            </div>
           </div>
 
           {/* Timeline */}

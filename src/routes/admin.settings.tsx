@@ -230,13 +230,13 @@ function UsersImportBar({ existingEmails, onImportRow }: { existingEmails: strin
   async function downloadTemplate() {
     const XLSX = await import("xlsx");
     const headers = [
-      "Name (EN)", "Name (AR)", "Email", "Password", "Phone", "Role", 
+      "Name (EN)", "Name (AR)", "Email", "Password", "Phone", "Role",
       "Title (EN)", "Department (EN)", "Location (EN)", "Target Type",
-      "Annual Target", "Q1 Target", "Q2 Target", "Q3 Target", "Q4 Target", 
+      "Annual Target", "Q1 Target", "Q2 Target", "Q3 Target", "Q4 Target",
       "Weekly Meetings Target", "Skills", "Active"
     ];
     const sampleRows = [
-      ["John Doe", "جون دو", "john@example.com", "password123", "0100000000", "employee", "Sales Executive", "Sales", "Cairo", "yearly", "1000000", "250000", "250000", "250000", "250000", "15", "Sales, Negotiation", "Yes"]
+      ["Hafez Rahim", "جون دو", "Hafez@example.com", "password123", "0100000000", "employee", "Sales Executive", "Sales", "Cairo", "yearly", "1000000", "250000", "250000", "250000", "250000", "15", "Sales, Negotiation", "Yes"]
     ];
     const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
     const wb = XLSX.utils.book_new();
@@ -261,12 +261,12 @@ function UsersImportBar({ existingEmails, onImportRow }: { existingEmails: strin
         const email = get("Email");
         const nameEn = get("Name (EN)");
         const password = get("Password");
-        
+
         if (!email || !nameEn || !password) continue;
         const key = email.toLowerCase();
         if (seen.has(key)) { dup++; continue; }
         seen.add(key);
-        
+
         try {
           await onImportRow({
             email,
@@ -349,8 +349,8 @@ function UsersEditor() {
   const selectedPosId = positions.find((p) => p.nameEn === draft.titleEn)?.id ?? "";
   const managers = users.filter((u) => u.role === "manager");
 
-  const filteredUsers = users.filter(u => 
-    (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) || 
+  const filteredUsers = users.filter(u =>
+    (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (u.nameAr && u.nameAr.includes(searchQuery))
   );
@@ -401,16 +401,16 @@ function UsersEditor() {
 
   return (
     <div className="space-y-4">
-      <UsersImportBar 
-        existingEmails={users.map(u => u.email)} 
+      <UsersImportBar
+        existingEmails={users.map(u => u.email)}
         onImportRow={async (row) => {
           await createUser(row);
           qc.invalidateQueries({ queryKey: ["supabase-sync"] });
         }}
       />
       <div className="rounded-xl border border-border bg-background p-4">
-        <button 
-          onClick={() => setIsAddUserOpen(!isAddUserOpen)} 
+        <button
+          onClick={() => setIsAddUserOpen(!isAddUserOpen)}
           className="flex w-full items-center justify-between font-display text-sm font-bold text-foreground hover:opacity-80"
         >
           <span>Add new user</span>
@@ -419,116 +419,116 @@ function UsersEditor() {
         {isAddUserOpen && (
           <div className="mt-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-          <Field label="Full name (EN)" required>
-            <input value={draft.name} onChange={(e) => upd({ name: e.target.value })} className={inputCls} />
-          </Field>
-          <Field label="Full name (AR)">
-            <input value={draft.nameAr ?? ""} onChange={(e) => upd({ nameAr: e.target.value })} dir="rtl" className={inputCls} />
-          </Field>
-          <Field label="Email" required>
-            <input type="email" value={draft.email} onChange={(e) => upd({ email: e.target.value })} className={inputCls} />
-          </Field>
-          <Field label="Password" required>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 6 characters" className={inputCls} />
-          </Field>
-          <Field label="Phone">
-            <input value={draft.phone ?? ""} onChange={(e) => upd({ phone: e.target.value })} className={inputCls} />
-          </Field>
-          <Field label="Role">
-            <select value={draft.role} onChange={(e) => upd({ role: e.target.value as UserRoleKey })} className={`${inputCls} capitalize`}>
-              {USER_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-            </select>
-          </Field>
-          <Field label="Manager">
-            <select value={draft.managerId ?? ""} onChange={(e) => upd({ managerId: e.target.value })} className={inputCls}>
-              <option value="">— Select manager —</option>
-              {managers.map((m) => <option key={m.id} value={m.profileId ?? m.id}>{m.name}</option>)}
-            </select>
-          </Field>
-          <Field label="Active">
-            <select value={draft.active ? "1" : "0"} onChange={(e) => upd({ active: e.target.value === "1" })} className={inputCls}>
-              <option value="1">Yes</option><option value="0">No</option>
-            </select>
-          </Field>
-          <Field label="Position">
-            <select value={selectedPosId} onChange={(e) => onSelectPosition(e.target.value)} className={inputCls}>
-              <option value="">— Select position —</option>
-              {positions.map((p) => <option key={p.id} value={p.id}>{p.nameEn}{p.nameAr ? ` · ${p.nameAr}` : ""}</option>)}
-            </select>
-          </Field>
-          <Field label="Department">
-            <select value={selectedDeptId} onChange={(e) => onSelectDepartment(e.target.value)} className={inputCls}>
-              <option value="">— Select department —</option>
-              {departments.map((d) => <option key={d.id} value={d.id}>{d.nameEn}{d.nameAr ? ` · ${d.nameAr}` : ""}</option>)}
-            </select>
-          </Field>
-          <Field label="Location (EN)">
-            <input value={draft.locationEn ?? ""} onChange={(e) => upd({ locationEn: e.target.value })} className={inputCls} />
-          </Field>
-          <Field label="Location (AR)">
-            <input value={draft.locationAr ?? ""} onChange={(e) => upd({ locationAr: e.target.value })} dir="rtl" className={inputCls} />
-          </Field>
-          <Field label="Avatar URL">
-            <input value={draft.avatarUrl ?? ""} onChange={(e) => upd({ avatarUrl: e.target.value })} className={inputCls} />
-          </Field>
-          <Field label="Target type">
-            <select value={draft.targetType ?? "yearly"} onChange={(e) => upd({ targetType: e.target.value as any })} className={inputCls}>
-              <option value="yearly">Yearly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </Field>
-          <Field label="Skills (comma-separated)">
-            <input value={skillsText} onChange={(e) => { setSkillsText(e.target.value); upd({ skills: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }); }} className={inputCls} />
-          </Field>
-          <Field label="Employment start date">
-            <input type="date" value={(draft as any).startDate ?? ""} onChange={(e) => upd({ startDate: e.target.value } as any)} className={inputCls} />
-          </Field>
-          <Field label="Annual target">
-            <input type="number" min={0} value={(draft as any).annualTarget ?? 0} onChange={(e) => upd({ annualTarget: Number(e.target.value) } as any)} className={inputCls} />
-          </Field>
-          <Field label="Q1 target">
-            <input type="number" min={0} value={(draft as any).q1Target ?? 0} onChange={(e) => upd({ q1Target: Number(e.target.value) } as any)} className={inputCls} />
-          </Field>
-          <Field label="Q2 target">
-            <input type="number" min={0} value={(draft as any).q2Target ?? 0} onChange={(e) => upd({ q2Target: Number(e.target.value) } as any)} className={inputCls} />
-          </Field>
-          <Field label="Q3 target">
-            <input type="number" min={0} value={(draft as any).q3Target ?? 0} onChange={(e) => upd({ q3Target: Number(e.target.value) } as any)} className={inputCls} />
-          </Field>
-          <Field label="Q4 target">
-            <input type="number" min={0} value={(draft as any).q4Target ?? 0} onChange={(e) => upd({ q4Target: Number(e.target.value) } as any)} className={inputCls} />
-          </Field>
-          <Field label="Meetings per week (target)">
-            <input type="number" min={0} value={(draft as any).weeklyMeetingsTarget ?? 0} onChange={(e) => upd({ weeklyMeetingsTarget: Number(e.target.value) } as any)} className={inputCls} />
-          </Field>
-        </div>
-        <div className="mt-3 flex justify-end">
-          <button
-            disabled={busy}
-            onClick={submit}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-          >
-            <Plus className="h-4 w-4" /> {busy ? "Creating…" : "Add user"}
-          </button>
-        </div>
+              <Field label="Full name (EN)" required>
+                <input value={draft.name} onChange={(e) => upd({ name: e.target.value })} className={inputCls} />
+              </Field>
+              <Field label="Full name (AR)">
+                <input value={draft.nameAr ?? ""} onChange={(e) => upd({ nameAr: e.target.value })} dir="rtl" className={inputCls} />
+              </Field>
+              <Field label="Email" required>
+                <input type="email" value={draft.email} onChange={(e) => upd({ email: e.target.value })} className={inputCls} />
+              </Field>
+              <Field label="Password" required>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 6 characters" className={inputCls} />
+              </Field>
+              <Field label="Phone">
+                <input value={draft.phone ?? ""} onChange={(e) => upd({ phone: e.target.value })} className={inputCls} />
+              </Field>
+              <Field label="Role">
+                <select value={draft.role} onChange={(e) => upd({ role: e.target.value as UserRoleKey })} className={`${inputCls} capitalize`}>
+                  {USER_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </Field>
+              <Field label="Manager">
+                <select value={draft.managerId ?? ""} onChange={(e) => upd({ managerId: e.target.value })} className={inputCls}>
+                  <option value="">— Select manager —</option>
+                  {managers.map((m) => <option key={m.id} value={m.profileId ?? m.id}>{m.name}</option>)}
+                </select>
+              </Field>
+              <Field label="Active">
+                <select value={draft.active ? "1" : "0"} onChange={(e) => upd({ active: e.target.value === "1" })} className={inputCls}>
+                  <option value="1">Yes</option><option value="0">No</option>
+                </select>
+              </Field>
+              <Field label="Position">
+                <select value={selectedPosId} onChange={(e) => onSelectPosition(e.target.value)} className={inputCls}>
+                  <option value="">— Select position —</option>
+                  {positions.map((p) => <option key={p.id} value={p.id}>{p.nameEn}{p.nameAr ? ` · ${p.nameAr}` : ""}</option>)}
+                </select>
+              </Field>
+              <Field label="Department">
+                <select value={selectedDeptId} onChange={(e) => onSelectDepartment(e.target.value)} className={inputCls}>
+                  <option value="">— Select department —</option>
+                  {departments.map((d) => <option key={d.id} value={d.id}>{d.nameEn}{d.nameAr ? ` · ${d.nameAr}` : ""}</option>)}
+                </select>
+              </Field>
+              <Field label="Location (EN)">
+                <input value={draft.locationEn ?? ""} onChange={(e) => upd({ locationEn: e.target.value })} className={inputCls} />
+              </Field>
+              <Field label="Location (AR)">
+                <input value={draft.locationAr ?? ""} onChange={(e) => upd({ locationAr: e.target.value })} dir="rtl" className={inputCls} />
+              </Field>
+              <Field label="Avatar URL">
+                <input value={draft.avatarUrl ?? ""} onChange={(e) => upd({ avatarUrl: e.target.value })} className={inputCls} />
+              </Field>
+              <Field label="Target type">
+                <select value={draft.targetType ?? "yearly"} onChange={(e) => upd({ targetType: e.target.value as any })} className={inputCls}>
+                  <option value="yearly">Yearly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </Field>
+              <Field label="Skills (comma-separated)">
+                <input value={skillsText} onChange={(e) => { setSkillsText(e.target.value); upd({ skills: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }); }} className={inputCls} />
+              </Field>
+              <Field label="Employment start date">
+                <input type="date" value={(draft as any).startDate ?? ""} onChange={(e) => upd({ startDate: e.target.value } as any)} className={inputCls} />
+              </Field>
+              <Field label="Annual target">
+                <input type="number" min={0} value={(draft as any).annualTarget ?? 0} onChange={(e) => upd({ annualTarget: Number(e.target.value) } as any)} className={inputCls} />
+              </Field>
+              <Field label="Q1 target">
+                <input type="number" min={0} value={(draft as any).q1Target ?? 0} onChange={(e) => upd({ q1Target: Number(e.target.value) } as any)} className={inputCls} />
+              </Field>
+              <Field label="Q2 target">
+                <input type="number" min={0} value={(draft as any).q2Target ?? 0} onChange={(e) => upd({ q2Target: Number(e.target.value) } as any)} className={inputCls} />
+              </Field>
+              <Field label="Q3 target">
+                <input type="number" min={0} value={(draft as any).q3Target ?? 0} onChange={(e) => upd({ q3Target: Number(e.target.value) } as any)} className={inputCls} />
+              </Field>
+              <Field label="Q4 target">
+                <input type="number" min={0} value={(draft as any).q4Target ?? 0} onChange={(e) => upd({ q4Target: Number(e.target.value) } as any)} className={inputCls} />
+              </Field>
+              <Field label="Meetings per week (target)">
+                <input type="number" min={0} value={(draft as any).weeklyMeetingsTarget ?? 0} onChange={(e) => upd({ weeklyMeetingsTarget: Number(e.target.value) } as any)} className={inputCls} />
+              </Field>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <button
+                disabled={busy}
+                onClick={submit}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+              >
+                <Plus className="h-4 w-4" /> {busy ? "Creating…" : "Add user"}
+              </button>
+            </div>
           </div>
         )}
       </div>
 
       <div className="mt-6 mb-3 flex items-center justify-between">
-         <h3 className="font-display text-base font-bold text-foreground">Users Directory</h3>
-         <div className="relative w-64">
-           <Search className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
-           <input 
-             type="text" 
-             placeholder="Search users..." 
-             value={searchQuery}
-             onChange={(e) => setSearchQuery(e.target.value)}
-             className="h-9 w-full rounded-lg border border-border bg-background text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-             style={{ paddingInlineStart: "2.25rem" }}
-           />
-         </div>
+        <h3 className="font-display text-base font-bold text-foreground">Users Directory</h3>
+        <div className="relative w-64">
+          <Search className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 w-full rounded-lg border border-border bg-background text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            style={{ paddingInlineStart: "2.25rem" }}
+          />
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border">
@@ -1861,11 +1861,10 @@ function UserRolesEditor() {
                                 if (owned) remove.mutate({ user_id: u.user_id, role: r });
                                 else assign.mutate({ user_id: u.user_id, role: r });
                               }}
-                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
-                                owned
-                                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                  : "border border-border bg-background text-muted-foreground hover:border-primary hover:text-primary"
-                              } disabled:opacity-60`}
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${owned
+                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                : "border border-border bg-background text-muted-foreground hover:border-primary hover:text-primary"
+                                } disabled:opacity-60`}
                               title={owned ? (lang === "ar" ? "إزالة" : "Remove") : (lang === "ar" ? "تعيين" : "Assign")}
                             >
                               {busy && <Loader2 className="h-3 w-3 animate-spin" />}

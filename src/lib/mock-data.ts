@@ -62,11 +62,11 @@ export const activities = [
 ];
 
 export const projects = [
-  { id: "P-208", name: "CCTV Rollout — Aramco D2", client: "Aramco Digital", progress: 78, budget: 1_200_000, offeredValue: 1_150_000, status: "On Track", team: 12, category: "Security", competitors: ["Securitas"], lastUpdate: "2026-05-20" },
-  { id: "P-207", name: "Firefighting Upgrade — Red Sea", client: "Red Sea Global", progress: 42, budget: 860_000, offeredValue: 880_000, status: "On Track", team: 8, category: "Safety", competitors: [], lastUpdate: "2026-05-22" },
-  { id: "P-206", name: "Server Infrastructure — STC DC4", client: "STC Group", progress: 65, budget: 2_100_000, offeredValue: 2_050_000, status: "At Risk", team: 18, category: "IT Infrastructure", competitors: ["Huawei", "Cisco"], lastUpdate: "2026-05-18" },
-  { id: "P-205", name: "Maintenance Contract — Mobily", client: "Mobily Infra", progress: 91, budget: 540_000, offeredValue: 540_000, status: "On Track", team: 6, category: "Maintenance", competitors: [], lastUpdate: "2026-05-23" },
-  { id: "P-204", name: "Logistics Fleet GPS — NEOM", client: "NEOM Logistics", progress: 23, budget: 720_000, offeredValue: 750_000, status: "Delayed", team: 9, category: "Tracking", competitors: ["Garmin"], lastUpdate: "2026-05-15" },
+  { id: "P-208", name: "CCTV Rollout — Aramco D2", client: "Aramco Digital", progress: 78, budget: 1_200_000, offeredValue: 1_150_000, status: "On Track", team: 12, category: "Security", competitors: ["Securitas"], lastUpdate: "2026-05-20", createdByName: "hafez Rahim" },
+  { id: "P-207", name: "Firefighting Upgrade — Red Sea", client: "Red Sea Global", progress: 42, budget: 860_000, offeredValue: 880_000, status: "On Track", team: 8, category: "Safety", competitors: [], lastUpdate: "2026-05-22", createdByName: "Nour Khaled" },
+  { id: "P-206", name: "Server Infrastructure — STC DC4", client: "STC Group", progress: 65, budget: 2_100_000, offeredValue: 2_050_000, status: "At Risk", team: 18, category: "IT Infrastructure", competitors: ["Huawei", "Cisco"], lastUpdate: "2026-05-18", createdByName: "Omar Tarek" },
+  { id: "P-205", name: "Maintenance Contract — Mobily", client: "Mobily Infra", progress: 91, budget: 540_000, offeredValue: 540_000, status: "On Track", team: 6, category: "Maintenance", competitors: [], lastUpdate: "2026-05-23", createdByName: "hafez Rahim" },
+  { id: "P-204", name: "Logistics Fleet GPS — NEOM", client: "NEOM Logistics", progress: 23, budget: 720_000, offeredValue: 750_000, status: "Delayed", team: 9, category: "Tracking", competitors: ["Garmin"], lastUpdate: "2026-05-15", createdByName: "Layla Hassan" },
 ];
 
 export const employees = [

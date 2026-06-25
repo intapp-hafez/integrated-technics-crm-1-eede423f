@@ -12,9 +12,10 @@ import {
   ArrowLeft, Briefcase, Users2, DollarSign,
   Activity as ActivityIcon, History as HistoryIcon,
   Mail, Phone, Building2, MapPin, Calendar,
-  TrendingUp, UserPlus, CheckCircle2, Clock, Tag,
-  ChevronRight,
+  TrendingUp, UserPlus, CheckCircle2, Clock, Tag, Check,
+  ChevronRight, Plus, Trash2,
 } from "lucide-react";
+import { useState } from "react";
 
 export const Route = createFileRoute("/admin/projects/$projectId")({
   component: ProjectDetailsPage,
@@ -97,7 +98,7 @@ function ProjectDetailsPage() {
   const clientCity = projectLoc?.city || clientLead?.city || (project as any).city || "";
   const clientDistrict = projectLoc?.district || (project as any).district || "";
   const street = (project as any).street || "";
-  const extraContacts: Array<{ name: string; title: string; phone: string }> = (project as any).extraContacts ?? [];
+  const extraContacts: Array<{ name: string; title: string; phone: string; email: string }> = (project as any).extraContacts ?? [];
   const gradientClass = STATUS_COLORS[project.status] ?? "from-primary to-orange-500";
 
   const progressColor = project.progress >= 75 ? "bg-emerald-500" : project.progress >= 40 ? "bg-amber-500" : "bg-primary";
@@ -206,34 +207,12 @@ function ProjectDetailsPage() {
             </div>
           </div>
 
-          {/* Extra Contacts */}
-          {extraContacts.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-              <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30">
-                <Phone className="h-4 w-4 text-primary" />
-                <h2 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Extra Contacts</h2>
-                <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">{extraContacts.length}</span>
-              </div>
-              <div className="divide-y divide-border">
-                {extraContacts.map((c, i) => (
-                  <div key={i} className="flex items-center gap-4 px-5 py-3.5">
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-orange-500/20 text-xs font-extrabold text-primary">
-                      {c.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() || "?"}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-foreground">{c.name}</div>
-                      {c.title && <div className="text-xs text-muted-foreground">{c.title}</div>}
-                    </div>
-                    {c.phone && (
-                      <a href={`tel:${c.phone.replace(/\s+/g, "")}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors">
-                        <Phone className="h-3 w-3" /> {c.phone}
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Extra Contacts — always visible */}
+          <ExtraContactsCard
+            contacts={extraContacts}
+            onAdd={(c) => actions.updateProject(projectId, { extraContacts: [...extraContacts, c] } as any)}
+            onRemove={(i) => actions.updateProject(projectId, { extraContacts: extraContacts.filter((_, idx) => idx !== i) } as any)}
+          />
 
           {/* Related Leads */}
           {relatedLeads.length > 0 && (
@@ -291,8 +270,8 @@ function ProjectDetailsPage() {
         <div className="space-y-6">
 
           {/* Team Members */}
-          <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-            <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30">
+          <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+            <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30 rounded-t-2xl">
               <Users2 className="h-4 w-4 text-primary" />
               <h2 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Team</h2>
               <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">{members.length}</span>
@@ -305,24 +284,27 @@ function ProjectDetailsPage() {
                   >
                     <UserPlus className="h-3 w-3" /> Assign
                   </button>
-                <div className="absolute right-0 top-full z-20 mt-1 hidden w-52 max-h-64 overflow-y-auto rounded-xl border border-border bg-card p-1.5 shadow-xl">
+                <div className="absolute right-0 top-full z-20 mt-1 hidden w-64 max-h-72 overflow-y-auto rounded-xl border border-border bg-card p-1.5 shadow-2xl [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
                   {employees.map((emp) => {
                     const checked = memberNames?.includes(emp.name) ?? false;
                     return (
-                      <label key={emp.id} className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-accent transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(e) => {
-                            const newMembers = e.target.checked
-                              ? [...(memberNames || []), emp.name]
-                              : (memberNames || []).filter(n => n !== emp.name);
-                            actions.updateProject(projectId, { teamMembers: newMembers, team: newMembers.length });
-                          }}
-                          className="h-4 w-4 accent-primary"
-                        />
-                        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-500 text-[10px] font-bold text-white">{emp.avatar}</div>
-                        <span className="font-medium text-foreground truncate">{emp.name}</span>
+                      <label key={emp.id} className={`group flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-all duration-200 ${checked ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-accent"}`}>
+                        <div className={`relative flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${checked ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 bg-transparent group-hover:border-primary/50"}`}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              const newMembers = e.target.checked
+                                ? [...(memberNames || []), emp.name]
+                                : (memberNames || []).filter(n => n !== emp.name);
+                              actions.updateProject(projectId, { teamMembers: newMembers, team: newMembers.length });
+                            }}
+                            className="absolute opacity-0 cursor-pointer w-full h-full m-0"
+                          />
+                          {checked && <Check className="h-3 w-3" />}
+                        </div>
+                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-500 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20">{emp.avatar}</div>
+                        <span className={`flex-1 font-medium truncate ${checked ? "text-primary" : "text-foreground"}`}>{emp.name}</span>
                       </label>
                     );
                   })}
@@ -330,22 +312,29 @@ function ProjectDetailsPage() {
               </div>
               )}
             </div>
-            {members.length === 0
-              ? <p className="px-5 py-6 text-sm text-center text-muted-foreground">No team members assigned.</p>
-              : (
-                <div className="divide-y divide-border">
-                  {members.map((m) => (
-                    <Link key={m.id} to="/admin/employees/$employeeId" params={{ employeeId: m.id }} className="flex items-center gap-3 px-4 py-3 hover:bg-primary/5 transition-colors group">
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 text-xs font-bold text-white shadow-sm">{m.avatar}</div>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-semibold text-foreground">{m.name}</div>
-                        <div className="truncate text-xs text-muted-foreground">{m.role}</div>
-                      </div>
-                      <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </Link>
-                  ))}
-                </div>
-              )}
+            <div className="rounded-b-2xl overflow-hidden">
+              {members.length === 0
+                ? <p className="px-5 py-6 text-sm text-center text-muted-foreground">No team members assigned.</p>
+                : (
+                  <div className="divide-y divide-border">
+                    {members.map((m) => (
+                      <Link key={m.id} to="/admin/employees/$employeeId" params={{ employeeId: m.id }} className="flex items-center gap-3 px-4 py-3 hover:bg-primary/5 transition-colors group">
+                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 text-xs font-bold text-white shadow-sm">{m.avatar}</div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <div className="truncate text-sm font-semibold text-foreground">{m.name}</div>
+                            {project.createdByName === m.name && (
+                              <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Owner</span>
+                            )}
+                          </div>
+                          <div className="truncate text-xs text-muted-foreground">{m.role}</div>
+                        </div>
+                        <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </Link>
+                    ))}
+                  </div>
+                )}
+            </div>
           </div>
 
           {/* Timeline */}
@@ -374,5 +363,126 @@ function ProjectDetailsPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+type ExtraContact = { name: string; title: string; phone: string; email: string };
+
+function ExtraContactsCard({
+  contacts,
+  onAdd,
+  onRemove,
+}: {
+  contacts: ExtraContact[];
+  onAdd: (c: ExtraContact) => void;
+  onRemove: (i: number) => void;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+
+  const submit = () => {
+    if (!name.trim()) return;
+    onAdd({ name: name.trim(), title: title.trim(), phone: phone.trim(), email: email.trim() });
+    setName(""); setTitle(""); setPhone(""); setEmail(""); setShowForm(false);
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30">
+        <Phone className="h-4 w-4 text-primary" />
+        <h2 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Extra Contacts</h2>
+        {contacts.length > 0 && (
+          <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">{contacts.length}</span>
+        )}
+        <button
+          onClick={() => setShowForm((v) => !v)}
+          className="ml-auto inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="h-3 w-3" /> Add
+        </button>
+      </div>
+
+      {/* Inline Add Form */}
+      {showForm && (
+        <div className="border-b border-border bg-secondary/20 px-5 py-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Full name *"
+              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title / Role"
+              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email address"
+              type="email"
+              dir="ltr"
+              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Phone number"
+              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+          <div className="mt-3 flex justify-end gap-2">
+            <button onClick={() => setShowForm(false)} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-accent">Cancel</button>
+            <button onClick={submit} disabled={!name.trim()} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">Save contact</button>
+          </div>
+        </div>
+      )}
+
+      {contacts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-2 px-5 py-8 text-center">
+          <Phone className="h-8 w-8 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground">No extra contacts yet.</p>
+          <button onClick={() => setShowForm(true)} className="mt-1 text-xs font-semibold text-primary hover:underline">
+            + Add a contact
+          </button>
+        </div>
+      ) : (
+        <div className="divide-y divide-border">
+          {contacts.map((c, i) => (
+            <div key={i} className="group flex items-center gap-4 px-5 py-3.5">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-orange-500/20 text-xs font-extrabold text-primary">
+                {c.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() || "?"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-foreground">{c.name}</div>
+                {c.title && <div className="text-xs text-muted-foreground">{c.title}</div>}
+              </div>
+              {c.phone && (
+                <a href={`tel:${c.phone.replace(/\s+/g, "")}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors">
+                  <Phone className="h-3 w-3" /> {c.phone}
+                </a>
+              )}
+              {c.email && (
+                <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors">
+                  <Mail className="h-3 w-3" /> {c.email}
+                </a>
+              )}
+              <button
+                onClick={() => onRemove(i)}
+                className="ml-1 hidden rounded-md p-1 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 group-hover:flex transition-colors"
+                title="Remove contact"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

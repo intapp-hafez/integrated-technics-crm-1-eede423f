@@ -5,7 +5,8 @@ import { actions, useStoreState } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { isAssignedToEmployee } from "@/lib/activityFilters";
 import { useEffect, useMemo, useState } from "react";
-import { Phone, Mail, Users2, MapPin, ClipboardCheck, RefreshCw, Plus, Check, Circle, Bookmark, Clock4, List, CalendarDays, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { Phone, Mail, Users2, MapPin, ClipboardCheck, RefreshCw, Plus, Check, Circle, Bookmark, Clock4, List, CalendarDays, ChevronLeft, ChevronRight, Pencil, Trash2, Download } from "lucide-react";
+import { ExcelImportModal } from "@/components/ExcelImportModal";
 
 export const Route = createFileRoute("/employee/activities")({
   component: MyActivitiesPage,
@@ -19,7 +20,8 @@ const ICONS: Record<string, any> = {
 };
 
 function MyActivitiesPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isAr = lang === "ar";
   const navigate = useNavigate();
   const { activities, leads, profile, users } = useStoreState();
   const { user } = useAuth();
@@ -29,6 +31,7 @@ function MyActivitiesPage() {
   const [bucket, setBucket] = useState<Bucket>("today");
   const [view, setView] = useState<"list" | "calendar">("list");
   const [editId, setEditId] = useState<string | null>(null);
+  const [showImport, setShowImport] = useState(false);
 
   const BUCKET_LABELS: Record<Bucket, string> = {
     past: t("today") === "اليوم" ? "الماضي" : "past",
@@ -104,6 +107,15 @@ function MyActivitiesPage() {
               </button>
             );
           })}
+          <div className="flex gap-2 ms-auto">
+            <button
+              disabled
+              title={isAr ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم." : "We apologise — this option is currently not working. Thanks for your understanding."}
+              className="flex h-9 cursor-not-allowed items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 text-xs font-semibold text-foreground opacity-40"
+            >
+              <Download className="h-3.5 w-3.5 rotate-180" /> {t("importExcel")}
+            </button>
+          </div>
         </div>
 
         {view === "list" && <NewQuickActivity owner={OWNER} />}
@@ -191,6 +203,7 @@ function MyActivitiesPage() {
           )}
         </div>}
       </div>
+      {showImport && <ExcelImportModal type="activities" onClose={() => setShowImport(false)} />}
     </AppShell>
   );
 }

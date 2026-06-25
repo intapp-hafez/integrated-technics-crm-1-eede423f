@@ -127,13 +127,52 @@ function EmployeeDashboard() {
       );
     });
   }
+
+  async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!r.ok) return null;
+      const j = await r.json();
+      const a = j.address ?? {};
+      return [a.suburb || a.neighbourhood || a.village, a.city || a.town || a.county, a.country].filter(Boolean).join(", ") || j.display_name || null;
+    } catch {
+      return null;
+    }
+  }
+
+  function deviceSummary(): string {
+    if (typeof navigator === "undefined") return "Unknown device";
+    const ua = navigator.userAgent;
+    const browser = /Edg\/|OPR\//.test(ua)
+      ? (/Edg\//.test(ua) ? "Edge" : "Opera")
+      : (/Firefox\//.test(ua) ? "Firefox"
+        : /Chrome\//.test(ua) ? "Chrome"
+        : /Safari\//.test(ua) ? "Safari" : "Browser");
+    const os = /iPhone|iPad/.test(ua) ? "iOS"
+      : /Android/.test(ua) ? "Android"
+      : /Mac OS X/.test(ua) ? "macOS"
+      : /Windows/.test(ua) ? "Windows"
+      : /Linux/.test(ua) ? "Linux" : "Device";
+    return `${browser} · ${os}`;
+  }
+
+  function withDevice(loc: string): string {
+    const dev = deviceSummary();
+    if (!loc) return `📱 ${dev}`;
+    return loc.includes("📱") ? loc : `${loc} · 📱 ${dev}`;
+  }
   const handleCheckIn = async () => {
     setAttLoading(true);
     const now = new Date().toTimeString().slice(0, 5);
     const pos = await getPos();
+    const baseLoc = pos ? (await reverseGeocode(pos.lat, pos.lng)) || `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}` : profile.location;
+    const locName = withDevice(baseLoc || "");
+    
     actions.addAttendance({
       date: todayIso, checkIn: now, checkOut: "", hours: "—",
-      location: pos ? `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}` : (profile.location || "—"),
+      location: locName,
       owner: profile.name,
       lat: pos?.lat ?? null, lng: pos?.lng ?? null,
     });
@@ -147,11 +186,22 @@ function EmployeeDashboard() {
     const [ih, im] = todayRec.checkIn.split(":").map(Number);
     const [oh, om] = now.split(":").map(Number);
     const mins = Math.max(0, oh * 60 + om - (ih * 60 + im));
-    actions.updateAttendance(todayRec.id, {
-      checkOut: now,
-      hours: `${(mins / 60).toFixed(1)}h`,
-      ...(pos ? { lat: pos.lat, lng: pos.lng } : {}),
-    });
+    
+    const patch: any = { 
+      checkOut: now, 
+      hours: `${(mins / 60).toFixed(1)}h`
+    };
+    
+    if (pos) {
+      const baseLoc = (await reverseGeocode(pos.lat, pos.lng)) || `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
+      patch.lat = pos.lat;
+      patch.lng = pos.lng;
+      patch.location = withDevice(baseLoc);
+    } else {
+      patch.location = withDevice(todayRec.location || "");
+    }
+    
+    actions.updateAttendance(todayRec.id, patch);
     setAttLoading(false);
   };
 

@@ -17,7 +17,7 @@ import {
   validateLeadAttachment, LEAD_ATTACHMENT_ALLOWED_EXT,
 } from "@/lib/supabaseWrites";
 
-import { ArrowLeft, Paperclip, FileText, Plus, MapPin, Building2, User, DollarSign, History as HistoryIcon, CalendarCheck, Workflow, Clock4, Timer, Trash2, Download, Loader2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Paperclip, FileText, Plus, MapPin, Building2, User, DollarSign, History as HistoryIcon, CalendarCheck, Workflow, Clock4, Timer, Trash2, Download, Loader2, AlertCircle, TrendingUp, Target, Mail, Phone, Globe } from "lucide-react";
 
 const isUuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const newId = () => {
@@ -293,8 +293,44 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
 
         </div>
 
-        {/* Right: Notes + Attachments */}
+        {/* Right: Info + Notes + Attachments */}
         <div>
+          {/* Lead Info Card */}
+          <div className="mb-5 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+            <div className="mb-4 flex items-center gap-2">
+              <Target className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Lead Details</h3>
+            </div>
+            <div className="space-y-0">
+              <InfoRow label="Owner" icon={User}>{lead.owner || "—"}</InfoRow>
+              <InfoRow label="Industry" icon={Building2}>{lead.industry || "—"}</InfoRow>
+              <InfoRow label="Email" icon={Mail}>
+                {(lead as any).email
+                  ? <a href={`mailto:${(lead as any).email}`} className="text-primary hover:underline font-mono text-xs">{(lead as any).email}</a>
+                  : "—"}
+              </InfoRow>
+              <InfoRow label="Source" icon={Globe}>{(lead as any).source || "—"}</InfoRow>
+              <InfoRow label="Value" icon={DollarSign}>
+                <span className="font-mono font-bold text-primary">{fmtMoney(lead.value)}</span>
+                {lead.probability !== undefined && (
+                  <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">{lead.probability}%</span>
+                )}
+              </InfoRow>
+              <InfoRow label="Expected Close" icon={CalendarCheck}>
+                {(lead as any).expectedCloseDate || "—"}
+              </InfoRow>
+              <InfoRow label="Location" icon={MapPin}>
+                {[lead.city, leadDistricts[lead.id], (lead as any).street].filter(Boolean).join(", ") || "—"}
+              </InfoRow>
+              {(lead as any).description && (
+                <div className="mt-3 border-t border-border pt-3">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Description</div>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{(lead as any).description}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <Section title={t("notes")} icon={FileText}>
             <div className="mb-3 flex gap-2">
               <input
@@ -424,6 +460,18 @@ function Section({ title, icon: Icon, children }: { title: string; icon: any; ch
         <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">{title}</h3>
       </div>
       {children}
+    </div>
+  );
+}
+
+function InfoRow({ label, icon: Icon, children }: { label: string; icon?: any; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-3 py-2.5 border-b border-border last:border-0">
+      <div className="flex items-center gap-1.5 w-32 shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground pt-0.5">
+        {Icon && <Icon className="h-3.5 w-3.5" />}
+        {label}
+      </div>
+      <div className="flex-1 text-sm text-foreground">{children}</div>
     </div>
   );
 }

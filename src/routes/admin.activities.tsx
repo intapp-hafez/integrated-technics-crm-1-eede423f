@@ -4,14 +4,16 @@ import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState, type ActivityType, type ActivityStatus } from "@/lib/store";
 import { employees as employeesData } from "@/lib/mock-data";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Phone, Users2, MapPin, Mail, ClipboardCheck, RefreshCw, Plus, CheckCircle2, Circle, PlayCircle, X, Bell, Send, Timer, TrendingUp, Activity as ActivityIcon, Target, Flame, CalendarDays, ChevronDown, ChevronUp, LayoutList, Grid3X3 } from "lucide-react";
 import { useRole } from "@/lib/role";
 import { NewActivityDialog } from "@/components/NewActivityDialog";
-import { RejectActivityDialog } from "@/components/RejectActivityDialog";
 import { ActivityApprovalCard } from "@/components/ActivityApprovalCard";
+import { RejectActivityDialog } from "@/components/RejectActivityDialog";
 import { toast } from "sonner";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import { ExcelImportModal } from "@/components/ExcelImportModal";
+import { Download } from "lucide-react";
 
 
 export const Route = createFileRoute("/admin/activities")({
@@ -76,6 +78,9 @@ function ActivitiesPage() {
   const [period, setPeriod] = useState<Period>("today");
   const [ownerFilter, setOwnerFilter] = useState<string | "all">("all");
   const [view, setView] = useState<"table" | "cards">("table");
+  const [showImport, setShowImport] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
 
   // Period-scoped list (used by employee strip & global KPIs)
   const periodList = useMemo(
@@ -92,6 +97,11 @@ function ActivitiesPage() {
       )
       .sort((a, b) => (b.dueDate + b.time).localeCompare(a.dueDate + a.time));
   }, [periodList, filter, statusFilter, ownerFilter]);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(1); }, [filter, statusFilter, ownerFilter, period]);
+  const totalPages = Math.ceil(list.length / pageSize);
+  const paginated = list.slice((page - 1) * pageSize, page * pageSize);
 
   const grouped = useMemo(() => {
     const map = new Map<string, typeof list>();
@@ -194,12 +204,21 @@ function ActivitiesPage() {
               <span className="text-base font-medium text-muted-foreground">· {activePeriodSub}</span>
             </h2>
           </div>
-          <button
-            onClick={() => setOpen(true)}
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90"
-          >
-            <Plus className="h-4 w-4" /> {t("addActivity")}
-          </button>
+          <div className="flex gap-2">
+            <button
+              disabled
+              title={isAr ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم." : "We apologise — this option is currently not working. Thanks for your understanding."}
+              className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium opacity-40"
+            >
+              <Download className="h-3.5 w-3.5 rotate-180" /> {t("importExcel")}
+            </button>
+            <button
+              onClick={() => setOpen(true)}
+              className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90"
+            >
+              <Plus className="h-3.5 w-3.5" /> {t("addActivity")}
+            </button>
+          </div>
         </div>
 
         {/* Period tabs */}
@@ -389,7 +408,7 @@ function ActivitiesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {list.map((a) => {
+                {paginated.map((a) => {
                   const Icon = ICONS[a.type] ?? Circle;
                   const SIcon = STATUS_ICON[a.status];
                   const lead = leads.find((l) => l.id === a.leadId);
@@ -490,6 +509,20 @@ function ActivitiesPage() {
               </TableBody>
             </Table>
           </div>
+          {totalPages > 1 && (
+            <div className="border-t border-border p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-muted-foreground">
+                  Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, list.length)} of {list.length} entries
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50">Previous</button>
+                  <div className="px-2 text-xs font-semibold">{page} / {totalPages}</div>
+                  <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50">Next</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-6">
@@ -605,6 +638,7 @@ function ActivitiesPage() {
 
 
       {open && <NewActivityDialog onClose={() => setOpen(false)} />}
+      {showImport && <ExcelImportModal type="activities" onClose={() => setShowImport(false)} />}
       {reminderFor && <ReminderDialog activityId={reminderFor} onClose={() => setReminderFor(null)} />}
       {rejectFor && <RejectActivityDialog activityId={rejectFor.id} activityTitle={rejectFor.title} onClose={() => setRejectFor(null)} />}
     </AppShell>

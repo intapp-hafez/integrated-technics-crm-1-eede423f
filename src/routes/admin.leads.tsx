@@ -7,10 +7,11 @@ import { fmtMoney } from "@/lib/mock-data";
 import { actions, useStoreState, type LocationCity } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { Plus, Filter, Download, Search, List, Map as MapIcon, Pencil, Trash2, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-import { useState, useEffect, useMemo, type ComponentType } from "react";
+import { useState, useEffect, useMemo, useCallback, type ComponentType } from "react";
 import type { Lead, LeadStatus } from "@/lib/mock-data";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
+import { ExcelImportModal } from "@/components/ExcelImportModal";
 
 
 
@@ -39,40 +40,47 @@ function LeadsPage() {
     }
     return map;
   }, [activities]);
+  const getLinkedProjectId = useCallback((l: Lead) => {
+    if (l.projectId) return l.projectId;
+    // Auto-link by company name
+    const match = projects.find((p) => p.name === l.company || p.client === l.company);
+    if (match) return match.id;
+    // Auto-link by activity
+    const ids = leadActivityProjectIds[l.id];
+    return ids ? Array.from(ids)[0] : undefined;
+  }, [projects, leadActivityProjectIds]);
+
   const leadProjectName = useMemo(() => {
     const map: Record<string, string> = {};
     for (const l of leads) {
-      if (l.projectId) {
-        const p = projectById.get(l.projectId);
+      const pid = getLinkedProjectId(l);
+      if (pid) {
+        const p = projectById.get(pid);
         if (p) map[l.id] = p.name;
-      } else {
-        const ids = leadActivityProjectIds[l.id];
-        const first = ids ? Array.from(ids)[0] : undefined;
-        if (first) {
-          const p = projectById.get(first);
-          if (p) map[l.id] = p.name;
-        }
       }
     }
     return map;
-  }, [leads, projectById, leadActivityProjectIds]);
+  }, [leads, projectById, getLinkedProjectId]);
+
   // Validation: warn when lead has no project link, or when the assigned project
   // does not match any activity-linked project for the lead.
   const leadValidation = useMemo(() => {
     const issues: Record<string, { kind: "missing" | "mismatch"; message: string }> = {};
     for (const l of leads) {
       const activityIds = leadActivityProjectIds[l.id];
-      if (!l.projectId && (!activityIds || activityIds.size === 0)) {
+      const pid = getLinkedProjectId(l);
+      
+      if (!pid && (!activityIds || activityIds.size === 0)) {
         issues[l.id] = { kind: "missing", message: "No project linked" };
-      } else if (l.projectId && activityIds && activityIds.size > 0 && !activityIds.has(l.projectId)) {
+      } else if (pid && activityIds && activityIds.size > 0 && !activityIds.has(pid)) {
         const names = Array.from(activityIds).map((id) => projectById.get(id)?.name ?? id).join(", ");
         issues[l.id] = { kind: "mismatch", message: `Lead project differs from activity project (${names})` };
-      } else if (!l.projectId && activityIds && activityIds.size > 0) {
+      } else if (!pid && activityIds && activityIds.size > 0) {
         issues[l.id] = { kind: "missing", message: "Lead has no project but activity links exist" };
       }
     }
     return issues;
-  }, [leads, leadActivityProjectIds, projectById]);
+  }, [leads, leadActivityProjectIds, projectById, getLinkedProjectId]);
   const isAr = lang === "ar";
   const cityLabel = (name: string) => isAr ? (settings.locations.find((c) => c.name === name)?.nameAr || name) : name;
   const districtLabel = (cityName: string, d: string) => isAr ? (settings.locations.find((c) => c.name === cityName)?.districtsAr?.[d] || d) : d;
@@ -86,6 +94,7 @@ function LeadsPage() {
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
+  const [showImport, setShowImport] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [minValue, setMinValue] = useState<string>("");
   const [maxValue, setMaxValue] = useState<string>("");
@@ -95,6 +104,8 @@ function LeadsPage() {
   const [editing, setEditing] = useState<Lead | "new" | null>(null);
   const [sortKey, setSortKey] = useState<string>("");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
   const toggleSort = (k: string) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else { setSortKey(k); setSortDir("asc"); }
@@ -169,7 +180,13 @@ function LeadsPage() {
     setStatusFilter("all"); setCityFilter("all"); setOwnerFilter("all"); setProjectFilter("all");
     setMinValue(""); setMaxValue(""); setMinProb("");
     setCloseFrom(""); setCloseTo(""); setQuery("");
+    setPage(1);
   };
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, cityFilter, ownerFilter, projectFilter, minValue, maxValue, minProb, closeFrom, closeTo, query]);
 
   const handleExport = () => {
     if (filtered.length === 0) { toast.error(t("noLeadsMatch") as string); return; }
@@ -235,6 +252,9 @@ function LeadsPage() {
   }, [filtered, sortKey, sortDir, leadDistricts, leadProjectName]);
 
   const totalValue = filtered.reduce((s, l) => s + (l.value || 0), 0);
+  
+  const totalPages = Math.ceil(sorted.length / pageSize);
+  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
   const weightedValue = filtered.reduce((s, l) => s + ((l.value || 0) * ((l.probability ?? 0) / 100)), 0);
   const wonValue = filtered.filter((l) => l.status === "won").reduce((s, l) => s + (l.value || 0), 0);
   const byStatus = STATUSES.map((s) => {
@@ -267,12 +287,12 @@ function LeadsPage() {
       {/* By status breakdown */}
       <div className="mb-5 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
         <div className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("status")}</div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+        <div className="flex w-full items-stretch gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {byStatus.map((s) => (
             <button
               key={s.status}
               onClick={() => setStatusFilter(statusFilter === s.status ? "all" : s.status)}
-              className={`rounded-lg border p-3 text-start transition ${statusFilter === s.status ? "border-primary bg-primary/5" : "border-border hover:bg-accent"}`}
+              className={`flex-1 min-w-[90px] rounded-lg border p-2.5 text-start transition ${statusFilter === s.status ? "border-primary bg-primary/5" : "border-border hover:bg-accent"}`}
             >
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full" style={{ background: stageColor(s.status) }} />
@@ -294,10 +314,10 @@ function LeadsPage() {
           <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 shadow-[var(--shadow-soft)]">
             <span aria-hidden className="text-base leading-none">⚠</span>
             <div className="flex-1">
-              <div className="font-semibold">Project link validation</div>
+              <div className="font-semibold">Account link validation</div>
               <div className="text-xs">
-                {missing > 0 && <span>{missing} lead{missing === 1 ? "" : "s"} missing a project link. </span>}
-                {mismatch > 0 && <span>{mismatch} lead{mismatch === 1 ? "" : "s"} where the assigned project doesn’t match the linked activity’s project.</span>}
+                {missing > 0 && <span>{missing} lead{missing === 1 ? "" : "s"} missing an account link. </span>}
+                {mismatch > 0 && <span>{mismatch} lead{mismatch === 1 ? "" : "s"} where the assigned account doesn’t match the linked activity’s account.</span>}
               </div>
             </div>
           </div>
@@ -330,25 +350,15 @@ function LeadsPage() {
         )
       ) : (
         <>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative max-w-sm flex-1">
-              <Search className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("search")}
-                className="h-10 w-full rounded-lg border border-border bg-card text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                style={{ paddingInlineStart: "2.25rem", paddingInlineEnd: "0.75rem" }}
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="mb-4 flex flex-col gap-3">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as LeadStatus | "all")}
-                aria-label={t("filterByStatus")}
-                className="h-10 rounded-lg border border-border bg-card px-3 text-sm font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                aria-label={t("status")}
+                className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
-                <option value="all">{t("filterByStatus")}: {t("all")}</option>
+                <option value="all">{t("status")}: {t("all")}</option>
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>{stageLabel(s)}</option>
                 ))}
@@ -357,7 +367,7 @@ function LeadsPage() {
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
                 aria-label={t("city")}
-                className="h-10 rounded-lg border border-border bg-card px-3 text-sm font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="all">{t("city")}: {t("all")}</option>
                 {citiesInLeads.map((c) => (
@@ -368,7 +378,7 @@ function LeadsPage() {
                 value={ownerFilter}
                 onChange={(e) => setOwnerFilter(e.target.value)}
                 aria-label={t("owner")}
-                className="h-10 rounded-lg border border-border bg-card px-3 text-sm font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="all">{t("owner")}: {t("all")}</option>
                 {owners.map((o) => (
@@ -379,7 +389,7 @@ function LeadsPage() {
                 value={projectFilter}
                 onChange={(e) => setProjectFilter(e.target.value)}
                 aria-label={t("project") ?? "Account"}
-                className="h-10 rounded-lg border border-border bg-card px-3 text-sm font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="all">{t("project") ?? "Account"}: {t("all")}</option>
                 {projectsInLeads.map((p) => (
@@ -388,19 +398,36 @@ function LeadsPage() {
               </select>
               <button
                 onClick={() => setShowAdvanced((v) => !v)}
-                className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition ${showAdvanced || activeFilterCount > 0 ? "border-primary bg-primary/5 text-primary" : "border-border bg-card hover:bg-accent"}`}
+                className={`inline-flex h-9 items-center gap-2 rounded-lg border px-2.5 text-xs font-medium transition ${showAdvanced || activeFilterCount > 0 ? "border-primary bg-primary/5 text-primary" : "border-border bg-card hover:bg-accent"}`}
               >
-                <Filter className="h-4 w-4" /> {t("filters")}
+                <Filter className="h-3.5 w-3.5" /> {t("filters")}
                 {activeFilterCount > 0 && (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{activeFilterCount}</span>
+                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">{activeFilterCount}</span>
                 )}
               </button>
-              <button onClick={handleExport} className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent">
-                <Download className="h-4 w-4" /> {t("export")}
+              <button onClick={handleExport} className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium hover:bg-accent">
+                <Download className="h-3.5 w-3.5" /> {t("export")}
               </button>
-              <button onClick={() => setEditing("new")} className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90">
-                <Plus className="h-4 w-4" /> {t("addLead")}
+              <button
+                disabled
+                title={isAr ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم." : "We apologise — this option is currently not working. Thanks for your understanding."}
+                className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium opacity-40"
+              >
+                <Download className="h-3.5 w-3.5 rotate-180" /> {t("importExcel")}
               </button>
+              <button onClick={() => setEditing("new")} className="shrink-0 inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90">
+                <Plus className="h-3.5 w-3.5" /> {t("addLead")}
+              </button>
+            </div>
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("search")}
+                className="h-9 w-full rounded-lg border border-border bg-card text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                style={{ paddingInlineStart: "2.25rem", paddingInlineEnd: "0.75rem" }}
+              />
             </div>
           </div>
 
@@ -444,7 +471,7 @@ function LeadsPage() {
               <div className="min-w-[1200px] text-sm">
                 <div
                   className="grid items-center gap-2 bg-secondary/60 px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
-                  style={{ gridTemplateColumns: "80px 1.4fr 1fr 1fr 0.9fr 0.9fr 0.8fr 0.9fr 1fr 110px 90px" }}
+                  style={{ gridTemplateColumns: "80px 1.4fr 1fr 1fr 1fr 0.8fr 0.9fr 1fr 110px 90px" }}
                 >
                   {([
                     ["id", "ID", ""],
@@ -452,7 +479,6 @@ function LeadsPage() {
                     ["project", t("project") ?? "Account", ""],
                     ["contact", t("contact"), ""],
                     ["city", t("city"), ""],
-                    ["district", t("district"), ""],
                     ["source", t("source"), ""],
                     ["status", `${t("status")} / %`, ""],
                     ["owner", t("owner"), ""],
@@ -466,11 +492,11 @@ function LeadsPage() {
                   <div className="text-end">{t("action")}</div>
                 </div>
                 <div className="divide-y divide-border">
-                  {sorted.map((l) => (
+                  {paginated.map((l) => (
                     <div
                       key={l.id}
                       className="grid items-center gap-2 px-4 py-3 transition-colors hover:bg-primary/5"
-                      style={{ gridTemplateColumns: "80px 1.4fr 1fr 1fr 0.9fr 0.9fr 0.8fr 0.9fr 1fr 110px 90px" }}
+                      style={{ gridTemplateColumns: "80px 1.4fr 1fr 1fr 1fr 0.8fr 0.9fr 1fr 110px 90px" }}
                     >
                       <Link to="/admin/leads/$leadId" params={{ leadId: l.id }} className="font-mono text-xs text-muted-foreground hover:text-primary">{shortId(l.id)}</Link>
                       <Link to="/admin/leads/$leadId" params={{ leadId: l.id }} className="min-w-0">
@@ -479,10 +505,10 @@ function LeadsPage() {
                       </Link>
                       <div className="min-w-0">
                         <select
-                          value={l.projectId ?? ""}
+                          value={getLinkedProjectId(l) ?? ""}
                           onChange={(e) => {
                             const next = e.target.value || undefined;
-                            if (next === l.projectId) return;
+                            if (next === getLinkedProjectId(l)) return;
                             actions.updateLead(l.id, { projectId: next });
                             toast.success(next ? `Linked to ${projectById.get(next)?.name ?? "account"}` : "Account unlinked");
                           }}
@@ -501,8 +527,6 @@ function LeadsPage() {
                       </div>
                       <div className="text-foreground">{l.contact}</div>
                       <div className="text-muted-foreground">{cityLabel(l.city)}</div>
-                      <div className="text-muted-foreground">{leadDistricts[l.id] ? districtLabel(l.city, leadDistricts[l.id]) : "—"}</div>
-
                       <div className="text-muted-foreground">{l.source}</div>
                       <div>
                         <StatusBadge status={l.status} label={t(l.status as any)} />
@@ -533,12 +557,38 @@ function LeadsPage() {
                       </div>
                     </div>
                   ))}
-                  {sorted.length === 0 && (
+                  {paginated.length === 0 && (
                     <div className="px-4 py-10 text-center text-sm text-muted-foreground">{t("noLeadsMatch")}</div>
                   )}
                 </div>
               </div>
             </div>
+            {totalPages > 1 && (
+              <div className="border-t border-border p-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-muted-foreground">
+                    Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, sorted.length)} of {sorted.length} entries
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                    <div className="px-2 text-xs font-semibold">{page} / {totalPages}</div>
+                    <button
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                      className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -549,6 +599,9 @@ function LeadsPage() {
           locations={settings.locations}
           onClose={() => setEditing(null)}
         />
+      )}
+      {showImport && (
+        <ExcelImportModal type="leads" onClose={() => setShowImport(false)} />
       )}
     </AppShell>
   );
@@ -581,7 +634,8 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
   ];
   const [projectId, setProjectId] = useState(() => {
     if (!initial) return "";
-    return projects.find((p) => p.name === initial.company)?.id ?? "";
+    // Use stored projectId first, then fall back to matching by company name
+    return initial.projectId ?? projects.find((p) => p.name === initial.company)?.id ?? "";
   });
   const [company, setCompany] = useState(initial?.company ?? "");
   const [contact, setContact] = useState(initial?.contact ?? "");
@@ -590,6 +644,9 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
   const [source, setSource] = useState(initial?.source ?? "Website");
   const [status, setStatus] = useState<LeadStatus>(initial?.status ?? "new");
   const [value, setValue] = useState(initial?.value ?? 0);
+  const [probability, setProbability] = useState(initial?.probability ?? 0);
+  const [expectedCloseDate, setExpectedCloseDate] = useState<string>((initial as any)?.expectedCloseDate ?? "");
+  const [description, setDescription] = useState<string>((initial as any)?.description ?? "");
   const [country, setCountry] = useState<string>((initial as any)?.country ?? "Egypt");
   const [city, setCity] = useState(initial?.city ?? cities[0] ?? "Cairo");
   const [district, setDistrict] = useState(initial ? (leadDistricts[initial.id] ?? "") : "");
@@ -613,20 +670,37 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
     }
   };
 
+  const CITY_COORDS: Record<string, [number, number]> = {
+    "Riyadh": [24.7136, 46.6753],
+    "Jeddah": [21.4858, 39.1925],
+    "Dammam": [26.4207, 50.0888],
+    "Khobar": [26.2172, 50.1971],
+    "Makkah": [21.3891, 39.8579],
+    "Madinah": [24.5247, 39.5692],
+    "Cairo": [30.0444, 31.2357],
+    "Alexandria": [31.2001, 29.9187],
+    "Giza": [30.0131, 31.2089],
+    "Hurghada": [27.2579, 33.8116],
+    "Luxor": [25.6872, 32.6396],
+    "Port Said": [31.2653, 32.3019]
+  };
+
   const submit = () => {
     if (!company.trim()) return;
     let leadId: string;
+    const coords = CITY_COORDS[city] || [30.0444, 31.2357];
     if (initial) {
-      actions.updateLead(initial.id, { company, contact, email, industry, source, status, value, city, street, owner, country } as any);
+      actions.updateLead(initial.id, { company, contact, email, industry, source, status, value, probability, city, street, owner, country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, lat: coords[0], lng: coords[1] } as any);
       leadId = initial.id;
     } else {
-      actions.addLead({ company, contact, email, industry, source, status, value, city, street, owner: owner || "hafez Rahim", lat: 30.0444, lng: 31.2357, country } as any);
+      actions.addLead({ company, contact, email, industry, source, status, value, probability, city, street, owner: owner || "hafez Rahim", lat: coords[0], lng: coords[1], country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined } as any);
       const latest = (typeof window !== "undefined" ? JSON.parse(localStorage.getItem("int-crm:leads") || "[]") : []) as Lead[];
       leadId = latest[0]?.id ?? "";
     }
     if (leadId) actions.setLeadLocation(leadId, city, district);
     onClose();
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose}>
@@ -660,6 +734,15 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
             </select>
           </Field>
           <Field label={`${t("value")} ($)`}><input type="number" value={value} onChange={(e) => setValue(Number(e.target.value))} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" /></Field>
+          <Field label="Probability %">
+            <input type="number" min={0} max={100} value={probability} onChange={(e) => setProbability(Number(e.target.value))} placeholder="0" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+          </Field>
+          <Field label="Expected Close Date">
+            <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+          </Field>
+          <Field label={t("industry")}>
+            <input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. Construction" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+          </Field>
           <Field label="Assign to">
             <select value={owner} onChange={(e) => setOwner(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
               <option value="">—</option>
@@ -683,6 +766,10 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
           <label className="sm:col-span-2 block">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("street")}</span>
             <input value={street} onChange={(e) => setStreet(e.target.value)} placeholder="e.g. 10 Abbas El-Akkad St." className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+          </label>
+          <label className="sm:col-span-2 block">
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Description</span>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Brief notes about this lead..." className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </label>
         </div>
 

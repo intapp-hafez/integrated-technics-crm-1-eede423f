@@ -191,7 +191,18 @@ export async function runSecurityScan(): Promise<{
   };
 
   // Persist results to Supabase (best-effort, anon client with RLS)
-  const runId = crypto.randomUUID();
+  // Safe UUID — crypto.randomUUID() only works in secure (HTTPS) contexts
+  function generateId(): string {
+    if (typeof crypto !== "undefined" && typeof (crypto as any).randomUUID === "function") {
+      return (crypto as any).randomUUID();
+    }
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+  const runId = generateId();
   try {
     await supabase.from("security_scan_runs" as any).insert({
       id: runId,

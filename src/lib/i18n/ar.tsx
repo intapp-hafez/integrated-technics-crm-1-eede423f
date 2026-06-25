@@ -465,5 +465,10 @@ export const ar: Dict = {
   "30d": "آخر 30 يوماً",
   "90d": "آخر 90 يوماً",
   ytd: "منذ بداية العام",
+  importExcel: "استيراد إكسل",
+  downloadTemplate: "تنزيل القالب",
+  uploadExcel: "رفع إكسل",
+  importSuccess: "تم الاستيراد بنجاح",
+  importFailed: "فشل الاستيراد",
   allTime: "كل الوقت",
 };// Force HMR reload

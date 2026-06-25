@@ -462,6 +462,11 @@ export const en = {
   "30d": "Last 30 days",
   "90d": "Last 90 days",
   ytd: "Year to date",
+  importExcel: "Import Excel",
+  downloadTemplate: "Download Template",
+  uploadExcel: "Upload Excel",
+  importSuccess: "Import successful",
+  importFailed: "Import failed",
   allTime: "All time",
 };
 

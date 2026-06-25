@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Mail, Phone, Building2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Search, Mail, Phone, Building2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/admin/clients")({
   component: AdminClientsPage,
@@ -139,6 +140,26 @@ function AdminClientsPage() {
     </button>
   );
 
+  const handleExport = () => {
+    const data = filtered.map((c) => {
+      const name = (isAr ? c.name_ar : c.name_en) || c.name_en || c.name_ar || "—";
+      const projectsList = c.projects.map((p) => (isAr ? p.name_ar : p.name_en) || p.name_en || "—").join(", ");
+      const stagesList = Array.from(new Set(c.projects.map((p) => p.status).filter(Boolean))).join(", ");
+      return {
+        [isAr ? "الاسم" : "Name"]: name,
+        [isAr ? "الهاتف" : "Phone"]: c.phone || "—",
+        [isAr ? "البريد" : "Email"]: c.email || "—",
+        [isAr ? "الحسابات" : "Accounts"]: projectsList || (isAr ? "لا يوجد" : "None"),
+        [isAr ? "مرحلة الحساب" : "Account Stage"]: stagesList || "—",
+      };
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, "Clients");
+    XLSX.writeFile(wb, `Clients_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
   return (
     <AppShell
       panel="admin"
@@ -168,9 +189,15 @@ function AdminClientsPage() {
             </option>
           ))}
         </select>
-        <span className="ms-auto text-xs text-muted-foreground">
+        <span className="ms-auto text-xs text-muted-foreground hidden sm:inline-block">
           {filtered.length} {isAr ? "نتيجة" : "results"}
         </span>
+        <button
+          onClick={handleExport}
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent"
+        >
+          <Download className="h-4 w-4" /> {isAr ? "تصدير" : "Export"}
+        </button>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">

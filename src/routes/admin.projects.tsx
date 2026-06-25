@@ -9,10 +9,12 @@ import { actions, useStoreState } from "@/lib/store";
 import type { Project } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { Plus, Users2, Pencil, Trash2, X, LayoutGrid, Table as TableIcon, Filter, Download, Search, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { PhoneInput } from "@/components/PhoneInput";
+import { supabase } from "@/integrations/supabase/client";
+import { ExcelImportModal } from "@/components/ExcelImportModal";
 
 export const Route = createFileRoute("/admin/projects")({
   component: ProjectsPage,
@@ -22,8 +24,15 @@ export const Route = createFileRoute("/admin/projects")({
 const STATUSES = ["On Track", "At Risk", "Delayed", "Completed"];
 
 function ProjectsPage() {
-  const { t } = useI18n();
-  const { projects } = useStoreState();
+  const { t, lang } = useI18n();
+  const isAr = lang === "ar";
+  const { projects, employees } = useStoreState();
+
+  const getOwner = (p: Project) => {
+    if (p.teamMembers && p.teamMembers.length > 0) return p.teamMembers[0];
+    if (p.createdByName) return p.createdByName;
+    return employees.slice(0, p.team || 1)[0]?.name || "—";
+  };
   const { role, isAdmin, isManager } = useRole();
   const canManage = isAdmin || isManager;
 
@@ -33,11 +42,25 @@ function ProjectsPage() {
   });
   const [editing, setEditing] = useState<Project | "new" | null>(null);
   const [view, setView] = useState<"table" | "grid">("table");
+  const [mainTab, setMainTab] = useState<"projects" | "pending">("projects");
+  const [pendingCount, setPendingCount] = useState<number>(0);
+  const [showImport, setShowImport] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from("project_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending")
+      .then(({ count }) => {
+        if (count !== null) setPendingCount(count);
+      });
+  }, []);
 
   // Filters
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [clientFilter, setClientFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [minBudget, setMinBudget] = useState<string>("");
   const [maxBudget, setMaxBudget] = useState<string>("");
@@ -45,6 +68,7 @@ function ProjectsPage() {
   const [maxProgress, setMaxProgress] = useState<string>("");
 
   const clients = Array.from(new Set(projects.map((p) => p.client).filter(Boolean)));
+  const owners = Array.from(new Set(projects.map(getOwner).filter(o => o !== "—" && Boolean(o))));
 
   const minB = minBudget ? Number(minBudget) : null;
   const maxB = maxBudget ? Number(maxBudget) : null;
@@ -54,6 +78,7 @@ function ProjectsPage() {
   const filtered = projects.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (clientFilter !== "all" && p.client !== clientFilter) return false;
+    if (ownerFilter !== "all" && getOwner(p) !== ownerFilter) return false;
     if (minB !== null && p.budget < minB) return false;
     if (maxB !== null && p.budget > maxB) return false;
     if (minP !== null && p.progress < minP) return false;
@@ -67,6 +92,8 @@ function ProjectsPage() {
 
   const [sortKey, setSortKey] = useState<string>("");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
   const toggleSort = (k: string) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else { setSortKey(k); setSortDir("asc"); }
@@ -80,6 +107,7 @@ function ProjectsPage() {
         case "id": return shortId(p.id);
         case "name": return p.name;
         case "client": return p.client;
+        case "owner": return getOwner(p);
         case "status": return p.status;
         case "progress": return p.progress;
         case "team": return p.team;
@@ -98,16 +126,20 @@ function ProjectsPage() {
   const activeFilterCount =
     (statusFilter !== "all" ? 1 : 0) +
     (clientFilter !== "all" ? 1 : 0) +
+    (ownerFilter !== "all" ? 1 : 0) +
     (minBudget ? 1 : 0) + (maxBudget ? 1 : 0) +
     (minProgress ? 1 : 0) + (maxProgress ? 1 : 0) +
     (query.trim() ? 1 : 0);
 
   const clearFilters = () => {
-    setStatusFilter("all"); setClientFilter("all");
+    setStatusFilter("all"); setClientFilter("all"); setOwnerFilter("all");
     setMinBudget(""); setMaxBudget("");
     setMinProgress(""); setMaxProgress("");
     setQuery("");
+    setPage(1);
   };
+
+  useEffect(() => { setPage(1); }, [statusFilter, clientFilter, ownerFilter, minBudget, maxBudget, minProgress, maxProgress, query]);
 
   const handleExport = () => {
     if (filtered.length === 0) { toast.error("No projects match your filters"); return; }
@@ -115,12 +147,20 @@ function ProjectsPage() {
       ID: shortId(p.id),
       Name: p.name,
       Client: p.client,
+      Owner: getOwner(p),
       Category: p.category ?? "",
       Status: p.status,
       Progress: p.progress,
       Budget: p.budget,
       OfferedValue: p.offeredValue ?? 0,
       Team: p.team,
+      Project_Type: p.projectType ?? "",
+      City: p.city ?? "",
+      District: p.district ?? "",
+      Street: p.street ?? "",
+      Start_Date: p.startDate ?? "",
+      End_Date: p.endDate ?? "",
+      Extra_Contacts: p.extraContacts ? (p.extraContacts as any[]).map(c => `${c.name} (${c.title || 'N/A'}) - ${c.phone} - ${c.email || ''}`).join("; ") : "",
       LastUpdate: p.lastUpdate ?? "",
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
@@ -137,61 +177,104 @@ function ProjectsPage() {
 
   return (
     <AppShell panel={role} user={user} pageTitle={t("projects")}>
-      <div className="mb-4"><ProjectRequestsPanel mode="approver" /></div>
-      {/* Toolbar */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("search")}
-            className="h-10 w-full rounded-lg border border-border bg-card text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            style={{ paddingInlineStart: "2.25rem", paddingInlineEnd: "0.75rem" }}
-          />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            aria-label={t("filterByStatus")}
-            className="h-10 rounded-lg border border-border bg-card px-3 text-sm font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            <option value="all">{t("filterByStatus")}: {t("all")}</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <select
-            value={clientFilter}
-            onChange={(e) => setClientFilter(e.target.value)}
-            aria-label={t("client")}
-            className="h-10 rounded-lg border border-border bg-card px-3 text-sm font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            <option value="all">{t("client")}: {t("all")}</option>
-            {clients.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <button
-            onClick={() => setShowAdvanced((v) => !v)}
-            className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition ${showAdvanced || activeFilterCount > 0 ? "border-primary bg-primary/5 text-primary" : "border-border bg-card hover:bg-accent"}`}
-          >
-            <Filter className="h-4 w-4" /> {t("filters")}
-            {activeFilterCount > 0 && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{activeFilterCount}</span>
-            )}
-          </button>
-          <button onClick={handleExport} className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-accent">
-            <Download className="h-4 w-4" /> {t("export")}
-          </button>
-          {canManage && (
-            <button onClick={() => setEditing("new")} className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90">
-              <Plus className="h-4 w-4" /> {t("addProject")}
-            </button>
+      <div className="mb-6 flex gap-6 border-b border-border">
+        <button
+          onClick={() => setMainTab("projects")}
+          className={`pb-3 text-sm font-semibold border-b-2 transition-colors ${mainTab === "projects" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+        >
+          {t("projects")}
+        </button>
+        <button
+          onClick={() => setMainTab("pending")}
+          className={`pb-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${mainTab === "pending" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+        >
+          Accounts · Pending Approval
+          {pendingCount > 0 && (
+            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-emerald-500 px-1.5 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20">
+              {pendingCount}
+            </span>
           )}
-        </div>
+        </button>
       </div>
+
+      {mainTab === "pending" ? (
+        <ProjectRequestsPanel mode="approver" />
+      ) : (
+        <>
+          {/* Toolbar */}
+          <div className="mb-4 flex flex-col gap-3">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                aria-label={t("status")}
+                className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="all">{t("status")}: {t("all")}</option>
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <select
+                value={clientFilter}
+                onChange={(e) => setClientFilter(e.target.value)}
+                aria-label={t("client")}
+                className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="all">{t("client")}: {t("all")}</option>
+                {clients.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <select
+                value={ownerFilter}
+                onChange={(e) => setOwnerFilter(e.target.value)}
+                aria-label={t("owner")}
+                className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="all">{t("owner") ?? "Owner"}: {t("all")}</option>
+                {owners.map((o) => (
+                  <option key={o as string} value={o as string}>{o as string}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => setShowAdvanced((v) => !v)}
+                className={`inline-flex h-9 items-center gap-2 rounded-lg border px-2.5 text-xs font-medium transition ${showAdvanced || activeFilterCount > 0 ? "border-primary bg-primary/5 text-primary" : "border-border bg-card hover:bg-accent"}`}
+              >
+                <Filter className="h-3.5 w-3.5" /> {t("filters")}
+                {activeFilterCount > 0 && (
+                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">{activeFilterCount}</span>
+                )}
+              </button>
+              <button onClick={handleExport} className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium hover:bg-accent">
+                <Download className="h-3.5 w-3.5" /> {t("export")}
+              </button>
+              {canManage && (
+                <>
+                  <button
+                    disabled
+                    title={isAr ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم." : "We apologise — this option is currently not working. Thanks for your understanding."}
+                    className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium opacity-40"
+                  >
+                    <Download className="h-3.5 w-3.5 rotate-180" /> {t("importExcel")}
+                  </button>
+                  <button onClick={() => setEditing("new")} className="shrink-0 inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90">
+                    <Plus className="h-3.5 w-3.5" /> {t("addProject")}
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("search")}
+                className="h-9 w-full rounded-lg border border-border bg-card text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                style={{ paddingInlineStart: "2.25rem", paddingInlineEnd: "0.75rem" }}
+              />
+            </div>
+          </div>
 
       {showAdvanced && (
         <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
@@ -253,6 +336,7 @@ function ProjectsPage() {
                     ["id", "ID", "text-start"],
                     ["name", t("name"), "text-start"],
                     ["client", t("client"), "text-start"],
+                    ["owner", t("owner") || "Owner", "text-start"],
                     ["status", t("status"), "text-start"],
                     ["progress", t("progress"), "text-start"],
                     ["team", t("team"), "text-start"],
@@ -269,7 +353,7 @@ function ProjectsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {sorted.map((p) => (
+                {sorted.slice((page - 1) * pageSize, page * pageSize).map((p) => (
                   <tr key={p.id} className="hover:bg-primary/5">
                     <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground">
                       <Link to="/admin/projects/$projectId" params={{ projectId: p.id }} className="hover:text-primary">{shortId(p.id)}</Link>
@@ -283,6 +367,7 @@ function ProjectsPage() {
                       )}
                     </td>
                     <td className="px-3 py-2.5 text-foreground">{p.client}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{getOwner(p)}</td>
                     <td className="px-3 py-2.5"><StatusBadge status={p.status} /></td>
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2">
@@ -311,11 +396,25 @@ function ProjectsPage() {
                   </tr>
                 ))}
                 {sorted.length === 0 && (
-                  <tr><td colSpan={8} className="px-3 py-10 text-center text-sm text-muted-foreground">—</td></tr>
+                  <tr><td colSpan={9} className="px-3 py-10 text-center text-sm text-muted-foreground">—</td></tr>
                 )}
               </tbody>
             </table>
           </div>
+          {Math.ceil(sorted.length / pageSize) > 1 && (
+            <div className="border-t border-border p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-muted-foreground">
+                  Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, sorted.length)} of {sorted.length} entries
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50">Previous</button>
+                  <div className="px-2 text-xs font-semibold">{page} / {Math.ceil(sorted.length / pageSize)}</div>
+                  <button onClick={() => setPage((p) => Math.min(Math.ceil(sorted.length / pageSize), p + 1))} disabled={page === Math.ceil(sorted.length / pageSize)} className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50">Next</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
 
@@ -392,10 +491,14 @@ function ProjectsPage() {
         )}
         </div>
       )}
-
+      </>
+      )}
 
       {editing && (
         <ProjectFormModal initial={editing === "new" ? null : editing} onClose={() => setEditing(null)} />
+      )}
+      {showImport && (
+        <ExcelImportModal type="projects" onClose={() => setShowImport(false)} />
       )}
     </AppShell>
   );
@@ -435,6 +538,7 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
   const { settings, employees } = useStoreState();
   const isAr = lang === "ar";
 
+  const [activeTab, setActiveTab] = useState<"details" | "team">("details");
 
   const [name, setName] = useState(initial?.name ?? "");
   const [projectType, setProjectType] = useState(initial?.projectType ?? "");
@@ -450,12 +554,12 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
   const [street, setStreet] = useState(initial?.street ?? "");
   const [accountType, setAccountType] = useState(initial?.accountType ?? "");
   const [otherAccountType, setOtherAccountType] = useState(initial?.otherAccountType ?? "");
-  const [extraContacts, setExtraContacts] = useState<Array<{ name: string; title: string; phone: string }>>(
+  const [extraContacts, setExtraContacts] = useState<Array<{ name: string; title: string; phone: string; email: string }>>(
     initial?.extraContacts ?? []
   );
-  const addExtraContact = () => setExtraContacts(prev => [...prev, { name: "", title: "", phone: "" }]);
+  const addExtraContact = () => setExtraContacts(prev => [...prev, { name: "", title: "", phone: "", email: "" }]);
   const removeExtraContact = (i: number) => setExtraContacts(prev => prev.filter((_, idx) => idx !== i));
-  const updateExtraContact = (i: number, field: "name" | "title" | "phone", val: string) =>
+  const updateExtraContact = (i: number, field: "name" | "title" | "phone" | "email", val: string) =>
     setExtraContacts(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
 
   const [teamMembers, setTeamMembers] = useState<string[]>(initial?.teamMembers ?? []);
@@ -520,121 +624,152 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
           <button onClick={onClose} className="rounded-lg p-1 text-muted-foreground hover:bg-accent"><X className="h-4 w-4" /></button>
         </div>
 
-        <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-primary">{t("projects")}</div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("name")}</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Account Type</span>
-            <select value={accountType} onChange={(e) => setAccountType(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
-              <option value="">—</option>
-              <option value="End User">End User</option>
-              <option value="Contractor">Contractor</option>
-              <option value="System Integrator">System Integrator</option>
-              <option value="Other">Other</option>
-            </select>
-          </label>
-          {accountType === "Other" && (
-            <label className="block sm:col-span-2 mt-[-4px]">
-              <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Specify Account Type</span>
-              <input value={otherAccountType} onChange={(e) => setOtherAccountType(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" placeholder="Please specify..." />
-            </label>
-          )}
-          <div className="hidden sm:col-span-2">
-            <input type="number" min={0} value={budget} onChange={(e) => setBudget(Number(e.target.value))} />
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-            <input type="date" value={endDate} min={startDate || undefined} onChange={(e) => setEndDate(e.target.value)} />
-          </div>
-        </div>
-
-
-        <div className="mt-5 mb-2 text-[11px] font-bold uppercase tracking-wider text-primary">{t("clientInfo")}</div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("fullName")}</span>
-            <input value={clientName} onChange={(e) => setClientName(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("email")}</span>
-            <input type="email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
-          </label>
-          <div className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("phone")}</span>
-            <PhoneInput value={clientPhone || "+20"} onChange={(val) => setClientPhone(val)} />
-          </div>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("city")}</span>
-            <select value={city} onChange={(e) => { setCity(e.target.value); setDistrict(""); }} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
-              <option value="">{t("selectCity")}</option>
-              {settings.locations.map((c) => <option key={c.name} value={c.name}>{cityLabel(c)}</option>)}
-            </select>
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("district")}</span>
-            <select value={district} onChange={(e) => setDistrict(e.target.value)} disabled={!city} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm disabled:opacity-50">
-              <option value="">{t("selectDistrict")}</option>
-              {districts.map((d) => <option key={d} value={d}>{districtLabel(d)}</option>)}
-            </select>
-          </label>
-
-          <label className="block sm:col-span-2">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("street")}</span>
-            <input value={street} onChange={(e) => setStreet(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
-          </label>
-        </div>
-
-        <div className="mt-5 mb-2 flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Extra Contacts</span>
-          <button type="button" onClick={addExtraContact} className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/20">
-            <Plus className="h-3 w-3" /> Add Contact
+        <div className="mb-4 flex gap-4 border-b border-border">
+          <button
+            onClick={() => setActiveTab("details")}
+            className={`pb-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === "details" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            {t("projects") ?? "Details"}
+          </button>
+          <button
+            onClick={() => setActiveTab("team")}
+            className={`pb-2 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${activeTab === "team" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            {t("teamMembers") ?? "Team Members"}
+            {teamMembers.length > 0 && (
+              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">{teamMembers.length}</span>
+            )}
           </button>
         </div>
-        {extraContacts.length === 0 && (
-          <p className="text-xs text-muted-foreground mb-3">No extra contacts yet. Click "Add Contact" to add one.</p>
-        )}
-        <div className="space-y-3 mb-4">
-          {extraContacts.map((c, i) => (
-            <div key={i} className="rounded-lg border border-border p-3 relative">
-              <button type="button" onClick={() => removeExtraContact(i)} className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10">
-                <X className="h-3.5 w-3.5" />
-              </button>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 pr-8">
+
+        {activeTab === "details" && (
+          <div className="space-y-5">
+            <div>
+              <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-primary">{t("projects")}</div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Name</span>
-                  <input value={c.name} onChange={e => updateExtraContact(i, "name", e.target.value)} placeholder="Full name" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("name")}</span>
+                  <input value={name} onChange={(e) => setName(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Title</span>
-                  <input value={c.title} onChange={e => updateExtraContact(i, "title", e.target.value)} placeholder="Job title" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Account Type</span>
+                  <select value={accountType} onChange={(e) => setAccountType(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
+                    <option value="">—</option>
+                    <option value="End User">End User</option>
+                    <option value="Contractor">Contractor</option>
+                    <option value="System Integrator">System Integrator</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </label>
-                <div className="block sm:col-span-2">
-                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Phone</span>
-                  <PhoneInput value={c.phone || "+20"} onChange={val => updateExtraContact(i, "phone", val)} />
+                {accountType === "Other" && (
+                  <label className="block sm:col-span-2 mt-[-4px]">
+                    <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Specify Account Type</span>
+                    <input value={otherAccountType} onChange={(e) => setOtherAccountType(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" placeholder="Please specify..." />
+                  </label>
+                )}
+                <div className="hidden sm:col-span-2">
+                  <input type="number" min={0} value={budget} onChange={(e) => setBudget(Number(e.target.value))} />
+                  <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                  <input type="date" value={endDate} min={startDate || undefined} onChange={(e) => setEndDate(e.target.value)} />
                 </div>
               </div>
             </div>
-          ))}
-        </div>
 
-        <div className="mt-5 mb-2 text-[11px] font-bold uppercase tracking-wider text-primary">{t("teamMembers")}</div>
-        <div className="relative">
-          <button onClick={() => setMemberOpen((v) => !v)} className="flex h-9 w-full items-center justify-between rounded-lg border border-border bg-background px-3 text-sm">
-            <span className="truncate">{memberLabel}</span>
-            <span className="text-muted-foreground">{memberOpen ? "▲" : "▼"}</span>
-          </button>
-          {memberOpen && (
-            <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-border bg-background shadow-lg">
-              {employees.map((e) => (
-                <label key={e.id} className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-accent">
-                  <input type="checkbox" checked={teamMembers.includes(e.id)} onChange={() => toggleMember(e.id)} className="h-4 w-4 rounded border-border text-primary focus:ring-primary" />
-                  <span>{e.name}</span>
+            <div>
+              <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-primary">{t("clientInfo")}</div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("fullName")}</span>
+                  <input value={clientName} onChange={(e) => setClientName(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
                 </label>
-              ))}
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("email")}</span>
+                  <input type="email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                </label>
+                <div className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("phone")}</span>
+                  <PhoneInput value={clientPhone || "+20"} onChange={(val) => setClientPhone(val)} />
+                </div>
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("city")}</span>
+                  <select value={city} onChange={(e) => { setCity(e.target.value); setDistrict(""); }} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
+                    <option value="">{t("selectCity")}</option>
+                    {settings.locations.map((c) => <option key={c.name} value={c.name}>{cityLabel(c)}</option>)}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("district")}</span>
+                  <select value={district} onChange={(e) => setDistrict(e.target.value)} disabled={!city} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm disabled:opacity-50">
+                    <option value="">{t("selectDistrict")}</option>
+                    {districts.map((d) => <option key={d} value={d}>{districtLabel(d)}</option>)}
+                  </select>
+                </label>
+
+                <label className="block sm:col-span-2">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("street")}</span>
+                  <input value={street} onChange={(e) => setStreet(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                </label>
+              </div>
             </div>
-          )}
-        </div>
+
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Extra Contacts</span>
+                <button type="button" onClick={addExtraContact} className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/20">
+                  <Plus className="h-3 w-3" /> Add Contact
+                </button>
+              </div>
+              {extraContacts.length === 0 && (
+                <p className="text-xs text-muted-foreground mb-3">No extra contacts yet. Click "Add Contact" to add one.</p>
+              )}
+              <div className="space-y-3 mb-4">
+                {extraContacts.map((c, i) => (
+                  <div key={i} className="rounded-lg border border-border p-3 relative">
+                    <button type="button" onClick={() => removeExtraContact(i)} className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 pr-8">
+                      <label className="block">
+                        <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Name</span>
+                        <input value={c.name} onChange={e => updateExtraContact(i, "name", e.target.value)} placeholder="Full name" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                      </label>
+                      <label className="block">
+                        <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Title</span>
+                        <input value={c.title} onChange={e => updateExtraContact(i, "title", e.target.value)} placeholder="Job title" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                      </label>
+                      <div className="block sm:col-span-2">
+                        <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Phone</span>
+                        <PhoneInput value={c.phone || "+20"} onChange={val => updateExtraContact(i, "phone", val)} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "team" && (
+          <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+            {employees.map((e) => {
+              const checked = teamMembers.includes(e.id);
+              return (
+                <div key={e.id} onClick={() => toggleMember(e.id)} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-all duration-200 ${checked ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-primary/50 hover:bg-accent"}`}>
+                  <div className={`relative flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border transition-colors ${checked ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 bg-background"}`}>
+                    {checked && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                  </div>
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-500 text-xs font-bold text-white shadow-sm ring-1 ring-white/20">
+                    {(e as any).avatar || e.name.split(" ").map(w => w[0]).join("").substring(0,2).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`truncate font-semibold ${checked ? "text-primary" : "text-foreground"}`}>{e.name}</div>
+                    <div className="truncate text-xs text-muted-foreground">{e.role}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={onClose} className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent">{t("cancel")}</button>

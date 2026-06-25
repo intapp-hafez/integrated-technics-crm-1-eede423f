@@ -20,7 +20,7 @@ export function useSupabaseSync() {
         leadsRes, projectsRes, quotationsRes, activitiesRes, profilesRes,
         attendanceRes, historyRes, notificationsRes, locationsRes, stagesRes,
         usersRes, departmentsRes, positionsRes, clientsRes, projectMembersRes,
-        quotationItemsRes, rolePermsRes,
+        quotationItemsRes, rolePermsRes, projectRequestsRes,
       ] = await Promise.all([
         supabase.from("leads").select("*").order("created_at", { ascending: false }),
         supabase.from("projects").select("*").order("created_at", { ascending: false }),
@@ -57,6 +57,7 @@ export function useSupabaseSync() {
         supabase.from("project_members").select("*"),
         supabase.from("quotation_items").select("*").order("sort_order"),
         supabase.from("role_permissions").select("*"),
+        supabase.from("project_requests").select("id, status, created_project_id, requested_by, name_en"),
       ]);
       return {
         leads: leadsRes.data ?? [],
@@ -76,6 +77,7 @@ export function useSupabaseSync() {
         projectMembers: projectMembersRes.data ?? [],
         quotationItems: quotationItemsRes.data ?? [],
         rolePerms: (rolePermsRes as any)?.data ?? [],
+        projectRequests: projectRequestsRes?.data ?? [],
       };
     },
   });
@@ -219,6 +221,11 @@ export function useSupabaseSync() {
       const district = pick(p.district_en, p.district_ar);
       if (city || district) projectLocations[p.id] = { city, district };
       const client = p.client_id ? clientById.get(p.client_id) : undefined;
+      
+      const req = data.projectRequests?.find((r: any) => r.created_project_id === p.id);
+      const actualCreatorId = req?.requested_by || p.created_by;
+      const creatorProfile: any = profileById.get(actualCreatorId) || profileByCreatedUserId.get(actualCreatorId);
+      
       return {
         id: p.id,
         name: pick(p.name_en, p.name_ar),
@@ -245,11 +252,18 @@ export function useSupabaseSync() {
         accountType: p.account_type ?? undefined,
         otherAccountType: p.other_account_type ?? undefined,
         extraContacts: (() => {
-          const raw = p.extra_contacts;
+          let raw: any = p.extra_contacts;
           if (!raw) return undefined;
-          if (Array.isArray(raw)) return raw;
-          try { return JSON.parse(raw); } catch { return undefined; }
+          // Handle double-encoded JSON: parse in a loop until we get an array
+          let attempts = 0;
+          while (typeof raw === "string" && attempts++ < 3) {
+            try { raw = JSON.parse(raw); } catch { return undefined; }
+          }
+          return Array.isArray(raw) ? raw : undefined;
         })(),
+        createdBy: actualCreatorId ?? undefined,
+        createdByName: creatorProfile ? pick(creatorProfile.full_name_en, creatorProfile.full_name_ar) : undefined,
+        managerId: p.manager_id ?? undefined,
       };
     });
 
@@ -518,7 +532,7 @@ export function useSupabaseSync() {
         positions: (data.positions as any[]).map((p) => ({ id: p.id, nameEn: p.name_en ?? "", nameAr: p.name_ar ?? "" })),
         ...((data as any).rolePerms?.length ? { rolePermsRows: (data as any).rolePerms } : {}),
       } as any,
-
+      projectRequests: (data as any).projectRequests ?? [],
     });
   }, [data, lang, user?.id]);
 

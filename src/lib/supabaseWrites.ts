@@ -46,6 +46,7 @@ export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
     lng: l.lng ?? null,
     probability: l.probability ?? 0,
     expected_close_date: l.expectedCloseDate ?? null,
+    project_id: (l as any).projectId ?? null,
     created_by: currentUserId,
   });
   if (error) warn("Save lead", error);
@@ -181,7 +182,7 @@ export async function sbAddProject(id: string, p: Project) {
     end_date: (p as any).endDate || null,
     account_type: (p as any).accountType || null,
     other_account_type: (p as any).otherAccountType || null,
-    extra_contacts: (p as any).extraContacts?.length ? JSON.stringify((p as any).extraContacts) : null,
+    extra_contacts: (p as any).extraContacts?.length ? (p as any).extraContacts : null,
     client_name: p.client || null,
     client_email: p.clientEmail || null,
     client_phone: p.clientPhone || null,
@@ -212,7 +213,7 @@ export async function sbUpdateProject(id: string, patch: Partial<Project>) {
   if ((patch as any).endDate !== undefined) row.end_date = (patch as any).endDate || null;
   if (patch.accountType !== undefined) row.account_type = patch.accountType;
   if (patch.otherAccountType !== undefined) row.other_account_type = patch.otherAccountType;
-  if (patch.extraContacts !== undefined) row.extra_contacts = patch.extraContacts?.length ? JSON.stringify(patch.extraContacts) : null;
+  if (patch.extraContacts !== undefined) row.extra_contacts = patch.extraContacts?.length ? patch.extraContacts : null;
   if (patch.client !== undefined) row.client_name = patch.client;
   if (patch.clientEmail !== undefined) row.client_email = patch.clientEmail;
   if (patch.clientPhone !== undefined) row.client_phone = patch.clientPhone;

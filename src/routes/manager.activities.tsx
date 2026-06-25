@@ -12,6 +12,8 @@ import { useRole } from "@/lib/role";
 import { cairoIsoDate } from "@/lib/cairoTime";
 import { useMyTeam } from "@/lib/useMyTeam";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import { ExcelImportModal } from "@/components/ExcelImportModal";
+import { Download } from "lucide-react";
 
 
 export const Route = createFileRoute("/manager/activities")({
@@ -28,13 +30,15 @@ const STATUS_TONE: Record<ActivityStatus, string> = {
 };
 
 function ManagerActivitiesPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isAr = lang === "ar";
   const { activities, leads } = useStoreState();
   const [view, setView] = useState<"table" | "cards">("table");
   const [owner, setOwner] = useState("all");
   const [status, setStatus] = useState<"all" | ActivityStatus>("all");
   const [timeTab, setTimeTab] = useState<"today" | "upcoming" | "past">("today");
   const [open, setOpen] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggle = (id: string) => setExpanded((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const { isAdmin, isManager } = useRole();
@@ -138,18 +142,27 @@ function ManagerActivitiesPage() {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as any)}
-          className="h-9 rounded-lg border border-border bg-card px-2 text-sm focus:border-primary focus:outline-none"
+          className="h-9 rounded-lg border border-border bg-card px-2 text-xs focus:border-primary focus:outline-none"
         >
-          <option value="all">{t("all")} — {t("status")}</option>
+          <option value="all">{t("status")}: {t("all")}</option>
           <option value="pending">{t("pending")}</option>
           <option value="in_progress">{t("inProgress")}</option>
           <option value="done">{t("done")}</option>
           <option value="cancelled">{t("cancelled")}</option>
           <option value="delayed">{t("delayed")}</option>
         </select>
-        <button onClick={() => setOpen(true)} className="ms-auto inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90">
-          <Plus className="h-4 w-4" /> {t("addActivity")}
-        </button>
+        <div className="ms-auto flex items-center gap-2">
+          <button
+            disabled
+            title={isAr ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم." : "We apologise — this option is currently not working. Thanks for your understanding."}
+            className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium opacity-40"
+          >
+            <Download className="h-3.5 w-3.5 rotate-180" /> {t("importExcel")}
+          </button>
+          <button onClick={() => setOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90">
+            <Plus className="h-3.5 w-3.5" /> {t("addActivity")}
+          </button>
+        </div>
       </div>
 
 
@@ -359,6 +372,7 @@ function ManagerActivitiesPage() {
         </div>
       )}
       {open && <NewActivityDialog onClose={() => setOpen(false)} />}
+      {showImport && <ExcelImportModal type="activities" onClose={() => setShowImport(false)} />}
     </AppShell>
   );
 }

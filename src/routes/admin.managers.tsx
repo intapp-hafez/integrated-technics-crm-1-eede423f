@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
 import { Clock4, Download, X, LayoutGrid, List, TrendingUp, Filter, Search, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
@@ -139,6 +139,8 @@ function ManagersPage() {
 
   const [sortKey, setSortKey] = useState<string>("");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
   const toggleSort = (k: string) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else { setSortKey(k); setSortDir("asc"); }
@@ -183,7 +185,10 @@ function ManagersPage() {
     setDept("all"); setRoleFilter("all");
     setMinPerf(""); setMaxPerf("");
     setQuery("");
+    setPage(1);
   };
+
+  useEffect(() => { setPage(1); }, [dept, roleFilter, minPerf, maxPerf, query]);
 
   const handleExport = () => {
     if (filtered.length === 0) { toast.error("No employees match your filters"); return; }
@@ -425,7 +430,7 @@ function ManagersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {sorted.map((e) => {
+                {sorted.slice((page - 1) * pageSize, page * pageSize).map((e) => {
                   const myLeads = leads.filter((l) => l.owner === e.name);
                   const won = myLeads.filter((l) => l.status === "won").length;
                   return (
@@ -472,6 +477,20 @@ function ManagersPage() {
               </tbody>
             </table>
           </div>
+          {Math.ceil(sorted.length / pageSize) > 1 && (
+            <div className="border-t border-border p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-muted-foreground">
+                  Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, sorted.length)} of {sorted.length} entries
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50">Previous</button>
+                  <div className="px-2 text-xs font-semibold">{page} / {Math.ceil(sorted.length / pageSize)}</div>
+                  <button onClick={() => setPage((p) => Math.min(Math.ceil(sorted.length / pageSize), p + 1))} disabled={page === Math.ceil(sorted.length / pageSize)} className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50">Next</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

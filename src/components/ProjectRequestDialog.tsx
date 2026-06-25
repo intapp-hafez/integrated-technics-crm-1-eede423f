@@ -79,7 +79,7 @@ const selectCls = "h-9 w-full rounded-lg border border-border bg-background px-2
 const labelCls = "mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground";
 const sectionCls = "mb-1 text-[11px] font-bold uppercase tracking-wider text-primary";
 
-export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { profileId?: string | null; onClose: () => void; onSubmitted?: () => void }) {
+export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existingRequest }: { profileId?: string | null; onClose: () => void; onSubmitted?: () => void; existingRequest?: any }) {
   const { lang } = useI18n();
   const isAr = lang === "ar";
   const L = {
@@ -142,7 +142,46 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
   const [locations, setLocations] = useState<LocRow[]>([]);
   const [categories, setCategories] = useState<Pair[]>(FALLBACK_CATEGORIES);
   const [types, setTypes] = useState<Pair[]>(FALLBACK_TYPES);
-  const [extraContacts, setExtraContacts] = useState<Array<{ name: string; title: string; phone: string }>>([]);
+  const [extraContacts, setExtraContacts] = useState<Array<{ name: string; title: string; phone: string; email: string }>>([]);
+
+  useEffect(() => {
+    if (existingRequest) {
+      setV({
+        name_en: existingRequest.name_en || "",
+        name_ar: existingRequest.name_ar || "",
+        description_en: existingRequest.description_en || "",
+        category_en: existingRequest.category_en || "",
+        category_ar: existingRequest.category_ar || "",
+        project_type_en: existingRequest.project_type_en || "",
+        project_type_ar: existingRequest.project_type_ar || "",
+        city_en: existingRequest.city_en || "",
+        city_ar: existingRequest.city_ar || "",
+        district_en: existingRequest.district_en || "",
+        district_ar: existingRequest.district_ar || "",
+        street_en: existingRequest.street_en || "",
+        budget: existingRequest.budget ? String(existingRequest.budget) : "",
+        start_date: existingRequest.start_date || "",
+        end_date: existingRequest.end_date || "",
+        competitors: existingRequest.competitors?.join(", ") || "",
+        client_name_en: existingRequest.client_name_en || "",
+        contact_name_en: existingRequest.contact_name_en || "",
+        email: existingRequest.email || "",
+        account_type: existingRequest.account_type || "",
+        other_account_type: existingRequest.other_account_type || "",
+      });
+      setPhone(existingRequest.phone || "+20");
+      if (existingRequest.extra_contacts) {
+        try {
+          const parsed = typeof existingRequest.extra_contacts === 'string' 
+            ? JSON.parse(existingRequest.extra_contacts) 
+            : existingRequest.extra_contacts;
+          // Handle double-encoded JSON just in case
+          const arr = typeof parsed === 'string' ? JSON.parse(parsed) : parsed;
+          if (Array.isArray(arr)) setExtraContacts(arr);
+        } catch { /* ignore */ }
+      }
+    }
+  }, [existingRequest]);
 
   useEffect(() => {
     (async () => {
@@ -194,19 +233,19 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
     setV(s => ({ ...s, project_type_en: en, project_type_ar: p?.ar ?? "" }));
   };
 
-  const addContact = () => setExtraContacts(prev => [...prev, { name: "", title: "", phone: "" }]);
+  const addContact = () => setExtraContacts(prev => [...prev, { name: "", title: "", phone: "", email: "" }]);
   const removeContact = (i: number) => setExtraContacts(prev => prev.filter((_, idx) => idx !== i));
-  const updateContact = (i: number, field: "name" | "title" | "phone", val: string) =>
+  const updateContact = (i: number, field: "name" | "title" | "phone" | "email", val: string) =>
     setExtraContacts(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
 
   const submit = async () => {
     const parsed = schema.safeParse({ ...v, phone });
     if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? L.errorFix); return; }
-    if (!profileId) { toast.error(L.errorNoProfile); return; }
+    if (!profileId && !existingRequest) { toast.error(L.errorNoProfile); return; }
     const d = parsed.data;
     setBusy(true);
-    const { error } = await supabase.from("project_requests").insert({
-      requested_by: profileId,
+    
+    const payload = {
       name_en: d.name_en, name_ar: d.name_ar || null,
       description_en: d.description_en || null,
       category_en: d.category_en || null, category_ar: d.category_ar || null,
@@ -225,7 +264,20 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
       extra_contacts: extraContacts.filter(c => c.name.trim()).length > 0
         ? JSON.stringify(extraContacts.filter(c => c.name.trim()))
         : null,
-    } as any);
+    };
+
+    let error;
+    if (existingRequest) {
+      const { error: updateError } = await supabase.from("project_requests").update(payload).eq("id", existingRequest.id);
+      error = updateError;
+    } else {
+      const { error: insertError } = await supabase.from("project_requests").insert({
+        requested_by: profileId,
+        ...payload
+      } as any);
+      error = insertError;
+    }
+    
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success(L.successSent);
@@ -234,7 +286,7 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose} dir={isAr ? "rtl" : "ltr"}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" dir={isAr ? "rtl" : "ltr"}>
       <div
         className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl"
         onClick={e => e.stopPropagation()}
@@ -393,7 +445,11 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted }: { prof
                   <span className={labelCls}>{L.titleRole}</span>
                   <input value={c.title} onChange={e => updateContact(i, "title", e.target.value)} placeholder={L.titleRolePh} className={inputCls} />
                 </label>
-                <div className="block sm:col-span-2">
+                <label className="block">
+                  <span className={labelCls}>{L.email}</span>
+                  <input type="email" value={c.email || ""} onChange={e => updateContact(i, "email", e.target.value)} placeholder="email@example.com" className={inputCls} dir="ltr" />
+                </label>
+                <div className="block">
                   <span className={labelCls}>{L.phoneLabel}</span>
                   <PhoneInput value={c.phone || "+20"} onChange={val => updateContact(i, "phone", val)} />
                 </div>

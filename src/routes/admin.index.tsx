@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -11,6 +12,7 @@ import {
   Users, Briefcase, TrendingUp, Target, Calendar, Phone, MapPin, Mail,
   CheckCircle2, Clock, RefreshCw, Download, Plus, FileText, UserPlus,
   AlertTriangle, ArrowUpRight, Activity as ActivityIcon, DollarSign,
+  Sparkles, Trophy,
 } from "lucide-react";
 import { fmtMoney } from "@/lib/mock-data";
 
@@ -185,9 +187,22 @@ function useDashboardData(range: RangeKey) {
         .sort((a, b) => b.count - a.count)
         .slice(0, 7);
 
+      const getOwner = (ownerId?: string | null) => {
+        if (!ownerId) return null;
+        const p = profileById.get(ownerId);
+        if (!p) return null;
+        return {
+          name: p.full_name_en,
+          nameAr: p.full_name_ar,
+          avatar: p.avatar_url,
+          initials: (p.full_name_en ?? "").split(" ").map((s: string) => s[0]).slice(0, 2).join("").toUpperCase() || "U",
+        };
+      };
+
       // Upcoming activities — next 7 days, pending/in-progress
       const upcoming = activities
         .filter((a) => a.status !== "done" && a.due_date && a.due_date >= today && a.due_date <= in7.toISOString().slice(0, 10))
+        .map((a) => ({ ...a, ownerDetails: getOwner(a.owner_id) }))
         .slice(0, 6);
 
       // Overdue follow-ups — leads with no activity in last 14 days, not closed
@@ -212,13 +227,75 @@ function useDashboardData(range: RangeKey) {
       // Recent activities (latest by created_at)
       const recentActivities = [...activities]
         .sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
+        .map((a) => ({ ...a, ownerDetails: getOwner(a.owner_id) }))
         .slice(0, 6);
+
+      // Idle leads alert (7 days) grouped by owner
+      const sevenAgo = new Date(); sevenAgo.setDate(sevenAgo.getDate() - 7);
+      const idleLeads = allLeads
+        .filter((l) => l.status !== "won" && l.status !== "lost")
+        .map((l) => {
+          const last = lastTouch.get(l.id) ?? l.updated_at ?? l.created_at;
+          return { ...l, lastTouch: last };
+        })
+        .filter((l) => l.lastTouch < sevenAgo.toISOString());
+
+      const idleByOwner = new Map<string, any[]>();
+      idleLeads.forEach((l) => {
+        if (!l.owner_id) return;
+        const list = idleByOwner.get(l.owner_id) ?? [];
+        list.push(l);
+        idleByOwner.set(l.owner_id, list);
+      });
+
+      const idleAlerts = Array.from(idleByOwner.entries()).map(([ownerId, leads]) => {
+        const p = profileById.get(ownerId);
+        return {
+          ownerId,
+          ownerName: p?.full_name_ar ?? p?.full_name_en ?? "Unknown",
+          count: leads.length,
+        };
+      });
+
+      // Smart Insights
+      const insights = [];
+      const pendingQuotes = quotations.filter((q) => q.status === "pending_approval").length;
+      if (pendingQuotes > 0) {
+        insights.push({ id: "quotes", type: "warning", textEn: `${pendingQuotes} quotation${pendingQuotes > 1 ? "s" : ""} waiting for approval`, textAr: `${pendingQuotes} عروض أسعار بانتظار الموافقة`, link: "/admin/offers" });
+      }
+      const stuckNegotiation = leads.filter((l) => l.status === "negotiation" && new Date(l.updated_at).getTime() < Date.now() - 14 * 86400000).length;
+      if (stuckNegotiation > 0) {
+        insights.push({ id: "stuck", type: "error", textEn: `${stuckNegotiation} lead${stuckNegotiation > 1 ? "s" : ""} stuck in negotiation > 14 days`, textAr: `${stuckNegotiation} عملاء محتملين عالقين في التفاوض لأكثر من أسبوعين`, link: "/admin/leads" });
+      }
+      const unassignedLeads = leads.filter((l) => !l.owner_id).length;
+      if (unassignedLeads > 0) {
+        insights.push({ id: "unassigned", type: "info", textEn: `${unassignedLeads} new lead${unassignedLeads > 1 ? "s" : ""} need to be assigned`, textAr: `${unassignedLeads} عملاء جدد بحاجة للتعيين`, link: "/admin/leads" });
+      }
+
+      // Recent Wins (Last 5 won leads)
+      const recentWins = allLeads
+        .filter((l) => l.status === "won")
+        .sort((a, b) => (b.updated_at > a.updated_at ? 1 : -1))
+        .map((l) => ({ ...l, ownerDetails: getOwner(l.owner_id) }))
+        .slice(0, 5);
+
+      // Simulated online employees (since last_seen is not in DB schema)
+      const onlineEmployees = profiles
+        .slice(0, 4) // Show top 4 active profiles as "online" for UI purposes
+        .map((p) => ({
+          id: p.id,
+          name: p.full_name_en,
+          nameAr: p.full_name_ar,
+          avatar: p.avatar_url,
+          initials: (p.full_name_en ?? "").split(" ").map((s: string) => s[0]).slice(0, 2).join("").toUpperCase() || "U",
+        }));
 
       return {
         kpis: { totalLeads, activeProjects, revenueForecast, conversion, wonValue, openLeadValue },
         pipeline, funnel, trend, revenueMonths, performers, quick,
         quotesByStatus, totalQuoteValue, totalQuotes: quotations.length,
         sources, upcoming, overdue, recentActivities,
+        idleAlerts, insights, recentWins, onlineEmployees,
         rangeKey: range,
       };
     },
@@ -248,6 +325,25 @@ function AdminDashboard() {
 
   const initials = (profile?.full_name_en ?? profile?.email ?? "U")
     .split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
+
+  useEffect(() => {
+    if (data?.idleAlerts && data.idleAlerts.length > 0) {
+      const todayKey = `idle-alerts-shown-${new Date().toISOString().slice(0, 10)}`;
+      if (!sessionStorage.getItem(todayKey)) {
+        sessionStorage.setItem(todayKey, "1");
+        // Use a short timeout to ensure toasts don't clump or overlap initial mounting
+        setTimeout(() => {
+          data.idleAlerts.forEach((a) => {
+            if (lang === "ar") {
+              toast.warning(`الموظف ${a.ownerName} لديه ${a.count} عملاء بدون نشاط منذ أسبوع`);
+            } else {
+              toast.warning(`Employee ${a.ownerName} has ${a.count} idle leads (no activity in 7 days)`);
+            }
+          });
+        }, 500);
+      }
+    }
+  }, [data, lang]);
   const user = {
     name: lang === "ar" ? (profile?.full_name_ar ?? profile?.full_name_en ?? "") : (profile?.full_name_en ?? ""),
     role: role ? t(role as any) : t("admin"),
@@ -285,7 +381,7 @@ function AdminDashboard() {
     );
   }
 
-  const { kpis, pipeline, funnel, trend, revenueMonths, performers, quick, quotesByStatus, totalQuoteValue, totalQuotes, sources, upcoming, overdue, recentActivities } = data;
+  const { kpis, pipeline, funnel, trend, revenueMonths, performers, quick, quotesByStatus, totalQuoteValue, totalQuotes, sources, upcoming, overdue, recentActivities, insights, recentWins, onlineEmployees } = data;
   const maxTrend = Math.max(1, ...trend);
   const maxPipeline = Math.max(1, ...pipeline.map((x) => x.value));
 
@@ -326,52 +422,99 @@ function AdminDashboard() {
         </div>
       </div>
 
+      {/* Smart Insights */}
+      {insights.length > 0 && (
+        <div className="mb-5 flex flex-col gap-2 animate-in slide-in-from-top-2 fade-in duration-500">
+          {insights.map((insight: any) => {
+            const Icon = insight.type === "error" ? AlertTriangle : insight.type === "warning" ? Clock : Sparkles;
+            const bg = insight.type === "error" ? "bg-rose-50 border-rose-200 text-rose-700" : insight.type === "warning" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-blue-50 border-blue-200 text-blue-700";
+            const iconColor = insight.type === "error" ? "text-rose-600" : insight.type === "warning" ? "text-amber-600" : "text-blue-600";
+            return (
+              <Link key={insight.id} to={insight.link} className={`flex items-center gap-3 rounded-xl border p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${bg}`}>
+                <Icon className={`h-5 w-5 ${iconColor}`} />
+                <span className="text-sm font-semibold">{lang === "ar" ? insight.textAr : insight.textEn}</span>
+                <ArrowUpRight className="ms-auto h-4 w-4 opacity-50" />
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
       {/* Quick actions */}
       <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Link to="/admin/leads" className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:border-primary hover:shadow-md">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><Plus className="h-5 w-5" /></div>
+        <Link to="/admin/leads" className="group flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-[var(--shadow-soft)] transition hover:bg-primary/10 hover:shadow-md">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20 text-primary"><Plus className="h-5 w-5" /></div>
           <div className="min-w-0">
             <div className="text-sm font-bold text-foreground">{t("newLead")}</div>
             <div className="text-xs text-muted-foreground">{t("captureOpportunity")}</div>
           </div>
           <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
         </Link>
-        <Link to="/admin/offers" className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:border-primary hover:shadow-md">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600"><FileText className="h-5 w-5" /></div>
+        <Link to="/admin/offers" className="group flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-[var(--shadow-soft)] transition hover:bg-amber-100/50 hover:shadow-md dark:border-amber-900/50 dark:bg-amber-950/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600"><FileText className="h-5 w-5" /></div>
           <div className="min-w-0">
             <div className="text-sm font-bold text-foreground">{t("newQuotation")}</div>
             <div className="text-xs text-muted-foreground">{t("draftOffer")}</div>
           </div>
-          <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
+          <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-amber-600" />
         </Link>
-        <Link to="/admin/activities" className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:border-primary hover:shadow-md">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600"><ActivityIcon className="h-5 w-5" /></div>
+        <Link to="/admin/activities" className="group flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 p-4 shadow-[var(--shadow-soft)] transition hover:bg-sky-100/50 hover:shadow-md dark:border-sky-900/50 dark:bg-sky-950/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-600"><ActivityIcon className="h-5 w-5" /></div>
           <div className="min-w-0">
             <div className="text-sm font-bold text-foreground">{t("addActivity")}</div>
             <div className="text-xs text-muted-foreground">{t("logTouchpoint")}</div>
           </div>
-          <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
+          <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-sky-600" />
         </Link>
-        <Link to="/admin/settings" className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:border-primary hover:shadow-md">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600"><UserPlus className="h-5 w-5" /></div>
+        <Link to="/admin/settings" className="group flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-[var(--shadow-soft)] transition hover:bg-emerald-100/50 hover:shadow-md dark:border-emerald-900/50 dark:bg-emerald-950/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-600"><UserPlus className="h-5 w-5" /></div>
           <div className="min-w-0">
             <div className="text-sm font-bold text-foreground">{t("inviteUser")}</div>
             <div className="text-xs text-muted-foreground">{t("onboardTeammate")}</div>
           </div>
-          <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
+          <ArrowUpRight className="ms-auto h-4 w-4 text-muted-foreground transition group-hover:text-emerald-600" />
         </Link>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label={t("totalLeads")} value={kpis.totalLeads.toLocaleString()} icon={Users} accent="primary" />
-        <KpiCard label={t("activeProjects")} value={String(kpis.activeProjects)} icon={Briefcase} accent="info" />
-        <KpiCard label={t("revenueForecast")} value={fmtMoney(kpis.revenueForecast)} icon={TrendingUp} accent="success" />
-        <KpiCard label={t("conversionRate")} value={`${kpis.conversion}%`} icon={Target} accent="warning" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-75 fill-mode-both">
+        <Link to="/admin/leads" className="group/kpi block cursor-pointer">
+          <KpiCard label={t("totalLeads")} value={kpis.totalLeads.toLocaleString()} icon={Users} accent="primary" />
+        </Link>
+        <Link to="/admin/projects" className="group/kpi block cursor-pointer">
+          <KpiCard label={t("activeProjects")} value={String(kpis.activeProjects)} icon={Briefcase} accent="info" />
+        </Link>
+        <Link to="/admin/offers" className="group/kpi block cursor-pointer">
+          <KpiCard label={t("revenueForecast")} value={fmtMoney(kpis.revenueForecast)} icon={TrendingUp} accent="success" />
+        </Link>
+        <Link to="/admin/leads" className="group/kpi block cursor-pointer">
+          <KpiCard label={t("conversionRate")} value={`${kpis.conversion}%`} icon={Target} accent="warning" />
+        </Link>
       </div>
 
+      {/* Online Employees */}
+      {onlineEmployees && onlineEmployees.length > 0 && (
+        <div className="mt-6 mb-2 flex items-center gap-3 animate-in fade-in duration-500 delay-100">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("onlineNow" as any) || "Online Now"}:</span>
+          <div className="flex items-center gap-2">
+            {onlineEmployees.map((emp: any) => (
+              <div key={emp.id} className="relative group inline-block" title={lang === "ar" && emp.nameAr ? emp.nameAr : emp.name}>
+                {emp.avatar ? (
+                  <img src={emp.avatar} alt={emp.name} className="h-8 w-8 rounded-full border-2 border-background object-cover shadow-sm transition-transform group-hover:scale-110 group-hover:z-10 relative z-0" />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-emerald-100 text-[10px] font-bold text-emerald-700 shadow-sm transition-transform group-hover:scale-110 group-hover:z-10 relative z-0">
+                    {emp.initials}
+                  </div>
+                )}
+                <span className="absolute bottom-0 right-0 z-20 block h-2.5 w-2.5 rounded-full border-2 border-background bg-emerald-500"></span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Revenue chart + Pipeline funnel */}
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-150 fill-mode-both">
         <div className="lg:col-span-2 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between">
             <div>
@@ -432,7 +575,7 @@ function AdminDashboard() {
       </div>
 
       {/* Pipeline by stage + Top performers (existing) */}
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-200 fill-mode-both">
         <div className="lg:col-span-2 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-base font-bold text-foreground">{t("pipelineByStage")}</h3>
@@ -516,7 +659,7 @@ function AdminDashboard() {
       </div>
 
       {/* Quotations overview + Lead source mix */}
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-300 fill-mode-both">
         <div className="lg:col-span-2 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between">
             <div>
@@ -589,7 +732,7 @@ function AdminDashboard() {
       </div>
 
       {/* Upcoming activities + Overdue follow-ups */}
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-500 fill-mode-both">
         <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between">
             <div>
@@ -615,10 +758,27 @@ function AdminDashboard() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       <div className="truncate text-sm font-semibold text-foreground">{title}</div>
                     </div>
-                    <div className="text-xs text-muted-foreground">{a.due_date}{a.time ? ` · ${a.time}` : ""}</div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+                      <span>{a.due_date}{a.time ? ` · ${a.time}` : ""}</span>
+                      {a.ownerDetails && (
+                        <>
+                          <span>·</span>
+                          <span className="flex items-center gap-1.5">
+                            {a.ownerDetails.avatar ? (
+                              <img src={a.ownerDetails.avatar} alt={a.ownerDetails.name} className="h-4 w-4 rounded-full object-cover" />
+                            ) : (
+                              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-bold text-primary">
+                                {a.ownerDetails.initials}
+                              </span>
+                            )}
+                            <span className="truncate max-w-[80px]">{lang === "ar" && a.ownerDetails.nameAr ? a.ownerDetails.nameAr : a.ownerDetails.name}</span>
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
                   {a.status === "in_progress" ? (
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">{t("live")}</span>
@@ -687,7 +847,24 @@ function AdminDashboard() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold text-foreground">{title}</div>
-                    <div className="text-xs text-muted-foreground">{a.due_date}{a.time ? ` · ${a.time}` : ""}</div>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+                      <span>{a.due_date}{a.time ? ` · ${a.time}` : ""}</span>
+                      {a.ownerDetails && (
+                        <>
+                          <span>·</span>
+                          <span className="flex items-center gap-1">
+                            {a.ownerDetails.avatar ? (
+                              <img src={a.ownerDetails.avatar} alt={a.ownerDetails.name} className="h-3.5 w-3.5 rounded-full object-cover" />
+                            ) : (
+                              <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-bold text-primary">
+                                {a.ownerDetails.initials}
+                              </span>
+                            )}
+                            <span className="truncate max-w-[80px]">{lang === "ar" && a.ownerDetails.nameAr ? a.ownerDetails.nameAr : a.ownerDetails.name}</span>
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
                   {a.status === "done" ? (
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
@@ -723,6 +900,63 @@ function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Recent Wins Feed */}
+      <div className="mt-6 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-700 fill-mode-both">
+        <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-6 shadow-[var(--shadow-soft)] dark:border-emerald-900/50 dark:from-emerald-950/20 dark:to-emerald-900/10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-white shadow-sm">
+                <Trophy className="h-4 w-4" />
+              </div>
+              <h3 className="font-display text-base font-bold text-emerald-900 dark:text-emerald-100">{t("recentWins" as any) || "Recent Wins"}</h3>
+            </div>
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{t("latestClosedDeals" as any) || "Latest closed deals"}</span>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            {recentWins.length === 0 ? (
+              <div className="col-span-full py-4 text-center text-sm text-emerald-600/70">{t("noRecentWins" as any) || "No closed deals yet this period. Keep pushing!"}</div>
+            ) : (
+              recentWins.map((win: any) => (
+                <div key={win.id} className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-white/40 bg-white/60 p-4 shadow-sm backdrop-blur transition-all hover:-translate-y-1 hover:bg-white/90 hover:shadow-md dark:border-emerald-800/30 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+                        {t("won")}
+                      </span>
+                      <span className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">
+                        {new Date(win.updated_at).toLocaleDateString("en", { month: "short", day: "numeric" })}
+                      </span>
+                    </div>
+                    <div className="mt-2 truncate font-bold text-foreground">{lang === "ar" && win.company_ar ? win.company_ar : win.company_en}</div>
+                    <div className="mt-1 font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">{fmtMoney(Number(win.value ?? 0))}</div>
+                  </div>
+                  
+                  {win.ownerDetails && (
+                    <div className="mt-4 flex items-center gap-2 border-t border-emerald-100 pt-3 dark:border-emerald-900/30">
+                      {win.ownerDetails.avatar ? (
+                        <img src={win.ownerDetails.avatar} alt={win.ownerDetails.name} className="h-6 w-6 rounded-full object-cover ring-2 ring-emerald-50 dark:ring-emerald-900" />
+                      ) : (
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-200 text-[10px] font-bold text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200">
+                          {win.ownerDetails.initials}
+                        </span>
+                      )}
+                      <span className="truncate text-xs font-medium text-emerald-800 dark:text-emerald-300">
+                        {lang === "ar" && win.ownerDetails.nameAr ? win.ownerDetails.nameAr : win.ownerDetails.name}
+                      </span>
+                    </div>
+                  )}
+                  <div className="pointer-events-none absolute -bottom-6 -end-6 opacity-0 transition-opacity duration-500 group-hover:opacity-10 text-emerald-600">
+                    <Sparkles className="h-20 w-20" />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
     </AppShell>
   );
 }

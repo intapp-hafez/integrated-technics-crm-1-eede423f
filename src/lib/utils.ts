@@ -7,5 +7,5 @@ export function cn(...inputs: ClassValue[]) {
 
 export function shortId(id: string | number) {
   const s = String(id);
-  return s.length > 12 ? s.slice(0, 8) + "…" : s;
+  return (s.length > 12 ? s.slice(0, 8) + "…" : s).toUpperCase();
 }

@@ -186,7 +186,10 @@ export interface Project {
   endDate?: string;   // YYYY-MM-DD
   accountType?: string;
   otherAccountType?: string;
-  extraContacts?: Array<{ name: string; title: string; phone: string }>;
+  extraContacts?: Array<{ name: string; title: string; phone: string; email: string }>;
+  createdBy?: string;
+  createdByName?: string;
+  managerId?: string;
 }
 
 export interface AttendanceRecord {
@@ -254,6 +257,7 @@ interface State {
   users: AppUser[];
   employees: Employee[];
   notifications: AppNotification[];
+  projectRequests?: any[];
 }
 
 import * as sb from "./supabaseWrites";
@@ -429,6 +433,7 @@ const initialState: State = {
   users: seedUsers,
   employees: mockEmployees.map((e) => ({ ...e })),
   notifications: [],
+  projectRequests: [],
 };
 
 let state: State = initialState;
@@ -1100,7 +1105,13 @@ export const actions = {
   },
   // ---- Projects CRUD ----
   addProject(input: Omit<Project, "id">, actor = "hafez Rahim") {
-    const project: Project = { ...input, id: id("P") };
+    const me = state.profile?.name && state.profile.name !== "—" ? state.profile.name : undefined;
+    const project: Project = { 
+      createdByName: me,
+      createdBy: state.profile?.userId,
+      ...input, 
+      id: id("P") 
+    };
     set((s) => ({ ...s, projects: [project, ...s.projects] }));
     logHistory({ module: "project", actor, target: project.name, action: "Project created" });
     sb.sbAddProject(project.id, project);

@@ -10,6 +10,21 @@ type EmpMini = { name: string; photo?: string };
 type OwnerInfo = { name: string; photo?: string; initials: string; count: number };
 type CityAgg = { city: string; lat: number; lng: number; count: number; value: number; leads: Lead[]; owners: OwnerInfo[] };
 
+const CITY_COORDS: Record<string, [number, number]> = {
+  "Riyadh": [24.7136, 46.6753],
+  "Jeddah": [21.4858, 39.1925],
+  "Dammam": [26.4207, 50.0888],
+  "Khobar": [26.2172, 50.1971],
+  "Makkah": [21.3891, 39.8579],
+  "Madinah": [24.5247, 39.5692],
+  "Cairo": [30.0444, 31.2357],
+  "Alexandria": [31.2001, 29.9187],
+  "Giza": [30.0131, 31.2089],
+  "Hurghada": [27.2579, 33.8116],
+  "Luxor": [25.6872, 32.6396],
+  "Port Said": [31.2653, 32.3019]
+};
+
 function initialsOf(name: string) {
   return name.split(/\s+/).filter(Boolean).map((w) => w[0]?.toUpperCase() ?? "").join("").slice(0, 2) || "??";
 }
@@ -84,12 +99,13 @@ export function LeadsMap({ leads }: { leads: Lead[] }) {
     for (const l of leads) {
       const key = l.city;
       const cur = map.get(key);
+      const latLng = CITY_COORDS[key] || [l.lat || 30.0444, l.lng || 31.2357];
       if (cur) {
         cur.count += 1;
         cur.value += l.value;
         cur.leads.push(l);
       } else {
-        map.set(key, { city: l.city, lat: l.lat, lng: l.lng, count: 1, value: l.value, leads: [l], owners: [] });
+        map.set(key, { city: l.city, lat: latLng[0], lng: latLng[1], count: 1, value: l.value, leads: [l], owners: [] });
       }
     }
     const arr = Array.from(map.values());

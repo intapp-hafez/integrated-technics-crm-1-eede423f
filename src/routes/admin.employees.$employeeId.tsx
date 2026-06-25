@@ -7,7 +7,7 @@ import { RealChat } from "@/components/RealChat";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState } from "@/lib/store";
-import { ArrowLeft, History as HistoryIcon, Activity as ActivityIcon, Clock4, Timer, CalendarDays, Users2, ChevronLeft, ChevronRight, Mail, Phone, MessageCircle, ShieldCheck, ShieldOff } from "lucide-react";
+import { ArrowLeft, History as HistoryIcon, Activity as ActivityIcon, Clock4, Timer, CalendarDays, Users2, ChevronLeft, ChevronRight, Mail, Phone, MessageCircle, ShieldCheck, ShieldOff, FolderGit2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { TargetCountdown, TargetRefreshIndicator } from "@/components/TargetCountdown";
 import { computeTargetPeriod, fmtCairoDate, sumWonInPeriod } from "@/lib/targetPeriod";
@@ -15,6 +15,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isAssignedToEmployee } from "@/lib/activityFilters";
 import { isLeadRelatedToEmployee } from "@/lib/employeeTargets";
+import { filterMyProjects } from "@/lib/employeeProjects";
 import { useAuth } from "@/lib/auth";
 import { cairoIsoDate, cairoWeekday, cairoYearMonth, isEgyptWeekend, cairoMonthDates, lastNCairoDates, CAIRO_TZ } from "@/lib/cairoTime";
 import { EmployeeTargetsCard } from "@/components/EmployeeTargetsCard";
@@ -46,7 +47,7 @@ function EmployeeDetailsPage() {
   const { t } = useI18n();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { activities, history, employees, leads: storeLeads, attendance: storeAttendance, settings } = useStoreState();
+  const { activities, history, employees, leads: storeLeads, attendance: storeAttendance, settings, projects } = useStoreState();
   const workdayHours = settings.workdayHours ?? 8;
   const emp = employees.find((e) => e.id === employeeId);
   const { profile: authProfile } = useAuth();
@@ -54,7 +55,7 @@ function EmployeeDetailsPage() {
   const mePhoto = authProfile?.avatar_url || undefined;
   const meInitials = meName.split(/\s+/).filter(Boolean).map((w) => w[0]?.toUpperCase()).join("").slice(0, 2) || "AD";
   const user = { name: meName, role: t("admin"), initials: meInitials, photo: mePhoto };
-  const [tab, setTab] = useState<"overview" | "attendance" | "leads" | "chat">("overview");
+  const [tab, setTab] = useState<"overview" | "attendance" | "leads" | "chat" | "accounts">("overview");
   const [monthOffset, setMonthOffset] = useState(0);
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>({});
   useEffect(() => { setActiveMap(loadActive()); }, []);
@@ -71,6 +72,7 @@ function EmployeeDetailsPage() {
   const empActivities = emp ? activities.filter((a) => isAssignedToEmployee(a as any, empIdentity)) : [];
   const empHistory = emp ? history.filter((h) => h.actor === emp.name || h.target === emp.name) : [];
   const empLeads = emp ? storeLeads.filter((l: any) => isLeadRelatedToEmployee(l, empIdentity)) : [];
+  const empProjects = emp ? filterMyProjects(projects as any, empIdentity as any) : [];
 
   // Real monthly attendance from Supabase, indexed per day for the visible month (Egypt / Africa/Cairo timezone)
   const monthlyAttendance = useMemo(() => {
@@ -298,6 +300,7 @@ function EmployeeDetailsPage() {
           { k: "overview", label: t("overview"), Icon: ActivityIcon },
           { k: "attendance", label: t("attendance"), Icon: CalendarDays },
           { k: "leads", label: `${t("relatedLeads")} (${empLeads.length})`, Icon: Users2 },
+          { k: "accounts", label: `Related Accounts (${empProjects.length})`, Icon: FolderGit2 },
           { k: "chat", label: t("chat"), Icon: MessageCircle },
         ] as const).map(({ k, label, Icon }) => (
           <button
@@ -394,6 +397,31 @@ function EmployeeDetailsPage() {
                 </div>
                 <StatusBadge status={l.status} label={t(l.status as any)} />
                 <span className="ml-3 font-mono text-sm font-bold text-foreground">{fmtMoney(l.value)}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === "accounts" && (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4 flex items-center gap-2">
+            <FolderGit2 className="h-4 w-4 text-primary" />
+            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">Related Accounts</h3>
+          </div>
+          {empProjects.length === 0 && <p className="text-sm text-muted-foreground">No accounts assigned.</p>}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {empProjects.map((p: any) => (
+              <Link key={p.id} to="/admin/projects/$projectId" params={{ projectId: p.id }} className="block rounded-xl border border-border p-4 transition hover:border-primary hover:bg-primary/5">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="font-semibold text-foreground">{p.name}</div>
+                  <StatusBadge status={p.status} label={p.status} />
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">{p.client}</div>
+                <div className="mt-3 flex justify-between items-center text-xs">
+                  <span className="font-mono text-muted-foreground">{shortId(p.id)}</span>
+                  <span className="font-mono font-bold text-foreground">{fmtMoney(p.budget)}</span>
+                </div>
               </Link>
             ))}
           </div>
