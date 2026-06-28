@@ -18,7 +18,8 @@ Deno.serve(async (req) => {
   const provided = req.headers.get("x-cron-secret");
   if (!expected || provided !== expected) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
-      status: 403, headers: { ...cors, "Content-Type": "application/json" },
+      status: 403,
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 
@@ -30,10 +31,13 @@ Deno.serve(async (req) => {
   const today = new Date().toISOString().slice(0, 10);
 
   const { data: rows, error } = await supabase
-    .from("attendance").select("status").eq("date", today);
+    .from("attendance")
+    .select("status")
+    .eq("date", today);
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...cors, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 

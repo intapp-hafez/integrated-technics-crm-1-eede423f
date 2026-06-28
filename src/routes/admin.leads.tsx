@@ -306,18 +306,15 @@ function LeadsPage() {
       </div>
 
       {(() => {
-        const ids = Object.keys(leadValidation);
-        if (ids.length === 0) return null;
-        const missing = ids.filter((id) => leadValidation[id].kind === "missing").length;
-        const mismatch = ids.filter((id) => leadValidation[id].kind === "mismatch").length;
+        const mismatch = Object.keys(leadValidation).filter((id) => leadValidation[id].kind === "mismatch").length;
+        if (mismatch === 0) return null;
         return (
           <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 shadow-[var(--shadow-soft)]">
             <span aria-hidden className="text-base leading-none">⚠</span>
             <div className="flex-1">
-              <div className="font-semibold">Account link validation</div>
+              <div className="font-semibold">Account mismatch detected</div>
               <div className="text-xs">
-                {missing > 0 && <span>{missing} lead{missing === 1 ? "" : "s"} missing an account link. </span>}
-                {mismatch > 0 && <span>{mismatch} lead{mismatch === 1 ? "" : "s"} where the assigned account doesn’t match the linked activity’s account.</span>}
+                {mismatch} lead{mismatch === 1 ? "" : "s"} where the assigned account doesn't match the linked activity's account.
               </div>
             </div>
           </div>
@@ -513,15 +510,15 @@ function LeadsPage() {
                             toast.success(next ? `Linked to ${projectById.get(next)?.name ?? "account"}` : "Account unlinked");
                           }}
                           aria-label="Lead project"
-                          className={`h-8 w-full rounded-md border bg-card px-2 text-xs font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 ${leadValidation[l.id] ? "border-amber-400 text-amber-700" : "border-border text-foreground"}`}
-                          title={leadValidation[l.id]?.message}
+                          className={`h-8 w-full rounded-md border bg-card px-2 text-xs font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 ${leadValidation[l.id]?.kind === "mismatch" ? "border-amber-400 text-amber-700" : "border-border text-foreground"}`}
+                          title={leadValidation[l.id]?.kind === "mismatch" ? leadValidation[l.id].message : undefined}
                         >
                           <option value="">— {t("project") ?? "Account"} —</option>
                           {projects.map((p) => (
                             <option key={p.id} value={p.id}>{p.name}</option>
                           ))}
                         </select>
-                        {leadValidation[l.id] && (
+                        {leadValidation[l.id]?.kind === "mismatch" && (
                           <div className="mt-1 text-[10px] font-semibold text-amber-700">⚠ {leadValidation[l.id].message}</div>
                         )}
                       </div>
@@ -610,7 +607,7 @@ function LeadsPage() {
 function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; locations: LocationCity[]; onClose: () => void }) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
-  const { leadDistricts, projects, employees, settings } = useStoreState();
+  const { leadDistricts, projects, employees, settings, activities } = useStoreState();
   const STATUSES = settings.statuses;
   const stageLabel = (k: string) => settings.stages.find((s) => s.key === k)?.label ?? k;
   const cities = locations.map((c) => c.name);
@@ -634,8 +631,12 @@ function LeadFormModal({ initial, locations, onClose }: { initial: Lead | null; 
   ];
   const [projectId, setProjectId] = useState(() => {
     if (!initial) return "";
-    // Use stored projectId first, then fall back to matching by company name
-    return initial.projectId ?? projects.find((p) => p.name === initial.company)?.id ?? "";
+    if (initial.projectId) return initial.projectId;
+    const latest = activities
+      .filter((a) => a.leadId === initial.id && a.projectId)
+      .sort((a, b) => new Date(b.createdAt || b.dueDate).getTime() - new Date(a.createdAt || a.dueDate).getTime())[0];
+    if (latest?.projectId) return latest.projectId;
+    return projects.find((p) => p.name === initial.company)?.id ?? "";
   });
   const [company, setCompany] = useState(initial?.company ?? "");
   const [contact, setContact] = useState(initial?.contact ?? "");

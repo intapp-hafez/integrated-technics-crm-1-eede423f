@@ -21,8 +21,13 @@ function EmployeeChatPage() {
     profile?.full_name_en ||
     "Me";
   const meInitials =
-    (meName || "").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() ||
-    "ME";
+    (meName || "")
+      .split(" ")
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "ME";
 
   const contacts = chatContactsFor(role ?? "employee", profile?.id, users, employees);
 

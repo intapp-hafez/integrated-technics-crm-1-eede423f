@@ -48,14 +48,16 @@ if (existsSync(baselinePath)) {
 const baselineSet = new Set(baseline);
 
 const fingerprint = (f) =>
-  `${f.name}|${f.level}|${(f.metadata?.schema || "")}|${(f.metadata?.name || f.cache_key || "")}`;
+  `${f.name}|${f.level}|${f.metadata?.schema || ""}|${f.metadata?.name || f.cache_key || ""}`;
 
 const offending = findings
   .filter((f) => (severityRank[(f.level || "").toLowerCase()] ?? 0) >= floor)
   .filter((f) => !baselineSet.has(fingerprint(f)));
 
 if (offending.length === 0) {
-  console.log(`✓ No new findings at or above '${failOn}'. (${findings.length} total, ${baselineSet.size} baselined)`);
+  console.log(
+    `✓ No new findings at or above '${failOn}'. (${findings.length} total, ${baselineSet.size} baselined)`,
+  );
   process.exit(0);
 }
 

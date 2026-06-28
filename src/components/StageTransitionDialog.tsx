@@ -1,10 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { actions, type LeadStatus } from "@/lib/store";
 import type { Lead } from "@/lib/mock-data";
 
@@ -35,12 +48,26 @@ function fieldsFor(stage: string): FieldDef[] {
   switch (stage) {
     case "contacted":
       return [
-        { name: "channel", label: "Contact method", type: "select", required: true, options: [
-          { value: "Call", label: "Call" }, { value: "Email", label: "Email" },
-          { value: "WhatsApp", label: "WhatsApp" }, { value: "In-person", label: "In-person" },
-        ]},
+        {
+          name: "channel",
+          label: "Contact method",
+          type: "select",
+          required: true,
+          options: [
+            { value: "Call", label: "Call" },
+            { value: "Email", label: "Email" },
+            { value: "WhatsApp", label: "WhatsApp" },
+            { value: "In-person", label: "In-person" },
+          ],
+        },
         { name: "date", label: "Date", type: "date", required: true },
-        { name: "summary", label: "Summary", type: "textarea", required: true, placeholder: "What did you discuss?" },
+        {
+          name: "summary",
+          label: "Summary",
+          type: "textarea",
+          required: true,
+          placeholder: "What did you discuss?",
+        },
       ];
     case "qualified":
       return [
@@ -52,17 +79,41 @@ function fieldsFor(stage: string): FieldDef[] {
       return [
         { name: "date", label: "Meeting date", type: "date", required: true },
         { name: "time", label: "Meeting time", type: "time", required: true },
-        { name: "kind", label: "Meeting type", type: "select", required: true, options: [
-          { value: "Online", label: "Online" }, { value: "Site Visit", label: "Site Visit" },
-          { value: "Office", label: "Office Meeting" },
-        ]},
-        { name: "location", label: "Location / link", type: "text", placeholder: "Zoom link or address" },
-        { name: "summary", label: "Description", type: "textarea", required: true, placeholder: "Agenda, attendees, etc." },
+        {
+          name: "kind",
+          label: "Meeting type",
+          type: "select",
+          required: true,
+          options: [
+            { value: "Online", label: "Online" },
+            { value: "Site Visit", label: "Site Visit" },
+            { value: "Office", label: "Office Meeting" },
+          ],
+        },
+        {
+          name: "location",
+          label: "Location / link",
+          type: "text",
+          placeholder: "Zoom link or address",
+        },
+        {
+          name: "summary",
+          label: "Description",
+          type: "textarea",
+          required: true,
+          placeholder: "Agenda, attendees, etc.",
+        },
       ];
     case "proposal_sent":
       return [
         { name: "date", label: "Sent date", type: "date", required: true },
-        { name: "amount", label: "Proposal amount", type: "number", required: true, placeholder: "0" },
+        {
+          name: "amount",
+          label: "Proposal amount",
+          type: "number",
+          required: true,
+          placeholder: "0",
+        },
         { name: "ref", label: "Proposal / quotation #", type: "text" },
         { name: "summary", label: "Notes", type: "textarea" },
       ];
@@ -80,11 +131,20 @@ function fieldsFor(stage: string): FieldDef[] {
       ];
     case "lost":
       return [
-        { name: "reason", label: "Reason", type: "select", required: true, options: [
-          { value: "Price", label: "Price" }, { value: "Competitor", label: "Competitor" },
-          { value: "Timing", label: "Timing" }, { value: "No budget", label: "No budget" },
-          { value: "No response", label: "No response" }, { value: "Other", label: "Other" },
-        ]},
+        {
+          name: "reason",
+          label: "Reason",
+          type: "select",
+          required: true,
+          options: [
+            { value: "Price", label: "Price" },
+            { value: "Competitor", label: "Competitor" },
+            { value: "Timing", label: "Timing" },
+            { value: "No budget", label: "No budget" },
+            { value: "No response", label: "No response" },
+            { value: "Other", label: "Other" },
+          ],
+        },
         { name: "competitor", label: "Competitor (if any)", type: "text" },
         { name: "summary", label: "Details", type: "textarea", required: true },
       ];
@@ -95,9 +155,7 @@ function fieldsFor(stage: string): FieldDef[] {
       ];
     case "new":
     default:
-      return [
-        { name: "summary", label: "Notes (optional)", type: "textarea" },
-      ];
+      return [{ name: "summary", label: "Notes (optional)", type: "textarea" }];
   }
 }
 
@@ -126,13 +184,17 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
     const errs: Record<string, string> = {};
     for (const f of fields) {
       if (f.required && !values[f.name]?.trim()) errs[f.name] = "Required";
-      if (f.type === "number" && values[f.name] && Number.isNaN(Number(values[f.name]))) errs[f.name] = "Must be a number";
+      if (f.type === "number" && values[f.name] && Number.isNaN(Number(values[f.name])))
+        errs[f.name] = "Must be a number";
     }
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
 
     const { lead, toStage, toLabel } = payload;
     const details = fields
-      .map((f) => values[f.name] ? `${f.label}: ${values[f.name]}` : null)
+      .map((f) => (values[f.name] ? `${f.label}: ${values[f.name]}` : null))
       .filter(Boolean)
       .join(" • ");
 
@@ -145,11 +207,14 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
         dueDate: values.date,
         time: values.time,
         owner: lead.owner,
-        notes: [values.location && `Location: ${values.location}`, values.summary].filter(Boolean).join("\n"),
+        notes: [values.location && `Location: ${values.location}`, values.summary]
+          .filter(Boolean)
+          .join("\n"),
       });
     } else if (toStage === "contacted") {
       actions.addActivity({
-        type: values.channel === "Call" ? "Call" : values.channel === "Email" ? "Email" : "Follow-up",
+        type:
+          values.channel === "Call" ? "Call" : values.channel === "Email" ? "Email" : "Follow-up",
         title: `${values.channel} with ${lead.company}`,
         leadId: lead.id,
         dueDate: values.date,
@@ -189,26 +254,47 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
           {fields.map((f) => (
             <div key={f.name} className="space-y-1.5">
               <Label htmlFor={f.name}>
-                {f.label}{f.required && <span className="text-destructive"> *</span>}
+                {f.label}
+                {f.required && <span className="text-destructive"> *</span>}
               </Label>
               {f.type === "textarea" ? (
-                <Textarea id={f.name} value={values[f.name] ?? ""} onChange={(e) => set(f.name, e.target.value)} placeholder={f.placeholder} rows={3} />
+                <Textarea
+                  id={f.name}
+                  value={values[f.name] ?? ""}
+                  onChange={(e) => set(f.name, e.target.value)}
+                  placeholder={f.placeholder}
+                  rows={3}
+                />
               ) : f.type === "select" ? (
                 <Select value={values[f.name] ?? ""} onValueChange={(v) => set(f.name, v)}>
-                  <SelectTrigger id={f.name}><SelectValue placeholder="Select…" /></SelectTrigger>
+                  <SelectTrigger id={f.name}>
+                    <SelectValue placeholder="Select…" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {f.options!.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                    {f.options!.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               ) : (
-                <Input id={f.name} type={f.type} value={values[f.name] ?? ""} onChange={(e) => set(f.name, e.target.value)} placeholder={f.placeholder} />
+                <Input
+                  id={f.name}
+                  type={f.type}
+                  value={values[f.name] ?? ""}
+                  onChange={(e) => set(f.name, e.target.value)}
+                  placeholder={f.placeholder}
+                />
               )}
               {errors[f.name] && <p className="text-xs text-destructive">{errors[f.name]}</p>}
             </div>
           ))}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={handleConfirm}>Confirm move</Button>
         </DialogFooter>
       </DialogContent>

@@ -7,14 +7,24 @@ import { Bell, ArrowLeft } from "lucide-react";
 
 type Panel = "admin" | "manager" | "employee" | "finance";
 
-export function NotificationSettingsPage({ panel, user }: { panel: Panel; user: { name: string; role: string; initials: string; photo?: string } }) {
+export function NotificationSettingsPage({
+  panel,
+  user,
+}: {
+  panel: Panel;
+  user: { name: string; role: string; initials: string; photo?: string };
+}) {
   const { dir } = useI18n();
   const { role } = useAuth();
   const [prefs, setPrefs] = useNotifPrefs(role ?? panel);
   const categories = categoriesForRole(role ?? panel);
 
   return (
-    <AppShell panel={panel} user={user} pageTitle={dir === "rtl" ? "إعدادات الإشعارات" : "Notification Settings"}>
+    <AppShell
+      panel={panel}
+      user={user}
+      pageTitle={dir === "rtl" ? "إعدادات الإشعارات" : "Notification Settings"}
+    >
       <div className="mb-6 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -25,7 +35,9 @@ export function NotificationSettingsPage({ panel, user }: { panel: Panel; user: 
               {dir === "rtl" ? "تفضيلات الإشعارات" : "Notification Preferences"}
             </h2>
             <p className="text-xs text-muted-foreground">
-              {dir === "rtl" ? "اختر أنواع الإشعارات التي تريد استلامها" : "Choose which kinds of notifications you receive"}
+              {dir === "rtl"
+                ? "اختر أنواع الإشعارات التي تريد استلامها"
+                : "Choose which kinds of notifications you receive"}
             </p>
           </div>
         </div>
@@ -45,8 +57,12 @@ export function NotificationSettingsPage({ panel, user }: { panel: Panel; user: 
             return (
               <li key={c.key} className="flex items-start justify-between gap-4 px-5 py-4">
                 <div className="min-w-0">
-                  <div className="font-semibold text-foreground">{dir === "rtl" ? c.labelAr : c.labelEn}</div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">{dir === "rtl" ? c.descAr : c.descEn}</div>
+                  <div className="font-semibold text-foreground">
+                    {dir === "rtl" ? c.labelAr : c.labelEn}
+                  </div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">
+                    {dir === "rtl" ? c.descAr : c.descEn}
+                  </div>
                 </div>
                 <button
                   type="button"

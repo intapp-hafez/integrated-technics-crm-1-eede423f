@@ -15,14 +15,14 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ??
-      Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
+    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 
     // --- Auth: validate JWT ---
     const authHeader = req.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...cors, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
     const token = authHeader.replace("Bearer ", "");
@@ -32,7 +32,8 @@ Deno.serve(async (req) => {
     const { data: userRes, error: userErr } = await userClient.auth.getUser(token);
     if (userErr || !userRes.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...cors, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
     const user = userRes.user;
@@ -40,43 +41,57 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
     // Verify caller is admin or manager
-    const { data: roles } = await supabase.from("user_roles")
-      .select("role").eq("user_id", user.id);
+    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
     const callerRoles = new Set((roles ?? []).map((r: any) => r.role));
     if (!callerRoles.has("admin") && !callerRoles.has("manager")) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403, headers: { ...cors, "Content-Type": "application/json" },
+        status: 403,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
     const body = await req.json();
-    const { type, titleEn, titleAr, bodyEn, bodyAr, href, audience = [], audienceRoles = [] } = body;
+    const {
+      type,
+      titleEn,
+      titleAr,
+      bodyEn,
+      bodyAr,
+      href,
+      audience = [],
+      audienceRoles = [],
+    } = body;
     if (!type || !titleEn) throw new Error("type and titleEn are required");
 
     let unreadBy: string[] = [...audience];
     if (audienceRoles.length) {
       const { data } = await supabase
-        .from("user_roles").select("user_id").in("role", audienceRoles);
+        .from("user_roles")
+        .select("user_id")
+        .in("role", audienceRoles);
       const userIds = (data ?? []).map((r) => r.user_id);
       if (userIds.length) {
-        const { data: profs } = await supabase
-          .from("profiles").select("id").in("user_id", userIds);
+        const { data: profs } = await supabase.from("profiles").select("id").in("user_id", userIds);
         unreadBy = [...new Set([...unreadBy, ...(profs ?? []).map((p) => p.id)])];
       }
     }
 
-    const { data: notif, error } = await supabase.from("notifications").insert({
-      type,
-      title_en: titleEn,
-      title_ar: titleAr ?? titleEn,
-      body_en: bodyEn,
-      body_ar: bodyAr,
-      href,
-      audience,
-      audience_roles: audienceRoles,
-      unread_by: unreadBy,
-      created_by: user.id,
-    }).select().single();
+    const { data: notif, error } = await supabase
+      .from("notifications")
+      .insert({
+        type,
+        title_en: titleEn,
+        title_ar: titleAr ?? titleEn,
+        body_en: bodyEn,
+        body_ar: bodyAr,
+        href,
+        audience,
+        audience_roles: audienceRoles,
+        unread_by: unreadBy,
+        created_by: user.id,
+      })
+      .select()
+      .single();
 
     if (error) throw error;
     return new Response(JSON.stringify({ notification: notif }), {
@@ -84,7 +99,8 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: (e as Error).message }), {
-      status: 500, headers: { ...cors, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });

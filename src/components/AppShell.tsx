@@ -30,8 +30,7 @@ import { useState, type ReactNode } from "react";
 import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { RealtimeStatus } from "@/components/RealtimeStatus";
 import { GlobalSearch } from "@/components/GlobalSearch";
-
-
+import { LeadWonCelebration } from "@/components/LeadWonCelebration";
 
 type NavItem = { to: string; icon: typeof Users; key: any; search?: Record<string, string> };
 
@@ -45,7 +44,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/offers", icon: FileBadge, key: "offers" },
   { to: "/admin/managers", icon: Users, key: "managers" },
   { to: "/admin/employees", icon: UserCircle2, key: "employees" },
-  
+
   { to: "/admin/attendance", icon: Clock4, key: "attendance" },
   { to: "/admin/history", icon: History, key: "history" },
   { to: "/admin/reports", icon: History, key: "reports" },
@@ -84,7 +83,6 @@ const managerNav: NavItem[] = [
   { to: "/manager/email-inbox", icon: Inbox, key: "emailInbox" as any },
 ];
 
-
 const financeNav: NavItem[] = [
   { to: "/finance", icon: Wallet, key: "dashboard", search: { tab: "dashboard" } },
   { to: "/finance", icon: FileBadge, key: "offers", search: { tab: "quotations" } },
@@ -94,7 +92,6 @@ const financeNav: NavItem[] = [
   { to: "/finance/email-inbox", icon: Inbox, key: "emailInbox" as any },
   { to: "/finance", icon: UserCircle2, key: "profile", search: { tab: "profile" } },
 ];
-
 
 interface Props {
   panel: "admin" | "employee" | "manager" | "finance";
@@ -111,32 +108,44 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
   // Override caller-provided user with the logged-in profile, so every page
   // header reflects the real authenticated user.
   if (profile) {
-    const fullName = lang === "ar"
-      ? (profile.full_name_ar ?? profile.full_name_en ?? profile.email ?? "")
-      : (profile.full_name_en ?? profile.email ?? "");
+    const fullName =
+      lang === "ar"
+        ? (profile.full_name_ar ?? profile.full_name_en ?? profile.email ?? "")
+        : (profile.full_name_en ?? profile.email ?? "");
     const initials = (fullName || profile.email || "U")
-      .split(" ").map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+      .split(" ")
+      .map((s) => s[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
     user = {
       name: fullName,
-      role: authRole ? (t(authRole as any) || authRole) : user.role,
+      role: authRole ? t(authRole as any) || authRole : user.role,
       initials,
       photo: profile.avatar_url ?? undefined,
     };
   }
   const nav =
-    panel === "admin" ? adminNav :
-    panel === "manager" ? managerNav :
-    panel === "finance" ? financeNav :
-    employeeNav;
+    panel === "admin"
+      ? adminNav
+      : panel === "manager"
+        ? managerNav
+        : panel === "finance"
+          ? financeNav
+          : employeeNav;
   const router = useRouterState();
   const pathname = router.location.pathname;
   const currentSearch = router.location.search as Record<string, any>;
   const [open, setOpen] = useState(false);
   const panelLabel =
-    panel === "admin" ? t("adminPanel") :
-    panel === "manager" ? t("managerPanel") :
-    panel === "finance" ? t("financePanel") :
-    t("employeePanel");
+    panel === "admin"
+      ? t("adminPanel")
+      : panel === "manager"
+        ? t("managerPanel")
+        : panel === "finance"
+          ? t("financePanel")
+          : t("employeePanel");
   const roleLabel = authRole ? t(authRole as any) || authRole : user.role;
 
   return (
@@ -155,7 +164,13 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
           <div className="leading-tight">
             <div className="font-display text-lg font-extrabold tracking-tight">INT-CRM</div>
             <div className="text-[11px] uppercase tracking-widest text-sidebar-foreground/60">
-              {panel === "admin" ? t("adminPanel") : panel === "manager" ? t("managerPanel") : panel === "finance" ? t("financePanel") : t("employeePanel")}
+              {panel === "admin"
+                ? t("adminPanel")
+                : panel === "manager"
+                  ? t("managerPanel")
+                  : panel === "finance"
+                    ? t("financePanel")
+                    : t("employeePanel")}
             </div>
           </div>
         </div>
@@ -167,10 +182,14 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
               active = pathname.startsWith(item.to) && currentSearch?.tab === item.search.tab;
             } else {
               active =
-                pathname === item.to ||
-                (item.to !== `/${panel}` && pathname.startsWith(item.to));
+                pathname === item.to || (item.to !== `/${panel}` && pathname.startsWith(item.to));
               // Avoid finance dashboard matching when a tab is selected
-              if (panel === "finance" && item.to === "/finance" && currentSearch?.tab && currentSearch.tab !== "dashboard") {
+              if (
+                panel === "finance" &&
+                item.to === "/finance" &&
+                currentSearch?.tab &&
+                currentSearch.tab !== "dashboard"
+              ) {
                 active = false;
               }
             }
@@ -197,7 +216,9 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
         <div className="border-t border-sidebar-border p-4">
           <button
             type="button"
-            onClick={() => { void signOut(); }}
+            onClick={() => {
+              void signOut();
+            }}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent"
           >
             <LogOut className="h-4 w-4" />
@@ -213,11 +234,7 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topbar */}
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
-          <button
-            className="md:hidden"
-            onClick={() => setOpen((o) => !o)}
-            aria-label="Menu"
-          >
+          <button className="md:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu">
             <Menu className="h-5 w-5" />
           </button>
           <div className="min-w-0">
@@ -237,10 +254,14 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
 
           <NotificationsMenu panel={panel} />
 
-
           <div className="flex items-center gap-3 rounded-md border border-border bg-card px-2.5 py-1.5">
             {user.photo ? (
-              <img src={user.photo} alt={user.name} loading="lazy" className="h-7 w-7 rounded-full object-cover ring-1 ring-primary/30" />
+              <img
+                src={user.photo}
+                alt={user.name}
+                loading="lazy"
+                className="h-7 w-7 rounded-full object-cover ring-1 ring-primary/30"
+              />
             ) : (
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                 {user.initials}
@@ -254,7 +275,9 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
             </div>
             <button
               type="button"
-              onClick={() => { void signOut(); }}
+              onClick={() => {
+                void signOut();
+              }}
               title={t("logout")}
               aria-label={t("logout")}
               className="ms-1 rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-rose-600"
@@ -280,9 +303,13 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
               active = pathname.startsWith(item.to) && currentSearch?.tab === item.search.tab;
             } else {
               active =
-                pathname === item.to ||
-                (item.to !== `/${panel}` && pathname.startsWith(item.to));
-              if (panel === "finance" && item.to === "/finance" && currentSearch?.tab && currentSearch.tab !== "dashboard") {
+                pathname === item.to || (item.to !== `/${panel}` && pathname.startsWith(item.to));
+              if (
+                panel === "finance" &&
+                item.to === "/finance" &&
+                currentSearch?.tab &&
+                currentSearch.tab !== "dashboard"
+              ) {
                 active = false;
               }
             }
@@ -304,6 +331,8 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
           })}
         </ul>
       </nav>
+      
+      <LeadWonCelebration />
     </div>
   );
 }

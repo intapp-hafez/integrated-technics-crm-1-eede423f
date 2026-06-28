@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-type RealtimeStatus =
-  | "connected"
-  | "connecting"
-  | "disconnected"
-  | "reconnecting"
-  | "error";
+type RealtimeStatus = "connected" | "connecting" | "disconnected" | "reconnecting" | "error";
 
 interface RealtimeState {
   status: RealtimeStatus;
@@ -55,7 +50,9 @@ export function useRealtimeStatus() {
               lastError: null,
             });
           } else if (status === "CLOSED" || status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-            const errorMsg = err?.message ?? (status === "TIMED_OUT" ? "Connection timed out" : `Channel ${status}`);
+            const errorMsg =
+              err?.message ??
+              (status === "TIMED_OUT" ? "Connection timed out" : `Channel ${status}`);
             setState((prev) => ({
               ...prev,
               status: "disconnected",

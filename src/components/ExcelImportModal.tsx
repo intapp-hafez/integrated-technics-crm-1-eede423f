@@ -26,24 +26,81 @@ export function ExcelImportModal({ type, onClose }: Props) {
 
     switch (type) {
       case "projects":
-        headers = ["Name", "Client", "ClientEmail", "ClientPhone", "City", "District", "Street", "AccountType",
-          "Contact2Name", "Contact2Title", "Contact2Phone",
-          "Contact3Name", "Contact3Title", "Contact3Phone"];
+        headers = [
+          "Name",
+          "Client",
+          "ClientEmail",
+          "ClientPhone",
+          "City",
+          "District",
+          "Street",
+          "AccountType",
+          "Contact2Name",
+          "Contact2Title",
+          "Contact2Phone",
+          "Contact3Name",
+          "Contact3Title",
+          "Contact3Phone",
+        ];
         sampleRow = {
-          Name: "Sample Project", Client: "Sample Client", ClientEmail: "info@example.com",
-          ClientPhone: "+201000000000", City: "Cairo", District: "Nasr City", Street: "10 Abbas St",
+          Name: "Sample Project",
+          Client: "Sample Client",
+          ClientEmail: "info@example.com",
+          ClientPhone: "+201000000000",
+          City: "Cairo",
+          District: "Nasr City",
+          Street: "10 Abbas St",
           AccountType: "End User",
-          Contact2Name: "Hafez Rahim", Contact2Title: "Engineer", Contact2Phone: "+201111111111",
-          Contact3Name: "", Contact3Title: "", Contact3Phone: "",
+          Contact2Name: "Hafez Rahim",
+          Contact2Title: "Engineer",
+          Contact2Phone: "+201111111111",
+          Contact3Name: "",
+          Contact3Title: "",
+          Contact3Phone: "",
         };
         break;
       case "leads":
-        headers = ["Company", "Contact", "Email", "Phone", "Industry", "City", "District", "Street", "Source", "Status", "Value", "Probability", "ExpectedCloseDate"];
-        sampleRow = { Company: "Sample Lead", Contact: "Hafez Rahim", Email: "Hafez@example.com", Phone: "+201000000000", Industry: "Technology", City: "Cairo", District: "Maadi", Street: "15 Maadi St", Source: "Website", Status: "new", Value: 50000, Probability: 20, ExpectedCloseDate: new Date().toISOString().slice(0, 10) };
+        headers = [
+          "Company",
+          "Contact",
+          "Email",
+          "Phone",
+          "Industry",
+          "City",
+          "District",
+          "Street",
+          "Source",
+          "Status",
+          "Value",
+          "Probability",
+          "ExpectedCloseDate",
+        ];
+        sampleRow = {
+          Company: "Sample Lead",
+          Contact: "Hafez Rahim",
+          Email: "Hafez@example.com",
+          Phone: "+201000000000",
+          Industry: "Technology",
+          City: "Cairo",
+          District: "Maadi",
+          Street: "15 Maadi St",
+          Source: "Website",
+          Status: "new",
+          Value: 50000,
+          Probability: 20,
+          ExpectedCloseDate: new Date().toISOString().slice(0, 10),
+        };
         break;
       case "activities":
         headers = ["Title", "Type", "DueDate", "Time", "EstMinutes", "Notes"];
-        sampleRow = { Title: "Initial Call", Type: "Call", DueDate: new Date().toISOString().slice(0, 10), Time: "10:00", EstMinutes: 30, Notes: "Discuss requirements" };
+        sampleRow = {
+          Title: "Initial Call",
+          Type: "Call",
+          DueDate: new Date().toISOString().slice(0, 10),
+          Time: "10:00",
+          EstMinutes: 30,
+          Notes: "Discuss requirements",
+        };
         break;
     }
 
@@ -76,9 +133,22 @@ export function ExcelImportModal({ type, onClose }: Props) {
         case "projects":
           for (const row of rows as any[]) {
             if (!row.Name || !row.Client) continue;
-            const extraContacts: { name: string; title: string; phone: string; email: string }[] = [];
-            if (row.Contact2Name) extraContacts.push({ name: row.Contact2Name, title: row.Contact2Title || "", phone: String(row.Contact2Phone || ""), email: String(row.Contact2Email || "") });
-            if (row.Contact3Name) extraContacts.push({ name: row.Contact3Name, title: row.Contact3Title || "", phone: String(row.Contact3Phone || ""), email: String(row.Contact3Email || "") });
+            const extraContacts: { name: string; title: string; phone: string; email: string }[] =
+              [];
+            if (row.Contact2Name)
+              extraContacts.push({
+                name: row.Contact2Name,
+                title: row.Contact2Title || "",
+                phone: String(row.Contact2Phone || ""),
+                email: String(row.Contact2Email || ""),
+              });
+            if (row.Contact3Name)
+              extraContacts.push({
+                name: row.Contact3Name,
+                title: row.Contact3Title || "",
+                phone: String(row.Contact3Phone || ""),
+                email: String(row.Contact3Email || ""),
+              });
             actions.addProject({
               name: row.Name,
               client: row.Client,
@@ -149,8 +219,14 @@ export function ExcelImportModal({ type, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-card shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl bg-card shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-border bg-muted/30 px-6 py-4">
           <div className="flex items-center gap-2 text-primary">
             <FileSpreadsheet className="h-5 w-5" />
@@ -158,16 +234,23 @@ export function ExcelImportModal({ type, onClose }: Props) {
               {t("importExcel")} - {t(type)}
             </h2>
           </div>
-          <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
           <div className="rounded-xl border border-border bg-secondary/30 p-4">
-            <div className="mb-2 text-sm font-semibold text-foreground">1. {t("downloadTemplate")}</div>
+            <div className="mb-2 text-sm font-semibold text-foreground">
+              1. {t("downloadTemplate")}
+            </div>
             <p className="mb-3 text-xs text-muted-foreground">
-              {isAr ? "قم بتنزيل القالب لتعبئة البيانات بالصيغة الصحيحة." : "Download the template to fill in the data in the correct format."}
+              {isAr
+                ? "قم بتنزيل القالب لتعبئة البيانات بالصيغة الصحيحة."
+                : "Download the template to fill in the data in the correct format."}
             </p>
             <button
               onClick={handleDownloadTemplate}
@@ -180,7 +263,9 @@ export function ExcelImportModal({ type, onClose }: Props) {
           <div className="rounded-xl border border-border bg-secondary/30 p-4">
             <div className="mb-2 text-sm font-semibold text-foreground">2. {t("uploadExcel")}</div>
             <p className="mb-3 text-xs text-muted-foreground">
-              {isAr ? "قم برفع الملف بعد تعبئته بالبيانات." : "Upload the file after filling it with data."}
+              {isAr
+                ? "قم برفع الملف بعد تعبئته بالبيانات."
+                : "Upload the file after filling it with data."}
             </p>
 
             <input
@@ -193,14 +278,19 @@ export function ExcelImportModal({ type, onClose }: Props) {
 
             <div
               onClick={() => fileInputRef.current?.click()}
-              className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${file ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-accent"
-                }`}
+              className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${
+                file
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50 hover:bg-accent"
+              }`}
             >
               {file ? (
                 <>
                   <CheckCircle2 className="mb-2 h-8 w-8 text-emerald-500" />
                   <div className="text-sm font-semibold text-foreground">{file.name}</div>
-                  <div className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</div>
+                  <div className="text-xs text-muted-foreground">
+                    {(file.size / 1024).toFixed(1)} KB
+                  </div>
                 </>
               ) : (
                 <>

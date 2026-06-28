@@ -108,7 +108,7 @@ export const ar: Dict = {
   done: "مُنجز",
   all: "الكل",
   cancelled: "ملغى",
-  
+
   filters: "تصفية",
   export: "تصدير",
   download: "تنزيل",
@@ -169,7 +169,8 @@ export const ar: Dict = {
   tableView: "جدول",
   cardView: "بطاقات",
   accessRestricted: "صلاحية مقيدة",
-  accessRestrictedMsg: "فقط مدراء النظام يمكنهم ضبط إعدادات النظام. تواصل مع المسؤول للحصول على الصلاحية.",
+  accessRestrictedMsg:
+    "فقط مدراء النظام يمكنهم ضبط إعدادات النظام. تواصل مع المسؤول للحصول على الصلاحية.",
   offers: "عروض الأسعار",
   probability: "نسبة الاحتمال",
   expectedClose: "تاريخ الإغلاق المتوقع",
@@ -194,7 +195,8 @@ export const ar: Dict = {
   dragCardHint: "اسحب أي بطاقة إلى عمود آخر — يُسجَّل التغيير تلقائيًا في السجل.",
   openLead: "فتح العميل",
   dropLeadsHere: "أفلت العملاء هنا",
-  dailyWorkingHoursPerEmployee: "ساعات العمل اليومية لكل موظف، محسوبة من الأنشطة المسجلة ووقتها المقدّر.",
+  dailyWorkingHoursPerEmployee:
+    "ساعات العمل اليومية لكل موظف، محسوبة من الأنشطة المسجلة ووقتها المقدّر.",
   noActivityInRange: "لا يوجد نشاط في هذا النطاق الزمني.",
   totalEstimatedTime: "إجمالي الوقت المقدّر لكل موظف عبر كافة الأنشطة والعملاء.",
   noEntriesMatchFilters: "لا توجد سجلات تطابق هذه التصفية.",
@@ -217,7 +219,8 @@ export const ar: Dict = {
   stagesDesc: "أعد تسمية المرحلة مباشرةً. تُسجَّل التغييرات في السجل.",
   activityTypesDesc: "الأنواع المتاحة عند جدولة الأنشطة.",
   egDemo: "مثال: عرض توضيحي، ورشة عمل",
-  locationsDesc: "المدن والأحياء المستخدمة عبر العملاء والمشاريع (مثل: القاهرة · مدينة نصر، المعادي).",
+  locationsDesc:
+    "المدن والأحياء المستخدمة عبر العملاء والمشاريع (مثل: القاهرة · مدينة نصر، المعادي).",
   automationsDesc: "تفعيل أو تعطيل قواعد سير العمل.",
   templatesDesc: "قوالب رسائل البريد الإلكتروني وSMS وواتساب وإشعارات الدفع.",
   addDistrictTo: "إضافة حي إلى",
@@ -471,4 +474,4 @@ export const ar: Dict = {
   importSuccess: "تم الاستيراد بنجاح",
   importFailed: "فشل الاستيراد",
   allTime: "كل الوقت",
-};// Force HMR reload
+}; // Force HMR reload

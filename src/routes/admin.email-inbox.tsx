@@ -82,7 +82,11 @@ function AdminEmailInboxPage() {
     setErrorMsg(null);
     const [{ data: js, error: e1 }, { data: ls, error: e2 }] = await Promise.all([
       supabase.from("email_jobs").select("*").order("created_at", { ascending: false }).limit(500),
-      supabase.from("email_delivery_logs").select("*").order("created_at", { ascending: false }).limit(2000),
+      supabase
+        .from("email_delivery_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(2000),
     ]);
     if (e1) {
       setErrorMsg(e1.message);
@@ -98,10 +102,15 @@ function AdminEmailInboxPage() {
     setLogsByJob(grouped);
 
     // Fetch sender profiles
-    const senderIds = Array.from(new Set(jobsList.map((j) => j.created_by).filter(Boolean))) as string[];
+    const senderIds = Array.from(
+      new Set(jobsList.map((j) => j.created_by).filter(Boolean)),
+    ) as string[];
     if (senderIds.length) {
       const [{ data: profs }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("user_id,full_name_en,full_name_ar,email").in("user_id", senderIds),
+        supabase
+          .from("profiles")
+          .select("user_id,full_name_en,full_name_ar,email")
+          .in("user_id", senderIds),
         supabase.from("user_roles").select("user_id,role").in("user_id", senderIds),
       ]);
       const roleMap: Record<string, string> = {};
@@ -131,7 +140,9 @@ function AdminEmailInboxPage() {
     const ch = supabase
       .channel("admin_email_inbox")
       .on("postgres_changes", { event: "*", schema: "public", table: "email_jobs" }, () => reload())
-      .on("postgres_changes", { event: "*", schema: "public", table: "email_delivery_logs" }, () => reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "email_delivery_logs" }, () =>
+        reload(),
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
@@ -150,7 +161,14 @@ function AdminEmailInboxPage() {
   }, []);
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { all: jobs.length, queued: 0, sending: 0, sent: 0, failed: 0, canceled: 0 };
+    const c: Record<string, number> = {
+      all: jobs.length,
+      queued: 0,
+      sending: 0,
+      sent: 0,
+      failed: 0,
+      canceled: 0,
+    };
     for (const j of jobs) if (c[j.status] !== undefined) c[j.status]++;
     return c;
   }, [jobs]);
@@ -159,7 +177,8 @@ function AdminEmailInboxPage() {
     const ql = q.trim().toLowerCase();
     return jobs.filter((j) => {
       if (filter !== "all" && j.status !== filter) return false;
-      if (senderFilter.length > 0 && j.created_by && !senderFilter.includes(j.created_by)) return false;
+      if (senderFilter.length > 0 && j.created_by && !senderFilter.includes(j.created_by))
+        return false;
       if (!ql) return true;
       return (
         j.subject?.toLowerCase().includes(ql) ||
@@ -192,7 +211,12 @@ function AdminEmailInboxPage() {
   const retry = async (id: string) => {
     const { error } = await supabase
       .from("email_jobs")
-      .update({ status: "queued", error: null, attempts: 0, scheduled_for: new Date().toISOString() })
+      .update({
+        status: "queued",
+        error: null,
+        attempts: 0,
+        scheduled_for: new Date().toISOString(),
+      })
       .eq("id", id);
     if (error) toast.error(error.message);
     else {
@@ -233,7 +257,11 @@ function AdminEmailInboxPage() {
   };
 
   return (
-    <AppShell panel="admin" user={{ name: "", role: "Admin", initials: "" }} pageTitle={isAr ? "صندوق البريد" : "Email Jobs Inbox"}>
+    <AppShell
+      panel="admin"
+      user={{ name: "", role: "Admin", initials: "" }}
+      pageTitle={isAr ? "صندوق البريد" : "Email Jobs Inbox"}
+    >
       <section className="rounded-2xl border border-border bg-card p-5">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-border pb-3">
           <div>
@@ -246,7 +274,10 @@ function AdminEmailInboxPage() {
                 : "Grouped by sender for easier scanning. Click a sender header to collapse/expand."}
             </p>
           </div>
-          <button onClick={reload} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent">
+          <button
+            onClick={reload}
+            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+          >
             <RefreshCw className="h-3 w-3" /> {isAr ? "تحديث" : "Refresh"}
           </button>
         </div>
@@ -257,7 +288,9 @@ function AdminEmailInboxPage() {
               key={t.key}
               onClick={() => setFilter(t.key)}
               className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                filter === t.key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-accent"
+                filter === t.key
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-background hover:bg-accent"
               }`}
             >
               {isAr ? t.ar : t.en} <span className="opacity-70">({counts[t.key]})</span>
@@ -270,7 +303,9 @@ function AdminEmailInboxPage() {
             >
               <User className="h-4 w-4" />
               {senderFilter.length === 0
-                ? isAr ? "المرسل" : "Sender"
+                ? isAr
+                  ? "المرسل"
+                  : "Sender"
                 : `${senderFilter.length} ${isAr ? "مرسل" : "sender"}${senderFilter.length > 1 && !isAr ? "s" : ""}`}
               {senderFilter.length > 0 && (
                 <span
@@ -287,7 +322,9 @@ function AdminEmailInboxPage() {
             {senderDropdownOpen && (
               <div className="absolute z-20 mt-1 max-h-72 w-64 overflow-y-auto rounded-lg border border-border bg-card p-2 shadow-lg">
                 {senderOptions.length === 0 ? (
-                  <div className="px-2 py-3 text-xs text-muted-foreground">{isAr ? "لا يوجد مرسلون" : "No senders"}</div>
+                  <div className="px-2 py-3 text-xs text-muted-foreground">
+                    {isAr ? "لا يوجد مرسلون" : "No senders"}
+                  </div>
                 ) : (
                   <>
                     <div className="mb-1 flex items-center justify-between px-2 py-1">
@@ -312,7 +349,9 @@ function AdminEmailInboxPage() {
                             key={s.user_id}
                             className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition ${checked ? "bg-accent" : "hover:bg-accent/50"}`}
                           >
-                            <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${checked ? "border-primary bg-primary" : "border-border bg-background"}`}>
+                            <div
+                              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${checked ? "border-primary bg-primary" : "border-border bg-background"}`}
+                            >
                               {checked && <Check className="h-3 w-3 text-primary-foreground" />}
                             </div>
                             <input
@@ -321,11 +360,15 @@ function AdminEmailInboxPage() {
                               checked={checked}
                               onChange={() => {
                                 setSenderFilter((prev) =>
-                                  checked ? prev.filter((id) => id !== s.user_id) : [...prev, s.user_id]
+                                  checked
+                                    ? prev.filter((id) => id !== s.user_id)
+                                    : [...prev, s.user_id],
                                 );
                               }}
                             />
-                            <span className="truncate">{(isAr ? ROLE_LABEL_AR : ROLE_LABEL_EN)[s.role] || s.role} · {s.name}</span>
+                            <span className="truncate">
+                              {(isAr ? ROLE_LABEL_AR : ROLE_LABEL_EN)[s.role] || s.role} · {s.name}
+                            </span>
                           </label>
                         );
                       })}
@@ -338,7 +381,9 @@ function AdminEmailInboxPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={isAr ? "بحث بالمرسل أو المستلم أو الموضوع..." : "Search sender, recipient, subject..."}
+            placeholder={
+              isAr ? "بحث بالمرسل أو المستلم أو الموضوع..." : "Search sender, recipient, subject..."
+            }
             className="ms-auto h-9 w-72 rounded-lg border border-border bg-background px-3 text-sm"
           />
         </div>
@@ -368,11 +413,15 @@ function AdminEmailInboxPage() {
                     onClick={() => setCollapsedSenders((p) => ({ ...p, [g.key]: !collapsed }))}
                     className="flex w-full items-center gap-2 rounded-t-lg bg-secondary/50 px-3 py-2 text-start hover:bg-secondary"
                   >
-                    <ChevronRight className={`h-4 w-4 shrink-0 transition ${collapsed ? "" : "rotate-90"}`} />
+                    <ChevronRight
+                      className={`h-4 w-4 shrink-0 transition ${collapsed ? "" : "rotate-90"}`}
+                    />
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span className="font-semibold text-sm">{senderLabel(g.sender)}</span>
                     {g.sender?.email && (
-                      <span className="truncate text-xs text-muted-foreground">· {g.sender.email}</span>
+                      <span className="truncate text-xs text-muted-foreground">
+                        · {g.sender.email}
+                      </span>
                     )}
                     <span className="ms-auto rounded-full bg-background px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
                       {g.jobs.length} {isAr ? "رسالة" : "messages"}
@@ -387,21 +436,34 @@ function AdminEmailInboxPage() {
                         return (
                           <li key={j.id}>
                             <div className="flex items-start justify-between gap-2 p-3">
-                              <button onClick={() => setOpenId(isOpen ? null : j.id)} className="flex flex-1 items-start gap-2 text-start">
-                                <ChevronRight className={`mt-1 h-4 w-4 shrink-0 transition ${isOpen ? "rotate-90" : ""}`} />
+                              <button
+                                onClick={() => setOpenId(isOpen ? null : j.id)}
+                                className="flex flex-1 items-start gap-2 text-start"
+                              >
+                                <ChevronRight
+                                  className={`mt-1 h-4 w-4 shrink-0 transition ${isOpen ? "rotate-90" : ""}`}
+                                />
                                 <div className="min-w-0 flex-1">
                                   <div className="mb-1 flex flex-wrap items-center gap-2">
-                                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusColor[j.status] || "bg-zinc-100 text-zinc-700"}`}>
+                                    <span
+                                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusColor[j.status] || "bg-zinc-100 text-zinc-700"}`}
+                                    >
                                       {j.status}
                                     </span>
                                     <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
-                                      {isAr ? "محاولات" : "attempts"}: {j.attempts || 0}/{j.max_attempts || 5}
+                                      {isAr ? "محاولات" : "attempts"}: {j.attempts || 0}/
+                                      {j.max_attempts || 5}
                                     </span>
-                                    <span className="truncate font-semibold">{j.subject || "—"}</span>
+                                    <span className="truncate font-semibold">
+                                      {j.subject || "—"}
+                                    </span>
                                   </div>
-                                  <div className="truncate text-xs text-muted-foreground">{j.recipients?.join(", ")}</div>
+                                  <div className="truncate text-xs text-muted-foreground">
+                                    {j.recipients?.join(", ")}
+                                  </div>
                                   <div className="mt-1 text-[11px] text-muted-foreground">
-                                    {isAr ? "موعد: " : "Scheduled: "}{new Date(j.scheduled_for).toLocaleString()}
+                                    {isAr ? "موعد: " : "Scheduled: "}
+                                    {new Date(j.scheduled_for).toLocaleString()}
                                     {j.last_attempt_at && (
                                       <>
                                         {" · "}
@@ -420,12 +482,18 @@ function AdminEmailInboxPage() {
                               </button>
                               <div className="flex shrink-0 flex-col gap-1">
                                 {(j.status === "failed" || j.status === "canceled") && (
-                                  <button onClick={() => retry(j.id)} className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent">
+                                  <button
+                                    onClick={() => retry(j.id)}
+                                    className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+                                  >
                                     {isAr ? "إعادة المحاولة" : "Retry"}
                                   </button>
                                 )}
                                 {j.status === "queued" && (
-                                  <button onClick={() => cancel(j.id)} className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent">
+                                  <button
+                                    onClick={() => cancel(j.id)}
+                                    className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+                                  >
                                     {isAr ? "إلغاء" : "Cancel"}
                                   </button>
                                 )}
@@ -446,11 +514,21 @@ function AdminEmailInboxPage() {
                                     <table className="w-full text-xs">
                                       <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
                                         <tr>
-                                          <th className="px-2 py-1 text-start">{isAr ? "المستلم" : "Recipient"}</th>
-                                          <th className="px-2 py-1 text-start">{isAr ? "الحالة" : "Status"}</th>
-                                          <th className="px-2 py-1 text-start">{isAr ? "المحاولة" : "Attempt"}</th>
-                                          <th className="px-2 py-1 text-start">{isAr ? "الوقت" : "Time"}</th>
-                                          <th className="px-2 py-1 text-start">{isAr ? "الخطأ" : "Error"}</th>
+                                          <th className="px-2 py-1 text-start">
+                                            {isAr ? "المستلم" : "Recipient"}
+                                          </th>
+                                          <th className="px-2 py-1 text-start">
+                                            {isAr ? "الحالة" : "Status"}
+                                          </th>
+                                          <th className="px-2 py-1 text-start">
+                                            {isAr ? "المحاولة" : "Attempt"}
+                                          </th>
+                                          <th className="px-2 py-1 text-start">
+                                            {isAr ? "الوقت" : "Time"}
+                                          </th>
+                                          <th className="px-2 py-1 text-start">
+                                            {isAr ? "الخطأ" : "Error"}
+                                          </th>
                                         </tr>
                                       </thead>
                                       <tbody className="divide-y divide-border">
@@ -458,13 +536,19 @@ function AdminEmailInboxPage() {
                                           <tr key={l.id}>
                                             <td className="px-2 py-1 font-mono">{l.recipient}</td>
                                             <td className="px-2 py-1">
-                                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${statusColor[l.status] || ""}`}>
+                                              <span
+                                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${statusColor[l.status] || ""}`}
+                                              >
                                                 {l.status}
                                               </span>
                                             </td>
                                             <td className="px-2 py-1">#{l.attempt}</td>
-                                            <td className="px-2 py-1 text-muted-foreground">{new Date(l.created_at).toLocaleString()}</td>
-                                            <td className="px-2 py-1 text-rose-600">{l.error || "—"}</td>
+                                            <td className="px-2 py-1 text-muted-foreground">
+                                              {new Date(l.created_at).toLocaleString()}
+                                            </td>
+                                            <td className="px-2 py-1 text-rose-600">
+                                              {l.error || "—"}
+                                            </td>
                                           </tr>
                                         ))}
                                       </tbody>

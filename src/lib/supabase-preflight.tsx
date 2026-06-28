@@ -17,7 +17,7 @@ export function SupabasePreflight({ children }: { children: ReactNode }) {
         const mod = await import("@supabase/supabase-js");
         if (typeof mod.createClient !== "function") {
           throw new Error(
-            "'@supabase/supabase-js' loaded but createClient is missing. The package may be corrupted — reinstall it."
+            "'@supabase/supabase-js' loaded but createClient is missing. The package may be corrupted — reinstall it.",
           );
         }
         // 2. Trigger client init and surface any env / config error.
@@ -36,11 +36,24 @@ export function SupabasePreflight({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="max-w-lg rounded-2xl border border-rose-200 bg-card p-6 text-center shadow-[var(--shadow-soft)]">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
-          <h1 className="font-display text-lg font-bold text-foreground">Supabase is not available</h1>
+          <h1 className="font-display text-lg font-bold text-foreground">
+            Supabase is not available
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
           <p className="mt-3 text-xs text-muted-foreground">
             Reconnect Supabase or reinstall the SDK, then reload the page.

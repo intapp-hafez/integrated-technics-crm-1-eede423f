@@ -62,15 +62,28 @@ export function EmailJobsInbox() {
 
   const roleLabel = (r: string | null | undefined) => {
     if (!r) return "";
-    const en: Record<string, string> = { admin: "Admin", manager: "Manager", finance: "Finance", hr: "HR", employee: "Employee" };
-    const ar: Record<string, string> = { admin: "مدير النظام", manager: "مدير", finance: "مالية", hr: "موارد بشرية", employee: "موظف" };
+    const en: Record<string, string> = {
+      admin: "Admin",
+      manager: "Manager",
+      finance: "Finance",
+      hr: "HR",
+      employee: "Employee",
+    };
+    const ar: Record<string, string> = {
+      admin: "مدير النظام",
+      manager: "مدير",
+      finance: "مالية",
+      hr: "موارد بشرية",
+      employee: "موظف",
+    };
     return (isAr ? ar[r] : en[r]) || r;
   };
 
   const senderMap = useMemo(() => {
     const map = new Map<string, string>();
     for (const a of accounts) {
-      const name = (isAr ? a.full_name_ar : a.full_name_en) || a.full_name_en || a.email || a.user_id;
+      const name =
+        (isAr ? a.full_name_ar : a.full_name_en) || a.full_name_en || a.email || a.user_id;
       const rl = roleLabel(a.role);
       map.set(a.user_id, rl ? `${rl} · ${name}` : name);
     }
@@ -79,8 +92,6 @@ export function EmailJobsInbox() {
     }
     return map;
   }, [accounts, isAr, user]);
-
-
 
   const reload = async () => {
     setLoading(true);
@@ -103,13 +114,23 @@ export function EmailJobsInbox() {
       .channel("email_jobs_inbox")
       .on("postgres_changes", { event: "*", schema: "public", table: "email_jobs" }, () => reload())
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, user?.id, accountId]);
 
   const now = Date.now();
   const counts = useMemo(() => {
-    const c = { all: jobs.length, queued: 0, scheduled: 0, sending: 0, sent: 0, failed: 0, canceled: 0 };
+    const c = {
+      all: jobs.length,
+      queued: 0,
+      scheduled: 0,
+      sending: 0,
+      sent: 0,
+      failed: 0,
+      canceled: 0,
+    };
     for (const j of jobs) {
       const isScheduled = j.status === "queued" && new Date(j.scheduled_for).getTime() > now;
       if (isScheduled) c.scheduled++;
@@ -125,7 +146,8 @@ export function EmailJobsInbox() {
       const isScheduled = j.status === "queued" && new Date(j.scheduled_for).getTime() > now;
       if (filter === "scheduled" && !isScheduled) return false;
       if (filter === "queued" && (j.status !== "queued" || isScheduled)) return false;
-      if (filter !== "all" && filter !== "scheduled" && filter !== "queued" && j.status !== filter) return false;
+      if (filter !== "all" && filter !== "scheduled" && filter !== "queued" && j.status !== filter)
+        return false;
       if (!ql) return true;
       return (
         j.subject?.toLowerCase().includes(ql) ||
@@ -138,12 +160,21 @@ export function EmailJobsInbox() {
   const cancel = async (id: string) => {
     const { error } = await supabase.from("email_jobs").update({ status: "canceled" }).eq("id", id);
     if (error) toast.error(error.message);
-    else { toast.success(isAr ? "تم الإلغاء" : "Canceled"); reload(); }
+    else {
+      toast.success(isAr ? "تم الإلغاء" : "Canceled");
+      reload();
+    }
   };
   const retry = async (id: string) => {
-    const { error } = await supabase.from("email_jobs").update({ status: "queued", error: null, scheduled_for: new Date().toISOString() }).eq("id", id);
+    const { error } = await supabase
+      .from("email_jobs")
+      .update({ status: "queued", error: null, scheduled_for: new Date().toISOString() })
+      .eq("id", id);
     if (error) toast.error(error.message);
-    else { toast.success(isAr ? "أُعيدت الجدولة" : "Requeued"); reload(); }
+    else {
+      toast.success(isAr ? "أُعيدت الجدولة" : "Requeued");
+      reload();
+    }
   };
   const remove = async (id: string) => {
     if (!confirm(isAr ? "حذف هذه المهمة؟" : "Delete this job?")) return;
@@ -163,7 +194,13 @@ export function EmailJobsInbox() {
       canceled: "bg-zinc-200 text-zinc-700",
     };
     const key = scheduled ? "scheduled" : s;
-    return <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${map[key]}`}>{label}</span>;
+    return (
+      <span
+        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${map[key]}`}
+      >
+        {label}
+      </span>
+    );
   };
 
   const tabs: { key: Filter; en: string; ar: string }[] = [
@@ -183,7 +220,11 @@ export function EmailJobsInbox() {
           <h2 className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
             <Inbox className="h-5 w-5" /> {isAr ? "صندوق مهام البريد" : "Email Jobs Inbox"}
           </h2>
-          <p className="text-sm text-muted-foreground">{isAr ? "عرض المهام قيد الانتظار، المرسلة، الفاشلة والمجدولة." : "View queued, sent, failed and scheduled email jobs."}</p>
+          <p className="text-sm text-muted-foreground">
+            {isAr
+              ? "عرض المهام قيد الانتظار، المرسلة، الفاشلة والمجدولة."
+              : "View queued, sent, failed and scheduled email jobs."}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && (
@@ -195,12 +236,23 @@ export function EmailJobsInbox() {
             >
               <option value="all">{isAr ? "كل الحسابات" : "All accounts"}</option>
               {accounts.map((a) => {
-                const label = (isAr ? a.full_name_ar : a.full_name_en) || a.full_name_en || a.email || a.user_id;
-                return <option key={a.user_id} value={a.user_id}>{label}</option>;
+                const label =
+                  (isAr ? a.full_name_ar : a.full_name_en) ||
+                  a.full_name_en ||
+                  a.email ||
+                  a.user_id;
+                return (
+                  <option key={a.user_id} value={a.user_id}>
+                    {label}
+                  </option>
+                );
               })}
             </select>
           )}
-          <button onClick={reload} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent">
+          <button
+            onClick={reload}
+            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+          >
             <RefreshCw className="h-3 w-3" /> {isAr ? "تحديث" : "Refresh"}
           </button>
         </div>
@@ -225,9 +277,13 @@ export function EmailJobsInbox() {
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> {isAr ? "جارٍ التحميل..." : "Loading..."}</div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> {isAr ? "جارٍ التحميل..." : "Loading..."}
+        </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">{isAr ? "لا توجد مهام مطابقة." : "No matching jobs."}</div>
+        <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+          {isAr ? "لا توجد مهام مطابقة." : "No matching jobs."}
+        </div>
       ) : (
         <ul className="space-y-2">
           {filtered.map((j) => {
@@ -240,25 +296,47 @@ export function EmailJobsInbox() {
                       {statusBadge(j.status, isScheduled)}
                       <span className="truncate font-semibold">{j.subject || "—"}</span>
                     </div>
-                    <div className="truncate text-xs text-muted-foreground">{j.recipients.join(", ")}</div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {j.recipients.join(", ")}
+                    </div>
                     <div className="mt-0.5 text-[11px] text-muted-foreground">
                       <span className="font-medium">{isAr ? "المرسل: " : "Sender: "}</span>
-                      {senderMap.get(j.created_by || '') || j.created_by || "—"}
+                      {senderMap.get(j.created_by || "") || j.created_by || "—"}
                     </div>
                     <div className="mt-1 text-[11px] text-muted-foreground">
-                      {isAr ? "موعد: " : "Scheduled: "}{new Date(j.scheduled_for).toLocaleString()}
-                      {j.sent_at && <> · {isAr ? "أُرسلت: " : "Sent: "}{new Date(j.sent_at).toLocaleString()}</>}
+                      {isAr ? "موعد: " : "Scheduled: "}
+                      {new Date(j.scheduled_for).toLocaleString()}
+                      {j.sent_at && (
+                        <>
+                          {" "}
+                          · {isAr ? "أُرسلت: " : "Sent: "}
+                          {new Date(j.sent_at).toLocaleString()}
+                        </>
+                      )}
                     </div>
                     {j.error && <div className="mt-1 text-[11px] text-rose-600">{j.error}</div>}
                   </div>
                   <div className="flex shrink-0 flex-col gap-1">
                     {j.status === "queued" && (
-                      <button onClick={() => cancel(j.id)} className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent">{isAr ? "إلغاء" : "Cancel"}</button>
+                      <button
+                        onClick={() => cancel(j.id)}
+                        className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+                      >
+                        {isAr ? "إلغاء" : "Cancel"}
+                      </button>
                     )}
                     {(j.status === "failed" || j.status === "canceled") && (
-                      <button onClick={() => retry(j.id)} className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent">{isAr ? "إعادة" : "Retry"}</button>
+                      <button
+                        onClick={() => retry(j.id)}
+                        className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+                      >
+                        {isAr ? "إعادة" : "Retry"}
+                      </button>
                     )}
-                    <button onClick={() => remove(j.id)} className="rounded-md border border-rose-200 px-2 py-1 text-xs text-rose-600 hover:bg-rose-50">
+                    <button
+                      onClick={() => remove(j.id)}
+                      className="rounded-md border border-rose-200 px-2 py-1 text-xs text-rose-600 hover:bg-rose-50"
+                    >
                       <Trash2 className="inline h-3 w-3" />
                     </button>
                   </div>

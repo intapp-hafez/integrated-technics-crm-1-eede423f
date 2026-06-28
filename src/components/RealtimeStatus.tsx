@@ -74,9 +74,7 @@ export function RealtimeStatus() {
           />
         )}
       </span>
-      <Icon
-        className={`h-3.5 w-3.5 text-muted-foreground ${c.spin ? "animate-spin" : ""}`}
-      />
+      <Icon className={`h-3.5 w-3.5 text-muted-foreground ${c.spin ? "animate-spin" : ""}`} />
       <span className="hidden text-[11px] font-medium text-muted-foreground sm:inline">
         {c.label}
       </span>

@@ -3,7 +3,6 @@ import { useI18n } from "@/lib/i18n";
 import { KeyRound, X, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-
 export function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   const { t } = useI18n();
   const [currentPassword, setCurrentPassword] = useState("");
@@ -73,7 +72,6 @@ export function ChangePasswordModal({ onClose }: { onClose: () => void }) {
     }
   };
 
-
   const inputClass =
     "h-9 w-full rounded-lg border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
 
@@ -130,11 +128,7 @@ export function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                   onClick={() => setShowCurrent((s) => !s)}
                   className="absolute inset-y-1 end-1 rounded-md p-1 text-muted-foreground hover:text-foreground"
                 >
-                  {showCurrent ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </label>
@@ -155,11 +149,7 @@ export function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                   onClick={() => setShowNew((s) => !s)}
                   className="absolute inset-y-1 end-1 rounded-md p-1 text-muted-foreground hover:text-foreground"
                 >
-                  {showNew ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </label>
@@ -180,20 +170,12 @@ export function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                   onClick={() => setShowConfirm((s) => !s)}
                   className="absolute inset-y-1 end-1 rounded-md p-1 text-muted-foreground hover:text-foreground"
                 >
-                  {showConfirm ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </label>
 
-            {error && (
-              <p className="text-[0.8rem] font-medium text-destructive">
-                {error}
-              </p>
-            )}
+            {error && <p className="text-[0.8rem] font-medium text-destructive">{error}</p>}
 
             <div className="mt-2 flex justify-end gap-2 border-t border-border pt-4">
               <button

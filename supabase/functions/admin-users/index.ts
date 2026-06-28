@@ -60,10 +60,7 @@ Deno.serve(async (req) => {
   const callerId = userData.user.id;
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-  const { data: roles } = await admin
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", callerId);
+  const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", callerId);
   const isAdmin = (roles ?? []).some((r) => r.role === "admin");
   if (!isAdmin) return j(403, { error: "Only admins can perform this action" });
 
@@ -144,13 +141,29 @@ Deno.serve(async (req) => {
           .from("departments")
           .insert({ name_en: data.name_en, name_ar: data.name_ar ?? null });
         if (error) throw new Error(error.message);
-        await logAudit({ actor_user_id: callerId, action: "admin.department.create", resource_type: "departments", metadata: { name_en: data.name_en } }, req);
+        await logAudit(
+          {
+            actor_user_id: callerId,
+            action: "admin.department.create",
+            resource_type: "departments",
+            metadata: { name_en: data.name_en },
+          },
+          req,
+        );
         return j(200, { ok: true });
       }
       case "delete_department": {
         const { error } = await admin.from("departments").delete().eq("id", data.id);
         if (error) throw new Error(error.message);
-        await logAudit({ actor_user_id: callerId, action: "admin.department.delete", resource_type: "departments", resource_id: data.id }, req);
+        await logAudit(
+          {
+            actor_user_id: callerId,
+            action: "admin.department.delete",
+            resource_type: "departments",
+            resource_id: data.id,
+          },
+          req,
+        );
         return j(200, { ok: true });
       }
       case "add_position": {
@@ -158,13 +171,29 @@ Deno.serve(async (req) => {
           .from("positions")
           .insert({ name_en: data.name_en, name_ar: data.name_ar ?? null });
         if (error) throw new Error(error.message);
-        await logAudit({ actor_user_id: callerId, action: "admin.position.create", resource_type: "positions", metadata: { name_en: data.name_en } }, req);
+        await logAudit(
+          {
+            actor_user_id: callerId,
+            action: "admin.position.create",
+            resource_type: "positions",
+            metadata: { name_en: data.name_en },
+          },
+          req,
+        );
         return j(200, { ok: true });
       }
       case "delete_position": {
         const { error } = await admin.from("positions").delete().eq("id", data.id);
         if (error) throw new Error(error.message);
-        await logAudit({ actor_user_id: callerId, action: "admin.position.delete", resource_type: "positions", resource_id: data.id }, req);
+        await logAudit(
+          {
+            actor_user_id: callerId,
+            action: "admin.position.delete",
+            resource_type: "positions",
+            resource_id: data.id,
+          },
+          req,
+        );
         return j(200, { ok: true });
       }
       default:

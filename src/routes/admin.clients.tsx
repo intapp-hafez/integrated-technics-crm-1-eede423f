@@ -1,6 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Mail, Phone, Building2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import {
+  Loader2,
+  Search,
+  Mail,
+  Phone,
+  Building2,
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +23,12 @@ export const Route = createFileRoute("/admin/clients")({
   head: () => ({ meta: [{ title: "Clients · Admin" }] }),
 });
 
-type ProjectLite = { id: string; name_en: string | null; name_ar: string | null; status: string | null };
+type ProjectLite = {
+  id: string;
+  name_en: string | null;
+  name_ar: string | null;
+  status: string | null;
+};
 type ClientRow = {
   id: string;
   name_en: string | null;
@@ -128,7 +144,10 @@ function AdminClientsPage() {
   };
 
   const SortHeader = ({ k, label }: { k: SortKey; label: string }) => (
-    <button onClick={() => toggleSort(k)} className="inline-flex items-center gap-1 hover:text-foreground">
+    <button
+      onClick={() => toggleSort(k)}
+      className="inline-flex items-center gap-1 hover:text-foreground"
+    >
       {label}
       {sortKey === k ? (
         sortDir === "asc" ? (
@@ -143,8 +162,12 @@ function AdminClientsPage() {
   const handleExport = () => {
     const data = filtered.map((c) => {
       const name = (isAr ? c.name_ar : c.name_en) || c.name_en || c.name_ar || "—";
-      const projectsList = c.projects.map((p) => (isAr ? p.name_ar : p.name_en) || p.name_en || "—").join(", ");
-      const stagesList = Array.from(new Set(c.projects.map((p) => p.status).filter(Boolean))).join(", ");
+      const projectsList = c.projects
+        .map((p) => (isAr ? p.name_ar : p.name_en) || p.name_en || "—")
+        .join(", ");
+      const stagesList = Array.from(new Set(c.projects.map((p) => p.status).filter(Boolean))).join(
+        ", ",
+      );
       return {
         [isAr ? "الاسم" : "Name"]: name,
         [isAr ? "الهاتف" : "Phone"]: c.phone || "—",
@@ -172,7 +195,9 @@ function AdminClientsPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={isAr ? "بحث بالاسم أو البريد أو الهاتف..." : "Search by name, email, or phone..."}
+            placeholder={
+              isAr ? "بحث بالاسم أو البريد أو الهاتف..." : "Search by name, email, or phone..."
+            }
             className="h-10 w-full rounded-lg border border-border bg-background ps-9 pe-3 text-sm"
             dir={dir}
           />
@@ -206,18 +231,30 @@ function AdminClientsPage() {
             <Loader2 className="h-4 w-4 animate-spin" /> {isAr ? "جارٍ التحميل..." : "Loading..."}
           </div>
         ) : pageRows.length === 0 ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">{isAr ? "لا يوجد عملاء" : "No clients found"}</div>
+          <div className="p-10 text-center text-sm text-muted-foreground">
+            {isAr ? "لا يوجد عملاء" : "No clients found"}
+          </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
                   <tr>
-                    <th className="px-4 py-3 text-start"><SortHeader k="name" label={isAr ? "الاسم" : "Name"} /></th>
-                    <th className="px-4 py-3 text-start"><SortHeader k="phone" label={isAr ? "الهاتف" : "Phone"} /></th>
-                    <th className="px-4 py-3 text-start"><SortHeader k="email" label={isAr ? "البريد" : "Email"} /></th>
-                    <th className="px-4 py-3 text-start"><SortHeader k="projects" label={isAr ? "الحسابات" : "Accounts"} /></th>
-                    <th className="px-4 py-3 text-start">{isAr ? "مرحلة الحساب" : "Account Stage"}</th>
+                    <th className="px-4 py-3 text-start">
+                      <SortHeader k="name" label={isAr ? "الاسم" : "Name"} />
+                    </th>
+                    <th className="px-4 py-3 text-start">
+                      <SortHeader k="phone" label={isAr ? "الهاتف" : "Phone"} />
+                    </th>
+                    <th className="px-4 py-3 text-start">
+                      <SortHeader k="email" label={isAr ? "البريد" : "Email"} />
+                    </th>
+                    <th className="px-4 py-3 text-start">
+                      <SortHeader k="projects" label={isAr ? "الحسابات" : "Accounts"} />
+                    </th>
+                    <th className="px-4 py-3 text-start">
+                      {isAr ? "مرحلة الحساب" : "Account Stage"}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -233,7 +270,10 @@ function AdminClientsPage() {
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">
                           {c.phone ? (
-                            <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1 hover:text-primary">
+                            <a
+                              href={`tel:${c.phone}`}
+                              className="inline-flex items-center gap-1 hover:text-primary"
+                            >
                               <Phone className="h-3.5 w-3.5" /> {c.phone}
                             </a>
                           ) : (
@@ -242,7 +282,10 @@ function AdminClientsPage() {
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">
                           {c.email ? (
-                            <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1 hover:text-primary">
+                            <a
+                              href={`mailto:${c.email}`}
+                              className="inline-flex items-center gap-1 hover:text-primary"
+                            >
                               <Mail className="h-3.5 w-3.5" /> {c.email}
                             </a>
                           ) : (
@@ -251,16 +294,23 @@ function AdminClientsPage() {
                         </td>
                         <td className="px-4 py-3">
                           {c.projects.length === 0 ? (
-                            <span className="text-xs text-muted-foreground">{isAr ? "لا يوجد" : "None"}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {isAr ? "لا يوجد" : "None"}
+                            </span>
                           ) : (
                             <div className="flex flex-wrap gap-1">
                               {c.projects.slice(0, 3).map((p) => (
-                                <span key={p.id} className="rounded-md bg-secondary px-2 py-0.5 text-xs text-foreground">
+                                <span
+                                  key={p.id}
+                                  className="rounded-md bg-secondary px-2 py-0.5 text-xs text-foreground"
+                                >
                                   {(isAr ? p.name_ar : p.name_en) || p.name_en || "—"}
                                 </span>
                               ))}
                               {c.projects.length > 3 && (
-                                <span className="rounded-md bg-secondary px-2 py-0.5 text-xs text-muted-foreground">+{c.projects.length - 3}</span>
+                                <span className="rounded-md bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+                                  +{c.projects.length - 3}
+                                </span>
                               )}
                             </div>
                           )}
@@ -270,7 +320,9 @@ function AdminClientsPage() {
                             <span className="text-xs text-muted-foreground">—</span>
                           ) : (
                             <div className="flex flex-wrap gap-1">
-                              {Array.from(new Set(c.projects.map((p) => p.status).filter(Boolean))).map((s) => (
+                              {Array.from(
+                                new Set(c.projects.map((p) => p.status).filter(Boolean)),
+                              ).map((s) => (
                                 <StatusBadge key={s as string} status={s as string} />
                               ))}
                             </div>

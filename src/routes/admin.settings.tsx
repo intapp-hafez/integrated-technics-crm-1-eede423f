@@ -6,11 +6,48 @@ import { useRole } from "@/lib/role";
 import React, { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Workflow, Tag, CalendarCheck, Zap, MessageSquare, Plus, Check, ShieldAlert, ShieldCheck, MapPin, X, Users as UsersIcon, Trash2, Building2, Briefcase, Download, Upload, Clock, Mail, Eye, EyeOff, Loader2, UserCircle2, Search, GripVertical, ChevronDown, ChevronRight, Pencil, ArrowRight } from "lucide-react";
+import {
+  Workflow,
+  Tag,
+  CalendarCheck,
+  Zap,
+  MessageSquare,
+  Plus,
+  Check,
+  ShieldAlert,
+  ShieldCheck,
+  MapPin,
+  X,
+  Users as UsersIcon,
+  Trash2,
+  Building2,
+  Briefcase,
+  Download,
+  Upload,
+  Clock,
+  Mail,
+  Eye,
+  EyeOff,
+  Loader2,
+  UserCircle2,
+  Search,
+  GripVertical,
+  ChevronDown,
+  ChevronRight,
+  Pencil,
+  ArrowRight,
+} from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
-import { APP_PAGES, USER_ROLES, type AppPage, type CrudOp, type UserRoleKey, type AppUser } from "@/lib/store";
+import {
+  APP_PAGES,
+  USER_ROLES,
+  type AppPage,
+  type CrudOp,
+  type UserRoleKey,
+  type AppUser,
+} from "@/lib/store";
 import {
   adminCreateUser,
   adminAddDepartment,
@@ -41,7 +78,6 @@ const TABS = [
   { key: "smtp", label: "SMTP / Email", icon: Mail },
 ] as const;
 
-
 function SettingsPage() {
   const { t, lang } = useI18n();
   const { isAdmin } = useRole();
@@ -51,21 +87,41 @@ function SettingsPage() {
 
   if (!isAdmin) {
     return (
-      <AppShell panel="admin" user={{ name: "Employee", role: t("employee"), initials: "EM" }} pageTitle={t("settings")}>
+      <AppShell
+        panel="admin"
+        user={{ name: "Employee", role: t("employee"), initials: "EM" }}
+        pageTitle={t("settings")}
+      >
         <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-10 text-center shadow-[var(--shadow-soft)]">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
             <ShieldAlert className="h-7 w-7" />
           </div>
-          <h2 className="font-display text-xl font-bold text-foreground">{t("accessRestricted")}</h2>
+          <h2 className="font-display text-xl font-bold text-foreground">
+            {t("accessRestricted")}
+          </h2>
           <p className="mt-2 text-sm text-muted-foreground">{t("accessRestrictedMsg")}</p>
-          <Link to="/employee" className="mt-5 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">{t("goToEmployeePanel")}</Link>
+          <Link
+            to="/employee"
+            className="mt-5 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          >
+            {t("goToEmployeePanel")}
+          </Link>
         </div>
       </AppShell>
     );
   }
 
   return (
-    <AppShell panel="admin" user={{ name: "hafez Rahim", role: t("admin"), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" }} pageTitle={t("settings")}>
+    <AppShell
+      panel="admin"
+      user={{
+        name: "hafez Rahim",
+        role: t("admin"),
+        initials: "HR",
+        photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
+      }}
+      pageTitle={t("settings")}
+    >
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
         <aside className="rounded-xl border border-border bg-card p-2 shadow-[var(--shadow-soft)] lg:sticky lg:top-20 lg:self-start">
           {TABS.map((it) => {
@@ -75,11 +131,20 @@ function SettingsPage() {
               <button
                 key={it.key}
                 onClick={() => setTab(it.key)}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"
-                  }`}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+                  active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"
+                }`}
               >
                 <Icon className="h-4 w-4" />
-                {t(it.key === "statuses" ? "leadStatuses" : it.key === "stages" ? "pipelineStages" : it.key === "activities" ? "activityTypes" : it.key as any) ?? it.label}
+                {t(
+                  it.key === "statuses"
+                    ? "leadStatuses"
+                    : it.key === "stages"
+                      ? "pipelineStages"
+                      : it.key === "activities"
+                        ? "activityTypes"
+                        : (it.key as any),
+                ) ?? it.label}
               </button>
             );
           })}
@@ -95,23 +160,42 @@ function SettingsPage() {
 
           {tab === "stages" && (
             <section>
-              <Header title={t("pipelineStages")} hint={`${t("stagesDesc") ?? ""} Drag the handle to reorder — this controls the progression order in the Pipeline board.`} />
+              <Header
+                title={t("pipelineStages")}
+                hint={`${t("stagesDesc") ?? ""} Drag the handle to reorder — this controls the progression order in the Pipeline board.`}
+              />
               <div className="space-y-2">
                 {settings.stages.map((st, idx) => (
-                  <StageRow key={st.key} stageKey={st.key} label={st.label} color={st.color} index={idx} total={settings.stages.length} />
+                  <StageRow
+                    key={st.key}
+                    stageKey={st.key}
+                    label={st.label}
+                    color={st.color}
+                    index={idx}
+                    total={settings.stages.length}
+                  />
                 ))}
               </div>
             </section>
           )}
 
-
           {tab === "activities" && (
             <section>
               <Header title={t("activityTypes")} hint={t("activityTypesDesc")} />
               <div className="mb-4 flex gap-2">
-                <input value={newType} onChange={(e) => setNewType(e.target.value)} placeholder="e.g. Demo, Workshop" className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                <input
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value)}
+                  placeholder="e.g. Demo, Workshop"
+                  className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
                 <button
-                  onClick={() => { if (newType.trim()) { actions.addActivityType(newType.trim()); setNewType(""); } }}
+                  onClick={() => {
+                    if (newType.trim()) {
+                      actions.addActivityType(newType.trim());
+                      setNewType("");
+                    }
+                  }}
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
                 >
                   <Plus className="h-4 w-4" /> Add
@@ -119,7 +203,10 @@ function SettingsPage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {settings.activityTypes.map((tp) => (
-                  <span key={tp} className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground ring-1 ring-border">
+                  <span
+                    key={tp}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground ring-1 ring-border"
+                  >
                     {tp}
                     <button
                       onClick={() => actions.removeActivityType(tp)}
@@ -131,7 +218,9 @@ function SettingsPage() {
                   </span>
                 ))}
                 {settings.activityTypes.length === 0 && (
-                  <span className="text-sm text-muted-foreground">No activity types yet. Add one above.</span>
+                  <span className="text-sm text-muted-foreground">
+                    No activity types yet. Add one above.
+                  </span>
                 )}
               </div>
             </section>
@@ -139,10 +228,15 @@ function SettingsPage() {
 
           {tab === "workday" && (
             <section>
-              <Header title="Standard Workday Hours" hint="Used as the 100% baseline when calculating attendance percentages across admin and employee panels." />
+              <Header
+                title="Standard Workday Hours"
+                hint="Used as the 100% baseline when calculating attendance percentages across admin and employee panels."
+              />
               <div className="flex flex-wrap items-end gap-4">
                 <div className="flex-1 min-w-[200px]">
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Hours per workday</label>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Hours per workday
+                  </label>
                   <input
                     type="number"
                     min={1}
@@ -155,13 +249,14 @@ function SettingsPage() {
                 </div>
                 <div className="rounded-lg bg-secondary px-4 py-2 text-sm">
                   <span className="text-muted-foreground">Current baseline:</span>{" "}
-                  <span className="font-mono font-bold text-foreground">{settings.workdayHours ?? 8}h</span>{" "}
+                  <span className="font-mono font-bold text-foreground">
+                    {settings.workdayHours ?? 8}h
+                  </span>{" "}
                   <span className="text-muted-foreground">= 100%</span>
                 </div>
               </div>
             </section>
           )}
-
 
           {tab === "departments" && (
             <section>
@@ -184,13 +279,17 @@ function SettingsPage() {
             </section>
           )}
 
-
           {tab === "users" && (
             <section>
-              <Header title="Users & Permissions" hint="Manage users and configure allowed pages and CRUD operations per role." />
+              <Header
+                title="Users & Permissions"
+                hint="Manage users and configure allowed pages and CRUD operations per role."
+              />
               <UsersEditor />
               <div className="mt-8">
-                <h3 className="mb-3 font-display text-base font-bold text-foreground">Role permissions</h3>
+                <h3 className="mb-3 font-display text-base font-bold text-foreground">
+                  Role permissions
+                </h3>
                 <PermissionsMatrix />
               </div>
             </section>
@@ -198,7 +297,14 @@ function SettingsPage() {
 
           {tab === "roles" && (
             <section>
-              <Header title={lang === "ar" ? "إدارة صلاحيات المستخدمين" : "User Roles Management"} hint={lang === "ar" ? "عيّن أو أزل الصلاحيات لكل مستخدم. يتم منع إزالة آخر مدير." : "Assign or remove roles per user. The last admin cannot be removed."} />
+              <Header
+                title={lang === "ar" ? "إدارة صلاحيات المستخدمين" : "User Roles Management"}
+                hint={
+                  lang === "ar"
+                    ? "عيّن أو أزل الصلاحيات لكل مستخدم. يتم منع إزالة آخر مدير."
+                    : "Assign or remove roles per user. The last admin cannot be removed."
+                }
+              />
               <UserRolesEditor />
             </section>
           )}
@@ -223,20 +329,59 @@ function Header({ title, hint }: { title: string; hint: string }) {
   );
 }
 
-function UsersImportBar({ existingEmails, onImportRow }: { existingEmails: string[], onImportRow: (row: any) => Promise<void> }) {
+function UsersImportBar({
+  existingEmails,
+  onImportRow,
+}: {
+  existingEmails: string[];
+  onImportRow: (row: any) => Promise<void>;
+}) {
   const fileRef = React.useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
 
   async function downloadTemplate() {
     const XLSX = await import("xlsx");
     const headers = [
-      "Name (EN)", "Name (AR)", "Email", "Password", "Phone", "Role",
-      "Title (EN)", "Department (EN)", "Location (EN)", "Target Type",
-      "Annual Target", "Q1 Target", "Q2 Target", "Q3 Target", "Q4 Target",
-      "Weekly Meetings Target", "Skills", "Active"
+      "Name (EN)",
+      "Name (AR)",
+      "Email",
+      "Password",
+      "Phone",
+      "Role",
+      "Title (EN)",
+      "Department (EN)",
+      "Location (EN)",
+      "Target Type",
+      "Annual Target",
+      "Q1 Target",
+      "Q2 Target",
+      "Q3 Target",
+      "Q4 Target",
+      "Weekly Meetings Target",
+      "Skills",
+      "Active",
     ];
     const sampleRows = [
-      ["Hafez Rahim", "جون دو", "Hafez@example.com", "password123", "0100000000", "employee", "Sales Executive", "Sales", "Cairo", "yearly", "1000000", "250000", "250000", "250000", "250000", "15", "Sales, Negotiation", "Yes"]
+      [
+        "Hafez Rahim",
+        "جون دو",
+        "Hafez@example.com",
+        "password123",
+        "0100000000",
+        "employee",
+        "Sales Executive",
+        "Sales",
+        "Cairo",
+        "yearly",
+        "1000000",
+        "250000",
+        "250000",
+        "250000",
+        "250000",
+        "15",
+        "Sales, Negotiation",
+        "Yes",
+      ],
     ];
     const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
     const wb = XLSX.utils.book_new();
@@ -255,7 +400,9 @@ function UsersImportBar({ existingEmails, onImportRow }: { existingEmails: strin
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
       const seen = new Set(existingEmails.map((s) => s.trim().toLowerCase()));
-      let ok = 0, fail = 0, dup = 0;
+      let ok = 0,
+        fail = 0,
+        dup = 0;
       for (const r of rows) {
         const get = (key: string) => String(r[key] ?? "").trim();
         const email = get("Email");
@@ -264,7 +411,10 @@ function UsersImportBar({ existingEmails, onImportRow }: { existingEmails: strin
 
         if (!email || !nameEn || !password) continue;
         const key = email.toLowerCase();
-        if (seen.has(key)) { dup++; continue; }
+        if (seen.has(key)) {
+          dup++;
+          continue;
+        }
         seen.add(key);
 
         try {
@@ -285,13 +435,20 @@ function UsersImportBar({ existingEmails, onImportRow }: { existingEmails: strin
             q3_target: Number(get("Q3 Target")) || 0,
             q4_target: Number(get("Q4 Target")) || 0,
             weekly_meetings_target: Number(get("Weekly Meetings Target")) || 0,
-            skills: get("Skills").split(",").map(s => s.trim()).filter(Boolean),
+            skills: get("Skills")
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
             active: get("Active").toLowerCase() !== "no",
           });
           ok++;
-        } catch { fail++; }
+        } catch {
+          fail++;
+        }
       }
-      toast.success(`Imported ${ok} users${dup ? ` · ${dup} duplicate emails skipped` : ""}${fail ? ` · ${fail} failed` : ""}`);
+      toast.success(
+        `Imported ${ok} users${dup ? ` · ${dup} duplicate emails skipped` : ""}${fail ? ` · ${fail} failed` : ""}`,
+      );
     } catch (err) {
       toast.error(`Import failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -303,13 +460,26 @@ function UsersImportBar({ existingEmails, onImportRow }: { existingEmails: strin
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border bg-background p-3">
       <span className="text-xs font-semibold text-muted-foreground">Bulk import users:</span>
-      <button onClick={downloadTemplate} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent">
+      <button
+        onClick={downloadTemplate}
+        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent"
+      >
         <Download className="h-3.5 w-3.5" /> Download template
       </button>
-      <button onClick={() => fileRef.current?.click()} disabled={busy} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
+      <button
+        onClick={() => fileRef.current?.click()}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+      >
         <Upload className="h-3.5 w-3.5" /> {busy ? "Importing…" : "Import from Excel"}
       </button>
-      <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImport} className="hidden" />
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".xlsx,.xls,.csv"
+        onChange={handleImport}
+        className="hidden"
+      />
     </div>
   );
 }
@@ -319,12 +489,28 @@ function UsersEditor() {
   const qc = useQueryClient();
   const createUser = adminCreateUser;
   const empty = {
-    name: "", nameAr: "", email: "", phone: "", role: "employee" as UserRoleKey, active: true,
-    titleEn: "", titleAr: "", departmentEn: "", departmentAr: "",
-    locationEn: "", locationAr: "", avatarUrl: "",
-    targetType: "yearly" as const, skills: [] as string[],
+    name: "",
+    nameAr: "",
+    email: "",
+    phone: "",
+    role: "employee" as UserRoleKey,
+    active: true,
+    titleEn: "",
+    titleAr: "",
+    departmentEn: "",
+    departmentAr: "",
+    locationEn: "",
+    locationAr: "",
+    avatarUrl: "",
+    targetType: "yearly" as const,
+    skills: [] as string[],
     managerId: "",
-    startDate: "", annualTarget: 0, q1Target: 0, q2Target: 0, q3Target: 0, q4Target: 0,
+    startDate: "",
+    annualTarget: 0,
+    q1Target: 0,
+    q2Target: 0,
+    q3Target: 0,
+    q4Target: 0,
     weeklyMeetingsTarget: 0,
   };
   const [draft, setDraft] = useState<Omit<AppUser, "id">>(empty);
@@ -349,10 +535,11 @@ function UsersEditor() {
   const selectedPosId = positions.find((p) => p.nameEn === draft.titleEn)?.id ?? "";
   const managers = users.filter((u) => u.role === "manager");
 
-  const filteredUsers = users.filter(u =>
-    (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (u.nameAr && u.nameAr.includes(searchQuery))
+  const filteredUsers = users.filter(
+    (u) =>
+      (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (u.nameAr && u.nameAr.includes(searchQuery)),
   );
 
   const submit = async () => {
@@ -390,7 +577,9 @@ function UsersEditor() {
         manager_id: draft.managerId || null,
       });
       toast.success("User created");
-      setDraft(empty); setPassword(""); setSkillsText("");
+      setDraft(empty);
+      setPassword("");
+      setSkillsText("");
       qc.invalidateQueries({ queryKey: ["supabase-sync"] });
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to create user");
@@ -402,7 +591,7 @@ function UsersEditor() {
   return (
     <div className="space-y-4">
       <UsersImportBar
-        existingEmails={users.map(u => u.email)}
+        existingEmails={users.map((u) => u.email)}
         onImportRow={async (row) => {
           await createUser(row);
           qc.invalidateQueries({ queryKey: ["supabase-sync"] });
@@ -414,93 +603,228 @@ function UsersEditor() {
           className="flex w-full items-center justify-between font-display text-sm font-bold text-foreground hover:opacity-80"
         >
           <span>Add new user</span>
-          <ChevronDown className={`h-4 w-4 transition-transform ${isAddUserOpen ? "rotate-180" : ""}`} />
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${isAddUserOpen ? "rotate-180" : ""}`}
+          />
         </button>
         {isAddUserOpen && (
           <div className="mt-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               <Field label="Full name (EN)" required>
-                <input value={draft.name} onChange={(e) => upd({ name: e.target.value })} className={inputCls} />
+                <input
+                  value={draft.name}
+                  onChange={(e) => upd({ name: e.target.value })}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Full name (AR)">
-                <input value={draft.nameAr ?? ""} onChange={(e) => upd({ nameAr: e.target.value })} dir="rtl" className={inputCls} />
+                <input
+                  value={draft.nameAr ?? ""}
+                  onChange={(e) => upd({ nameAr: e.target.value })}
+                  dir="rtl"
+                  className={inputCls}
+                />
               </Field>
               <Field label="Email" required>
-                <input type="email" value={draft.email} onChange={(e) => upd({ email: e.target.value })} className={inputCls} />
+                <input
+                  type="email"
+                  value={draft.email}
+                  onChange={(e) => upd({ email: e.target.value })}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Password" required>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 6 characters" className={inputCls} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="min 6 characters"
+                  className={inputCls}
+                />
               </Field>
               <Field label="Phone">
-                <input value={draft.phone ?? ""} onChange={(e) => upd({ phone: e.target.value })} className={inputCls} />
+                <input
+                  value={draft.phone ?? ""}
+                  onChange={(e) => upd({ phone: e.target.value })}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Role">
-                <select value={draft.role} onChange={(e) => upd({ role: e.target.value as UserRoleKey })} className={`${inputCls} capitalize`}>
-                  {USER_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                <select
+                  value={draft.role}
+                  onChange={(e) => upd({ role: e.target.value as UserRoleKey })}
+                  className={`${inputCls} capitalize`}
+                >
+                  {USER_ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
                 </select>
               </Field>
               <Field label="Manager">
-                <select value={draft.managerId ?? ""} onChange={(e) => upd({ managerId: e.target.value })} className={inputCls}>
+                <select
+                  value={draft.managerId ?? ""}
+                  onChange={(e) => upd({ managerId: e.target.value })}
+                  className={inputCls}
+                >
                   <option value="">— Select manager —</option>
-                  {managers.map((m) => <option key={m.id} value={m.profileId ?? m.id}>{m.name}</option>)}
+                  {managers.map((m) => (
+                    <option key={m.id} value={m.profileId ?? m.id}>
+                      {m.name}
+                    </option>
+                  ))}
                 </select>
               </Field>
               <Field label="Active">
-                <select value={draft.active ? "1" : "0"} onChange={(e) => upd({ active: e.target.value === "1" })} className={inputCls}>
-                  <option value="1">Yes</option><option value="0">No</option>
+                <select
+                  value={draft.active ? "1" : "0"}
+                  onChange={(e) => upd({ active: e.target.value === "1" })}
+                  className={inputCls}
+                >
+                  <option value="1">Yes</option>
+                  <option value="0">No</option>
                 </select>
               </Field>
               <Field label="Position">
-                <select value={selectedPosId} onChange={(e) => onSelectPosition(e.target.value)} className={inputCls}>
+                <select
+                  value={selectedPosId}
+                  onChange={(e) => onSelectPosition(e.target.value)}
+                  className={inputCls}
+                >
                   <option value="">— Select position —</option>
-                  {positions.map((p) => <option key={p.id} value={p.id}>{p.nameEn}{p.nameAr ? ` · ${p.nameAr}` : ""}</option>)}
+                  {positions.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nameEn}
+                      {p.nameAr ? ` · ${p.nameAr}` : ""}
+                    </option>
+                  ))}
                 </select>
               </Field>
               <Field label="Department">
-                <select value={selectedDeptId} onChange={(e) => onSelectDepartment(e.target.value)} className={inputCls}>
+                <select
+                  value={selectedDeptId}
+                  onChange={(e) => onSelectDepartment(e.target.value)}
+                  className={inputCls}
+                >
                   <option value="">— Select department —</option>
-                  {departments.map((d) => <option key={d.id} value={d.id}>{d.nameEn}{d.nameAr ? ` · ${d.nameAr}` : ""}</option>)}
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.nameEn}
+                      {d.nameAr ? ` · ${d.nameAr}` : ""}
+                    </option>
+                  ))}
                 </select>
               </Field>
               <Field label="Location (EN)">
-                <input value={draft.locationEn ?? ""} onChange={(e) => upd({ locationEn: e.target.value })} className={inputCls} />
+                <input
+                  value={draft.locationEn ?? ""}
+                  onChange={(e) => upd({ locationEn: e.target.value })}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Location (AR)">
-                <input value={draft.locationAr ?? ""} onChange={(e) => upd({ locationAr: e.target.value })} dir="rtl" className={inputCls} />
+                <input
+                  value={draft.locationAr ?? ""}
+                  onChange={(e) => upd({ locationAr: e.target.value })}
+                  dir="rtl"
+                  className={inputCls}
+                />
               </Field>
               <Field label="Avatar URL">
-                <input value={draft.avatarUrl ?? ""} onChange={(e) => upd({ avatarUrl: e.target.value })} className={inputCls} />
+                <input
+                  value={draft.avatarUrl ?? ""}
+                  onChange={(e) => upd({ avatarUrl: e.target.value })}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Target type">
-                <select value={draft.targetType ?? "yearly"} onChange={(e) => upd({ targetType: e.target.value as any })} className={inputCls}>
+                <select
+                  value={draft.targetType ?? "yearly"}
+                  onChange={(e) => upd({ targetType: e.target.value as any })}
+                  className={inputCls}
+                >
                   <option value="yearly">Yearly</option>
                   <option value="quarterly">Quarterly</option>
                   <option value="monthly">Monthly</option>
                 </select>
               </Field>
               <Field label="Skills (comma-separated)">
-                <input value={skillsText} onChange={(e) => { setSkillsText(e.target.value); upd({ skills: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }); }} className={inputCls} />
+                <input
+                  value={skillsText}
+                  onChange={(e) => {
+                    setSkillsText(e.target.value);
+                    upd({
+                      skills: e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    });
+                  }}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Employment start date">
-                <input type="date" value={(draft as any).startDate ?? ""} onChange={(e) => upd({ startDate: e.target.value } as any)} className={inputCls} />
+                <input
+                  type="date"
+                  value={(draft as any).startDate ?? ""}
+                  onChange={(e) => upd({ startDate: e.target.value } as any)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Annual target">
-                <input type="number" min={0} value={(draft as any).annualTarget ?? 0} onChange={(e) => upd({ annualTarget: Number(e.target.value) } as any)} className={inputCls} />
+                <input
+                  type="number"
+                  min={0}
+                  value={(draft as any).annualTarget ?? 0}
+                  onChange={(e) => upd({ annualTarget: Number(e.target.value) } as any)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Q1 target">
-                <input type="number" min={0} value={(draft as any).q1Target ?? 0} onChange={(e) => upd({ q1Target: Number(e.target.value) } as any)} className={inputCls} />
+                <input
+                  type="number"
+                  min={0}
+                  value={(draft as any).q1Target ?? 0}
+                  onChange={(e) => upd({ q1Target: Number(e.target.value) } as any)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Q2 target">
-                <input type="number" min={0} value={(draft as any).q2Target ?? 0} onChange={(e) => upd({ q2Target: Number(e.target.value) } as any)} className={inputCls} />
+                <input
+                  type="number"
+                  min={0}
+                  value={(draft as any).q2Target ?? 0}
+                  onChange={(e) => upd({ q2Target: Number(e.target.value) } as any)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Q3 target">
-                <input type="number" min={0} value={(draft as any).q3Target ?? 0} onChange={(e) => upd({ q3Target: Number(e.target.value) } as any)} className={inputCls} />
+                <input
+                  type="number"
+                  min={0}
+                  value={(draft as any).q3Target ?? 0}
+                  onChange={(e) => upd({ q3Target: Number(e.target.value) } as any)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Q4 target">
-                <input type="number" min={0} value={(draft as any).q4Target ?? 0} onChange={(e) => upd({ q4Target: Number(e.target.value) } as any)} className={inputCls} />
+                <input
+                  type="number"
+                  min={0}
+                  value={(draft as any).q4Target ?? 0}
+                  onChange={(e) => upd({ q4Target: Number(e.target.value) } as any)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Meetings per week (target)">
-                <input type="number" min={0} value={(draft as any).weeklyMeetingsTarget ?? 0} onChange={(e) => upd({ weeklyMeetingsTarget: Number(e.target.value) } as any)} className={inputCls} />
+                <input
+                  type="number"
+                  min={0}
+                  value={(draft as any).weeklyMeetingsTarget ?? 0}
+                  onChange={(e) => upd({ weeklyMeetingsTarget: Number(e.target.value) } as any)}
+                  className={inputCls}
+                />
               </Field>
             </div>
             <div className="mt-3 flex justify-end">
@@ -519,7 +843,10 @@ function UsersEditor() {
       <div className="mt-6 mb-3 flex items-center justify-between">
         <h3 className="font-display text-base font-bold text-foreground">Users Directory</h3>
         <div className="relative w-64">
-          <Search className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
+          <Search
+            className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            style={{ insetInlineStart: "0.75rem" }}
+          />
           <input
             type="text"
             placeholder="Search users..."
@@ -543,20 +870,33 @@ function UsersEditor() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {filteredUsers.map((u) => <UserRow key={u.id} user={u} />)}
+            {filteredUsers.map((u) => (
+              <UserRow key={u.id} user={u} />
+            ))}
             {filteredUsers.length === 0 && (
-              <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No users found</td></tr>
+              <tr>
+                <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                  No users found
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-muted-foreground">{Object.keys(settings.permissions).length} role profiles configured.</p>
+      <p className="text-xs text-muted-foreground">
+        {Object.keys(settings.permissions).length} role profiles configured.
+      </p>
     </div>
   );
 }
 
 function BilingualImportBar({
-  label, templateName, sheetName, sampleRows, existingEn, onImportRow,
+  label,
+  templateName,
+  sheetName,
+  sampleRows,
+  existingEn,
+  onImportRow,
 }: {
   label: string;
   templateName: string;
@@ -589,7 +929,9 @@ function BilingualImportBar({
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
       const seen = new Set(existingEn.map((s) => s.trim().toLowerCase()));
-      let ok = 0, fail = 0, dup = 0;
+      let ok = 0,
+        fail = 0,
+        dup = 0;
       for (const r of rows) {
         const get = (keys: string[]) => {
           for (const k of keys) {
@@ -598,15 +940,36 @@ function BilingualImportBar({
           }
           return "";
         };
-        const en = get(["Name (EN)", "Name EN", "name_en", "name", "Name", "Title (EN)", "Title EN", "title_en", "title", "Title"]);
+        const en = get([
+          "Name (EN)",
+          "Name EN",
+          "name_en",
+          "name",
+          "Name",
+          "Title (EN)",
+          "Title EN",
+          "title_en",
+          "title",
+          "Title",
+        ]);
         const ar = get(["Name (AR)", "Name AR", "name_ar", "Title (AR)", "Title AR", "title_ar"]);
         if (!en) continue;
         const key = en.toLowerCase();
-        if (seen.has(key)) { dup++; continue; }
+        if (seen.has(key)) {
+          dup++;
+          continue;
+        }
         seen.add(key);
-        try { await onImportRow({ en, ar }); ok++; } catch { fail++; }
+        try {
+          await onImportRow({ en, ar });
+          ok++;
+        } catch {
+          fail++;
+        }
       }
-      toast.success(`Imported ${ok} ${label}${dup ? ` · ${dup} duplicate${dup === 1 ? "" : "s"} skipped` : ""}${fail ? ` · ${fail} failed` : ""}`);
+      toast.success(
+        `Imported ${ok} ${label}${dup ? ` · ${dup} duplicate${dup === 1 ? "" : "s"} skipped` : ""}${fail ? ` · ${fail} failed` : ""}`,
+      );
     } catch (err) {
       toast.error(`Import failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -618,31 +981,72 @@ function BilingualImportBar({
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border bg-background p-3">
       <span className="text-xs font-semibold text-muted-foreground">Bulk import:</span>
-      <button onClick={downloadTemplate} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent">
+      <button
+        onClick={downloadTemplate}
+        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent"
+      >
         <Download className="h-3.5 w-3.5" /> Download template
       </button>
-      <button onClick={() => fileRef.current?.click()} disabled={busy} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
+      <button
+        onClick={() => fileRef.current?.click()}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+      >
         <Upload className="h-3.5 w-3.5" /> {busy ? "Importing…" : "Import from Excel"}
       </button>
-      <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImport} className="hidden" />
-      <span className="ms-auto text-[11px] text-muted-foreground">Columns: Name (EN), Name (AR)</span>
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".xlsx,.xls,.csv"
+        onChange={handleImport}
+        className="hidden"
+      />
+      <span className="ms-auto text-[11px] text-muted-foreground">
+        Columns: Name (EN), Name (AR)
+      </span>
     </div>
   );
 }
 
 const PAGE_SIZE = 10;
 
-function PageBar({ page, setPage, total, pageSize }: { page: number; setPage: (n: number) => void; total: number; pageSize: number }) {
+function PageBar({
+  page,
+  setPage,
+  total,
+  pageSize,
+}: {
+  page: number;
+  setPage: (n: number) => void;
+  total: number;
+  pageSize: number;
+}) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const cur = Math.min(page, pages);
   if (total <= pageSize) return null;
   return (
     <div className="flex items-center justify-between gap-2 px-1 text-xs text-muted-foreground">
-      <span>Showing {(cur - 1) * pageSize + 1}–{Math.min(cur * pageSize, total)} of {total}</span>
+      <span>
+        Showing {(cur - 1) * pageSize + 1}–{Math.min(cur * pageSize, total)} of {total}
+      </span>
       <div className="flex items-center gap-1">
-        <button onClick={() => setPage(Math.max(1, cur - 1))} disabled={cur <= 1} className="rounded border border-border bg-card px-2 py-1 font-semibold text-foreground hover:bg-accent disabled:opacity-50">Prev</button>
-        <span className="px-2">Page {cur} / {pages}</span>
-        <button onClick={() => setPage(Math.min(pages, cur + 1))} disabled={cur >= pages} className="rounded border border-border bg-card px-2 py-1 font-semibold text-foreground hover:bg-accent disabled:opacity-50">Next</button>
+        <button
+          onClick={() => setPage(Math.max(1, cur - 1))}
+          disabled={cur <= 1}
+          className="rounded border border-border bg-card px-2 py-1 font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span className="px-2">
+          Page {cur} / {pages}
+        </span>
+        <button
+          onClick={() => setPage(Math.min(pages, cur + 1))}
+          disabled={cur >= pages}
+          className="rounded border border-border bg-card px-2 py-1 font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
   );
@@ -653,7 +1057,8 @@ function DepartmentsEditor() {
   const qc = useQueryClient();
   const addFn = adminAddDepartment;
   const delFn = adminDeleteDepartment;
-  const [en, setEn] = useState(""); const [ar, setAr] = useState("");
+  const [en, setEn] = useState("");
+  const [ar, setAr] = useState("");
   const [busy, setBusy] = useState(false);
   const [page, setPage] = useState(1);
   const items = settings.departments ?? [];
@@ -663,21 +1068,30 @@ function DepartmentsEditor() {
   const add = async () => {
     const name = en.trim();
     if (!name) return;
-    if (existingSet.has(name.toLowerCase())) { toast.error("Department already exists"); return; }
+    if (existingSet.has(name.toLowerCase())) {
+      toast.error("Department already exists");
+      return;
+    }
     setBusy(true);
     try {
       await addFn({ name_en: name, name_ar: ar.trim() || null });
-      setEn(""); setAr("");
+      setEn("");
+      setAr("");
       qc.invalidateQueries({ queryKey: ["supabase-sync"] });
-    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
-    finally { setBusy(false); }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    } finally {
+      setBusy(false);
+    }
   };
   const remove = async (id: string) => {
     if (!confirm("Delete this department?")) return;
     try {
       await delFn({ id });
       qc.invalidateQueries({ queryKey: ["supabase-sync"] });
-    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    }
   };
   return (
     <div className="space-y-4">
@@ -685,7 +1099,11 @@ function DepartmentsEditor() {
         label="departments"
         templateName="departments-template.xlsx"
         sheetName="Departments"
-        sampleRows={[["Sales", "المبيعات"], ["Engineering", "الهندسة"], ["Finance", "المالية"]]}
+        sampleRows={[
+          ["Sales", "المبيعات"],
+          ["Engineering", "الهندسة"],
+          ["Finance", "المالية"],
+        ]}
         existingEn={existingEn}
         onImportRow={async ({ en, ar }) => {
           await addFn({ name_en: en, name_ar: ar || null });
@@ -693,23 +1111,50 @@ function DepartmentsEditor() {
         }}
       />
       <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
-        <input value={en} onChange={(e) => setEn(e.target.value)} placeholder="Name (EN)" className={inputCls} />
-        <input value={ar} onChange={(e) => setAr(e.target.value)} placeholder="الاسم (AR)" dir="rtl" className={inputCls} />
-        <button onClick={add} disabled={busy} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
+        <input
+          value={en}
+          onChange={(e) => setEn(e.target.value)}
+          placeholder="Name (EN)"
+          className={inputCls}
+        />
+        <input
+          value={ar}
+          onChange={(e) => setAr(e.target.value)}
+          placeholder="الاسم (AR)"
+          dir="rtl"
+          className={inputCls}
+        />
+        <button
+          onClick={add}
+          disabled={busy}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+        >
           <Plus className="h-4 w-4" /> Add
         </button>
       </div>
       <div className="divide-y divide-border rounded-lg border border-border">
         {pageItems.map((d) => (
           <div key={d.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
-            <div className="flex items-center gap-3"><Building2 className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-3">
+              <Building2 className="h-4 w-4 text-primary" />
               <span className="font-semibold text-foreground">{d.nameEn}</span>
-              {d.nameAr && <span className="text-xs text-muted-foreground" dir="rtl">{d.nameAr}</span>}
+              {d.nameAr && (
+                <span className="text-xs text-muted-foreground" dir="rtl">
+                  {d.nameAr}
+                </span>
+              )}
             </div>
-            <button onClick={() => remove(d.id)} className="rounded border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-600"><Trash2 className="h-3 w-3" /></button>
+            <button
+              onClick={() => remove(d.id)}
+              className="rounded border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-600"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
           </div>
         ))}
-        {items.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No departments yet</div>}
+        {items.length === 0 && (
+          <div className="p-4 text-center text-sm text-muted-foreground">No departments yet</div>
+        )}
       </div>
       <PageBar page={page} setPage={setPage} total={items.length} pageSize={PAGE_SIZE} />
     </div>
@@ -721,7 +1166,8 @@ function PositionsEditor() {
   const qc = useQueryClient();
   const addFn = adminAddPosition;
   const delFn = adminDeletePosition;
-  const [en, setEn] = useState(""); const [ar, setAr] = useState("");
+  const [en, setEn] = useState("");
+  const [ar, setAr] = useState("");
   const [busy, setBusy] = useState(false);
   const [page, setPage] = useState(1);
   const items = settings.positions ?? [];
@@ -731,21 +1177,30 @@ function PositionsEditor() {
   const add = async () => {
     const name = en.trim();
     if (!name) return;
-    if (existingSet.has(name.toLowerCase())) { toast.error("Position already exists"); return; }
+    if (existingSet.has(name.toLowerCase())) {
+      toast.error("Position already exists");
+      return;
+    }
     setBusy(true);
     try {
       await addFn({ name_en: name, name_ar: ar.trim() || null });
-      setEn(""); setAr("");
+      setEn("");
+      setAr("");
       qc.invalidateQueries({ queryKey: ["supabase-sync"] });
-    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
-    finally { setBusy(false); }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    } finally {
+      setBusy(false);
+    }
   };
   const remove = async (id: string) => {
     if (!confirm("Delete this position?")) return;
     try {
       await delFn({ id });
       qc.invalidateQueries({ queryKey: ["supabase-sync"] });
-    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    }
   };
   return (
     <div className="space-y-4">
@@ -753,7 +1208,11 @@ function PositionsEditor() {
         label="positions"
         templateName="positions-template.xlsx"
         sheetName="Positions"
-        sampleRows={[["Sales Manager", "مدير مبيعات"], ["Engineer", "مهندس"], ["Accountant", "محاسب"]]}
+        sampleRows={[
+          ["Sales Manager", "مدير مبيعات"],
+          ["Engineer", "مهندس"],
+          ["Accountant", "محاسب"],
+        ]}
         existingEn={existingEn}
         onImportRow={async ({ en, ar }) => {
           await addFn({ name_en: en, name_ar: ar || null });
@@ -761,37 +1220,73 @@ function PositionsEditor() {
         }}
       />
       <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
-        <input value={en} onChange={(e) => setEn(e.target.value)} placeholder="Title (EN)" className={inputCls} />
-        <input value={ar} onChange={(e) => setAr(e.target.value)} placeholder="المسمى (AR)" dir="rtl" className={inputCls} />
-        <button onClick={add} disabled={busy} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
+        <input
+          value={en}
+          onChange={(e) => setEn(e.target.value)}
+          placeholder="Title (EN)"
+          className={inputCls}
+        />
+        <input
+          value={ar}
+          onChange={(e) => setAr(e.target.value)}
+          placeholder="المسمى (AR)"
+          dir="rtl"
+          className={inputCls}
+        />
+        <button
+          onClick={add}
+          disabled={busy}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+        >
           <Plus className="h-4 w-4" /> Add
         </button>
       </div>
       <div className="divide-y divide-border rounded-lg border border-border">
         {pageItems.map((p) => (
           <div key={p.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
-            <div className="flex items-center gap-3"><Briefcase className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-3">
+              <Briefcase className="h-4 w-4 text-primary" />
               <span className="font-semibold text-foreground">{p.nameEn}</span>
-              {p.nameAr && <span className="text-xs text-muted-foreground" dir="rtl">{p.nameAr}</span>}
+              {p.nameAr && (
+                <span className="text-xs text-muted-foreground" dir="rtl">
+                  {p.nameAr}
+                </span>
+              )}
             </div>
-            <button onClick={() => remove(p.id)} className="rounded border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-600"><Trash2 className="h-3 w-3" /></button>
+            <button
+              onClick={() => remove(p.id)}
+              className="rounded border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-600"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
           </div>
         ))}
-        {items.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No positions yet</div>}
+        {items.length === 0 && (
+          <div className="p-4 text-center text-sm text-muted-foreground">No positions yet</div>
+        )}
       </div>
       <PageBar page={page} setPage={setPage} total={items.length} pageSize={PAGE_SIZE} />
     </div>
   );
 }
 
+const inputCls =
+  "h-9 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
-const inputCls = "h-9 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
-
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function Field({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <div className="mb-1 text-xs font-semibold text-muted-foreground">
-        {label}{required && <span className="text-rose-500"> *</span>}
+        {label}
+        {required && <span className="text-rose-500"> *</span>}
       </div>
       {children}
     </label>
@@ -816,31 +1311,70 @@ function UserRow({ user }: { user: AppUser }) {
         <td colSpan={5} className="p-4">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             <Field label="Full name (EN)" required>
-              <input value={draft.name} onChange={(e) => upd({ name: e.target.value })} className={inputCls} />
+              <input
+                value={draft.name}
+                onChange={(e) => upd({ name: e.target.value })}
+                className={inputCls}
+              />
             </Field>
             <Field label="Full name (AR)">
-              <input value={draft.nameAr ?? ""} onChange={(e) => upd({ nameAr: e.target.value })} dir="rtl" className={inputCls} />
+              <input
+                value={draft.nameAr ?? ""}
+                onChange={(e) => upd({ nameAr: e.target.value })}
+                dir="rtl"
+                className={inputCls}
+              />
             </Field>
             <Field label="Email" required>
-              <input type="email" value={draft.email} onChange={(e) => upd({ email: e.target.value })} className={inputCls} />
+              <input
+                type="email"
+                value={draft.email}
+                onChange={(e) => upd({ email: e.target.value })}
+                className={inputCls}
+              />
             </Field>
             <Field label="Phone">
-              <input value={draft.phone ?? ""} onChange={(e) => upd({ phone: e.target.value })} className={inputCls} />
+              <input
+                value={draft.phone ?? ""}
+                onChange={(e) => upd({ phone: e.target.value })}
+                className={inputCls}
+              />
             </Field>
             <Field label="Role">
-              <select value={draft.role} onChange={(e) => upd({ role: e.target.value as UserRoleKey })} className={`${inputCls} capitalize`}>
-                {USER_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+              <select
+                value={draft.role}
+                onChange={(e) => upd({ role: e.target.value as UserRoleKey })}
+                className={`${inputCls} capitalize`}
+              >
+                {USER_ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
               </select>
             </Field>
             <Field label="Manager">
-              <select value={draft.managerId ?? ""} onChange={(e) => upd({ managerId: e.target.value || undefined })} className={inputCls}>
+              <select
+                value={draft.managerId ?? ""}
+                onChange={(e) => upd({ managerId: e.target.value || undefined })}
+                className={inputCls}
+              >
                 <option value="">— No manager —</option>
-                {managers.map((m) => <option key={m.id} value={m.profileId ?? m.id}>{m.name}</option>)}
+                {managers.map((m) => (
+                  <option key={m.id} value={m.profileId ?? m.id}>
+                    {m.name}
+                  </option>
+                ))}
               </select>
             </Field>
             <Field label="Active">
-              <select value={draft.active ? "1" : "0"} onChange={(e) => upd({ active: e.target.value === "1" })} className={inputCls}>
-                <option value="1">Yes</option><option value="0">No</option>
+              <select
+                value={draft.active ? "1" : "0"}
+                onChange={(e) => upd({ active: e.target.value === "1" })}
+                className={inputCls}
+              >
+                <option value="1">Yes</option>
+                <option value="0">No</option>
               </select>
             </Field>
             <Field label="Position">
@@ -853,7 +1387,12 @@ function UserRow({ user }: { user: AppUser }) {
                 className={inputCls}
               >
                 <option value="">— Select position —</option>
-                {positions.map((p) => <option key={p.id} value={p.id}>{p.nameEn}{p.nameAr ? ` · ${p.nameAr}` : ""}</option>)}
+                {positions.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nameEn}
+                    {p.nameAr ? ` · ${p.nameAr}` : ""}
+                  </option>
+                ))}
               </select>
             </Field>
             <Field label="Department">
@@ -866,64 +1405,158 @@ function UserRow({ user }: { user: AppUser }) {
                 className={inputCls}
               >
                 <option value="">— Select department —</option>
-                {departments.map((d) => <option key={d.id} value={d.id}>{d.nameEn}{d.nameAr ? ` · ${d.nameAr}` : ""}</option>)}
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.nameEn}
+                    {d.nameAr ? ` · ${d.nameAr}` : ""}
+                  </option>
+                ))}
               </select>
             </Field>
 
             <Field label="Location (EN)">
-              <input value={draft.locationEn ?? ""} onChange={(e) => upd({ locationEn: e.target.value })} className={inputCls} />
+              <input
+                value={draft.locationEn ?? ""}
+                onChange={(e) => upd({ locationEn: e.target.value })}
+                className={inputCls}
+              />
             </Field>
             <Field label="Location (AR)">
-              <input value={draft.locationAr ?? ""} onChange={(e) => upd({ locationAr: e.target.value })} dir="rtl" className={inputCls} />
+              <input
+                value={draft.locationAr ?? ""}
+                onChange={(e) => upd({ locationAr: e.target.value })}
+                dir="rtl"
+                className={inputCls}
+              />
             </Field>
             <Field label="Avatar URL">
-              <input value={draft.avatarUrl ?? ""} onChange={(e) => upd({ avatarUrl: e.target.value })} className={inputCls} />
+              <input
+                value={draft.avatarUrl ?? ""}
+                onChange={(e) => upd({ avatarUrl: e.target.value })}
+                className={inputCls}
+              />
             </Field>
             <Field label="Target type">
-              <select value={draft.targetType ?? "yearly"} onChange={(e) => upd({ targetType: e.target.value as any })} className={inputCls}>
+              <select
+                value={draft.targetType ?? "yearly"}
+                onChange={(e) => upd({ targetType: e.target.value as any })}
+                className={inputCls}
+              >
                 <option value="yearly">Yearly</option>
                 <option value="quarterly">Quarterly</option>
                 <option value="monthly">Monthly</option>
               </select>
             </Field>
             <Field label="Annual target">
-              <input type="number" min={0} value={(draft as any).annualTarget ?? (draft.targetValue ?? 0)} onChange={(e) => upd({ annualTarget: Number(e.target.value), targetValue: Number(e.target.value) } as any)} className={inputCls} />
+              <input
+                type="number"
+                min={0}
+                value={(draft as any).annualTarget ?? draft.targetValue ?? 0}
+                onChange={(e) =>
+                  upd({
+                    annualTarget: Number(e.target.value),
+                    targetValue: Number(e.target.value),
+                  } as any)
+                }
+                className={inputCls}
+              />
             </Field>
             <Field label="Skills (comma-separated)">
-              <input value={skillsText} onChange={(e) => { setSkillsText(e.target.value); upd({ skills: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }); }} className={inputCls} />
+              <input
+                value={skillsText}
+                onChange={(e) => {
+                  setSkillsText(e.target.value);
+                  upd({
+                    skills: e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  });
+                }}
+                className={inputCls}
+              />
             </Field>
             <Field label="Employment start date">
-              <input type="date" value={(draft as any).startDate ?? ""} onChange={(e) => upd({ startDate: e.target.value } as any)} className={inputCls} />
+              <input
+                type="date"
+                value={(draft as any).startDate ?? ""}
+                onChange={(e) => upd({ startDate: e.target.value } as any)}
+                className={inputCls}
+              />
             </Field>
             <Field label="Q1 target">
-              <input type="number" min={0} value={(draft as any).q1Target ?? 0} onChange={(e) => upd({ q1Target: Number(e.target.value) } as any)} className={inputCls} />
+              <input
+                type="number"
+                min={0}
+                value={(draft as any).q1Target ?? 0}
+                onChange={(e) => upd({ q1Target: Number(e.target.value) } as any)}
+                className={inputCls}
+              />
             </Field>
             <Field label="Q2 target">
-              <input type="number" min={0} value={(draft as any).q2Target ?? 0} onChange={(e) => upd({ q2Target: Number(e.target.value) } as any)} className={inputCls} />
+              <input
+                type="number"
+                min={0}
+                value={(draft as any).q2Target ?? 0}
+                onChange={(e) => upd({ q2Target: Number(e.target.value) } as any)}
+                className={inputCls}
+              />
             </Field>
             <Field label="Q3 target">
-              <input type="number" min={0} value={(draft as any).q3Target ?? 0} onChange={(e) => upd({ q3Target: Number(e.target.value) } as any)} className={inputCls} />
+              <input
+                type="number"
+                min={0}
+                value={(draft as any).q3Target ?? 0}
+                onChange={(e) => upd({ q3Target: Number(e.target.value) } as any)}
+                className={inputCls}
+              />
             </Field>
             <Field label="Q4 target">
-              <input type="number" min={0} value={(draft as any).q4Target ?? 0} onChange={(e) => upd({ q4Target: Number(e.target.value) } as any)} className={inputCls} />
+              <input
+                type="number"
+                min={0}
+                value={(draft as any).q4Target ?? 0}
+                onChange={(e) => upd({ q4Target: Number(e.target.value) } as any)}
+                className={inputCls}
+              />
             </Field>
             <Field label="Meetings per week (target)">
-              <input type="number" min={0} value={(draft as any).weeklyMeetingsTarget ?? 0} onChange={(e) => upd({ weeklyMeetingsTarget: Number(e.target.value) } as any)} className={inputCls} />
+              <input
+                type="number"
+                min={0}
+                value={(draft as any).weeklyMeetingsTarget ?? 0}
+                onChange={(e) => upd({ weeklyMeetingsTarget: Number(e.target.value) } as any)}
+                className={inputCls}
+              />
             </Field>
           </div>
           <div className="mt-4 flex justify-end gap-2">
-            <button onClick={() => { setDraft(user); setSkillsText((user.skills ?? []).join(", ")); setEdit(false); }} className="rounded border border-border px-3 py-1.5 text-xs font-semibold">Cancel</button>
+            <button
+              onClick={() => {
+                setDraft(user);
+                setSkillsText((user.skills ?? []).join(", "));
+                setEdit(false);
+              }}
+              className="rounded border border-border px-3 py-1.5 text-xs font-semibold"
+            >
+              Cancel
+            </button>
             <button
               onClick={async () => {
                 const { validateProfilePatch } = await import("@/lib/supabaseWrites");
                 const err = validateProfilePatch(draft, { selfProfileId: user.profileId });
-                if (err) { (await import("sonner")).toast.error(err); return; }
+                if (err) {
+                  (await import("sonner")).toast.error(err);
+                  return;
+                }
                 actions.updateUser(user.id, draft);
                 (await import("sonner")).toast.success("Profile saved");
                 setEdit(false);
               }}
               className="inline-flex items-center gap-1 rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-            ><Check className="h-3 w-3" /> Save</button>
+            >
+              <Check className="h-3 w-3" /> Save
+            </button>
           </div>
         </td>
       </tr>
@@ -935,17 +1568,25 @@ function UserRow({ user }: { user: AppUser }) {
       <td className="px-3 py-2">
         <div className="flex items-center gap-2">
           {user.avatarUrl ? (
-            <img src={user.avatarUrl} alt={user.name} className="h-7 w-7 rounded-full object-cover" />
+            <img
+              src={user.avatarUrl}
+              alt={user.name}
+              className="h-7 w-7 rounded-full object-cover"
+            />
           ) : null}
           <div>
             <div className="font-semibold text-foreground">{user.name}</div>
-            {user.titleEn && <div className="text-[11px] text-muted-foreground">{user.titleEn}</div>}
+            {user.titleEn && (
+              <div className="text-[11px] text-muted-foreground">{user.titleEn}</div>
+            )}
           </div>
         </div>
       </td>
       <td className="px-3 py-2 text-muted-foreground">{user.email}</td>
       <td className="px-3 py-2">
-        <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs font-semibold capitalize text-primary">{user.role}</span>
+        <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs font-semibold capitalize text-primary">
+          {user.role}
+        </span>
       </td>
       <td className="px-3 py-2">
         <button
@@ -953,13 +1594,27 @@ function UserRow({ user }: { user: AppUser }) {
           className={`relative h-5 w-9 rounded-full transition ${user.active ? "bg-primary" : "bg-muted"}`}
           aria-label="Toggle active"
         >
-          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${user.active ? "left-[18px]" : "left-0.5"}`} />
+          <span
+            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${user.active ? "left-[18px]" : "left-0.5"}`}
+          />
         </button>
       </td>
       <td className="px-3 py-2 text-end">
         <div className="inline-flex items-center gap-2">
-          <button onClick={() => setEdit(true)} className="rounded border border-border px-2 py-1 text-xs font-semibold">Edit</button>
-          <button onClick={() => { if (confirm(`Delete ${user.name}?`)) actions.removeUser(user.id); }} className="inline-flex items-center gap-1 rounded border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-600"><Trash2 className="h-3 w-3" /></button>
+          <button
+            onClick={() => setEdit(true)}
+            className="rounded border border-border px-2 py-1 text-xs font-semibold"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Delete ${user.name}?`)) actions.removeUser(user.id);
+            }}
+            className="inline-flex items-center gap-1 rounded border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-600"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
         </div>
       </td>
     </tr>
@@ -973,13 +1628,19 @@ function PermissionsMatrix() {
     <div className="space-y-4">
       {USER_ROLES.map((role) => (
         <div key={role} className="rounded-xl border border-border bg-background p-4">
-          <div className="mb-3 font-display text-sm font-bold capitalize text-foreground">{role}</div>
+          <div className="mb-3 font-display text-sm font-bold capitalize text-foreground">
+            {role}
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead className="text-muted-foreground">
                 <tr>
                   <th className="px-2 py-1 text-start font-semibold">Page</th>
-                  {CRUD.map((op) => <th key={op} className="px-2 py-1 text-center font-semibold capitalize">{op}</th>)}
+                  {CRUD.map((op) => (
+                    <th key={op} className="px-2 py-1 text-center font-semibold capitalize">
+                      {op}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -987,7 +1648,9 @@ function PermissionsMatrix() {
                   const ops = settings.permissions[role]?.crud[page] ?? [];
                   return (
                     <tr key={page} className="border-t border-border">
-                      <td className="px-2 py-1.5 font-semibold capitalize text-foreground">{page}</td>
+                      <td className="px-2 py-1.5 font-semibold capitalize text-foreground">
+                        {page}
+                      </td>
                       {CRUD.map((op) => {
                         const checked = ops.includes(op);
                         return (
@@ -997,8 +1660,14 @@ function PermissionsMatrix() {
                               checked={checked}
                               disabled={role === "admin"}
                               onChange={(e) => {
-                                const next = e.target.checked ? Array.from(new Set([...ops, op])) : ops.filter((x) => x !== op);
-                                actions.setRolePermission(role as UserRoleKey, page as AppPage, next);
+                                const next = e.target.checked
+                                  ? Array.from(new Set([...ops, op]))
+                                  : ops.filter((x) => x !== op);
+                                actions.setRolePermission(
+                                  role as UserRoleKey,
+                                  page as AppPage,
+                                  next,
+                                );
                               }}
                               className="h-4 w-4 cursor-pointer accent-primary"
                             />
@@ -1018,8 +1687,13 @@ function PermissionsMatrix() {
   );
 }
 
-
-type LocationRow = { id: string; city_en: string; city_ar: string | null; districts_en: string[]; districts_ar: string[] };
+type LocationRow = {
+  id: string;
+  city_en: string;
+  city_ar: string | null;
+  districts_en: string[];
+  districts_ar: string[];
+};
 
 function LocationsEditor(_props: { cities?: unknown }) {
   const { t } = useI18n();
@@ -1032,20 +1706,30 @@ function LocationsEditor(_props: { cities?: unknown }) {
       return (data ?? []) as LocationRow[];
     },
   });
-  const invalidate = () => { void refetch(); qc.invalidateQueries({ queryKey: ["supabase-sync"] }); };
+  const invalidate = () => {
+    void refetch();
+    qc.invalidateQueries({ queryKey: ["supabase-sync"] });
+  };
 
   const cities = rows.map((r) => ({
     id: r.id,
     name: r.city_en,
     nameAr: r.city_ar ?? undefined,
     districts: r.districts_en ?? [],
-    districtsAr: Object.fromEntries((r.districts_en ?? []).map((d, i) => [d, (r.districts_ar ?? [])[i] ?? ""])) as Record<string, string>,
+    districtsAr: Object.fromEntries(
+      (r.districts_en ?? []).map((d, i) => [d, (r.districts_ar ?? [])[i] ?? ""]),
+    ) as Record<string, string>,
   }));
 
   async function dbAddCity(name: string, nameAr?: string) {
     const exists = rows.find((r) => r.city_en.toLowerCase() === name.toLowerCase());
-    if (exists) { if (nameAr) await dbUpdateCityAr(exists.id, nameAr); return; }
-    const { error } = await supabase.from("locations").insert({ city_en: name, city_ar: nameAr ?? null, districts_en: [], districts_ar: [] });
+    if (exists) {
+      if (nameAr) await dbUpdateCityAr(exists.id, nameAr);
+      return;
+    }
+    const { error } = await supabase
+      .from("locations")
+      .insert({ city_en: name, city_ar: nameAr ?? null, districts_en: [], districts_ar: [] });
     if (error) throw error;
   }
   async function dbRemoveCity(id: string) {
@@ -1053,14 +1737,20 @@ function LocationsEditor(_props: { cities?: unknown }) {
     if (error) throw error;
   }
   async function dbUpdateCityAr(id: string, nameAr: string) {
-    const { error } = await supabase.from("locations").update({ city_ar: nameAr || null }).eq("id", id);
+    const { error } = await supabase
+      .from("locations")
+      .update({ city_ar: nameAr || null })
+      .eq("id", id);
     if (error) throw error;
   }
   async function dbAddDistrict(row: LocationRow, dEn: string, dAr?: string) {
     if ((row.districts_en ?? []).some((x) => x.toLowerCase() === dEn.toLowerCase())) return;
     const nextEn = [...(row.districts_en ?? []), dEn];
     const nextAr = [...(row.districts_ar ?? []), dAr ?? ""];
-    const { error } = await supabase.from("locations").update({ districts_en: nextEn, districts_ar: nextAr }).eq("id", row.id);
+    const { error } = await supabase
+      .from("locations")
+      .update({ districts_en: nextEn, districts_ar: nextAr })
+      .eq("id", row.id);
     if (error) throw error;
   }
   async function dbRemoveDistrict(row: LocationRow, dEn: string) {
@@ -1068,7 +1758,10 @@ function LocationsEditor(_props: { cities?: unknown }) {
     if (idx < 0) return;
     const nextEn = (row.districts_en ?? []).filter((_, i) => i !== idx);
     const nextAr = (row.districts_ar ?? []).filter((_, i) => i !== idx);
-    const { error } = await supabase.from("locations").update({ districts_en: nextEn, districts_ar: nextAr }).eq("id", row.id);
+    const { error } = await supabase
+      .from("locations")
+      .update({ districts_en: nextEn, districts_ar: nextAr })
+      .eq("id", row.id);
     if (error) throw error;
   }
 
@@ -1078,13 +1771,14 @@ function LocationsEditor(_props: { cities?: unknown }) {
   const [newCityAr, setNewCityAr] = useState("");
   const [newDistrict, setNewDistrict] = useState<Record<string, { en: string; ar: string }>>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const toggle = (name: string) => setExpanded((prev) => {
-    const next = new Set(prev);
-    if (next.has(name)) next.delete(name); else next.add(name);
-    return next;
-  });
+  const toggle = (name: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
   const fileRef = React.useRef<HTMLInputElement>(null);
-
 
   async function downloadTemplate() {
     const XLSX = await import("xlsx");
@@ -1111,10 +1805,29 @@ function LocationsEditor(_props: { cities?: unknown }) {
       const wb = XLSX.read(buf, { type: "array" });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const xlsxRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
-      let cityCount = 0, districtCount = 0;
+      let cityCount = 0,
+        districtCount = 0;
       // Build a working map of city_en -> {row, en[], ar[]} we mutate locally then persist.
-      const work = new Map<string, { id: string | null; city_en: string; city_ar: string | null; en: string[]; ar: string[]; touched: boolean }>();
-      for (const r of rows) work.set(r.city_en.toLowerCase(), { id: r.id, city_en: r.city_en, city_ar: r.city_ar, en: [...(r.districts_en ?? [])], ar: [...(r.districts_ar ?? [])], touched: false });
+      const work = new Map<
+        string,
+        {
+          id: string | null;
+          city_en: string;
+          city_ar: string | null;
+          en: string[];
+          ar: string[];
+          touched: boolean;
+        }
+      >();
+      for (const r of rows)
+        work.set(r.city_en.toLowerCase(), {
+          id: r.id,
+          city_en: r.city_en,
+          city_ar: r.city_ar,
+          en: [...(r.districts_en ?? [])],
+          ar: [...(r.districts_ar ?? [])],
+          touched: false,
+        });
       for (const r of xlsxRows) {
         const get = (keys: string[]) => {
           for (const k of keys) {
@@ -1131,24 +1844,50 @@ function LocationsEditor(_props: { cities?: unknown }) {
         const key = cityEn.toLowerCase();
         let entry = work.get(key);
         if (!entry) {
-          entry = { id: null, city_en: cityEn, city_ar: cityAr || null, en: [], ar: [], touched: true };
+          entry = {
+            id: null,
+            city_en: cityEn,
+            city_ar: cityAr || null,
+            en: [],
+            ar: [],
+            touched: true,
+          };
           work.set(key, entry);
           cityCount++;
         } else if (cityAr && entry.city_ar !== cityAr) {
-          entry.city_ar = cityAr; entry.touched = true;
+          entry.city_ar = cityAr;
+          entry.touched = true;
         }
         if (distEn && !entry.en.some((x) => x.toLowerCase() === distEn.toLowerCase())) {
-          entry.en.push(distEn); entry.ar.push(distAr || ""); entry.touched = true; districtCount++;
+          entry.en.push(distEn);
+          entry.ar.push(distAr || "");
+          entry.touched = true;
+          districtCount++;
         }
       }
       const ops: Array<Promise<{ error: any }>> = [];
       const newInserts: any[] = [];
       for (const e2 of work.values()) {
         if (!e2.touched) continue;
-        if (e2.id) ops.push(Promise.resolve(supabase.from("locations").update({ city_ar: e2.city_ar, districts_en: e2.en, districts_ar: e2.ar }).eq("id", e2.id) as any));
-        else newInserts.push({ city_en: e2.city_en, city_ar: e2.city_ar, districts_en: e2.en, districts_ar: e2.ar });
+        if (e2.id)
+          ops.push(
+            Promise.resolve(
+              supabase
+                .from("locations")
+                .update({ city_ar: e2.city_ar, districts_en: e2.en, districts_ar: e2.ar })
+                .eq("id", e2.id) as any,
+            ),
+          );
+        else
+          newInserts.push({
+            city_en: e2.city_en,
+            city_ar: e2.city_ar,
+            districts_en: e2.en,
+            districts_ar: e2.ar,
+          });
       }
-      if (newInserts.length) ops.push(Promise.resolve(supabase.from("locations").insert(newInserts) as any));
+      if (newInserts.length)
+        ops.push(Promise.resolve(supabase.from("locations").insert(newInserts) as any));
       const results = await Promise.all(ops);
       const errs = results.map((x: any) => x?.error).filter(Boolean);
       if (errs.length) throw new Error(errs[0].message);
@@ -1161,7 +1900,6 @@ function LocationsEditor(_props: { cities?: unknown }) {
       if (fileRef.current) fileRef.current.value = "";
     }
   }
-
 
   return (
     <div className="space-y-4">
@@ -1186,7 +1924,9 @@ function LocationsEditor(_props: { cities?: unknown }) {
           onChange={handleImport}
           className="hidden"
         />
-        <span className="ms-auto text-[11px] text-muted-foreground">Columns: City (EN), City (AR), District (EN), District (AR)</span>
+        <span className="ms-auto text-[11px] text-muted-foreground">
+          Columns: City (EN), City (AR), District (EN), District (AR)
+        </span>
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
@@ -1206,14 +1946,19 @@ function LocationsEditor(_props: { cities?: unknown }) {
         <button
           onClick={async () => {
             if (!newCity.trim()) return;
-            try { await dbAddCity(newCity.trim(), newCityAr.trim() || undefined); setNewCity(""); setNewCityAr(""); invalidate(); }
-            catch (e: any) { toast.error(e?.message ?? "Failed"); }
+            try {
+              await dbAddCity(newCity.trim(), newCityAr.trim() || undefined);
+              setNewCity("");
+              setNewCityAr("");
+              invalidate();
+            } catch (e: any) {
+              toast.error(e?.message ?? "Failed");
+            }
           }}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" /> {t("addCity")}
         </button>
-
       </div>
       <div className="space-y-3">
         {cities.map((c) => {
@@ -1228,19 +1973,35 @@ function LocationsEditor(_props: { cities?: unknown }) {
                   className="inline-flex flex-wrap items-center gap-2 text-start"
                   aria-expanded={isOpen}
                 >
-                  {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                  {isOpen ? (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  )}
                   <MapPin className="h-4 w-4 text-primary" />
                   <span className="font-display text-base font-bold text-foreground">{c.name}</span>
-                  {c.nameAr && <span className="text-xs text-muted-foreground" dir="rtl">{c.nameAr}</span>}
+                  {c.nameAr && (
+                    <span className="text-xs text-muted-foreground" dir="rtl">
+                      {c.nameAr}
+                    </span>
+                  )}
                   <span className="text-xs text-muted-foreground">({c.districts.length})</span>
                 </button>
                 <button
-                  onClick={async () => { if (confirm(`${t("removeCity")} "${c.name}"?`)) { try { await dbRemoveCity(c.id); invalidate(); } catch (e: any) { toast.error(e?.message ?? "Failed"); } } }}
+                  onClick={async () => {
+                    if (confirm(`${t("removeCity")} "${c.name}"?`)) {
+                      try {
+                        await dbRemoveCity(c.id);
+                        invalidate();
+                      } catch (e: any) {
+                        toast.error(e?.message ?? "Failed");
+                      }
+                    }
+                  }}
                   className="text-xs font-semibold text-rose-600 hover:underline"
                 >
                   {t("remove")}
                 </button>
-
               </div>
               {isOpen && (
                 <div className="mt-3 space-y-3">
@@ -1248,7 +2009,16 @@ function LocationsEditor(_props: { cities?: unknown }) {
                     <span className="text-xs font-semibold text-muted-foreground">AR name:</span>
                     <input
                       defaultValue={c.nameAr ?? ""}
-                      onBlur={async (e) => { if ((e.target.value || "") !== (c.nameAr ?? "")) { try { await dbUpdateCityAr(c.id, e.target.value); invalidate(); } catch (er: any) { toast.error(er?.message ?? "Failed"); } } }}
+                      onBlur={async (e) => {
+                        if ((e.target.value || "") !== (c.nameAr ?? "")) {
+                          try {
+                            await dbUpdateCityAr(c.id, e.target.value);
+                            invalidate();
+                          } catch (er: any) {
+                            toast.error(er?.message ?? "Failed");
+                          }
+                        }
+                      }}
                       placeholder="AR name"
                       dir="rtl"
                       className="h-7 w-40 rounded-md border border-border bg-card px-2 text-xs focus:border-primary focus:outline-none"
@@ -1258,27 +2028,59 @@ function LocationsEditor(_props: { cities?: unknown }) {
                     {c.districts.map((d) => {
                       const ar = c.districtsAr?.[d];
                       return (
-                        <span key={d} className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-foreground ring-1 ring-border">
-                          {d}{ar && <span className="text-muted-foreground" dir="rtl">/ {ar}</span>}
-                          <button onClick={async () => { const row = rowById.get(c.id); if (!row) return; try { await dbRemoveDistrict(row, d); invalidate(); } catch (er: any) { toast.error(er?.message ?? "Failed"); } }} className="text-muted-foreground hover:text-rose-600" aria-label={`Remove ${d}`}>
+                        <span
+                          key={d}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-foreground ring-1 ring-border"
+                        >
+                          {d}
+                          {ar && (
+                            <span className="text-muted-foreground" dir="rtl">
+                              / {ar}
+                            </span>
+                          )}
+                          <button
+                            onClick={async () => {
+                              const row = rowById.get(c.id);
+                              if (!row) return;
+                              try {
+                                await dbRemoveDistrict(row, d);
+                                invalidate();
+                              } catch (er: any) {
+                                toast.error(er?.message ?? "Failed");
+                              }
+                            }}
+                            className="text-muted-foreground hover:text-rose-600"
+                            aria-label={`Remove ${d}`}
+                          >
                             <X className="h-3 w-3" />
                           </button>
-
                         </span>
                       );
                     })}
-                    {c.districts.length === 0 && <span className="text-xs text-muted-foreground">{t("noDistrictsYet")}</span>}
+                    {c.districts.length === 0 && (
+                      <span className="text-xs text-muted-foreground">{t("noDistrictsYet")}</span>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
                     <input
                       value={draft.en}
-                      onChange={(e) => setNewDistrict({ ...newDistrict, [c.name]: { ...draft, en: e.target.value } })}
+                      onChange={(e) =>
+                        setNewDistrict({
+                          ...newDistrict,
+                          [c.name]: { ...draft, en: e.target.value },
+                        })
+                      }
                       placeholder={`${t("addDistrictTo")} ${c.name} (EN)`}
                       className="h-9 rounded-md border border-border bg-card px-2 text-sm focus:border-primary focus:outline-none"
                     />
                     <input
                       value={draft.ar}
-                      onChange={(e) => setNewDistrict({ ...newDistrict, [c.name]: { ...draft, ar: e.target.value } })}
+                      onChange={(e) =>
+                        setNewDistrict({
+                          ...newDistrict,
+                          [c.name]: { ...draft, ar: e.target.value },
+                        })
+                      }
                       placeholder="الحي (AR)"
                       dir="rtl"
                       className="h-9 rounded-md border border-border bg-card px-2 text-sm focus:border-primary focus:outline-none"
@@ -1289,10 +2091,14 @@ function LocationsEditor(_props: { cities?: unknown }) {
                         if (!v) return;
                         const row = rowById.get(c.id);
                         if (!row) return;
-                        try { await dbAddDistrict(row, v, draft.ar.trim() || undefined); setNewDistrict({ ...newDistrict, [c.name]: { en: "", ar: "" } }); invalidate(); }
-                        catch (er: any) { toast.error(er?.message ?? "Failed"); }
+                        try {
+                          await dbAddDistrict(row, v, draft.ar.trim() || undefined);
+                          setNewDistrict({ ...newDistrict, [c.name]: { en: "", ar: "" } });
+                          invalidate();
+                        } catch (er: any) {
+                          toast.error(er?.message ?? "Failed");
+                        }
                       }}
-
                       className="inline-flex items-center justify-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                     >
                       <Plus className="h-3.5 w-3.5" /> {t("add")}
@@ -1324,26 +2130,38 @@ function StatusesEditor() {
         <input
           value={val}
           onChange={(e) => setVal(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") add(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") add();
+          }}
           placeholder="e.g. Meeting Scheduled, Proposal Sent, Archived"
           className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
-        <button onClick={add} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+        <button
+          onClick={add}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+        >
           <Plus className="h-4 w-4" /> Add
         </button>
       </div>
       <div className="flex flex-wrap gap-2">
         {settings.statuses.map((s) => {
           const stage = settings.stages.find((st) => st.key === s);
-          const label = stage?.label ?? (t(s as any) ?? s);
+          const label = stage?.label ?? t(s as any) ?? s;
           const locked = PROTECTED.has(s);
           return (
             <span
               key={s}
               className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ring-1"
-              style={{ background: `${stage?.color ?? "#64748b"}1a`, color: stage?.color ?? "#64748b", borderColor: stage?.color }}
+              style={{
+                background: `${stage?.color ?? "#64748b"}1a`,
+                color: stage?.color ?? "#64748b",
+                borderColor: stage?.color,
+              }}
             >
-              <span className="h-2 w-2 rounded-full" style={{ background: stage?.color ?? "#64748b" }} />
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ background: stage?.color ?? "#64748b" }}
+              />
               {label}
               {!locked && (
                 <button
@@ -1358,12 +2176,27 @@ function StatusesEditor() {
           );
         })}
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">Statuses sync to the pipeline, lead forms, and filters. New, Won, and Lost are protected and can't be removed.</p>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Statuses sync to the pipeline, lead forms, and filters. New, Won, and Lost are protected and
+        can't be removed.
+      </p>
     </div>
   );
 }
 
-function StageRow({ stageKey, label, color, index, total }: { stageKey: string; label: string; color: string; index: number; total: number }) {
+function StageRow({
+  stageKey,
+  label,
+  color,
+  index,
+  total,
+}: {
+  stageKey: string;
+  label: string;
+  color: string;
+  index: number;
+  total: number;
+}) {
   const { t } = useI18n();
   const [val, setVal] = useState(label);
   const [dragOver, setDragOver] = useState<"top" | "bottom" | null>(null);
@@ -1386,7 +2219,10 @@ function StageRow({ stageKey, label, color, index, total }: { stageKey: string; 
         e.preventDefault();
         const fromStr = e.dataTransfer.getData("text/stage-index");
         const from = Number(fromStr);
-        if (Number.isNaN(from) || from === index) { setDragOver(null); return; }
+        if (Number.isNaN(from) || from === index) {
+          setDragOver(null);
+          return;
+        }
         let to = dragOver === "bottom" ? index + 1 : index;
         if (from < to) to -= 1;
         if (to < 0) to = 0;
@@ -1396,8 +2232,12 @@ function StageRow({ stageKey, label, color, index, total }: { stageKey: string; 
       }}
       className={`relative flex items-center gap-3 rounded-lg border bg-background p-3 transition ${dragOver ? "border-primary" : "border-border"}`}
     >
-      {dragOver === "top" && <span className="absolute inset-x-0 -top-1 h-0.5 rounded bg-primary" />}
-      {dragOver === "bottom" && <span className="absolute inset-x-0 -bottom-1 h-0.5 rounded bg-primary" />}
+      {dragOver === "top" && (
+        <span className="absolute inset-x-0 -top-1 h-0.5 rounded bg-primary" />
+      )}
+      {dragOver === "bottom" && (
+        <span className="absolute inset-x-0 -bottom-1 h-0.5 rounded bg-primary" />
+      )}
       <span
         className="flex h-7 w-5 cursor-grab items-center justify-center text-muted-foreground hover:text-foreground active:cursor-grabbing"
         aria-label="Drag to reorder"
@@ -1405,7 +2245,9 @@ function StageRow({ stageKey, label, color, index, total }: { stageKey: string; 
       >
         <GripVertical className="h-4 w-4" />
       </span>
-      <span className="w-6 text-center font-mono text-[11px] text-muted-foreground">{index + 1}</span>
+      <span className="w-6 text-center font-mono text-[11px] text-muted-foreground">
+        {index + 1}
+      </span>
       <input
         type="color"
         value={color}
@@ -1413,7 +2255,9 @@ function StageRow({ stageKey, label, color, index, total }: { stageKey: string; 
         className="h-7 w-7 cursor-pointer rounded border border-border bg-transparent p-0"
         aria-label="Stage color"
       />
-      <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{t(stageKey as any) ?? stageKey}</span>
+      <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+        {t(stageKey as any) ?? stageKey}
+      </span>
       <input
         value={val}
         onChange={(e) => setVal(e.target.value)}
@@ -1422,8 +2266,11 @@ function StageRow({ stageKey, label, color, index, total }: { stageKey: string; 
       <button
         disabled={!dirty}
         onClick={() => actions.renameStage(stageKey, val)}
-        className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold transition ${dirty ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-muted text-muted-foreground"
-          }`}
+        className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+          dirty
+            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+            : "bg-muted text-muted-foreground"
+        }`}
       >
         <Check className="h-3.5 w-3.5" /> {t("save")}
       </button>
@@ -1462,7 +2309,17 @@ function TemplatesEditor() {
   const [rows, setRows] = useState<TemplateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<TemplateRow | null>(null);
-  const empty: TemplateRow = { id: "", name_en: "", name_ar: "", channel: "Email", subject_en: "", subject_ar: "", body_en: "", body_ar: "", enabled: true };
+  const empty: TemplateRow = {
+    id: "",
+    name_en: "",
+    name_ar: "",
+    channel: "Email",
+    subject_en: "",
+    subject_ar: "",
+    body_en: "",
+    body_ar: "",
+    enabled: true,
+  };
 
   const reload = async () => {
     setLoading(true);
@@ -1474,13 +2331,20 @@ function TemplatesEditor() {
     else setRows((data ?? []) as TemplateRow[]);
     setLoading(false);
   };
-  useEffect(() => { reload(); }, []);
+  useEffect(() => {
+    reload();
+  }, []);
 
   const save = async (row: TemplateRow) => {
     const payload = {
-      name_en: row.name_en, name_ar: row.name_ar || null, channel: row.channel,
-      subject_en: row.subject_en || null, subject_ar: row.subject_ar || null,
-      body_en: row.body_en, body_ar: row.body_ar || null, enabled: row.enabled,
+      name_en: row.name_en,
+      name_ar: row.name_ar || null,
+      channel: row.channel,
+      subject_en: row.subject_en || null,
+      subject_ar: row.subject_ar || null,
+      body_en: row.body_en,
+      body_ar: row.body_ar || null,
+      enabled: row.enabled,
     };
     if (!row.name_en.trim() || !row.body_en.trim()) {
       toast.error(isAr ? "الاسم ومحتوى الرسالة مطلوبان" : "Name and body are required");
@@ -1491,84 +2355,200 @@ function TemplatesEditor() {
       : supabase.from("notification_templates").insert(payload);
     const { error } = await q;
     if (error) toast.error(error.message);
-    else { toast.success(isAr ? "تم الحفظ" : "Saved"); setEditing(null); reload(); }
+    else {
+      toast.success(isAr ? "تم الحفظ" : "Saved");
+      setEditing(null);
+      reload();
+    }
   };
 
   const remove = async (id: string) => {
     if (!confirm(isAr ? "حذف هذا القالب؟" : "Delete this template?")) return;
     const { error } = await supabase.from("notification_templates").delete().eq("id", id);
     if (error) toast.error(error.message);
-    else { toast.success(isAr ? "تم الحذف" : "Deleted"); reload(); }
+    else {
+      toast.success(isAr ? "تم الحذف" : "Deleted");
+      reload();
+    }
   };
 
   return (
     <section>
       <div className="mb-5 flex items-start justify-between gap-3 border-b border-border pb-4">
         <div>
-          <h2 className="font-display text-lg font-bold text-foreground">{isAr ? "قوالب الإشعارات" : "Notification Templates"}</h2>
-          <p className="text-sm text-muted-foreground">{isAr ? "إدارة قوالب البريد والرسائل النصية والواتساب والإشعارات." : "Manage Email / SMS / WhatsApp / Push templates."}</p>
+          <h2 className="font-display text-lg font-bold text-foreground">
+            {isAr ? "قوالب الإشعارات" : "Notification Templates"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {isAr
+              ? "إدارة قوالب البريد والرسائل النصية والواتساب والإشعارات."
+              : "Manage Email / SMS / WhatsApp / Push templates."}
+          </p>
         </div>
-        <button onClick={() => setEditing(empty)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+        <button
+          onClick={() => setEditing(empty)}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+        >
           <Plus className="h-4 w-4" /> {isAr ? "قالب جديد" : "New template"}
         </button>
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> {isAr ? "جارٍ التحميل..." : "Loading..."}</div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> {isAr ? "جارٍ التحميل..." : "Loading..."}
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {rows.map((tp) => (
             <div key={tp.id} className="rounded-xl border border-border bg-background p-4">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="truncate font-semibold text-foreground">{isAr ? (tp.name_ar || tp.name_en) : tp.name_en}</span>
+                <span className="truncate font-semibold text-foreground">
+                  {isAr ? tp.name_ar || tp.name_en : tp.name_en}
+                </span>
                 <div className="flex items-center gap-2">
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${tp.enabled ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{tp.enabled ? "ON" : "OFF"}</span>
-                  <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{tp.channel}</span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${tp.enabled ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}
+                  >
+                    {tp.enabled ? "ON" : "OFF"}
+                  </span>
+                  <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {tp.channel}
+                  </span>
                 </div>
               </div>
               {(isAr ? tp.subject_ar : tp.subject_en) && (
-                <div className="mb-1 text-xs text-muted-foreground">{isAr ? tp.subject_ar : tp.subject_en}</div>
+                <div className="mb-1 text-xs text-muted-foreground">
+                  {isAr ? tp.subject_ar : tp.subject_en}
+                </div>
               )}
-              <div className="mb-3 max-h-24 overflow-hidden rounded-lg bg-secondary/50 p-3 text-xs leading-relaxed text-foreground">{isAr ? (tp.body_ar || tp.body_en) : tp.body_en}</div>
+              <div className="mb-3 max-h-24 overflow-hidden rounded-lg bg-secondary/50 p-3 text-xs leading-relaxed text-foreground">
+                {isAr ? tp.body_ar || tp.body_en : tp.body_en}
+              </div>
               <div className="flex justify-end gap-2">
-                <button onClick={() => setEditing(tp)} className="rounded-md border border-border px-2.5 py-1 text-xs font-semibold hover:bg-accent">{isAr ? "تعديل" : "Edit"}</button>
-                <button onClick={() => remove(tp.id)} className="rounded-md border border-rose-200 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"><Trash2 className="inline h-3 w-3" /></button>
+                <button
+                  onClick={() => setEditing(tp)}
+                  className="rounded-md border border-border px-2.5 py-1 text-xs font-semibold hover:bg-accent"
+                >
+                  {isAr ? "تعديل" : "Edit"}
+                </button>
+                <button
+                  onClick={() => remove(tp.id)}
+                  className="rounded-md border border-rose-200 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                >
+                  <Trash2 className="inline h-3 w-3" />
+                </button>
               </div>
             </div>
           ))}
-          {rows.length === 0 && <div className="col-span-full rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">{isAr ? "لا توجد قوالب بعد." : "No templates yet."}</div>}
+          {rows.length === 0 && (
+            <div className="col-span-full rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+              {isAr ? "لا توجد قوالب بعد." : "No templates yet."}
+            </div>
+          )}
         </div>
       )}
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setEditing(null)}>
-          <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setEditing(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl"
+          >
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-lg font-bold">{editing.id ? (isAr ? "تعديل القالب" : "Edit template") : (isAr ? "قالب جديد" : "New template")}</h3>
-              <button onClick={() => setEditing(null)} className="rounded p-1 hover:bg-accent"><X className="h-4 w-4" /></button>
+              <h3 className="font-display text-lg font-bold">
+                {editing.id
+                  ? isAr
+                    ? "تعديل القالب"
+                    : "Edit template"
+                  : isAr
+                    ? "قالب جديد"
+                    : "New template"}
+              </h3>
+              <button onClick={() => setEditing(null)} className="rounded p-1 hover:bg-accent">
+                <X className="h-4 w-4" />
+              </button>
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <TxtField label={isAr ? "الاسم (إنجليزي)" : "Name (EN)"} value={editing.name_en} onChange={(v) => setEditing({ ...editing, name_en: v })} />
-              <TxtField label={isAr ? "الاسم (عربي)" : "Name (AR)"} value={editing.name_ar ?? ""} onChange={(v) => setEditing({ ...editing, name_ar: v })} />
+              <TxtField
+                label={isAr ? "الاسم (إنجليزي)" : "Name (EN)"}
+                value={editing.name_en}
+                onChange={(v) => setEditing({ ...editing, name_en: v })}
+              />
+              <TxtField
+                label={isAr ? "الاسم (عربي)" : "Name (AR)"}
+                value={editing.name_ar ?? ""}
+                onChange={(v) => setEditing({ ...editing, name_ar: v })}
+              />
               <div>
-                <label className="mb-1 block text-xs font-semibold text-muted-foreground">{isAr ? "القناة" : "Channel"}</label>
-                <select value={editing.channel} onChange={(e) => setEditing({ ...editing, channel: e.target.value })} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
-                  {CHANNELS.map((c) => <option key={c} value={c}>{c}</option>)}
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  {isAr ? "القناة" : "Channel"}
+                </label>
+                <select
+                  value={editing.channel}
+                  onChange={(e) => setEditing({ ...editing, channel: e.target.value })}
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
+                >
+                  {CHANNELS.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
                 </select>
               </div>
               <label className="flex items-end gap-2 text-sm">
-                <input type="checkbox" checked={editing.enabled} onChange={(e) => setEditing({ ...editing, enabled: e.target.checked })} />
+                <input
+                  type="checkbox"
+                  checked={editing.enabled}
+                  onChange={(e) => setEditing({ ...editing, enabled: e.target.checked })}
+                />
                 <span>{isAr ? "مفعّل" : "Enabled"}</span>
               </label>
-              <TxtField label={isAr ? "الموضوع (إنجليزي)" : "Subject (EN)"} value={editing.subject_en ?? ""} onChange={(v) => setEditing({ ...editing, subject_en: v })} />
-              <TxtField label={isAr ? "الموضوع (عربي)" : "Subject (AR)"} value={editing.subject_ar ?? ""} onChange={(v) => setEditing({ ...editing, subject_ar: v })} />
-              <TxtField label={isAr ? "المحتوى (إنجليزي)" : "Body (EN)"} value={editing.body_en} onChange={(v) => setEditing({ ...editing, body_en: v })} textarea className="md:col-span-2" />
-              <TxtField label={isAr ? "المحتوى (عربي)" : "Body (AR)"} value={editing.body_ar ?? ""} onChange={(v) => setEditing({ ...editing, body_ar: v })} textarea className="md:col-span-2" />
+              <TxtField
+                label={isAr ? "الموضوع (إنجليزي)" : "Subject (EN)"}
+                value={editing.subject_en ?? ""}
+                onChange={(v) => setEditing({ ...editing, subject_en: v })}
+              />
+              <TxtField
+                label={isAr ? "الموضوع (عربي)" : "Subject (AR)"}
+                value={editing.subject_ar ?? ""}
+                onChange={(v) => setEditing({ ...editing, subject_ar: v })}
+              />
+              <TxtField
+                label={isAr ? "المحتوى (إنجليزي)" : "Body (EN)"}
+                value={editing.body_en}
+                onChange={(v) => setEditing({ ...editing, body_en: v })}
+                textarea
+                className="md:col-span-2"
+              />
+              <TxtField
+                label={isAr ? "المحتوى (عربي)" : "Body (AR)"}
+                value={editing.body_ar ?? ""}
+                onChange={(v) => setEditing({ ...editing, body_ar: v })}
+                textarea
+                className="md:col-span-2"
+              />
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">{isAr ? "استخدم متغيرات مثل {{name}} و {{lead}} داخل النص." : "Use variables like {{name}}, {{lead}} inside the body."}</p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              {isAr
+                ? "استخدم متغيرات مثل {{name}} و {{lead}} داخل النص."
+                : "Use variables like {{name}}, {{lead}} inside the body."}
+            </p>
             <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setEditing(null)} className="rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:bg-accent">{isAr ? "إلغاء" : "Cancel"}</button>
-              <button onClick={() => save(editing)} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">{isAr ? "حفظ" : "Save"}</button>
+              <button
+                onClick={() => setEditing(null)}
+                className="rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:bg-accent"
+              >
+                {isAr ? "إلغاء" : "Cancel"}
+              </button>
+              <button
+                onClick={() => save(editing)}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                {isAr ? "حفظ" : "Save"}
+              </button>
             </div>
           </div>
         </div>
@@ -1577,14 +2557,35 @@ function TemplatesEditor() {
   );
 }
 
-function TxtField({ label, value, onChange, textarea, className }: { label: string; value: string; onChange: (v: string) => void; textarea?: boolean; className?: string }) {
+function TxtField({
+  label,
+  value,
+  onChange,
+  textarea,
+  className,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  textarea?: boolean;
+  className?: string;
+}) {
   return (
     <div className={className}>
       <label className="mb-1 block text-xs font-semibold text-muted-foreground">{label}</label>
       {textarea ? (
-        <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={4} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          rows={4}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+        />
       ) : (
-        <input value={value} onChange={(e) => onChange(e.target.value)} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none" />
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
+        />
       )}
     </div>
   );
@@ -1606,8 +2607,14 @@ type SmtpRow = {
   enabled: boolean;
 };
 
-const HOSTINGER_DEFAULTS: Omit<SmtpRow, "id" | "username" | "password" | "from_email" | "from_name" | "reply_to" | "enabled"> = {
-  provider: "hostinger", host: "smtp.hostinger.com", port: 465, secure: true,
+const HOSTINGER_DEFAULTS: Omit<
+  SmtpRow,
+  "id" | "username" | "password" | "from_email" | "from_name" | "reply_to" | "enabled"
+> = {
+  provider: "hostinger",
+  host: "smtp.hostinger.com",
+  port: 465,
+  secure: true,
 };
 
 function SmtpEditor() {
@@ -1621,9 +2628,25 @@ function SmtpEditor() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase.from("smtp_settings").select("*").eq("id", 1).maybeSingle();
+      const { data, error } = await supabase
+        .from("smtp_settings")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
       if (error) toast.error(error.message);
-      else setRow((data as SmtpRow) ?? { id: 1, ...HOSTINGER_DEFAULTS, username: "", password: "", from_email: "", from_name: "INT-CRM", reply_to: "", enabled: false });
+      else
+        setRow(
+          (data as SmtpRow) ?? {
+            id: 1,
+            ...HOSTINGER_DEFAULTS,
+            username: "",
+            password: "",
+            from_email: "",
+            from_name: "INT-CRM",
+            reply_to: "",
+            enabled: false,
+          },
+        );
       setLoading(false);
     })();
   }, []);
@@ -1637,36 +2660,61 @@ function SmtpEditor() {
   const save = async () => {
     if (!row) return;
     if (row.enabled && (!row.host || !row.username || !row.password || !row.from_email)) {
-      toast.error(isAr ? "أدخل المضيف واسم المستخدم وكلمة المرور والبريد المرسل قبل التفعيل" : "Host, username, password and from-email are required to enable sending");
+      toast.error(
+        isAr
+          ? "أدخل المضيف واسم المستخدم وكلمة المرور والبريد المرسل قبل التفعيل"
+          : "Host, username, password and from-email are required to enable sending",
+      );
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("smtp_settings").upsert({ ...row, id: 1, updated_by: (await supabase.auth.getUser()).data.user?.id ?? null });
+    const { error } = await supabase
+      .from("smtp_settings")
+      .upsert({ ...row, id: 1, updated_by: (await supabase.auth.getUser()).data.user?.id ?? null });
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success(isAr ? "تم حفظ إعدادات SMTP" : "SMTP settings saved");
   };
 
   if (loading || !row) {
-    return <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> {isAr ? "جارٍ التحميل..." : "Loading..."}</div>;
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" /> {isAr ? "جارٍ التحميل..." : "Loading..."}
+      </div>
+    );
   }
 
   return (
     <section>
       <div className="mb-5 flex items-start justify-between gap-3 border-b border-border pb-4">
         <div>
-          <h2 className="font-display text-lg font-bold text-foreground">{isAr ? "إعدادات SMTP" : "SMTP / Outgoing Email"}</h2>
-          <p className="text-sm text-muted-foreground">{isAr ? "تُستخدم لإرسال إشعارات البريد. الافتراضي: Hostinger." : "Used to send notification emails. Default provider: Hostinger."}</p>
+          <h2 className="font-display text-lg font-bold text-foreground">
+            {isAr ? "إعدادات SMTP" : "SMTP / Outgoing Email"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {isAr
+              ? "تُستخدم لإرسال إشعارات البريد. الافتراضي: Hostinger."
+              : "Used to send notification emails. Default provider: Hostinger."}
+          </p>
         </div>
-        <button onClick={applyHostinger} className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold hover:bg-accent">
+        <button
+          onClick={applyHostinger}
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold hover:bg-accent"
+        >
           <Mail className="h-4 w-4" /> {isAr ? "افتراضات Hostinger" : "Use Hostinger defaults"}
         </button>
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-xs font-semibold text-muted-foreground">{isAr ? "المزود" : "Provider"}</label>
-          <select value={row.provider} onChange={(e) => setRow({ ...row, provider: e.target.value })} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
+          <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+            {isAr ? "المزود" : "Provider"}
+          </label>
+          <select
+            value={row.provider}
+            onChange={(e) => setRow({ ...row, provider: e.target.value })}
+            className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
+          >
             <option value="hostinger">Hostinger</option>
             <option value="gmail">Gmail</option>
             <option value="outlook">Outlook / Office 365</option>
@@ -1675,24 +2723,49 @@ function SmtpEditor() {
           </select>
         </div>
         <label className="flex items-end gap-2 text-sm">
-          <input type="checkbox" checked={row.enabled} onChange={(e) => setRow({ ...row, enabled: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={row.enabled}
+            onChange={(e) => setRow({ ...row, enabled: e.target.checked })}
+          />
           <span>{isAr ? "تفعيل الإرسال" : "Enable outgoing email"}</span>
         </label>
 
-        <TxtField label={isAr ? "المضيف" : "SMTP Host"} value={row.host} onChange={(v) => setRow({ ...row, host: v })} />
+        <TxtField
+          label={isAr ? "المضيف" : "SMTP Host"}
+          value={row.host}
+          onChange={(v) => setRow({ ...row, host: v })}
+        />
         <div>
-          <label className="mb-1 block text-xs font-semibold text-muted-foreground">{isAr ? "المنفذ" : "Port"}</label>
-          <input type="number" value={row.port} onChange={(e) => setRow({ ...row, port: Number(e.target.value) || 0 })} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+          <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+            {isAr ? "المنفذ" : "Port"}
+          </label>
+          <input
+            type="number"
+            value={row.port}
+            onChange={(e) => setRow({ ...row, port: Number(e.target.value) || 0 })}
+            className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
+          />
         </div>
 
         <label className="flex items-end gap-2 text-sm">
-          <input type="checkbox" checked={row.secure} onChange={(e) => setRow({ ...row, secure: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={row.secure}
+            onChange={(e) => setRow({ ...row, secure: e.target.checked })}
+          />
           <span>{isAr ? "اتصال آمن (SSL/TLS)" : "Use SSL/TLS"}</span>
         </label>
-        <TxtField label={isAr ? "اسم المستخدم" : "Username"} value={row.username} onChange={(v) => setRow({ ...row, username: v })} />
+        <TxtField
+          label={isAr ? "اسم المستخدم" : "Username"}
+          value={row.username}
+          onChange={(v) => setRow({ ...row, username: v })}
+        />
 
         <div>
-          <label className="mb-1 block text-xs font-semibold text-muted-foreground">{isAr ? "كلمة المرور" : "Password"}</label>
+          <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+            {isAr ? "كلمة المرور" : "Password"}
+          </label>
           <div className="relative">
             <input
               type={showPw ? "text" : "password"}
@@ -1701,21 +2774,47 @@ function SmtpEditor() {
               className="h-10 w-full rounded-lg border border-border bg-background px-3 pe-10 text-sm"
               autoComplete="new-password"
             />
-            <button type="button" onClick={() => setShowPw((s) => !s)} className="absolute end-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-accent" aria-label="toggle password">
+            <button
+              type="button"
+              onClick={() => setShowPw((s) => !s)}
+              className="absolute end-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-accent"
+              aria-label="toggle password"
+            >
               {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
         </div>
-        <TxtField label={isAr ? "البريد المرسل منه" : "From email"} value={row.from_email} onChange={(v) => setRow({ ...row, from_email: v })} />
+        <TxtField
+          label={isAr ? "البريد المرسل منه" : "From email"}
+          value={row.from_email}
+          onChange={(v) => setRow({ ...row, from_email: v })}
+        />
 
-        <TxtField label={isAr ? "اسم المرسل" : "From name"} value={row.from_name} onChange={(v) => setRow({ ...row, from_name: v })} />
-        <TxtField label={isAr ? "الرد على" : "Reply-to (optional)"} value={row.reply_to ?? ""} onChange={(v) => setRow({ ...row, reply_to: v })} />
+        <TxtField
+          label={isAr ? "اسم المرسل" : "From name"}
+          value={row.from_name}
+          onChange={(v) => setRow({ ...row, from_name: v })}
+        />
+        <TxtField
+          label={isAr ? "الرد على" : "Reply-to (optional)"}
+          value={row.reply_to ?? ""}
+          onChange={(v) => setRow({ ...row, reply_to: v })}
+        />
       </div>
 
       <div className="mt-5 flex items-center justify-between gap-3 rounded-lg bg-secondary/40 p-3 text-xs text-muted-foreground">
-        <span>{isAr ? "كلمة المرور محفوظة في قاعدة البيانات وتُحمى بصلاحيات المدير فقط." : "Password is stored in the database and protected by admin-only RLS."}</span>
-        <button disabled={saving} onClick={save} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} {isAr ? "حفظ" : "Save SMTP"}
+        <span>
+          {isAr
+            ? "كلمة المرور محفوظة في قاعدة البيانات وتُحمى بصلاحيات المدير فقط."
+            : "Password is stored in the database and protected by admin-only RLS."}
+        </span>
+        <button
+          disabled={saving}
+          onClick={save}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}{" "}
+          {isAr ? "حفظ" : "Save SMTP"}
         </button>
       </div>
     </section>
@@ -1723,9 +2822,6 @@ function SmtpEditor() {
 }
 
 // ============== Send Email (queue + scheduling) ==============
-
-
-
 
 // ============== User Roles Editor (moved from /admin/users) ==============
 type AppRoleKey = "admin" | "manager" | "finance" | "hr" | "employee";
@@ -1761,35 +2857,60 @@ function UserRolesEditor() {
 
   const assign = useMutation({
     mutationFn: async (v: { user_id: string; role: AppRoleKey }) => {
-      const { error } = await supabase.rpc("admin_assign_role" as any, { _user_id: v.user_id, _role: v.role });
+      const { error } = await supabase.rpc("admin_assign_role" as any, {
+        _user_id: v.user_id,
+        _role: v.role,
+      });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success(lang === "ar" ? "تم تعيين الصلاحية" : "Role assigned"); qc.invalidateQueries({ queryKey: ["admin-users"] }); setBusyKey(null); },
-    onError: (e: any) => { toast.error(e?.message ?? "Failed"); setBusyKey(null); },
+    onSuccess: () => {
+      toast.success(lang === "ar" ? "تم تعيين الصلاحية" : "Role assigned");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      setBusyKey(null);
+    },
+    onError: (e: any) => {
+      toast.error(e?.message ?? "Failed");
+      setBusyKey(null);
+    },
   });
 
   const remove = useMutation({
     mutationFn: async (v: { user_id: string; role: AppRoleKey }) => {
-      const { error } = await supabase.rpc("admin_remove_role" as any, { _user_id: v.user_id, _role: v.role });
+      const { error } = await supabase.rpc("admin_remove_role" as any, {
+        _user_id: v.user_id,
+        _role: v.role,
+      });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success(lang === "ar" ? "تمت إزالة الصلاحية" : "Role removed"); qc.invalidateQueries({ queryKey: ["admin-users"] }); setBusyKey(null); },
-    onError: (e: any) => { toast.error(e?.message ?? "Failed"); setBusyKey(null); },
+    onSuccess: () => {
+      toast.success(lang === "ar" ? "تمت إزالة الصلاحية" : "Role removed");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      setBusyKey(null);
+    },
+    onError: (e: any) => {
+      toast.error(e?.message ?? "Failed");
+      setBusyKey(null);
+    },
   });
 
   const rows = (usersQ.data ?? []).filter((u) => {
     if (!search.trim()) return true;
     const q = search.trim().toLowerCase();
-    return (u.email ?? "").toLowerCase().includes(q) ||
+    return (
+      (u.email ?? "").toLowerCase().includes(q) ||
       (u.full_name_en ?? "").toLowerCase().includes(q) ||
-      (u.full_name_ar ?? "").includes(q);
+      (u.full_name_ar ?? "").includes(q)
+    );
   });
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="relative max-w-xs flex-1">
-          <Search className="pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
+          <Search
+            className="pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            style={{ insetInlineStart: "0.75rem" }}
+          />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -1801,7 +2922,9 @@ function UserRolesEditor() {
       </div>
 
       {usersQ.isLoading ? (
-        <div className="flex h-40 items-center justify-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /></div>
+        <div className="flex h-40 items-center justify-center text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
       ) : usersQ.isError ? (
         <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           {(usersQ.error as Error).message}
@@ -1817,27 +2940,38 @@ function UserRolesEditor() {
               <tr>
                 <th className="px-4 py-3 text-start">{lang === "ar" ? "المستخدم" : "User"}</th>
                 <th className="px-4 py-3 text-start">{lang === "ar" ? "البريد" : "Email"}</th>
-                <th className="px-4 py-3 text-start">{lang === "ar" ? "آخر دخول" : "Last sign-in"}</th>
+                <th className="px-4 py-3 text-start">
+                  {lang === "ar" ? "آخر دخول" : "Last sign-in"}
+                </th>
                 <th className="px-4 py-3 text-start">{lang === "ar" ? "الصلاحيات" : "Roles"}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {rows.map((u) => {
-                const name = lang === "ar"
-                  ? (u.full_name_ar || u.full_name_en || u.email || "—")
-                  : (u.full_name_en || u.email || "—");
+                const name =
+                  lang === "ar"
+                    ? u.full_name_ar || u.full_name_en || u.email || "—"
+                    : u.full_name_en || u.email || "—";
                 return (
                   <tr key={u.user_id} className="align-top hover:bg-accent/30">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {u.avatar_url ? (
-                          <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-border" />
+                          <img
+                            src={u.avatar_url}
+                            alt=""
+                            className="h-8 w-8 rounded-full object-cover ring-1 ring-border"
+                          />
                         ) : (
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary"><UserCircle2 className="h-5 w-5" /></div>
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <UserCircle2 className="h-5 w-5" />
+                          </div>
                         )}
                         <div>
                           <div className="font-semibold text-foreground">{name}</div>
-                          <div className="text-[11px] text-muted-foreground">{new Date(u.auth_created_at).toLocaleDateString()}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {new Date(u.auth_created_at).toLocaleDateString()}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -1861,11 +2995,20 @@ function UserRolesEditor() {
                                 if (owned) remove.mutate({ user_id: u.user_id, role: r });
                                 else assign.mutate({ user_id: u.user_id, role: r });
                               }}
-                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${owned
-                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                : "border border-border bg-background text-muted-foreground hover:border-primary hover:text-primary"
-                                } disabled:opacity-60`}
-                              title={owned ? (lang === "ar" ? "إزالة" : "Remove") : (lang === "ar" ? "تعيين" : "Assign")}
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
+                                owned
+                                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                  : "border border-border bg-background text-muted-foreground hover:border-primary hover:text-primary"
+                              } disabled:opacity-60`}
+                              title={
+                                owned
+                                  ? lang === "ar"
+                                    ? "إزالة"
+                                    : "Remove"
+                                  : lang === "ar"
+                                    ? "تعيين"
+                                    : "Assign"
+                              }
                             >
                               {busy && <Loader2 className="h-3 w-3 animate-spin" />}
                               {r}
@@ -1889,12 +3032,16 @@ function AutomationsEditor() {
   const { t } = useI18n();
   const { settings } = useStoreState();
   const automations = settings.automations ?? [];
-  const [editing, setEditing] = useState<Partial<typeof automations[0]> | null>(null);
+  const [editing, setEditing] = useState<Partial<(typeof automations)[0]> | null>(null);
 
   const save = () => {
     if (!editing?.name?.trim() || !editing?.trigger?.trim() || !editing?.action?.trim()) return;
     if (editing.id) {
-      actions.updateAutomation(editing.id, { name: editing.name, trigger: editing.trigger, action: editing.action });
+      actions.updateAutomation(editing.id, {
+        name: editing.name,
+        trigger: editing.trigger,
+        action: editing.action,
+      });
     } else {
       actions.addAutomation(editing.name, editing.trigger, editing.action);
     }
@@ -1914,7 +3061,10 @@ function AutomationsEditor() {
           <h2 className="font-display text-lg font-bold text-foreground">{t("automations")}</h2>
           <p className="text-sm text-muted-foreground">{t("automationsDesc")}</p>
         </div>
-        <button onClick={() => setEditing({ name: "", trigger: "", action: "" })} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+        <button
+          onClick={() => setEditing({ name: "", trigger: "", action: "" })}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+        >
           <Plus className="h-4 w-4" /> Add Rule
         </button>
       </div>
@@ -1922,54 +3072,128 @@ function AutomationsEditor() {
       <div className="divide-y divide-border rounded-xl border border-border bg-card">
         {automations.map((r) => (
           <div key={r.id} className="flex items-center gap-4 p-5 transition hover:bg-accent/30">
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${r.enabled ? "bg-amber-100 text-amber-600" : "bg-muted text-muted-foreground"}`}>
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${r.enabled ? "bg-amber-100 text-amber-600" : "bg-muted text-muted-foreground"}`}
+            >
               <Zap className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className={`font-semibold ${r.enabled ? "text-foreground" : "text-muted-foreground line-through"}`}>{r.name}</span>
-                {!r.enabled && <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">Disabled</span>}
+                <span
+                  className={`font-semibold ${r.enabled ? "text-foreground" : "text-muted-foreground line-through"}`}
+                >
+                  {r.name}
+                </span>
+                {!r.enabled && (
+                  <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
+                    Disabled
+                  </span>
+                )}
               </div>
               <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="rounded bg-secondary px-1.5 py-0.5 font-medium text-foreground">When: {r.trigger}</span>
+                <span className="rounded bg-secondary px-1.5 py-0.5 font-medium text-foreground">
+                  When: {r.trigger}
+                </span>
                 <ArrowRight className="h-3 w-3 text-muted-foreground/50" />
-                <span className="rounded bg-secondary px-1.5 py-0.5 font-medium text-foreground">Then: {r.action}</span>
+                <span className="rounded bg-secondary px-1.5 py-0.5 font-medium text-foreground">
+                  Then: {r.action}
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => actions.toggleAutomation(r.id)} className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${r.enabled ? "bg-primary" : "bg-muted"}`} aria-label="Toggle">
-                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${r.enabled ? "left-[22px]" : "left-0.5"}`} />
+              <button
+                onClick={() => actions.toggleAutomation(r.id)}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${r.enabled ? "bg-primary" : "bg-muted"}`}
+                aria-label="Toggle"
+              >
+                <span
+                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${r.enabled ? "left-[22px]" : "left-0.5"}`}
+                />
               </button>
               <div className="h-6 w-px bg-border" />
-              <button onClick={() => setEditing(r)} className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"><Pencil className="h-4 w-4" /></button>
-              <button onClick={() => remove(r.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+              <button
+                onClick={() => setEditing(r)}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => remove(r.id)}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </div>
           </div>
         ))}
-        {automations.length === 0 && <div className="p-8 text-center text-sm text-muted-foreground">No automation rules yet. Create your first rule to automate workflows.</div>}
+        {automations.length === 0 && (
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            No automation rules yet. Create your first rule to automate workflows.
+          </div>
+        )}
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-sm" onClick={() => setEditing(null)}>
-          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-sm"
+          onClick={() => setEditing(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mb-6 flex items-center justify-between">
-              <h3 className="font-display text-lg font-bold text-foreground">{editing.id ? "Edit Automation Rule" : "New Automation Rule"}</h3>
-              <button onClick={() => setEditing(null)} className="rounded-lg p-1 text-muted-foreground hover:bg-accent"><X className="h-4 w-4" /></button>
+              <h3 className="font-display text-lg font-bold text-foreground">
+                {editing.id ? "Edit Automation Rule" : "New Automation Rule"}
+              </h3>
+              <button
+                onClick={() => setEditing(null)}
+                className="rounded-lg p-1 text-muted-foreground hover:bg-accent"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
             <div className="space-y-4">
               <Field label="Rule Name" required>
-                <input value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} placeholder="e.g. Auto-assign new web leads" className={inputCls} autoFocus />
+                <input
+                  value={editing.name}
+                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                  placeholder="e.g. Auto-assign new web leads"
+                  className={inputCls}
+                  autoFocus
+                />
               </Field>
               <Field label="Trigger (When)" required>
-                <input value={editing.trigger} onChange={e => setEditing({ ...editing, trigger: e.target.value })} placeholder="e.g. Lead created from Website" className={inputCls} />
+                <input
+                  value={editing.trigger}
+                  onChange={(e) => setEditing({ ...editing, trigger: e.target.value })}
+                  placeholder="e.g. Lead created from Website"
+                  className={inputCls}
+                />
               </Field>
               <Field label="Action (Then)" required>
-                <input value={editing.action} onChange={e => setEditing({ ...editing, action: e.target.value })} placeholder="e.g. Assign to Sales Team" className={inputCls} />
+                <input
+                  value={editing.action}
+                  onChange={(e) => setEditing({ ...editing, action: e.target.value })}
+                  placeholder="e.g. Assign to Sales Team"
+                  className={inputCls}
+                />
               </Field>
             </div>
             <div className="mt-8 flex justify-end gap-3">
-              <button onClick={() => setEditing(null)} className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent">Cancel</button>
-              <button onClick={save} disabled={!editing.name?.trim() || !editing.trigger?.trim() || !editing.action?.trim()} className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50">
+              <button
+                onClick={() => setEditing(null)}
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={save}
+                disabled={
+                  !editing.name?.trim() || !editing.trigger?.trim() || !editing.action?.trim()
+                }
+                className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+              >
                 {editing.id ? "Save Changes" : "Create Rule"}
               </button>
             </div>

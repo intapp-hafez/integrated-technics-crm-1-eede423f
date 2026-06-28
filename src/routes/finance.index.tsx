@@ -7,12 +7,26 @@ import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
 import { employees, fmtMoney } from "@/lib/mock-data";
 import { useEffect, useMemo, useState } from "react";
-import { Wallet, FileBadge, MessageSquare, FileSpreadsheet, UserCircle2, Download, TrendingUp, CheckCircle2, Clock, AlertTriangle, Mail, Phone, Building2, KeyRound } from "lucide-react";
+import {
+  Wallet,
+  FileBadge,
+  MessageSquare,
+  FileSpreadsheet,
+  UserCircle2,
+  Download,
+  TrendingUp,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  Mail,
+  Phone,
+  Building2,
+  KeyRound,
+} from "lucide-react";
 import * as XLSX from "xlsx";
 import { ChangePasswordModal } from "@/components/ChangePasswordModal";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-
 
 type Tab = "dashboard" | "quotations" | "chat" | "reports" | "profile";
 
@@ -39,29 +53,61 @@ function FinancePage() {
   const { quotations } = useStoreState();
   const me = employees[0]; // demo finance user uses admin photo
   const { profile, user: authUser, refresh } = useAuth();
-  const [profileExtra, setProfileExtra] = useState<{ phone: string | null; department_en: string | null; department_ar: string | null } | null>(null);
+  const [profileExtra, setProfileExtra] = useState<{
+    phone: string | null;
+    department_en: string | null;
+    department_ar: string | null;
+  } | null>(null);
 
   const reloadExtra = () => {
     if (!authUser) return;
-    supabase.from("profiles").select("phone,department_en,department_ar").eq("user_id", authUser.id).maybeSingle()
+    supabase
+      .from("profiles")
+      .select("phone,department_en,department_ar")
+      .eq("user_id", authUser.id)
+      .maybeSingle()
       .then(({ data }) => setProfileExtra((data as any) ?? null));
   };
-  useEffect(() => { reloadExtra(); }, [authUser?.id]);
+  useEffect(() => {
+    reloadExtra();
+  }, [authUser?.id]);
 
-  const displayName = (dir === "rtl" ? profile?.full_name_ar : profile?.full_name_en) || profile?.full_name_en || authUser?.email || "—";
-  const displayRole = (dir === "rtl" ? profile?.title_ar : profile?.title_en) || (dir === "rtl" ? "مالية" : "Finance Officer");
-  const initials = (displayName || "").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "FN";
-  const user = { name: displayName, role: displayRole, initials, photo: profile?.avatar_url || undefined };
+  const displayName =
+    (dir === "rtl" ? profile?.full_name_ar : profile?.full_name_en) ||
+    profile?.full_name_en ||
+    authUser?.email ||
+    "—";
+  const displayRole =
+    (dir === "rtl" ? profile?.title_ar : profile?.title_en) ||
+    (dir === "rtl" ? "مالية" : "Finance Officer");
+  const initials =
+    (displayName || "")
+      .split(" ")
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "FN";
+  const user = {
+    name: displayName,
+    role: displayRole,
+    initials,
+    photo: profile?.avatar_url || undefined,
+  };
   const profileFields = {
     email: profile?.email || authUser?.email || "—",
     phone: profileExtra?.phone || "—",
-    department: (dir === "rtl" ? profileExtra?.department_ar : profileExtra?.department_en) || (dir === "rtl" ? "قسم المالية" : "Finance Department"),
+    department:
+      (dir === "rtl" ? profileExtra?.department_ar : profileExtra?.department_en) ||
+      (dir === "rtl" ? "قسم المالية" : "Finance Department"),
   };
 
-
-
   return (
-    <AppShell panel="finance" user={user} pageTitle={dir === "rtl" ? "لوحة المالية" : "Finance Panel"}>
+    <AppShell
+      panel="finance"
+      user={user}
+      pageTitle={dir === "rtl" ? "لوحة المالية" : "Finance Panel"}
+    >
       {/* Tabs */}
       <div className="mb-6 flex flex-wrap gap-2 border-b border-border">
         {TABS.map((tb) => {
@@ -95,7 +141,10 @@ function FinancePage() {
             phone: profileExtra?.phone ?? "",
           }}
           userId={authUser?.id}
-          onSaved={async () => { await refresh(); reloadExtra(); }}
+          onSaved={async () => {
+            await refresh();
+            reloadExtra();
+          }}
         />
       )}
     </AppShell>
@@ -106,16 +155,46 @@ function Dashboard({ quotations }: { quotations: any[] }) {
   const { dir } = useI18n();
   const totals = useMemo(() => {
     const total = quotations.reduce((s, q) => s + q.value, 0);
-    const accepted = quotations.filter((q) => q.status === "accepted").reduce((s, q) => s + q.value, 0);
-    const pending = quotations.filter((q) => ["pending_approval", "sent", "negotiating"].includes(q.status)).reduce((s, q) => s + q.value, 0);
-    const rejected = quotations.filter((q) => q.status === "rejected").reduce((s, q) => s + q.value, 0);
+    const accepted = quotations
+      .filter((q) => q.status === "accepted")
+      .reduce((s, q) => s + q.value, 0);
+    const pending = quotations
+      .filter((q) => ["pending_approval", "sent", "negotiating"].includes(q.status))
+      .reduce((s, q) => s + q.value, 0);
+    const rejected = quotations
+      .filter((q) => q.status === "rejected")
+      .reduce((s, q) => s + q.value, 0);
     return { total, accepted, pending, rejected };
   }, [quotations]);
   const cards = [
-    { label: dir === "rtl" ? "إجمالي العروض" : "Total Pipeline", v: fmtMoney(totals.total), icon: TrendingUp, tone: "text-primary", bg: "from-primary/10" },
-    { label: dir === "rtl" ? "مقبول" : "Accepted", v: fmtMoney(totals.accepted), icon: CheckCircle2, tone: "text-emerald-600", bg: "from-emerald-100" },
-    { label: dir === "rtl" ? "قيد المراجعة" : "Pending", v: fmtMoney(totals.pending), icon: Clock, tone: "text-amber-600", bg: "from-amber-100" },
-    { label: dir === "rtl" ? "مرفوض" : "Rejected", v: fmtMoney(totals.rejected), icon: AlertTriangle, tone: "text-rose-600", bg: "from-rose-100" },
+    {
+      label: dir === "rtl" ? "إجمالي العروض" : "Total Pipeline",
+      v: fmtMoney(totals.total),
+      icon: TrendingUp,
+      tone: "text-primary",
+      bg: "from-primary/10",
+    },
+    {
+      label: dir === "rtl" ? "مقبول" : "Accepted",
+      v: fmtMoney(totals.accepted),
+      icon: CheckCircle2,
+      tone: "text-emerald-600",
+      bg: "from-emerald-100",
+    },
+    {
+      label: dir === "rtl" ? "قيد المراجعة" : "Pending",
+      v: fmtMoney(totals.pending),
+      icon: Clock,
+      tone: "text-amber-600",
+      bg: "from-amber-100",
+    },
+    {
+      label: dir === "rtl" ? "مرفوض" : "Rejected",
+      v: fmtMoney(totals.rejected),
+      icon: AlertTriangle,
+      tone: "text-rose-600",
+      bg: "from-rose-100",
+    },
   ];
   return (
     <div>
@@ -123,9 +202,14 @@ function Dashboard({ quotations }: { quotations: any[] }) {
         {cards.map((c) => {
           const I = c.icon;
           return (
-            <div key={c.label} className={`rounded-2xl border border-border bg-gradient-to-br ${c.bg} to-card p-5 shadow-[var(--shadow-soft)]`}>
+            <div
+              key={c.label}
+              className={`rounded-2xl border border-border bg-gradient-to-br ${c.bg} to-card p-5 shadow-[var(--shadow-soft)]`}
+            >
               <div className="flex items-center justify-between">
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{c.label}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {c.label}
+                </div>
                 <I className={`h-4 w-4 ${c.tone}`} />
               </div>
               <div className={`mt-2 font-mono text-2xl font-bold ${c.tone}`}>{c.v}</div>
@@ -134,7 +218,9 @@ function Dashboard({ quotations }: { quotations: any[] }) {
         })}
       </div>
       <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-        <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">{dir === "rtl" ? "آخر العروض" : "Recent Quotations"}</h3>
+        <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+          {dir === "rtl" ? "آخر العروض" : "Recent Quotations"}
+        </h3>
         <div className="mt-3 space-y-2">
           {quotations.slice(0, 5).map((q) => (
             <Link
@@ -145,11 +231,15 @@ function Dashboard({ quotations }: { quotations: any[] }) {
             >
               <div>
                 <div className="text-sm font-semibold text-foreground">{q.client}</div>
-                <div className="text-[11px] text-muted-foreground">{shortId(q.id)} · {q.owner}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {shortId(q.id)} · {q.owner}
+                </div>
               </div>
               <div className="text-end">
                 <div className="font-mono text-sm font-bold text-primary">{fmtMoney(q.value)}</div>
-                <div className="text-[10px] uppercase text-muted-foreground">{q.status.replace("_", " ")}</div>
+                <div className="text-[10px] uppercase text-muted-foreground">
+                  {q.status.replace("_", " ")}
+                </div>
               </div>
             </Link>
           ))}
@@ -164,7 +254,9 @@ function QuotationsView({ quotations }: { quotations: any[] }) {
   return (
     <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
       <div className="border-b border-border p-4">
-        <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">{dir === "rtl" ? "جميع العروض" : "All Quotations"}</h3>
+        <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+          {dir === "rtl" ? "جميع العروض" : "All Quotations"}
+        </h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -180,12 +272,35 @@ function QuotationsView({ quotations }: { quotations: any[] }) {
           </thead>
           <tbody>
             {quotations.map((q) => (
-              <tr key={q.id} className="cursor-pointer border-t border-border hover:bg-secondary/30">
-                <td className="px-4 py-3 font-mono text-xs text-muted-foreground"><Link to="/finance/quotations/$quotationId" params={{ quotationId: q.id }} className="text-primary hover:underline">{shortId(q.id)}</Link></td>
-                <td className="px-4 py-3 font-semibold text-foreground"><Link to="/finance/quotations/$quotationId" params={{ quotationId: q.id }} className="hover:underline">{q.client}</Link></td>
+              <tr
+                key={q.id}
+                className="cursor-pointer border-t border-border hover:bg-secondary/30"
+              >
+                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                  <Link
+                    to="/finance/quotations/$quotationId"
+                    params={{ quotationId: q.id }}
+                    className="text-primary hover:underline"
+                  >
+                    {shortId(q.id)}
+                  </Link>
+                </td>
+                <td className="px-4 py-3 font-semibold text-foreground">
+                  <Link
+                    to="/finance/quotations/$quotationId"
+                    params={{ quotationId: q.id }}
+                    className="hover:underline"
+                  >
+                    {q.client}
+                  </Link>
+                </td>
                 <td className="px-4 py-3">{q.owner}</td>
-                <td className="px-4 py-3 text-end font-mono font-bold text-primary">{fmtMoney(q.value)}</td>
-                <td className="px-4 py-3"><StatusBadge status={q.status} /></td>
+                <td className="px-4 py-3 text-end font-mono font-bold text-primary">
+                  {fmtMoney(q.value)}
+                </td>
+                <td className="px-4 py-3">
+                  <StatusBadge status={q.status} />
+                </td>
                 <td className="px-4 py-3 text-muted-foreground">{q.submissionDate}</td>
               </tr>
             ))}
@@ -201,13 +316,15 @@ function StatusBadge({ status }: { status: string }) {
   const cls: Record<string, string> = {
     accepted: "bg-emerald-100 text-emerald-700",
     rejected: "bg-rose-100 text-rose-700",
-    "pending_approval": "bg-amber-100 text-amber-700",
+    pending_approval: "bg-amber-100 text-amber-700",
     negotiating: "bg-blue-100 text-blue-700",
     sent: "bg-sky-100 text-sky-700",
     draft: "bg-secondary text-muted-foreground",
   };
   return (
-    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cls[status] ?? "bg-secondary text-muted-foreground"}`}>
+    <span
+      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cls[status] ?? "bg-secondary text-muted-foreground"}`}
+    >
       {s}
     </span>
   );
@@ -224,9 +341,18 @@ function ReportsView({ quotations }: { quotations: any[] }) {
   const [client, setClient] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
 
-  const owners = useMemo(() => Array.from(new Set(quotations.map((q) => q.owner))).sort(), [quotations]);
-  const clients = useMemo(() => Array.from(new Set(quotations.map((q) => q.client))).sort(), [quotations]);
-  const statuses = useMemo(() => Array.from(new Set(quotations.map((q) => q.status))).sort(), [quotations]);
+  const owners = useMemo(
+    () => Array.from(new Set(quotations.map((q) => q.owner))).sort(),
+    [quotations],
+  );
+  const clients = useMemo(
+    () => Array.from(new Set(quotations.map((q) => q.client))).sort(),
+    [quotations],
+  );
+  const statuses = useMemo(
+    () => Array.from(new Set(quotations.map((q) => q.status))).sort(),
+    [quotations],
+  );
 
   const filtered = useMemo(() => {
     return quotations.filter((q) => {
@@ -241,7 +367,8 @@ function ReportsView({ quotations }: { quotations: any[] }) {
           !q.id.toLowerCase().includes(s) &&
           !q.client.toLowerCase().includes(s) &&
           !q.owner.toLowerCase().includes(s)
-        ) return false;
+        )
+          return false;
       }
       return true;
     });
@@ -249,50 +376,97 @@ function ReportsView({ quotations }: { quotations: any[] }) {
 
   const totals = useMemo(() => {
     const total = filtered.reduce((s, q) => s + q.value, 0);
-    const accepted = filtered.filter((q) => q.status === "accepted").reduce((s, q) => s + q.value, 0);
-    const pending = filtered.filter((q) => ["pending_approval", "sent", "negotiating"].includes(q.status)).reduce((s, q) => s + q.value, 0);
-    const rejected = filtered.filter((q) => q.status === "rejected").reduce((s, q) => s + q.value, 0);
-    const winRate = filtered.length ? (filtered.filter((q) => q.status === "accepted").length / filtered.length) * 100 : 0;
+    const accepted = filtered
+      .filter((q) => q.status === "accepted")
+      .reduce((s, q) => s + q.value, 0);
+    const pending = filtered
+      .filter((q) => ["pending_approval", "sent", "negotiating"].includes(q.status))
+      .reduce((s, q) => s + q.value, 0);
+    const rejected = filtered
+      .filter((q) => q.status === "rejected")
+      .reduce((s, q) => s + q.value, 0);
+    const winRate = filtered.length
+      ? (filtered.filter((q) => q.status === "accepted").length / filtered.length) * 100
+      : 0;
     return { total, accepted, pending, rejected, winRate, count: filtered.length };
   }, [filtered]);
 
-  const clearFilters = () => { setFrom(""); setTo(""); setStatus("all"); setOwner("all"); setClient("all"); setSearch(""); };
+  const clearFilters = () => {
+    setFrom("");
+    setTo("");
+    setStatus("all");
+    setOwner("all");
+    setClient("all");
+    setSearch("");
+  };
   const activeFilterCount =
-    (from ? 1 : 0) + (to ? 1 : 0) + (status !== "all" ? 1 : 0) + (owner !== "all" ? 1 : 0) + (client !== "all" ? 1 : 0) + (search ? 1 : 0);
+    (from ? 1 : 0) +
+    (to ? 1 : 0) +
+    (status !== "all" ? 1 : 0) +
+    (owner !== "all" ? 1 : 0) +
+    (client !== "all" ? 1 : 0) +
+    (search ? 1 : 0);
 
   const exportExcel = (kind: "quotations" | "summary" | "by_owner" | "by_client" | "by_month") => {
     const wb = XLSX.utils.book_new();
     const stamp = new Date().toISOString().slice(0, 10);
     if (kind === "quotations") {
       const rows = filtered.map((q) => ({
-        ID: q.id, Client: q.client, Owner: q.owner, Value: q.value,
-        Status: q.status, Revisions: q.revisions, SubmissionDate: q.submissionDate,
+        ID: q.id,
+        Client: q.client,
+        Owner: q.owner,
+        Value: q.value,
+        Status: q.status,
+        Revisions: q.revisions,
+        SubmissionDate: q.submissionDate,
         Feedback: q.feedback ?? "",
       }));
       const ws = XLSX.utils.json_to_sheet(rows);
-      ws["!cols"] = [{ wch: 14 }, { wch: 24 }, { wch: 18 }, { wch: 12 }, { wch: 18 }, { wch: 10 }, { wch: 14 }, { wch: 40 }];
+      ws["!cols"] = [
+        { wch: 14 },
+        { wch: 24 },
+        { wch: 18 },
+        { wch: 12 },
+        { wch: 18 },
+        { wch: 10 },
+        { wch: 14 },
+        { wch: 40 },
+      ];
       XLSX.utils.book_append_sheet(wb, ws, "Quotations");
     } else if (kind === "summary") {
-      const byStatus = filtered.reduce((acc: Record<string, { count: number; value: number }>, q) => {
-        acc[q.status] = acc[q.status] ?? { count: 0, value: 0 };
-        acc[q.status].count += 1;
-        acc[q.status].value += q.value;
-        return acc;
-      }, {});
-      const rows = Object.entries(byStatus).map(([s, v]) => ({ Status: s, Count: v.count, TotalValue: v.value }));
+      const byStatus = filtered.reduce(
+        (acc: Record<string, { count: number; value: number }>, q) => {
+          acc[q.status] = acc[q.status] ?? { count: 0, value: 0 };
+          acc[q.status].count += 1;
+          acc[q.status].value += q.value;
+          return acc;
+        },
+        {},
+      );
+      const rows = Object.entries(byStatus).map(([s, v]) => ({
+        Status: s,
+        Count: v.count,
+        TotalValue: v.value,
+      }));
       const ws = XLSX.utils.json_to_sheet(rows);
       ws["!cols"] = [{ wch: 22 }, { wch: 10 }, { wch: 16 }];
       XLSX.utils.book_append_sheet(wb, ws, "Summary");
     } else if (kind === "by_owner") {
-      const map = filtered.reduce((acc: Record<string, { count: number; value: number; accepted: number }>, q) => {
-        acc[q.owner] = acc[q.owner] ?? { count: 0, value: 0, accepted: 0 };
-        acc[q.owner].count += 1;
-        acc[q.owner].value += q.value;
-        if (q.status === "accepted") acc[q.owner].accepted += 1;
-        return acc;
-      }, {});
+      const map = filtered.reduce(
+        (acc: Record<string, { count: number; value: number; accepted: number }>, q) => {
+          acc[q.owner] = acc[q.owner] ?? { count: 0, value: 0, accepted: 0 };
+          acc[q.owner].count += 1;
+          acc[q.owner].value += q.value;
+          if (q.status === "accepted") acc[q.owner].accepted += 1;
+          return acc;
+        },
+        {},
+      );
       const rows = Object.entries(map).map(([o, v]) => ({
-        Owner: o, Quotations: v.count, TotalValue: v.value, Accepted: v.accepted,
+        Owner: o,
+        Quotations: v.count,
+        TotalValue: v.value,
+        Accepted: v.accepted,
         WinRate: v.count ? `${((v.accepted / v.count) * 100).toFixed(1)}%` : "0%",
       }));
       const ws = XLSX.utils.json_to_sheet(rows);
@@ -305,7 +479,8 @@ function ReportsView({ quotations }: { quotations: any[] }) {
         acc[q.client].value += q.value;
         return acc;
       }, {});
-      const rows = Object.entries(map).sort((a, b) => b[1].value - a[1].value)
+      const rows = Object.entries(map)
+        .sort((a, b) => b[1].value - a[1].value)
         .map(([c, v]) => ({ Client: c, Quotations: v.count, TotalValue: v.value }));
       const ws = XLSX.utils.json_to_sheet(rows);
       ws["!cols"] = [{ wch: 28 }, { wch: 12 }, { wch: 16 }];
@@ -318,7 +493,8 @@ function ReportsView({ quotations }: { quotations: any[] }) {
         acc[m].value += q.value;
         return acc;
       }, {});
-      const rows = Object.entries(map).sort((a, b) => a[0].localeCompare(b[0]))
+      const rows = Object.entries(map)
+        .sort((a, b) => a[0].localeCompare(b[0]))
         .map(([m, v]) => ({ Month: m, Quotations: v.count, TotalValue: v.value }));
       const ws = XLSX.utils.json_to_sheet(rows);
       ws["!cols"] = [{ wch: 12 }, { wch: 12 }, { wch: 16 }];
@@ -328,20 +504,48 @@ function ReportsView({ quotations }: { quotations: any[] }) {
   };
 
   const reports = [
-    { key: "quotations" as const, title: isAr ? "تقرير العروض الكامل" : "Full Quotations Report", desc: isAr ? "كافة العروض المفلترة مع التفاصيل" : "All filtered quotations with details" },
-    { key: "summary" as const, title: isAr ? "ملخص حسب الحالة" : "Summary by Status", desc: isAr ? "إجمالي القيم والعدد لكل حالة" : "Aggregated counts & totals per status" },
-    { key: "by_owner" as const, title: isAr ? "حسب المسؤول" : "By Owner", desc: isAr ? "أداء كل مسؤول مع نسبة الفوز" : "Owner performance with win rate" },
-    { key: "by_client" as const, title: isAr ? "حسب العميل" : "By Client", desc: isAr ? "إجمالي القيم لكل عميل" : "Total quotation value per client" },
-    { key: "by_month" as const, title: isAr ? "حسب الشهر" : "Monthly Trend", desc: isAr ? "العروض المُقدّمة شهرياً" : "Quotations submitted per month" },
+    {
+      key: "quotations" as const,
+      title: isAr ? "تقرير العروض الكامل" : "Full Quotations Report",
+      desc: isAr ? "كافة العروض المفلترة مع التفاصيل" : "All filtered quotations with details",
+    },
+    {
+      key: "summary" as const,
+      title: isAr ? "ملخص حسب الحالة" : "Summary by Status",
+      desc: isAr ? "إجمالي القيم والعدد لكل حالة" : "Aggregated counts & totals per status",
+    },
+    {
+      key: "by_owner" as const,
+      title: isAr ? "حسب المسؤول" : "By Owner",
+      desc: isAr ? "أداء كل مسؤول مع نسبة الفوز" : "Owner performance with win rate",
+    },
+    {
+      key: "by_client" as const,
+      title: isAr ? "حسب العميل" : "By Client",
+      desc: isAr ? "إجمالي القيم لكل عميل" : "Total quotation value per client",
+    },
+    {
+      key: "by_month" as const,
+      title: isAr ? "حسب الشهر" : "Monthly Trend",
+      desc: isAr ? "العروض المُقدّمة شهرياً" : "Quotations submitted per month",
+    },
   ];
 
   const kpis = [
     { label: isAr ? "العروض" : "Quotations", v: String(totals.count), tone: "text-foreground" },
     { label: isAr ? "الإجمالي" : "Total Value", v: fmtMoney(totals.total), tone: "text-primary" },
     { label: isAr ? "مقبول" : "Accepted", v: fmtMoney(totals.accepted), tone: "text-emerald-600" },
-    { label: isAr ? "قيد المراجعة" : "Pending", v: fmtMoney(totals.pending), tone: "text-amber-600" },
+    {
+      label: isAr ? "قيد المراجعة" : "Pending",
+      v: fmtMoney(totals.pending),
+      tone: "text-amber-600",
+    },
     { label: isAr ? "مرفوض" : "Rejected", v: fmtMoney(totals.rejected), tone: "text-rose-600" },
-    { label: isAr ? "نسبة الفوز" : "Win Rate", v: `${totals.winRate.toFixed(1)}%`, tone: "text-foreground" },
+    {
+      label: isAr ? "نسبة الفوز" : "Win Rate",
+      v: `${totals.winRate.toFixed(1)}%`,
+      tone: "text-foreground",
+    },
   ];
 
   return (
@@ -351,40 +555,88 @@ function ReportsView({ quotations }: { quotations: any[] }) {
           <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
             {isAr ? "الفلاتر" : "Filters"}
             {activeFilterCount > 0 && (
-              <span className="ms-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{activeFilterCount}</span>
+              <span className="ms-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                {activeFilterCount}
+              </span>
             )}
           </h3>
           {activeFilterCount > 0 && (
-            <button onClick={clearFilters} className="text-xs font-semibold text-primary hover:underline">
+            <button
+              onClick={clearFilters}
+              className="text-xs font-semibold text-primary hover:underline"
+            >
               {isAr ? "مسح الكل" : "Clear all"}
             </button>
           )}
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder={isAr ? "بحث…" : "Search…"}
-            className="col-span-2 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none" />
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none">
+            className="col-span-2 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+          />
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+          >
             <option value="all">{isAr ? "كل الحالات" : "All statuses"}</option>
-            {statuses.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+            {statuses.map((s) => (
+              <option key={s} value={s}>
+                {s.replace("_", " ")}
+              </option>
+            ))}
           </select>
-          <select value={owner} onChange={(e) => setOwner(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none">
+          <select
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+          >
             <option value="all">{isAr ? "كل المسؤولين" : "All owners"}</option>
-            {owners.map((o) => <option key={o} value={o}>{o}</option>)}
+            {owners.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
           </select>
-          <select value={client} onChange={(e) => setClient(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none">
+          <select
+            value={client}
+            onChange={(e) => setClient(e.target.value)}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+          >
             <option value="all">{isAr ? "كل العملاء" : "All clients"}</option>
-            {clients.map((c) => <option key={c} value={c}>{c}</option>)}
+            {clients.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
-          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none" />
-          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+          />
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         {kpis.map((k) => (
-          <div key={k.label} className="rounded-xl border border-border bg-card p-3 shadow-[var(--shadow-soft)]">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{k.label}</div>
+          <div
+            key={k.label}
+            className="rounded-xl border border-border bg-card p-3 shadow-[var(--shadow-soft)]"
+          >
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {k.label}
+            </div>
             <div className={`mt-1 font-mono text-lg font-bold ${k.tone}`}>{k.v}</div>
           </div>
         ))}
@@ -392,9 +644,14 @@ function ReportsView({ quotations }: { quotations: any[] }) {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {reports.map((r) => (
-          <div key={r.key} className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div
+            key={r.key}
+            className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]"
+          >
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700"><FileSpreadsheet className="h-5 w-5" /></div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                <FileSpreadsheet className="h-5 w-5" />
+              </div>
               <div className="flex-1">
                 <h4 className="font-display text-base font-bold text-foreground">{r.title}</h4>
                 <p className="mt-1 text-xs text-muted-foreground">{r.desc}</p>
@@ -416,7 +673,9 @@ function ReportsView({ quotations }: { quotations: any[] }) {
           <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
             {isAr ? "معاينة البيانات" : "Data Preview"}
           </h3>
-          <span className="text-xs text-muted-foreground">{isAr ? `${filtered.length} عرض` : `${filtered.length} quotations`}</span>
+          <span className="text-xs text-muted-foreground">
+            {isAr ? `${filtered.length} عرض` : `${filtered.length} quotations`}
+          </span>
         </div>
         <div className="max-h-96 overflow-auto">
           <table className="w-full text-sm">
@@ -432,15 +691,25 @@ function ReportsView({ quotations }: { quotations: any[] }) {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">{isAr ? "لا توجد نتائج" : "No matching quotations"}</td></tr>
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    {isAr ? "لا توجد نتائج" : "No matching quotations"}
+                  </td>
+                </tr>
               ) : (
                 filtered.map((q) => (
                   <tr key={q.id} className="border-t border-border hover:bg-secondary/30">
-                    <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{shortId(q.id)}</td>
+                    <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
+                      {shortId(q.id)}
+                    </td>
                     <td className="px-4 py-2 font-semibold text-foreground">{q.client}</td>
                     <td className="px-4 py-2">{q.owner}</td>
-                    <td className="px-4 py-2 text-end font-mono font-bold text-primary">{fmtMoney(q.value)}</td>
-                    <td className="px-4 py-2"><StatusBadge status={q.status} /></td>
+                    <td className="px-4 py-2 text-end font-mono font-bold text-primary">
+                      {fmtMoney(q.value)}
+                    </td>
+                    <td className="px-4 py-2">
+                      <StatusBadge status={q.status} />
+                    </td>
                     <td className="px-4 py-2 text-muted-foreground">{q.submissionDate}</td>
                   </tr>
                 ))
@@ -473,7 +742,9 @@ function ProfileView({
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  useEffect(() => { setForm(initial); }, [initial.full_name_en, initial.full_name_ar, initial.avatar_url, initial.phone]);
+  useEffect(() => {
+    setForm(initial);
+  }, [initial.full_name_en, initial.full_name_ar, initial.avatar_url, initial.phone]);
 
   const save = async () => {
     if (!userId) return;
@@ -489,7 +760,10 @@ function ProfileView({
       })
       .eq("user_id", userId);
     setSaving(false);
-    if (error) { setErr(error.message); return; }
+    if (error) {
+      setErr(error.message);
+      return;
+    }
     await onSaved();
     setEditing(false);
   };
@@ -499,10 +773,21 @@ function ProfileView({
       <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
         <div className="flex items-start gap-4">
           {(editing ? form.avatar_url : user.photo) ? (
-            <img src={editing ? form.avatar_url : user.photo!} alt={user.name} className="h-20 w-20 rounded-2xl object-cover ring-2 ring-primary/30" onError={(e) => ((e.currentTarget.style.display = "none"))} />
+            <img
+              src={editing ? form.avatar_url : user.photo!}
+              alt={user.name}
+              className="h-20 w-20 rounded-2xl object-cover ring-2 ring-primary/30"
+              onError={(e) => (e.currentTarget.style.display = "none")}
+            />
           ) : (
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-orange-600 text-lg font-bold text-primary-foreground ring-2 ring-primary/30">
-              {(user.name || "?").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+              {(user.name || "?")
+                .split(" ")
+                .map((w) => w[0])
+                .filter(Boolean)
+                .slice(0, 2)
+                .join("")
+                .toUpperCase()}
             </div>
           )}
           <div className="flex-1">
@@ -589,10 +874,20 @@ function ProfileView({
                     disabled={saving}
                     className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
                   >
-                    {saving ? (dir === "rtl" ? "جارٍ الحفظ…" : "Saving…") : (dir === "rtl" ? "حفظ" : "Save")}
+                    {saving
+                      ? dir === "rtl"
+                        ? "جارٍ الحفظ…"
+                        : "Saving…"
+                      : dir === "rtl"
+                        ? "حفظ"
+                        : "Save"}
                   </button>
                   <button
-                    onClick={() => { setForm(initial); setEditing(false); setErr(null); }}
+                    onClick={() => {
+                      setForm(initial);
+                      setEditing(false);
+                      setErr(null);
+                    }}
                     className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-accent transition"
                   >
                     {dir === "rtl" ? "إلغاء" : "Cancel"}
@@ -618,14 +913,21 @@ function FinanceChatTab() {
     profile?.full_name_en ||
     "Finance";
   const meInitials =
-    (meName || "").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() ||
-    "FN";
+    (meName || "")
+      .split(" ")
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "FN";
 
   return (
     <ChatWithContacts
       contacts={contacts}
       me={{ name: meName, photo: profile?.avatar_url ?? undefined, initials: meInitials }}
-      emptyHint={lang === "ar" ? "لا يوجد مسؤولون متاحون للمحادثة." : "No admins available to chat with."}
+      emptyHint={
+        lang === "ar" ? "لا يوجد مسؤولون متاحون للمحادثة." : "No admins available to chat with."
+      }
     />
   );
 }

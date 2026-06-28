@@ -32,8 +32,19 @@ function PerfBar({ value }: { value: number }) {
   );
 }
 
-function Avatar({ initials, photo, name, size = "md" }: { initials: string; photo?: string; name?: string; size?: "sm" | "md" | "lg" }) {
-  const s = size === "lg" ? "h-16 w-16 text-xl" : size === "md" ? "h-12 w-12 text-sm" : "h-8 w-8 text-xs";
+function Avatar({
+  initials,
+  photo,
+  name,
+  size = "md",
+}: {
+  initials: string;
+  photo?: string;
+  name?: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const s =
+    size === "lg" ? "h-16 w-16 text-xl" : size === "md" ? "h-12 w-12 text-sm" : "h-8 w-8 text-xs";
   if (photo) {
     return (
       <img
@@ -45,7 +56,9 @@ function Avatar({ initials, photo, name, size = "md" }: { initials: string; phot
     );
   }
   return (
-    <div className={`${s} flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 font-bold text-primary-foreground shadow-[var(--shadow-brand)]`}>
+    <div
+      className={`${s} flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 font-bold text-primary-foreground shadow-[var(--shadow-brand)]`}
+    >
       {initials}
     </div>
   );
@@ -61,19 +74,27 @@ function ManagerEmployeesPage() {
 
   const depts = ["all", ...Array.from(new Set(employees.map((e) => e.department)))];
 
-  const filtered = useMemo(() =>
-    dept === "all" ? employees : employees.filter((e) => e.department === dept),
-    [dept, employees]
+  const filtered = useMemo(
+    () => (dept === "all" ? employees : employees.filter((e) => e.department === dept)),
+    [dept, employees],
   );
 
   const empLeads = (name: string) => leads.filter((l) => l.owner === name);
   const hoursToday = (name: string) => {
-    const mins = activities.filter((a) => a.owner === name && a.dueDate === today).reduce((s, a) => s + (a.estMinutes ?? 0), 0);
-    const h = Math.floor(mins / 60); const m = mins % 60;
+    const mins = activities
+      .filter((a) => a.owner === name && a.dueDate === today)
+      .reduce((s, a) => s + (a.estMinutes ?? 0), 0);
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
     return mins ? (h ? `${h}h ${m ? `${m}m` : ""}`.trim() : `${m}m`) : "—";
   };
 
-  const user = { name: "hafez Rahim", role: t("manager"), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" };
+  const user = {
+    name: "hafez Rahim",
+    role: t("manager"),
+    initials: "HR",
+    photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
+  };
 
   return (
     <AppShell panel="manager" user={user} pageTitle={t("myTeam")}>
@@ -115,9 +136,21 @@ function ManagerEmployeesPage() {
           {filtered.map((e) => {
             const myLeads = empLeads(e.name);
             const won = myLeads.filter((l) => l.status === "won").length;
-            const targetPerc = e.annualTarget ? Math.round(((e.achievedTarget ?? 0) / e.annualTarget) * 100) : e.perf;
-            const perfColor = targetPerc >= 100 ? "text-emerald-500" : targetPerc >= 75 ? "text-amber-500" : "text-rose-500";
-            const perfBg = targetPerc >= 100 ? "from-emerald-400 to-emerald-600" : targetPerc >= 75 ? "from-amber-400 to-amber-600" : "from-rose-400 to-rose-600";
+            const targetPerc = e.annualTarget
+              ? Math.round(((e.achievedTarget ?? 0) / e.annualTarget) * 100)
+              : e.perf;
+            const perfColor =
+              targetPerc >= 100
+                ? "text-emerald-500"
+                : targetPerc >= 75
+                  ? "text-amber-500"
+                  : "text-rose-500";
+            const perfBg =
+              targetPerc >= 100
+                ? "from-emerald-400 to-emerald-600"
+                : targetPerc >= 75
+                  ? "from-amber-400 to-amber-600"
+                  : "from-rose-400 to-rose-600";
             return (
               <div
                 key={e.id}
@@ -126,20 +159,32 @@ function ManagerEmployeesPage() {
                 {/* ── TOP-LEFT orange triangle corner ── */}
                 <div
                   className="absolute top-0 left-0 w-0 h-0 z-10"
-                  style={{ borderTop: "72px solid hsl(var(--primary))", borderRight: "72px solid transparent" }}
+                  style={{
+                    borderTop: "72px solid hsl(var(--primary))",
+                    borderRight: "72px solid transparent",
+                  }}
                 />
                 {/* ── BOTTOM-RIGHT orange triangle corner ── */}
                 <div
                   className="absolute bottom-0 right-0 w-0 h-0 z-10"
-                  style={{ borderBottom: "72px solid hsl(var(--primary))", borderLeft: "72px solid transparent" }}
+                  style={{
+                    borderBottom: "72px solid hsl(var(--primary))",
+                    borderLeft: "72px solid transparent",
+                  }}
                 />
 
                 {/* ── COMPANY BRANDING top-right ── */}
                 <div className="absolute top-3 right-4 z-20 flex flex-col items-end gap-0.5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20 p-1">
-                    <img src={logo} alt="INT-CRM Logo" className="h-full w-full object-contain drop-shadow-sm" />
+                    <img
+                      src={logo}
+                      alt="INT-CRM Logo"
+                      className="h-full w-full object-contain drop-shadow-sm"
+                    />
                   </div>
-                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-primary">INT-CRM</span>
+                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-primary">
+                    INT-CRM
+                  </span>
                 </div>
 
                 {/* ── PHOTO BLOCK ── */}
@@ -160,7 +205,9 @@ function ManagerEmployeesPage() {
 
                 {/* ── NAME + ROLE ── */}
                 <div className="px-5 text-start">
-                  <div className="font-display text-xl font-extrabold leading-tight text-foreground">{e.name}</div>
+                  <div className="font-display text-xl font-extrabold leading-tight text-foreground">
+                    {e.name}
+                  </div>
                   <div className="mt-2">
                     <span className="inline-block rounded-md bg-primary px-3 py-1 text-xs font-bold text-white tracking-wide shadow-sm">
                       {e.role}
@@ -174,18 +221,24 @@ function ManagerEmployeesPage() {
                 {/* ── INFO ROWS ── */}
                 <div className="px-5 space-y-1.5 text-[11px] font-medium">
                   <div className="flex gap-2">
-                    <span className="w-14 font-bold text-foreground">{dir === "rtl" ? "القسم" : "Dept"}</span>
+                    <span className="w-14 font-bold text-foreground">
+                      {dir === "rtl" ? "القسم" : "Dept"}
+                    </span>
                     <span className="text-muted-foreground">: {e.department}</span>
                   </div>
                   {e.email && (
                     <div className="flex gap-2 min-w-0">
-                      <span className="w-14 shrink-0 font-bold text-foreground">{dir === "rtl" ? "الإيميل" : "Email"}</span>
+                      <span className="w-14 shrink-0 font-bold text-foreground">
+                        {dir === "rtl" ? "الإيميل" : "Email"}
+                      </span>
                       <span className="truncate text-muted-foreground">: {e.email}</span>
                     </div>
                   )}
                   {e.phone && (
                     <div className="flex gap-2">
-                      <span className="w-14 font-bold text-foreground">{dir === "rtl" ? "الهاتف" : "Phone"}</span>
+                      <span className="w-14 font-bold text-foreground">
+                        {dir === "rtl" ? "الهاتف" : "Phone"}
+                      </span>
                       <span className="font-mono text-muted-foreground">: {e.phone}</span>
                     </div>
                   )}
@@ -194,23 +247,35 @@ function ManagerEmployeesPage() {
                 {/* ── STATS ROW ── */}
                 <div className="mx-5 mt-3 grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-secondary/50 text-center">
                   <div className="py-2">
-                    <div className="font-mono text-sm font-extrabold text-foreground">{myLeads.length}</div>
-                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{t("leads")}</div>
+                    <div className="font-mono text-sm font-extrabold text-foreground">
+                      {myLeads.length}
+                    </div>
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                      {t("leads")}
+                    </div>
                   </div>
                   <div className="py-2">
                     <div className="font-mono text-sm font-extrabold text-emerald-600">{won}</div>
-                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{t("won")}</div>
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                      {t("won")}
+                    </div>
                   </div>
                   <div className="py-2">
-                    <div className="font-mono text-sm font-extrabold text-foreground">{hoursToday(e.name)}</div>
-                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{t("today")}</div>
+                    <div className="font-mono text-sm font-extrabold text-foreground">
+                      {hoursToday(e.name)}
+                    </div>
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                      {t("today")}
+                    </div>
                   </div>
                 </div>
 
                 {/* ── PERFORMANCE BAR ── */}
                 <div className="mx-5 mt-3">
                   <div className="flex items-center justify-between text-[10px] font-bold mb-1">
-                    <span className="text-muted-foreground uppercase tracking-wider">{t("performance")}</span>
+                    <span className="text-muted-foreground uppercase tracking-wider">
+                      {t("performance")}
+                    </span>
                     <span className={perfColor}>{targetPerc}%</span>
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
@@ -223,12 +288,18 @@ function ManagerEmployeesPage() {
 
                 {/* ── BARCODE FOOTER ── */}
                 <div className="mt-4 flex items-center gap-2 border-t border-border bg-secondary/30 px-5 py-2.5">
-                  <div className="flex flex-1 items-end gap-[2px] overflow-hidden" style={{ height: 28 }}>
+                  <div
+                    className="flex flex-1 items-end gap-[2px] overflow-hidden"
+                    style={{ height: 28 }}
+                  >
                     {Array.from({ length: 34 }).map((_, i) => (
                       <div
                         key={i}
                         className="bg-foreground/40 rounded-[1px]"
-                        style={{ width: i % 3 === 0 ? 3 : 2, height: i % 5 === 0 ? 28 : i % 2 === 0 ? 20 : 24 }}
+                        style={{
+                          width: i % 3 === 0 ? 3 : 2,
+                          height: i % 5 === 0 ? 28 : i % 2 === 0 ? 20 : 24,
+                        }}
                       />
                     ))}
                   </div>
@@ -254,14 +325,30 @@ function ManagerEmployeesPage() {
             <table className="w-full text-sm">
               <thead className="bg-secondary/60">
                 <tr>
-                  <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("name")}</th>
-                  <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("role")}</th>
-                  <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("department")}</th>
-                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("leads")}</th>
-                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("won")}</th>
-                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("performance")}</th>
-                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("today")}</th>
-                  <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("action")}</th>
+                  <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("name")}
+                  </th>
+                  <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("role")}
+                  </th>
+                  <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("department")}
+                  </th>
+                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("leads")}
+                  </th>
+                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("won")}
+                  </th>
+                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("performance")}
+                  </th>
+                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("today")}
+                  </th>
+                  <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("action")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -275,27 +362,39 @@ function ManagerEmployeesPage() {
                           <Avatar initials={e.avatar} photo={e.photo} name={e.name} size="sm" />
                           <div>
                             <div className="font-semibold text-foreground">{e.name}</div>
-                            <div className="font-mono text-[10px] text-muted-foreground">{e.phone || shortId(e.id)}</div>
+                            <div className="font-mono text-[10px] text-muted-foreground">
+                              {e.phone || shortId(e.id)}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{e.role}</td>
                       <td className="px-4 py-3">
-                        <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${DEPT_COLORS[e.department] ?? "bg-secondary text-foreground"}`}>
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${DEPT_COLORS[e.department] ?? "bg-secondary text-foreground"}`}
+                        >
                           {e.department}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center font-mono font-semibold text-foreground">{myLeads.length}</td>
-                      <td className="px-4 py-3 text-center font-mono font-semibold text-emerald-600">{won}</td>
+                      <td className="px-4 py-3 text-center font-mono font-semibold text-foreground">
+                        {myLeads.length}
+                      </td>
+                      <td className="px-4 py-3 text-center font-mono font-semibold text-emerald-600">
+                        {won}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
                             <PerfBar value={e.perf} />
                           </div>
-                          <span className="font-mono text-xs font-bold text-primary">{e.perf}%</span>
+                          <span className="font-mono text-xs font-bold text-primary">
+                            {e.perf}%
+                          </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-center font-mono text-foreground">{hoursToday(e.name)}</td>
+                      <td className="px-4 py-3 text-center font-mono text-foreground">
+                        {hoursToday(e.name)}
+                      </td>
                       <td className="px-4 py-3 text-end">
                         <Link
                           to="/manager/employees/$employeeId"

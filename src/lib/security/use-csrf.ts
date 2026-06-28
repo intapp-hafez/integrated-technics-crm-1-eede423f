@@ -18,6 +18,8 @@ export function useCsrfBootstrap() {
     if (has && !stale) return;
     fetchToken({})
       .then(() => localStorage.setItem(KEY, String(Date.now())))
-      .catch(() => { /* ignore */ });
+      .catch(() => {
+        /* ignore */
+      });
   }, [fetchToken]);
 }

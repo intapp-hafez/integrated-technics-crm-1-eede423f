@@ -12,10 +12,12 @@ function highlight(text: string, term: string) {
   const parts = text.split(new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "ig"));
   return parts.map((p, i) =>
     p.toLowerCase() === t.toLowerCase() ? (
-      <mark key={i} className="rounded-sm bg-primary/25 px-0.5 text-foreground">{p}</mark>
+      <mark key={i} className="rounded-sm bg-primary/25 px-0.5 text-foreground">
+        {p}
+      </mark>
     ) : (
       <span key={i}>{p}</span>
-    )
+    ),
   );
 }
 
@@ -63,12 +65,21 @@ export function GlobalSearch({ panel }: { panel: Panel }) {
     const term = q.trim().toLowerCase();
     if (!term) return [];
     const out: Result[] = [];
-    const match = (s: any) => String(s ?? "").toLowerCase().includes(term);
+    const match = (s: any) =>
+      String(s ?? "")
+        .toLowerCase()
+        .includes(term);
 
     // Leads
     for (const l of state.leads || []) {
       if (out.length >= 30) break;
-      if (match(l.company) || match(l.contact) || match(l.id) || match(l.owner) || match(l.industry)) {
+      if (
+        match(l.company) ||
+        match(l.contact) ||
+        match(l.id) ||
+        match(l.owner) ||
+        match(l.industry)
+      ) {
         out.push({
           id: `lead-${l.id}`,
           label: l.company || l.id,
@@ -164,7 +175,9 @@ export function GlobalSearch({ panel }: { panel: Panel }) {
     return out.slice(0, 40);
   }, [q, state, panel, t]);
 
-  useEffect(() => { setHi(0); }, [q]);
+  useEffect(() => {
+    setHi(0);
+  }, [q]);
 
   function pick(r: Result) {
     setOpen(false);
@@ -191,13 +204,24 @@ export function GlobalSearch({ panel }: { panel: Panel }) {
       />
       <input
         value={q}
-        onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+        onChange={(e) => {
+          setQ(e.target.value);
+          setOpen(true);
+        }}
         onFocus={() => q && setOpen(true)}
         onKeyDown={(e) => {
-          if (e.key === "ArrowDown") { e.preventDefault(); setHi((h) => Math.min(h + 1, results.length - 1)); }
-          else if (e.key === "ArrowUp") { e.preventDefault(); setHi((h) => Math.max(h - 1, 0)); }
-          else if (e.key === "Enter" && results[hi]) { e.preventDefault(); pick(results[hi]); }
-          else if (e.key === "Escape") { setOpen(false); }
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setHi((h) => Math.min(h + 1, results.length - 1));
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setHi((h) => Math.max(h - 1, 0));
+          } else if (e.key === "Enter" && results[hi]) {
+            e.preventDefault();
+            pick(results[hi]);
+          } else if (e.key === "Escape") {
+            setOpen(false);
+          }
         }}
         placeholder={t("search")}
         className="h-10 w-full rounded-lg border border-border bg-secondary/60 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -233,7 +257,11 @@ export function GlobalSearch({ panel }: { panel: Panel }) {
                       <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                       <div className="min-w-0 flex-1">
                         <div className="truncate font-medium">{highlight(r.label, q)}</div>
-                        {r.sub && <div className="truncate text-xs text-muted-foreground">{highlight(r.sub, q)}</div>}
+                        {r.sub && (
+                          <div className="truncate text-xs text-muted-foreground">
+                            {highlight(r.sub, q)}
+                          </div>
+                        )}
                       </div>
                     </button>
                   );

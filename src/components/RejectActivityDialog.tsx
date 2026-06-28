@@ -46,7 +46,10 @@ export function RejectActivityDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
@@ -58,7 +61,10 @@ export function RejectActivityDialog({
               <p className="mt-0.5 truncate text-xs text-muted-foreground">{activityTitle}</p>
             )}
           </div>
-          <button onClick={onClose} className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent">
+          <button
+            onClick={onClose}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -66,7 +72,10 @@ export function RejectActivityDialog({
         <textarea
           autoFocus
           value={reason}
-          onChange={(e) => { setReason(e.target.value); if (error) setError(null); }}
+          onChange={(e) => {
+            setReason(e.target.value);
+            if (error) setError(null);
+          }}
           maxLength={500}
           rows={4}
           placeholder="Tell the employee why this activity is being rejected…"
@@ -78,7 +87,10 @@ export function RejectActivityDialog({
           </span>
         </div>
         <div className="mt-4 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-lg px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent">
+          <button
+            onClick={onClose}
+            className="rounded-lg px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-accent"
+          >
             Cancel
           </button>
           <button

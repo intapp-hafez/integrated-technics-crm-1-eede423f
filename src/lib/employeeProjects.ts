@@ -6,7 +6,10 @@ import type { Project, Profile } from "@/lib/store";
  * identifiers (profile id, auth user id, or display name) so we stay
  * consistent across panels regardless of which field the sync populated.
  */
-export function isProjectMemberOf(p: Project, me: Pick<Profile, "profileId" | "userId" | "name">): boolean {
+export function isProjectMemberOf(
+  p: Project,
+  me: Pick<Profile, "profileId" | "userId" | "name">,
+): boolean {
   const pid = me.profileId;
   const uid = me.userId;
   const name = (me.name ?? "").trim().toLowerCase();
@@ -16,6 +19,9 @@ export function isProjectMemberOf(p: Project, me: Pick<Profile, "profileId" | "u
   return false;
 }
 
-export function filterMyProjects(projects: Project[], me: Pick<Profile, "profileId" | "userId" | "name">): Project[] {
+export function filterMyProjects(
+  projects: Project[],
+  me: Pick<Profile, "profileId" | "userId" | "name">,
+): Project[] {
   return projects.filter((p) => isProjectMemberOf(p, me));
 }

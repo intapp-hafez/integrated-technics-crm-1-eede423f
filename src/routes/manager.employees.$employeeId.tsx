@@ -38,8 +38,6 @@ const DEPT_COLORS: Record<string, string> = {
   Projects: "bg-emerald-100 text-emerald-700",
 };
 
-
-
 function ManagerEmployeeDetailsPage() {
   const { employeeId } = Route.useParams();
   const { t } = useI18n();
@@ -67,7 +65,9 @@ function ManagerEmployeeDetailsPage() {
   const empActivities = emp ? activities.filter((a) => a.owner === emp.name) : [];
   const won = empLeads.filter((l: any) => l.status === "won").length;
 
-  const sources = Array.from(new Set(empLeads.map((l: any) => l.source).filter(Boolean))) as string[];
+  const sources = Array.from(
+    new Set(empLeads.map((l: any) => l.source).filter(Boolean)),
+  ) as string[];
   const filteredLeads = useMemo(() => {
     const q = search.trim().toLowerCase();
     return empLeads.filter((l: any) => {
@@ -89,27 +89,47 @@ function ManagerEmployeeDetailsPage() {
   const empLeadCompanies = new Set(empLeads.map((l: any) => l.company));
   const timeline = useMemo(() => {
     return history
-      .filter((h) =>
-        (h.module === "lead" || h.module === "pipeline") &&
-        (h.actor === empName || empLeadCompanies.has(h.target) ||
-          (h.action === "Reassigned lead" && (h.details ?? "").includes(empName)))
+      .filter(
+        (h) =>
+          (h.module === "lead" || h.module === "pipeline") &&
+          (h.actor === empName ||
+            empLeadCompanies.has(h.target) ||
+            (h.action === "Reassigned lead" && (h.details ?? "").includes(empName))),
       )
       .slice(0, 40);
   }, [history, empName, empLeadCompanies]);
 
   // Structured audit rows: reassignments + status moves, with prev/new owners/values
-  type AuditRow = { id: string; ts: string; kind: "reassign" | "status"; target: string; leadId?: string; from: string; to: string; actor: string };
+  type AuditRow = {
+    id: string;
+    ts: string;
+    kind: "reassign" | "status";
+    target: string;
+    leadId?: string;
+    from: string;
+    to: string;
+    actor: string;
+  };
   const auditRows = useMemo<AuditRow[]>(() => {
     const companyToLead = new Map(leads.map((l: any) => [l.company, l.id]));
     return history
       .filter((h) => h.action === "Reassigned lead" || h.action.startsWith("Moved to"))
-      .filter((h) => empLeadCompanies.has(h.target) || (h.action === "Reassigned lead" && (h.details ?? "").includes(empName)))
+      .filter(
+        (h) =>
+          empLeadCompanies.has(h.target) ||
+          (h.action === "Reassigned lead" && (h.details ?? "").includes(empName)),
+      )
       .map((h) => {
         const kind: "reassign" | "status" = h.action === "Reassigned lead" ? "reassign" : "status";
-        let from = "", to = "";
+        let from = "",
+          to = "";
         const m = (h.details ?? "").match(/^(.+?)\s*(?:→|->)\s*(.+)$/);
-        if (m) { from = m[1].trim(); to = m[2].trim(); }
-        else if (kind === "status") { to = h.action.replace(/^Moved to\s+/i, ""); }
+        if (m) {
+          from = m[1].trim();
+          to = m[2].trim();
+        } else if (kind === "status") {
+          to = h.action.replace(/^Moved to\s+/i, "");
+        }
         return {
           id: h.id,
           ts: h.ts,
@@ -131,7 +151,10 @@ function ManagerEmployeeDetailsPage() {
           <p className="text-sm text-muted-foreground">
             Employee <span className="font-mono">{employeeId}</span> not found.
           </p>
-          <Link to="/manager/employees" className="mt-3 inline-block text-sm font-semibold text-primary">
+          <Link
+            to="/manager/employees"
+            className="mt-3 inline-block text-sm font-semibold text-primary"
+          >
             {t("backToEmployees")}
           </Link>
         </div>
@@ -148,7 +171,11 @@ function ManagerEmployeeDetailsPage() {
   };
 
   const resetFilters = () => {
-    setSearch(""); setStatusFilter("all"); setSourceFilter("all"); setFromDate(""); setToDate("");
+    setSearch("");
+    setStatusFilter("all");
+    setSourceFilter("all");
+    setFromDate("");
+    setToDate("");
   };
 
   return (
@@ -180,16 +207,25 @@ function ManagerEmployeeDetailsPage() {
             <div className="mt-1 text-sm text-muted-foreground">
               {emp.role} · {emp.department}
             </div>
-            <div className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">{shortId(emp.id)}<CopyIdButton value={emp.id} /></div>
+            <div className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+              {shortId(emp.id)}
+              <CopyIdButton value={emp.id} />
+            </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
               {emp.email && (
-                <a href={`mailto:${emp.email}`} className="inline-flex items-center gap-1.5 text-primary hover:underline">
+                <a
+                  href={`mailto:${emp.email}`}
+                  className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                >
                   <Mail className="h-3.5 w-3.5" />
                   <span className="font-mono">{emp.email}</span>
                 </a>
               )}
               {emp.phone && (
-                <a href={`tel:${emp.phone.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+                <a
+                  href={`tel:${emp.phone.replace(/\s/g, "")}`}
+                  className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+                >
                   <Phone className="h-3.5 w-3.5" />
                   <span className="font-mono">{emp.phone}</span>
                 </a>
@@ -239,34 +275,71 @@ function ManagerEmployeeDetailsPage() {
               className="h-9 w-full rounded-lg border border-border bg-background ps-8 pe-3 text-sm"
             />
           </div>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-9 rounded-lg border border-border bg-background px-2 text-sm">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+          >
             <option value="all">All statuses</option>
             {settings.statuses.map((s: string) => {
               const stage = settings.stages.find((st) => st.key === s);
-              return <option key={s} value={s}>{stage?.label ?? s}</option>;
+              return (
+                <option key={s} value={s}>
+                  {stage?.label ?? s}
+                </option>
+              );
             })}
           </select>
-          <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)} className="h-9 rounded-lg border border-border bg-background px-2 text-sm">
+          <select
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value)}
+            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+          >
             <option value="all">All sources</option>
-            {sources.map((s) => <option key={s} value={s}>{s}</option>)}
+            {sources.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
           </select>
-          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-9 rounded-lg border border-border bg-background px-2 text-sm" />
-          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-9 rounded-lg border border-border bg-background px-2 text-sm" />
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+          />
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+          />
         </div>
         {(search || statusFilter !== "all" || sourceFilter !== "all" || fromDate || toDate) && (
-          <button onClick={resetFilters} className="mb-3 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline">
+          <button
+            onClick={resetFilters}
+            className="mb-3 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+          >
             <FilterIcon className="h-3 w-3" /> Reset filters
           </button>
         )}
 
         {filteredLeads.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{empLeads.length === 0 ? t("noLeadsAssigned") : "No leads match the filters."}</p>
+          <p className="text-sm text-muted-foreground">
+            {empLeads.length === 0 ? t("noLeadsAssigned") : "No leads match the filters."}
+          </p>
         ) : (
           <div className="divide-y divide-border">
             {filteredLeads.map((l: any) => (
               <div key={l.id} className="flex flex-wrap items-center gap-3 py-3 hover:bg-primary/5">
-                <Link to="/manager/leads/$leadId" params={{ leadId: l.id }} className="flex min-w-0 flex-1 items-center gap-3">
-                  <span className="w-20 font-mono text-xs text-muted-foreground">{shortId(l.id)}</span>
+                <Link
+                  to="/manager/leads/$leadId"
+                  params={{ leadId: l.id }}
+                  className="flex min-w-0 flex-1 items-center gap-3"
+                >
+                  <span className="w-20 font-mono text-xs text-muted-foreground">
+                    {shortId(l.id)}
+                  </span>
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold text-foreground">{l.company}</div>
                     <div className="text-xs text-muted-foreground">
@@ -274,7 +347,9 @@ function ManagerEmployeeDetailsPage() {
                     </div>
                   </div>
                   <StatusBadge status={l.status} label={t(l.status as any)} />
-                  <span className="ms-3 font-mono text-sm font-bold text-foreground">{fmtMoney(l.value)}</span>
+                  <span className="ms-3 font-mono text-sm font-bold text-foreground">
+                    {fmtMoney(l.value)}
+                  </span>
                 </Link>
                 <button
                   onClick={() => setReassignFor(l.id)}
@@ -297,7 +372,9 @@ function ManagerEmployeeDetailsPage() {
           </h3>
         </div>
         {timeline.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No assignment or status changes recorded yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No assignment or status changes recorded yet.
+          </p>
         ) : (
           <ol className="relative space-y-3 border-s-2 border-border ps-4">
             {timeline.map((h) => {
@@ -308,7 +385,9 @@ function ManagerEmployeeDetailsPage() {
                   <div className="rounded-lg border border-border bg-background px-3 py-2 transition hover:border-primary/50 hover:bg-primary/5">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <span className="text-sm font-semibold text-foreground">{h.action}</span>
-                      <span className="font-mono text-[10px] uppercase text-muted-foreground">{h.ts.slice(0, 16).replace("T", " ")}</span>
+                      <span className="font-mono text-[10px] uppercase text-muted-foreground">
+                        {h.ts.slice(0, 16).replace("T", " ")}
+                      </span>
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {relLead ? (
@@ -318,7 +397,9 @@ function ManagerEmployeeDetailsPage() {
                           className="font-semibold text-primary hover:underline"
                         >
                           {h.target}
-                          <span className="ms-1 font-mono text-[10px] text-muted-foreground">({shortId(relLead.id)})</span>
+                          <span className="ms-1 font-mono text-[10px] text-muted-foreground">
+                            ({shortId(relLead.id)})
+                          </span>
                         </Link>
                       ) : (
                         <span className="font-semibold text-foreground">{h.target}</span>
@@ -343,35 +424,63 @@ function ManagerEmployeeDetailsPage() {
           </h3>
         </div>
         {auditRows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No reassignments or status changes recorded.</p>
+          <p className="text-sm text-muted-foreground">
+            No reassignments or status changes recorded.
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-secondary/60">
                 <tr>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">When</th>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Type</th>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Lead</th>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">From</th>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">To</th>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Actor</th>
+                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    When
+                  </th>
+                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Type
+                  </th>
+                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Lead
+                  </th>
+                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    From
+                  </th>
+                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    To
+                  </th>
+                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Actor
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {auditRows.map((r) => (
                   <tr key={r.id} className="hover:bg-primary/5">
-                    <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">{r.ts.slice(0, 16).replace("T", " ")}</td>
+                    <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
+                      {r.ts.slice(0, 16).replace("T", " ")}
+                    </td>
                     <td className="px-3 py-2">
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                        r.kind === "reassign" ? "bg-violet-50 text-violet-700" : "bg-sky-50 text-sky-700"
-                      }`}>{r.kind === "reassign" ? "Reassignment" : "Status"}</span>
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                          r.kind === "reassign"
+                            ? "bg-violet-50 text-violet-700"
+                            : "bg-sky-50 text-sky-700"
+                        }`}
+                      >
+                        {r.kind === "reassign" ? "Reassignment" : "Status"}
+                      </span>
                     </td>
                     <td className="px-3 py-2">
                       {r.leadId ? (
-                        <Link to="/manager/leads/$leadId" params={{ leadId: r.leadId }} className="font-semibold text-primary hover:underline">
+                        <Link
+                          to="/manager/leads/$leadId"
+                          params={{ leadId: r.leadId }}
+                          className="font-semibold text-primary hover:underline"
+                        >
                           {r.target}
                         </Link>
-                      ) : <span className="font-semibold text-foreground">{r.target}</span>}
+                      ) : (
+                        <span className="font-semibold text-foreground">{r.target}</span>
+                      )}
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">{r.from || "—"}</td>
                     <td className="px-3 py-2 font-semibold text-foreground">{r.to || "—"}</td>
@@ -383,7 +492,6 @@ function ManagerEmployeeDetailsPage() {
           </div>
         )}
       </div>
-
 
       {/* Related Activities */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
@@ -398,7 +506,10 @@ function ManagerEmployeeDetailsPage() {
         ) : (
           <div className="space-y-2">
             {empActivities.map((a) => (
-              <div key={a.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
+              <div
+                key={a.id}
+                className="flex items-center gap-3 rounded-lg border border-border p-3"
+              >
                 <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   {a.type}
                 </span>
@@ -424,7 +535,11 @@ function ManagerEmployeeDetailsPage() {
       </div>
 
       {showAddLead && (
-        <QuickLeadModal owner={emp.name} cities={settings.locations.map((c) => c.name)} onClose={() => setShowAddLead(false)} />
+        <QuickLeadModal
+          owner={emp.name}
+          cities={settings.locations.map((c) => c.name)}
+          onClose={() => setShowAddLead(false)}
+        />
       )}
       {reassignFor && (
         <ReassignLeadModal
@@ -438,7 +553,15 @@ function ManagerEmployeeDetailsPage() {
   );
 }
 
-function Stat({ label, value, tone = "text-foreground" }: { label: string; value: any; tone?: string }) {
+function Stat({
+  label,
+  value,
+  tone = "text-foreground",
+}: {
+  label: string;
+  value: any;
+  tone?: string;
+}) {
   return (
     <div>
       <div className={`font-mono text-2xl font-bold ${tone}`}>{value}</div>
@@ -448,8 +571,16 @@ function Stat({ label, value, tone = "text-foreground" }: { label: string; value
 }
 
 function ReassignLeadModal({
-  leadId, currentOwner, members, onClose,
-}: { leadId: string; currentOwner: string; members: string[]; onClose: () => void }) {
+  leadId,
+  currentOwner,
+  members,
+  onClose,
+}: {
+  leadId: string;
+  currentOwner: string;
+  members: string[];
+  onClose: () => void;
+}) {
   const [newOwner, setNewOwner] = useState(members[0] ?? "");
   const submit = () => {
     if (!newOwner || newOwner === currentOwner) return;
@@ -460,17 +591,26 @@ function ReassignLeadModal({
     onClose();
   };
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-lg font-bold text-foreground">Reassign lead</h2>
-          <button onClick={onClose} className="rounded-lg p-1 text-muted-foreground hover:bg-accent">
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1 text-muted-foreground hover:bg-accent"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
         <p className="mb-3 text-xs text-muted-foreground">
-          Lead <span className="font-mono font-semibold text-foreground">{leadId}</span> currently owned by{" "}
-          <span className="font-semibold text-foreground">{currentOwner}</span>.
+          Lead <span className="font-mono font-semibold text-foreground">{leadId}</span> currently
+          owned by <span className="font-semibold text-foreground">{currentOwner}</span>.
         </p>
         <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           New owner
@@ -480,10 +620,17 @@ function ReassignLeadModal({
           onChange={(e) => setNewOwner(e.target.value)}
           className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
         >
-          {members.map((m) => <option key={m} value={m}>{m}</option>)}
+          {members.map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
         </select>
         <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-accent">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-accent"
+          >
             Cancel
           </button>
           <button
@@ -499,7 +646,15 @@ function ReassignLeadModal({
   );
 }
 
-function QuickLeadModal({ owner, cities, onClose }: { owner: string; cities: string[]; onClose: () => void }) {
+function QuickLeadModal({
+  owner,
+  cities,
+  onClose,
+}: {
+  owner: string;
+  cities: string[];
+  onClose: () => void;
+}) {
   const { t } = useI18n();
   const { projects } = useStoreState();
   const [projectId, setProjectId] = useState("");
@@ -556,16 +711,26 @@ function QuickLeadModal({ owner, cities, onClose }: { owner: string; cities: str
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="font-display text-lg font-bold text-foreground">{t("addLead")}</h2>
             <p className="text-xs text-muted-foreground">
-              {t("owner") ?? "Owner"}: <span className="font-semibold text-foreground">{owner}</span>
+              {t("owner") ?? "Owner"}:{" "}
+              <span className="font-semibold text-foreground">{owner}</span>
             </p>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1 text-muted-foreground hover:bg-accent">
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1 text-muted-foreground hover:bg-accent"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -577,7 +742,11 @@ function QuickLeadModal({ owner, cities, onClose }: { owner: string; cities: str
               className={`h-9 w-full rounded-lg border bg-background px-2 text-sm ${errors.company ? "border-destructive" : "border-border"}`}
             >
               <option value="">Select account…</option>
-              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
             </select>
           </Field>
           <Field label="Client">
@@ -593,7 +762,10 @@ function QuickLeadModal({ owner, cities, onClose }: { owner: string; cities: str
             <input
               type="email"
               value={email}
-              onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); }}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
+              }}
               className={`h-9 w-full rounded-lg border bg-background px-3 text-sm ${errors.email ? "border-destructive" : "border-border"}`}
             />
           </Field>
@@ -608,31 +780,51 @@ function QuickLeadModal({ owner, cities, onClose }: { owner: string; cities: str
             </Field>
           </div>
           <Field label={`${t("value")} ($)`}>
-            <input type="number" value={value} onChange={(e) => setValue(Number(e.target.value))} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+            <input
+              type="number"
+              value={value}
+              onChange={(e) => setValue(Number(e.target.value))}
+              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
+            />
           </Field>
           <Field label={t("city") ?? "City"} error={errors.city} required>
             <select
               value={city}
-              onChange={(e) => { setCity(e.target.value); if (errors.city) setErrors((p) => ({ ...p, city: undefined })); }}
+              onChange={(e) => {
+                setCity(e.target.value);
+                if (errors.city) setErrors((p) => ({ ...p, city: undefined }));
+              }}
               className={`h-9 w-full rounded-lg border bg-background px-2 text-sm ${errors.city ? "border-destructive" : "border-border"}`}
             >
               <option value="">— Select city —</option>
               {cities.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
           </Field>
           <div className="sm:col-span-2">
             <Field label={t("streetName") ?? "Street"}>
-              <input value={street} onChange={(e) => setStreet(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+              <input
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
+              />
             </Field>
           </div>
         </div>
         <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-accent">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-accent"
+          >
             {t("cancel") ?? "Cancel"}
           </button>
-          <button onClick={submit} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:opacity-90">
+          <button
+            onClick={submit}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:opacity-90"
+          >
             {t("save") ?? "Save"}
           </button>
         </div>
@@ -641,14 +833,27 @@ function QuickLeadModal({ owner, cities, onClose }: { owner: string; cities: str
   );
 }
 
-function Field({ label, children, error, required }: { label: string; children: React.ReactNode; error?: string; required?: boolean }) {
+function Field({
+  label,
+  children,
+  error,
+  required,
+}: {
+  label: string;
+  children: React.ReactNode;
+  error?: string;
+  required?: boolean;
+}) {
   return (
     <label className="block">
       <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}{required && <span className="ms-1 text-destructive">*</span>}
+        {label}
+        {required && <span className="ms-1 text-destructive">*</span>}
       </span>
       {children}
-      {error && <span className="mt-1 block text-[11px] font-medium text-destructive">{error}</span>}
+      {error && (
+        <span className="mt-1 block text-[11px] font-medium text-destructive">{error}</span>
+      )}
     </label>
   );
 }

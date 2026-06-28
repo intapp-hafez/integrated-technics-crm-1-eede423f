@@ -26,14 +26,11 @@ export function ChatWithContacts({ contacts, me, emptyHint }: Props) {
     const q = query.trim().toLowerCase();
     if (!q) return contacts;
     return contacts.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        (c.role ?? "").toLowerCase().includes(q),
+      (c) => c.name.toLowerCase().includes(q) || (c.role ?? "").toLowerCase().includes(q),
     );
   }, [query, contacts]);
 
-  const selected =
-    contacts.find((c) => c.profileId === selectedId) ?? contacts[0];
+  const selected = contacts.find((c) => c.profileId === selectedId) ?? contacts[0];
 
   return (
     <div className="grid gap-4 lg:grid-cols-[320px_1fr]">

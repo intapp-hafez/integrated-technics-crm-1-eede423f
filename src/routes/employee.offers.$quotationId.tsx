@@ -12,7 +12,12 @@ function Page() {
   const { quotationId } = useParams({ from: "/employee/offers/$quotationId" });
   const { t } = useI18n();
   const { profile } = useStoreState();
-  const initials = profile.name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
+  const initials = profile.name
+    .split(" ")
+    .map((s) => s[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   return (
     <QuotationDetailView
       quotationId={quotationId}

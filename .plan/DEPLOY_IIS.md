@@ -40,11 +40,11 @@ Uncomment the `<ipSecurity>` block in `web.config` and adjust the
 All server-side logic now lives in Supabase Edge Functions. Nothing
 runs on IIS beyond static file delivery.
 
-| Feature                          | Edge function     | Notes                                                     |
-|----------------------------------|-------------------|-----------------------------------------------------------|
-| Create user / dept / position    | `admin-users`     | Verifies caller's admin role, then uses service role.     |
-| Drain queued emails over SMTP    | `email-dispatch`  | Called by the UI for immediate sends and by pg_cron.      |
-| Audit logging                    | (inline)          | Both functions insert into `security_audit_logs`.         |
+| Feature                       | Edge function    | Notes                                                 |
+| ----------------------------- | ---------------- | ----------------------------------------------------- |
+| Create user / dept / position | `admin-users`    | Verifies caller's admin role, then uses service role. |
+| Drain queued emails over SMTP | `email-dispatch` | Called by the UI for immediate sends and by pg_cron.  |
+| Audit logging                 | (inline)         | Both functions insert into `security_audit_logs`.     |
 
 Deploy / redeploy:
 

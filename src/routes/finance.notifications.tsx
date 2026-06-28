@@ -16,7 +16,8 @@ function Page() {
         name: "Layla Hassan",
         role: dir === "rtl" ? "مالية" : "Finance Officer",
         initials: "LH",
-        photo: "https://e7.pngegg.com/pngimages/394/133/png-clipart-hijab-muslim-islamic-fashion-woman-islam-tube-girl.png",
+        photo:
+          "https://e7.pngegg.com/pngimages/394/133/png-clipart-hijab-muslim-islamic-fashion-woman-islam-tube-girl.png",
       }}
     />
   );

@@ -1,5 +1,17 @@
 import { Link } from "@tanstack/react-router";
-import { Bell, Users, MessageSquare, CalendarCheck, Clock4, FileBadge, Briefcase, X, MailOpen, Mail, Settings as SettingsIcon } from "lucide-react";
+import {
+  Bell,
+  Users,
+  MessageSquare,
+  CalendarCheck,
+  Clock4,
+  FileBadge,
+  Briefcase,
+  X,
+  MailOpen,
+  Mail,
+  Settings as SettingsIcon,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState, type AppNotification } from "@/lib/store";
@@ -45,7 +57,8 @@ function rewriteHref(href: string | undefined, panel: Panel): string | undefined
   }
   if (panel === "admin") return href;
   if (panel === "finance") {
-    if (href.startsWith("/admin/offers/")) return href.replace("/admin/offers/", "/finance/quotations/");
+    if (href.startsWith("/admin/offers/"))
+      return href.replace("/admin/offers/", "/finance/quotations/");
     if (href.startsWith("/admin/offers")) return "/finance?tab=quotations";
     if (href.startsWith("/admin/chat")) return "/finance?tab=chat";
     return "/finance";
@@ -73,7 +86,6 @@ export function NotificationsMenu({ panel }: { panel: Panel }) {
       .sort((a, b) => +new Date(b.ts) - +new Date(a.ts));
   }, [notifications, prefs]);
 
-
   const unreadCount = items.filter((n) => n.unread).length;
 
   useEffect(() => {
@@ -93,7 +105,10 @@ export function NotificationsMenu({ panel }: { panel: Panel }) {
       >
         <Bell className="h-4 w-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground" style={{ insetInlineEnd: "-0.25rem" }}>
+          <span
+            className="absolute -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground"
+            style={{ insetInlineEnd: "-0.25rem" }}
+          >
             {unreadCount}
           </span>
         )}
@@ -106,11 +121,18 @@ export function NotificationsMenu({ panel }: { panel: Panel }) {
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div>
-              <div className="font-display text-sm font-bold text-foreground">{dir === "rtl" ? "الإشعارات" : "Notifications"}</div>
-              <div className="text-[10px] text-muted-foreground">{unreadCount} {dir === "rtl" ? "غير مقروء" : "unread"}</div>
+              <div className="font-display text-sm font-bold text-foreground">
+                {dir === "rtl" ? "الإشعارات" : "Notifications"}
+              </div>
+              <div className="text-[10px] text-muted-foreground">
+                {unreadCount} {dir === "rtl" ? "غير مقروء" : "unread"}
+              </div>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => actions.markAllNotificationsRead(me)} className="text-[11px] font-semibold text-primary hover:underline">
+              <button
+                onClick={() => actions.markAllNotificationsRead(me)}
+                className="text-[11px] font-semibold text-primary hover:underline"
+              >
                 {dir === "rtl" ? "تحديد الكل" : "Mark all read"}
               </button>
               <Link
@@ -129,31 +151,56 @@ export function NotificationsMenu({ panel }: { panel: Panel }) {
               const I = ICONS[n.type];
               const href = rewriteHref(n.href, panel);
               const content = (
-                <div className={`group flex items-start gap-3 px-4 py-3 transition hover:bg-secondary/60 ${n.unread ? "bg-primary/5" : ""}`}>
-                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${TONE[n.type]}`}>
+                <div
+                  className={`group flex items-start gap-3 px-4 py-3 transition hover:bg-secondary/60 ${n.unread ? "bg-primary/5" : ""}`}
+                >
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${TONE[n.type]}`}
+                  >
                     <I className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="truncate text-sm font-semibold text-foreground">{dir === "rtl" ? n.titleAr : n.titleEn}</div>
+                      <div className="truncate text-sm font-semibold text-foreground">
+                        {dir === "rtl" ? n.titleAr : n.titleEn}
+                      </div>
                       <div className="text-[10px] text-muted-foreground">{timeAgo(n.ts)}</div>
                     </div>
-                    <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{dir === "rtl" ? n.bodyAr : n.bodyEn}</div>
+                    <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                      {dir === "rtl" ? n.bodyAr : n.bodyEn}
+                    </div>
                   </div>
                   <div className="flex flex-col items-center gap-1 opacity-0 transition group-hover:opacity-100">
                     <button
                       onClick={(e) => {
-                        e.preventDefault(); e.stopPropagation();
+                        e.preventDefault();
+                        e.stopPropagation();
                         if (n.unread) actions.markNotificationRead(n.id);
                         else actions.markNotificationUnread(n.id);
                       }}
-                      title={n.unread ? (dir === "rtl" ? "تحديد كمقروء" : "Mark read") : (dir === "rtl" ? "تحديد كغير مقروء" : "Mark unread")}
+                      title={
+                        n.unread
+                          ? dir === "rtl"
+                            ? "تحديد كمقروء"
+                            : "Mark read"
+                          : dir === "rtl"
+                            ? "تحديد كغير مقروء"
+                            : "Mark unread"
+                      }
                       aria-label="toggle-read"
                     >
-                      {n.unread ? <MailOpen className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /> : <Mail className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />}
+                      {n.unread ? (
+                        <MailOpen className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                      ) : (
+                        <Mail className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                      )}
                     </button>
                     <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); actions.dismissNotification(n.id); }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        actions.dismissNotification(n.id);
+                      }}
                       aria-label="dismiss"
                       title={dir === "rtl" ? "أرشفة" : "Archive"}
                     >
@@ -166,7 +213,10 @@ export function NotificationsMenu({ panel }: { panel: Panel }) {
                 <Link
                   key={n.id}
                   to={href as any}
-                  onClick={() => { setOpen(false); actions.markNotificationRead(n.id); }}
+                  onClick={() => {
+                    setOpen(false);
+                    actions.markNotificationRead(n.id);
+                  }}
                 >
                   {content}
                 </Link>

@@ -24,14 +24,24 @@ export function AttendanceMap({
   accuracy?: number | null;
 }) {
   return (
-    <MapContainer center={center} zoom={15} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }}>
-      <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <MapContainer
+      center={center}
+      zoom={15}
+      scrollWheelZoom={false}
+      style={{ height: "100%", width: "100%" }}
+    >
+      <TileLayer
+        attribution="&copy; OpenStreetMap"
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
       <Marker position={center} icon={markerIcon}>
         <Popup>
           <div className="text-xs">
             {title && <div className="font-bold">{title}</div>}
             {subtitle && <div>{subtitle}</div>}
-            {accuracy != null && <div className="mt-1 text-muted-foreground">Accuracy: ±{Math.round(accuracy)}m</div>}
+            {accuracy != null && (
+              <div className="mt-1 text-muted-foreground">Accuracy: ±{Math.round(accuracy)}m</div>
+            )}
           </div>
         </Popup>
       </Marker>

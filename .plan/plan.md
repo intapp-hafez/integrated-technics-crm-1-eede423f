@@ -1,4 +1,3 @@
-
 ## Scope
 
 Rebuild the admin Security Center to cover OWASP Top 10 (2025), headers, XSS, SQLi, CSRF, session/cookie security, plus a DB-backed rate limiter with auto-blacklist and a manual whitelist.
@@ -8,6 +7,7 @@ Rebuild the admin Security Center to cover OWASP Top 10 (2025), headers, XSS, SQ
 ## 1. Database (one migration)
 
 New tables:
+
 - `ip_blocklist` — `ip`, `reason`, `triggered_by` (login_burst | rate_limit | suspicious_payload | unauthorized_admin), `hits`, `first_seen`, `expires_at` (null = permanent), `created_by`
 - `ip_whitelist` — `ip`, `note`, `created_by` — bypasses blocklist + rate limits
 - `rate_limit_counters` — `ip`, `bucket` (route key), `window_start`, `count` — UPSERT per request
@@ -17,6 +17,7 @@ New tables:
 RLS: all admin-only via `has_role(auth.uid(),'admin')`. `service_role` full access for middleware writes.
 
 Helper SQL functions:
+
 - `record_security_event(ip, type, path, details)` — inserts event + auto-blacklists when thresholds met (5 failed logins/10min, 20 429s/5min, any suspicious payload, 3 unauthorized admin hits/10min)
 - `is_ip_blocked(ip)` returns bool, respects whitelist + expires_at
 - `rate_limit_check(ip, bucket, limit, window_seconds)` returns bool
@@ -37,6 +38,7 @@ Helper SQL functions:
 ## 3. Active scanner (`src/lib/security/scanner.server.ts`)
 
 `runSecurityScan()` server fn (admin-only) performs in parallel:
+
 - **Headers probe** — fetch own origin, check HSTS/CSP/XFO/XCTO/Referrer/Permissions
 - **Cookie/session audit** — verify Supabase + CSRF cookies have Secure, HttpOnly, SameSite=Lax/Strict
 - **CSRF check** — POST without token must 403

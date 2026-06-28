@@ -42,7 +42,8 @@ export const Route = createFileRoute("/admin/reports")({
 function AdminReportsPage() {
   const { t, dir } = useI18n();
   const ar = dir === "rtl";
-  const { activities, leads, projects, quotations, employees, attendance, settings } = useStoreState();
+  const { activities, leads, projects, quotations, employees, attendance, settings } =
+    useStoreState();
   const today = new Date().toISOString().slice(0, 10);
 
   // ===== Interactive filters =====
@@ -64,7 +65,10 @@ function AdminReportsPage() {
       ),
     [employees, deptFilter, employeeFilter],
   );
-  const filteredEmpNames = useMemo(() => new Set(filteredEmployees.map((e) => e.name)), [filteredEmployees]);
+  const filteredEmpNames = useMemo(
+    () => new Set(filteredEmployees.map((e) => e.name)),
+    [filteredEmployees],
+  );
 
   const rangeStart = useMemo(() => {
     const d = new Date();
@@ -73,10 +77,12 @@ function AdminReportsPage() {
   }, [rangeDays]);
 
   const filteredLeads = useMemo(
-    () => leads.filter((l) => filteredEmpNames.has(l.owner) || filteredEmployees.length === employees.length),
+    () =>
+      leads.filter(
+        (l) => filteredEmpNames.has(l.owner) || filteredEmployees.length === employees.length,
+      ),
     [leads, filteredEmpNames, filteredEmployees.length, employees.length],
   );
-
 
   // Real pipeline stages computed from leads
   const pipelineStages = useMemo(() => {
@@ -122,9 +128,7 @@ function AdminReportsPage() {
           doneActs: doneActs.length,
           revenue,
           pipelineValue,
-          convRate: myLeads.length
-            ? Math.round((wonLeads.length / myLeads.length) * 100)
-            : 0,
+          convRate: myLeads.length ? Math.round((wonLeads.length / myLeads.length) * 100) : 0,
           targetPerc: e.annualTarget
             ? Math.round(((e.achievedTarget ?? 0) / e.annualTarget) * 100)
             : 0,
@@ -146,9 +150,18 @@ function AdminReportsPage() {
     : 0;
 
   // Department aggregation
-  const deptMap = new Map<string, { revenue: number; leads: number; won: number; headcount: number; perfSum: number }>();
+  const deptMap = new Map<
+    string,
+    { revenue: number; leads: number; won: number; headcount: number; perfSum: number }
+  >();
   teamReport.forEach((r) => {
-    const cur = deptMap.get(r.department) ?? { revenue: 0, leads: 0, won: 0, headcount: 0, perfSum: 0 };
+    const cur = deptMap.get(r.department) ?? {
+      revenue: 0,
+      leads: 0,
+      won: 0,
+      headcount: 0,
+      perfSum: 0,
+    };
     cur.revenue += r.revenue;
     cur.leads += r.totalLeads;
     cur.won += r.wonLeads;
@@ -181,9 +194,7 @@ function AdminReportsPage() {
     {},
   );
 
-  const topPerformers = [...teamReport]
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 5);
+  const topPerformers = [...teamReport].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
 
   const generatedAt = new Intl.DateTimeFormat(ar ? "ar-EG" : "en-US", {
     dateStyle: "long",
@@ -244,8 +255,7 @@ function AdminReportsPage() {
         name: "hafez Rahim",
         role: t("admin"),
         initials: "HR",
-        photo:
-          "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
+        photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
       }}
       pageTitle={t("reports")}
     >
@@ -278,14 +288,43 @@ function AdminReportsPage() {
       {/* Executive summary KPIs */}
       <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
         {[
-          { icon: Users, label: ar ? "إجمالي العملاء" : "Total Leads", value: totals.leads, color: "text-sky-600", bg: "bg-sky-50" },
-          { icon: CheckCircle2, label: ar ? "صفقات مُغلقة" : "Won Deals", value: totals.won, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { icon: TrendingUp, label: ar ? "الإيرادات المُحققة" : "Revenue", value: fmtMoney(totals.revenue), color: "text-primary", bg: "bg-primary/10" },
-          { icon: Target, label: ar ? "الأنابيب المفتوحة" : "Open Pipeline", value: fmtMoney(totals.pipeline), color: "text-violet-600", bg: "bg-violet-50" },
+          {
+            icon: Users,
+            label: ar ? "إجمالي العملاء" : "Total Leads",
+            value: totals.leads,
+            color: "text-sky-600",
+            bg: "bg-sky-50",
+          },
+          {
+            icon: CheckCircle2,
+            label: ar ? "صفقات مُغلقة" : "Won Deals",
+            value: totals.won,
+            color: "text-emerald-600",
+            bg: "bg-emerald-50",
+          },
+          {
+            icon: TrendingUp,
+            label: ar ? "الإيرادات المُحققة" : "Revenue",
+            value: fmtMoney(totals.revenue),
+            color: "text-primary",
+            bg: "bg-primary/10",
+          },
+          {
+            icon: Target,
+            label: ar ? "الأنابيب المفتوحة" : "Open Pipeline",
+            value: fmtMoney(totals.pipeline),
+            color: "text-violet-600",
+            bg: "bg-violet-50",
+          },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div
+            key={s.label}
+            className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]"
+          >
             <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.bg} ${s.color}`}>
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.bg} ${s.color}`}
+              >
                 <s.icon className="h-5 w-5" />
               </div>
               <div>
@@ -308,7 +347,9 @@ function AdminReportsPage() {
               {fmtMoney(totals.achievedTarget)} / {fmtMoney(totals.annualTarget)}
             </p>
           </div>
-          <div className={`font-mono text-3xl font-bold ${orgTargetPerc >= 100 ? "text-emerald-600" : orgTargetPerc >= 75 ? "text-amber-600" : "text-rose-600"}`}>
+          <div
+            className={`font-mono text-3xl font-bold ${orgTargetPerc >= 100 ? "text-emerald-600" : orgTargetPerc >= 75 ? "text-amber-600" : "text-rose-600"}`}
+          >
             {orgTargetPerc}%
           </div>
         </div>
@@ -339,7 +380,6 @@ function AdminReportsPage() {
         employees={employees}
       />
 
-
       {/* Two-column: Departments + Pipeline */}
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
@@ -361,11 +401,15 @@ function AdminReportsPage() {
                 <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
                   <div>
                     <div className="text-muted-foreground">{ar ? "إيراد" : "Revenue"}</div>
-                    <div className="font-mono font-semibold text-primary">{fmtMoney(d.revenue)}</div>
+                    <div className="font-mono font-semibold text-primary">
+                      {fmtMoney(d.revenue)}
+                    </div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">{ar ? "صفقات" : "Won"}</div>
-                    <div className="font-mono font-semibold text-emerald-600">{d.won}/{d.leads}</div>
+                    <div className="font-mono font-semibold text-emerald-600">
+                      {d.won}/{d.leads}
+                    </div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">{ar ? "الأداء" : "Avg Perf"}</div>
@@ -397,7 +441,10 @@ function AdminReportsPage() {
                     </span>
                   </div>
                   <div className="mt-1 h-2 overflow-hidden rounded-full bg-secondary">
-                    <div className="h-full rounded-full" style={{ width: `${w}%`, background: st.color }} />
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${w}%`, background: st.color }}
+                    />
                   </div>
                 </div>
               );
@@ -416,11 +463,15 @@ function AdminReportsPage() {
             </h3>
           </div>
           <div className="mb-3 font-mono text-xs text-muted-foreground">
-            {ar ? "الميزانية الإجمالية" : "Total Budget"}: <span className="font-semibold text-foreground">{fmtMoney(projectsBudget)}</span>
+            {ar ? "الميزانية الإجمالية" : "Total Budget"}:{" "}
+            <span className="font-semibold text-foreground">{fmtMoney(projectsBudget)}</span>
           </div>
           <div className="space-y-2">
             {Object.entries(projectStatus).map(([k, v]) => (
-              <div key={k} className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2 text-sm">
+              <div
+                key={k}
+                className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2 text-sm"
+              >
                 <span className="font-medium text-foreground">{k}</span>
                 <span className="font-mono font-bold text-primary">{v}</span>
               </div>
@@ -439,10 +490,14 @@ function AdminReportsPage() {
             {Object.entries(quotesSummary).map(([k, v]) => (
               <div key={k} className="rounded-lg bg-secondary/50 px-3 py-2 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium capitalize text-foreground">{k.replace(/_/g, " ")}</span>
+                  <span className="font-medium capitalize text-foreground">
+                    {k.replace(/_/g, " ")}
+                  </span>
                   <span className="font-mono font-bold text-primary">{v.count}</span>
                 </div>
-                <div className="mt-1 font-mono text-[11px] text-muted-foreground">{fmtMoney(v.value)}</div>
+                <div className="mt-1 font-mono text-[11px] text-muted-foreground">
+                  {fmtMoney(v.value)}
+                </div>
               </div>
             ))}
           </div>
@@ -457,19 +512,27 @@ function AdminReportsPage() {
           </div>
           <div className="grid grid-cols-2 gap-2 text-center">
             <div className="rounded-lg bg-emerald-50 p-3">
-              <div className="font-mono text-2xl font-bold text-emerald-600">{attendanceToday.present}</div>
+              <div className="font-mono text-2xl font-bold text-emerald-600">
+                {attendanceToday.present}
+              </div>
               <div className="text-[11px] text-muted-foreground">{ar ? "حاضر" : "Present"}</div>
             </div>
             <div className="rounded-lg bg-amber-50 p-3">
-              <div className="font-mono text-2xl font-bold text-amber-600">{attendanceToday.late}</div>
+              <div className="font-mono text-2xl font-bold text-amber-600">
+                {attendanceToday.late}
+              </div>
               <div className="text-[11px] text-muted-foreground">{ar ? "متأخر" : "Late"}</div>
             </div>
             <div className="rounded-lg bg-rose-50 p-3">
-              <div className="font-mono text-2xl font-bold text-rose-600">{attendanceToday.absent}</div>
+              <div className="font-mono text-2xl font-bold text-rose-600">
+                {attendanceToday.absent}
+              </div>
               <div className="text-[11px] text-muted-foreground">{ar ? "غائب" : "Absent"}</div>
             </div>
             <div className="rounded-lg bg-primary/10 p-3">
-              <div className="font-mono text-2xl font-bold text-primary">{attendanceToday.total}</div>
+              <div className="font-mono text-2xl font-bold text-primary">
+                {attendanceToday.total}
+              </div>
               <div className="text-[11px] text-muted-foreground">{ar ? "الإجمالي" : "Total"}</div>
             </div>
           </div>
@@ -483,7 +546,10 @@ function AdminReportsPage() {
         </h3>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {topPerformers.map((r, i) => (
-            <div key={r.id} className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-secondary/40 to-card p-4">
+            <div
+              key={r.id}
+              className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-secondary/40 to-card p-4"
+            >
               <div className="absolute end-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                 {i + 1}
               </div>
@@ -494,7 +560,9 @@ function AdminReportsPage() {
                   <div className="truncate text-[10px] text-muted-foreground">{r.role}</div>
                 </div>
               </div>
-              <div className="mt-3 font-mono text-lg font-bold text-primary">{fmtMoney(r.revenue)}</div>
+              <div className="mt-3 font-mono text-lg font-bold text-primary">
+                {fmtMoney(r.revenue)}
+              </div>
               <div className="text-[10px] text-muted-foreground">
                 {r.wonLeads} {ar ? "صفقة" : "deals"} · {r.convRate}% {ar ? "تحويل" : "conv"}
               </div>
@@ -514,13 +582,27 @@ function AdminReportsPage() {
           <table className="w-full text-sm">
             <thead className="bg-secondary/60">
               <tr>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("name")}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("leads")}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("won")}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{ar ? "تحويل" : "Conv %"}</th>
-                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{ar ? "الإيرادات" : "Revenue"}</th>
-                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{ar ? "الأنبوب" : "Pipeline"}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{ar ? "الهدف" : "Target"}</th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("name")}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("leads")}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("won")}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {ar ? "تحويل" : "Conv %"}
+                </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {ar ? "الإيرادات" : "Revenue"}
+                </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {ar ? "الأنبوب" : "Pipeline"}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {ar ? "الهدف" : "Target"}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -528,22 +610,38 @@ function AdminReportsPage() {
                 <tr key={r.id} className="transition hover:bg-primary/5">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <img src={r.photo} alt={r.name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                      <img
+                        src={r.photo}
+                        alt={r.name}
+                        className="h-8 w-8 shrink-0 rounded-full object-cover"
+                      />
                       <div>
                         <div className="font-semibold text-foreground">{r.name}</div>
-                        <div className="text-[10px] text-muted-foreground">{r.department} · {r.role}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {r.department} · {r.role}
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center font-mono font-semibold text-foreground">{r.totalLeads}</td>
-                  <td className="px-4 py-3 text-center font-mono font-semibold text-emerald-600">{r.wonLeads}</td>
+                  <td className="px-4 py-3 text-center font-mono font-semibold text-foreground">
+                    {r.totalLeads}
+                  </td>
+                  <td className="px-4 py-3 text-center font-mono font-semibold text-emerald-600">
+                    {r.wonLeads}
+                  </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.convRate >= 30 ? "bg-emerald-50 text-emerald-700" : r.convRate >= 15 ? "bg-amber-50 text-amber-700" : "bg-rose-50 text-rose-700"}`}>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.convRate >= 30 ? "bg-emerald-50 text-emerald-700" : r.convRate >= 15 ? "bg-amber-50 text-amber-700" : "bg-rose-50 text-rose-700"}`}
+                    >
                       {r.convRate}%
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-end font-mono font-semibold text-primary">{fmtMoney(r.revenue)}</td>
-                  <td className="px-4 py-3 text-end font-mono text-foreground">{fmtMoney(r.pipelineValue)}</td>
+                  <td className="px-4 py-3 text-end font-mono font-semibold text-primary">
+                    {fmtMoney(r.revenue)}
+                  </td>
+                  <td className="px-4 py-3 text-end font-mono text-foreground">
+                    {fmtMoney(r.pipelineValue)}
+                  </td>
                   <td className="px-4 py-3">
                     {r.annualTarget ? (
                       <div className="flex items-center gap-2">
@@ -553,7 +651,9 @@ function AdminReportsPage() {
                             style={{ width: `${Math.min(r.targetPerc, 100)}%` }}
                           />
                         </div>
-                        <span className={`font-mono text-xs font-bold ${r.targetPerc >= 100 ? "text-emerald-600" : r.targetPerc >= 75 ? "text-amber-600" : "text-rose-600"}`}>
+                        <span
+                          className={`font-mono text-xs font-bold ${r.targetPerc >= 100 ? "text-emerald-600" : r.targetPerc >= 75 ? "text-amber-600" : "text-rose-600"}`}
+                        >
                           {r.targetPerc}%
                         </span>
                       </div>
@@ -590,8 +690,23 @@ interface FiltersAndChartsProps {
 }
 
 function FiltersAndCharts(p: FiltersAndChartsProps) {
-  const { ar, rangeDays, setRangeDays, deptFilter, setDeptFilter, employeeFilter, setEmployeeFilter,
-    departmentsList, filteredEmployees, filteredEmpNames, leads, attendance, rangeStart, stages, employees } = p;
+  const {
+    ar,
+    rangeDays,
+    setRangeDays,
+    deptFilter,
+    setDeptFilter,
+    employeeFilter,
+    setEmployeeFilter,
+    departmentsList,
+    filteredEmployees,
+    filteredEmpNames,
+    leads,
+    attendance,
+    rangeStart,
+    stages,
+    employees,
+  } = p;
 
   // Pipeline trends — count per stage with value
   const pipelineTrend = useMemo(() => {
@@ -620,14 +735,16 @@ function FiltersAndCharts(p: FiltersAndChartsProps) {
 
   // Attendance breakdown: last N days per status
   const attendanceTrend = useMemo(() => {
-    const days: { date: string; label: string; present: number; late: number; absent: number }[] = [];
+    const days: { date: string; label: string; present: number; late: number; absent: number }[] =
+      [];
     const totalEmployees = filteredEmployees.length || employees.length;
     for (let i = rangeDays - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const iso = d.toISOString().slice(0, 10);
-      const todays = attendance.filter((r: any) =>
-        r.date === iso && (filteredEmpNames.size === 0 || filteredEmpNames.has(r.owner))
+      const todays = attendance.filter(
+        (r: any) =>
+          r.date === iso && (filteredEmpNames.size === 0 || filteredEmpNames.has(r.owner)),
       );
       const present = todays.filter((r: any) => r.checkIn && r.checkIn <= "08:15").length;
       const late = todays.filter((r: any) => r.checkIn && r.checkIn > "08:15").length;
@@ -674,11 +791,18 @@ function FiltersAndCharts(p: FiltersAndChartsProps) {
           </select>
           <select
             value={deptFilter}
-            onChange={(e) => { setDeptFilter(e.target.value); setEmployeeFilter("all"); }}
+            onChange={(e) => {
+              setDeptFilter(e.target.value);
+              setEmployeeFilter("all");
+            }}
             className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground"
           >
             <option value="all">{ar ? "كل الأقسام" : "All departments"}</option>
-            {departmentsList.map((d) => <option key={d} value={d}>{d}</option>)}
+            {departmentsList.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
           </select>
           <select
             value={employeeFilter}
@@ -688,7 +812,11 @@ function FiltersAndCharts(p: FiltersAndChartsProps) {
             <option value="all">{ar ? "كل الموظفين" : "All employees"}</option>
             {employees
               .filter((e: any) => deptFilter === "all" || e.department === deptFilter)
-              .map((e: any) => <option key={e.id} value={e.id}>{e.name}</option>)}
+              .map((e: any) => (
+                <option key={e.id} value={e.id}>
+                  {e.name}
+                </option>
+              ))}
           </select>
         </div>
       </div>
@@ -707,10 +835,23 @@ function FiltersAndCharts(p: FiltersAndChartsProps) {
               <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar yAxisId="left" dataKey="count" name={ar ? "العدد" : "Count"} radius={[4, 4, 0, 0]}>
-                {pipelineTrend.map((d, i) => <Cell key={i} fill={d.color} />)}
+              <Bar
+                yAxisId="left"
+                dataKey="count"
+                name={ar ? "العدد" : "Count"}
+                radius={[4, 4, 0, 0]}
+              >
+                {pipelineTrend.map((d, i) => (
+                  <Cell key={i} fill={d.color} />
+                ))}
               </Bar>
-              <Line yAxisId="right" type="monotone" dataKey="value" name={ar ? "القيمة" : "Value"} stroke="#6366f1" />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="value"
+                name={ar ? "القيمة" : "Value"}
+                stroke="#6366f1"
+              />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -723,7 +864,12 @@ function FiltersAndCharts(p: FiltersAndChartsProps) {
             <FunnelChart>
               <Tooltip />
               <Funnel dataKey="value" data={funnelData} isAnimationActive>
-                <LabelList position="right" fill="hsl(var(--foreground))" stroke="none" dataKey="name" />
+                <LabelList
+                  position="right"
+                  fill="hsl(var(--foreground))"
+                  stroke="none"
+                  dataKey="name"
+                />
               </Funnel>
             </FunnelChart>
           </ResponsiveContainer>
@@ -770,4 +916,3 @@ function FiltersAndCharts(p: FiltersAndChartsProps) {
     </div>
   );
 }
-

@@ -39,7 +39,9 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
   const [rejectTarget, setRejectTarget] = useState<Req | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"all" | "pending" | "approved" | "rejected">(mode === "approver" ? "pending" : "all");
+  const [activeTab, setActiveTab] = useState<"all" | "pending" | "approved" | "rejected">(
+    mode === "approver" ? "pending" : "all",
+  );
 
   const [reviewTarget, setReviewTarget] = useState<Req | null>(null);
   const [reviewReason, setReviewReason] = useState("");
@@ -54,11 +56,16 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
       .select("*, requester:profiles!project_requests_requested_by_fkey(full_name_en)")
       .order("created_at", { ascending: false });
     setLoading(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setRows((data ?? []) as any);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const approve = async (req: Req) => {
     setBusyId(req.id);
@@ -88,9 +95,15 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
     }
     setReviewError(null);
     setBusyId(reviewTarget.id);
-    const { error } = await supabase.rpc("review_project_request" as any, { _id: reviewTarget.id, _note: trimmed });
+    const { error } = await supabase.rpc("review_project_request" as any, {
+      _id: reviewTarget.id,
+      _note: trimmed,
+    });
     setBusyId(null);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Changes requested");
     setReviewTarget(null);
     setReviewReason("");
@@ -106,16 +119,22 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
     }
     setRejectError(null);
     setBusyId(rejectTarget.id);
-    const { error } = await supabase.rpc("reject_project_request" as any, { _id: rejectTarget.id, _note: trimmed });
+    const { error } = await supabase.rpc("reject_project_request" as any, {
+      _id: rejectTarget.id,
+      _note: trimmed,
+    });
     setBusyId(null);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Request rejected");
     setRejectTarget(null);
     setRejectReason("");
     load();
   };
 
-  const visible = rows.filter(r => activeTab === "all" || r.status === activeTab);
+  const visible = rows.filter((r) => activeTab === "all" || r.status === activeTab);
 
   const TABS = [
     { id: "all", label: "All" },
@@ -127,13 +146,18 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm font-bold">{mode === "approver" ? "Accounts · Requests" : "My accounts"}</h3>
-        <button onClick={load} className="text-[11px] font-semibold text-primary hover:underline">Refresh</button>
+        <h3 className="font-display text-sm font-bold">
+          {mode === "approver" ? "Accounts · Requests" : "My accounts"}
+        </h3>
+        <button onClick={load} className="text-[11px] font-semibold text-primary hover:underline">
+          Refresh
+        </button>
       </div>
 
       <div className="mb-4 flex gap-2 border-b border-border">
         {TABS.map((tab) => {
-          const count = tab.id === "all" ? rows.length : rows.filter((r) => r.status === tab.id).length;
+          const count =
+            tab.id === "all" ? rows.length : rows.filter((r) => r.status === tab.id).length;
           return (
             <button
               key={tab.id}
@@ -145,9 +169,13 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
               }`}
             >
               {tab.label}
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${
-                activeTab === tab.id ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
-              }`}>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+                  activeTab === tab.id
+                    ? "bg-primary/10 text-primary"
+                    : "bg-secondary text-muted-foreground"
+                }`}
+              >
                 {count}
               </span>
             </button>
@@ -157,7 +185,9 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
 
       {loading && <div className="text-xs text-muted-foreground">Loading…</div>}
       {!loading && visible.length === 0 && (
-        <div className="rounded-md border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">No requests.</div>
+        <div className="rounded-md border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
+          No requests.
+        </div>
       )}
       {visible.length > 0 && (
         <div className="overflow-x-auto rounded-xl border border-border bg-background shadow-sm mt-3">
@@ -177,7 +207,11 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
                     <div className="font-bold text-foreground text-[13px]">{r.name_en}</div>
                     {(r.account_type || r.category_en) && (
                       <div className="text-[11px] text-muted-foreground mt-0.5">
-                        {r.account_type ? (r.account_type === "Other" && r.other_account_type ? r.other_account_type : r.account_type) : r.category_en}
+                        {r.account_type
+                          ? r.account_type === "Other" && r.other_account_type
+                            ? r.other_account_type
+                            : r.account_type
+                          : r.category_en}
                       </div>
                     )}
                   </td>
@@ -190,7 +224,9 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
                     </div>
                     {r.extra_contacts && (
                       <div className="mt-2 text-[10px]">
-                        <div className="font-semibold text-foreground uppercase tracking-wider mb-0.5">Extra Contacts</div>
+                        <div className="font-semibold text-foreground uppercase tracking-wider mb-0.5">
+                          Extra Contacts
+                        </div>
                         <ul className="space-y-0.5">
                           {(() => {
                             try {
@@ -213,7 +249,10 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
                   <td className="px-4 py-3 align-top text-muted-foreground">
                     {mode === "approver" && r.requester?.full_name_en && (
                       <div className="text-[10px] uppercase tracking-wider">
-                        By <span className="font-semibold text-foreground">{r.requester.full_name_en}</span>
+                        By{" "}
+                        <span className="font-semibold text-foreground">
+                          {r.requester.full_name_en}
+                        </span>
                       </div>
                     )}
                     <div className="mt-1 inline-flex items-center gap-1 text-[10px]">
@@ -222,11 +261,16 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
                     {r.status === "rejected" && (
                       <div className="mt-2 flex items-start gap-1.5 rounded bg-rose-50 p-1.5 text-[11px] text-rose-800 border border-rose-100">
                         <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
-                        <div><b>Reason:</b> {r.decision_note || <i className="text-rose-600">No reason provided</i>}</div>
+                        <div>
+                          <b>Reason:</b>{" "}
+                          {r.decision_note || <i className="text-rose-600">No reason provided</i>}
+                        </div>
                       </div>
                     )}
                     {r.status === "approved" && r.decision_note && (
-                      <div className="mt-2 rounded bg-secondary/50 p-1.5 text-[11px]"><b>Note:</b> {r.decision_note}</div>
+                      <div className="mt-2 rounded bg-secondary/50 p-1.5 text-[11px]">
+                        <b>Note:</b> {r.decision_note}
+                      </div>
                     )}
                   </td>
                   <td className="px-4 py-3 align-top text-right">
@@ -235,7 +279,11 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
                         <div className="flex items-center gap-2">
                           <button
                             disabled={busyId === r.id}
-                            onClick={() => { setRejectTarget(r); setRejectReason(""); setRejectError(null); }}
+                            onClick={() => {
+                              setRejectTarget(r);
+                              setRejectReason("");
+                              setRejectError(null);
+                            }}
                             className="inline-flex items-center gap-1 rounded-md bg-rose-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
                           >
                             <X className="h-3 w-3" /> Reject
@@ -277,7 +325,16 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
         </div>
       )}
 
-      <Dialog open={!!rejectTarget} onOpenChange={(o) => { if (!o) { setRejectTarget(null); setRejectReason(""); setRejectError(null); } }}>
+      <Dialog
+        open={!!rejectTarget}
+        onOpenChange={(o) => {
+          if (!o) {
+            setRejectTarget(null);
+            setRejectReason("");
+            setRejectError(null);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reject project request</DialogTitle>
@@ -301,7 +358,11 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
           </div>
           <DialogFooter>
             <button
-              onClick={() => { setRejectTarget(null); setRejectReason(""); setRejectError(null); }}
+              onClick={() => {
+                setRejectTarget(null);
+                setRejectReason("");
+                setRejectError(null);
+              }}
               className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold hover:bg-accent"
             >
               Cancel
@@ -317,12 +378,22 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!reviewTarget} onOpenChange={(o) => { if (!o) { setReviewTarget(null); setReviewReason(""); setReviewError(null); } }}>
+      <Dialog
+        open={!!reviewTarget}
+        onOpenChange={(o) => {
+          if (!o) {
+            setReviewTarget(null);
+            setReviewReason("");
+            setReviewError(null);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Request Changes (Duplicate Detected)</DialogTitle>
             <DialogDescription>
-              This request matches an existing client or request. Write a note to the creator to fix the issue.
+              This request matches an existing client or request. Write a note to the creator to fix
+              the issue.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -341,7 +412,11 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
           </div>
           <DialogFooter>
             <button
-              onClick={() => { setReviewTarget(null); setReviewReason(""); setReviewError(null); }}
+              onClick={() => {
+                setReviewTarget(null);
+                setReviewReason("");
+                setReviewError(null);
+              }}
               className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold hover:bg-accent"
             >
               Cancel

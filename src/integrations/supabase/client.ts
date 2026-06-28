@@ -1,7 +1,7 @@
 // Defensive Supabase client. Initialization is lazy and never throws at
 // import time — errors are captured and surfaced by <SupabasePreflight />.
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from './types';
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "./types";
 
 let _supabase: SupabaseClient<Database> | undefined;
 let _initError: Error | undefined;
@@ -19,25 +19,24 @@ export function getSupabaseInitError(): Error | undefined {
 }
 
 function createSupabaseClient(): SupabaseClient<Database> {
-  if (typeof createClient !== 'function') {
+  if (typeof createClient !== "function") {
     throw new Error(
-      "Supabase SDK missing: '@supabase/supabase-js' is not installed or failed to load. Run `bun add @supabase/supabase-js`."
+      "Supabase SDK missing: '@supabase/supabase-js' is not installed or failed to load. Run `bun add @supabase/supabase-js`.",
     );
   }
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+  const SUPABASE_PUBLISHABLE_KEY =
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
-      ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-      ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
+      ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
+      ...(!SUPABASE_PUBLISHABLE_KEY ? ["SUPABASE_PUBLISHABLE_KEY"] : []),
     ];
-    throw new Error(
-      `Missing Supabase environment variable(s): ${missing.join(', ')}.`
-    );
+    throw new Error(`Missing Supabase environment variable(s): ${missing.join(", ")}.`);
   }
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: {
-      storage: typeof window !== 'undefined' ? localStorage : undefined,
+      storage: typeof window !== "undefined" ? localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
     },
@@ -53,7 +52,7 @@ export const supabase = new Proxy({} as SupabaseClient<Database>, {
         _supabase = createSupabaseClient();
       } catch (e) {
         _initError = e instanceof Error ? e : new Error(String(e));
-        console.error('[Supabase]', _initError.message);
+        console.error("[Supabase]", _initError.message);
         throw _initError;
       }
     }

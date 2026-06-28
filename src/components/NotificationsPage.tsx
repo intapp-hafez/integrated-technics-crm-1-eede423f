@@ -4,7 +4,20 @@ import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState, type AppNotification } from "@/lib/store";
 import { isAllowed, useNotifPrefs } from "@/lib/notificationPrefs";
 import { useAuth } from "@/lib/auth";
-import { Bell, Users, MessageSquare, CalendarCheck, Clock4, FileBadge, Briefcase, Check, Trash2, MailOpen, Mail, Settings as SettingsIcon } from "lucide-react";
+import {
+  Bell,
+  Users,
+  MessageSquare,
+  CalendarCheck,
+  Clock4,
+  FileBadge,
+  Briefcase,
+  Check,
+  Trash2,
+  MailOpen,
+  Mail,
+  Settings as SettingsIcon,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 
 type Panel = "admin" | "manager" | "employee" | "finance";
@@ -55,7 +68,8 @@ function rewriteHref(href: string | undefined, panel: Panel): string | undefined
   }
   if (panel === "admin") return href;
   if (panel === "finance") {
-    if (href.startsWith("/admin/offers/")) return href.replace("/admin/offers/", "/finance/quotations/");
+    if (href.startsWith("/admin/offers/"))
+      return href.replace("/admin/offers/", "/finance/quotations/");
     if (href.startsWith("/admin/offers")) return "/finance?tab=quotations";
     if (href.startsWith("/admin/chat")) return "/finance?tab=chat";
     return "/finance";
@@ -63,7 +77,13 @@ function rewriteHref(href: string | undefined, panel: Panel): string | undefined
   return href.replace("/admin/", `/${panel}/`);
 }
 
-export function NotificationsPage({ panel, user }: { panel: Panel; user: { name: string; role: string; initials: string; photo?: string } }) {
+export function NotificationsPage({
+  panel,
+  user,
+}: {
+  panel: Panel;
+  user: { name: string; role: string; initials: string; photo?: string };
+}) {
   const { dir } = useI18n();
   const { notifications, profile } = useStoreState();
   const { role } = useAuth();
@@ -79,7 +99,6 @@ export function NotificationsPage({ panel, user }: { panel: Panel; user: { name:
       .filter((n) => isAllowed(n, prefs))
       .sort((a, b) => +new Date(b.ts) - +new Date(a.ts));
   }, [notifications, prefs]);
-
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: all.length };
@@ -98,7 +117,9 @@ export function NotificationsPage({ panel, user }: { panel: Panel; user: { name:
             <Bell className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="font-display text-xl font-bold text-foreground">{dir === "rtl" ? "مركز الإشعارات" : "Notification Center"}</h2>
+            <h2 className="font-display text-xl font-bold text-foreground">
+              {dir === "rtl" ? "مركز الإشعارات" : "Notification Center"}
+            </h2>
             <p className="text-xs text-muted-foreground">
               {unreadCount} {dir === "rtl" ? "غير مقروء من أصل" : "unread of"} {all.length}
             </p>
@@ -129,12 +150,16 @@ export function NotificationsPage({ panel, user }: { panel: Panel; user: { name:
               key={c.key}
               onClick={() => setFilter(c.key)}
               className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
-                active ? "bg-primary text-primary-foreground" : "bg-card text-foreground ring-1 ring-border hover:bg-accent"
+                active
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground ring-1 ring-border hover:bg-accent"
               }`}
             >
               <I className="h-3.5 w-3.5" />
               {dir === "rtl" ? c.labelAr : c.labelEn}
-              <span className={`ms-1 rounded-full px-1.5 text-[10px] font-bold ${active ? "bg-primary-foreground/20" : "bg-secondary"}`}>
+              <span
+                className={`ms-1 rounded-full px-1.5 text-[10px] font-bold ${active ? "bg-primary-foreground/20" : "bg-secondary"}`}
+              >
                 {counts[c.key] ?? 0}
               </span>
             </button>
@@ -153,33 +178,60 @@ export function NotificationsPage({ panel, user }: { panel: Panel; user: { name:
             const I = ICONS[n.type];
             const href = rewriteHref(n.href, panel);
             const inner = (
-              <div className={`group flex items-start gap-4 px-5 py-4 transition hover:bg-secondary/60 ${n.unread ? "bg-primary/5" : ""}`}>
-                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${TONE[n.type]}`}>
+              <div
+                className={`group flex items-start gap-4 px-5 py-4 transition hover:bg-secondary/60 ${n.unread ? "bg-primary/5" : ""}`}
+              >
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${TONE[n.type]}`}
+                >
                   <I className="h-4 w-4" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <div className="truncate text-sm font-bold text-foreground">{dir === "rtl" ? n.titleAr : n.titleEn}</div>
+                    <div className="truncate text-sm font-bold text-foreground">
+                      {dir === "rtl" ? n.titleAr : n.titleEn}
+                    </div>
                     {n.unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />}
-                    <div className="ms-auto text-[11px] text-muted-foreground">{timeAgo(n.ts, dir)}</div>
+                    <div className="ms-auto text-[11px] text-muted-foreground">
+                      {timeAgo(n.ts, dir)}
+                    </div>
                   </div>
-                  <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">{dir === "rtl" ? n.bodyAr : n.bodyEn}</div>
+                  <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                    {dir === "rtl" ? n.bodyAr : n.bodyEn}
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
                   <button
                     onClick={(e) => {
-                      e.preventDefault(); e.stopPropagation();
+                      e.preventDefault();
+                      e.stopPropagation();
                       if (n.unread) actions.markNotificationRead(n.id);
                       else actions.markNotificationUnread(n.id);
                     }}
-                    title={n.unread ? (dir === "rtl" ? "تحديد كمقروء" : "Mark read") : (dir === "rtl" ? "تحديد كغير مقروء" : "Mark unread")}
+                    title={
+                      n.unread
+                        ? dir === "rtl"
+                          ? "تحديد كمقروء"
+                          : "Mark read"
+                        : dir === "rtl"
+                          ? "تحديد كغير مقروء"
+                          : "Mark unread"
+                    }
                     aria-label="toggle-read"
                     className="rounded p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
                   >
-                    {n.unread ? <MailOpen className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
+                    {n.unread ? (
+                      <MailOpen className="h-3.5 w-3.5" />
+                    ) : (
+                      <Mail className="h-3.5 w-3.5" />
+                    )}
                   </button>
                   <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); actions.dismissNotification(n.id); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      actions.dismissNotification(n.id);
+                    }}
                     title={dir === "rtl" ? "أرشفة" : "Archive"}
                     aria-label="dismiss"
                     className="rounded p-1 text-muted-foreground hover:bg-secondary hover:text-rose-600"
@@ -192,7 +244,9 @@ export function NotificationsPage({ panel, user }: { panel: Panel; user: { name:
             return (
               <li key={n.id}>
                 {href ? (
-                  <Link to={href as any} onClick={() => actions.markNotificationRead(n.id)}>{inner}</Link>
+                  <Link to={href as any} onClick={() => actions.markNotificationRead(n.id)}>
+                    {inner}
+                  </Link>
                 ) : (
                   <div onClick={() => actions.markNotificationRead(n.id)}>{inner}</div>
                 )}

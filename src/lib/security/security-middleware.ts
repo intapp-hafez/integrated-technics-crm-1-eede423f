@@ -31,7 +31,11 @@ function rulesForPath(path: string): { bucket: string; limit: number; window: nu
 
 function applySecurityHeaders() {
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) {
-    try { setResponseHeader(k, v); } catch { /* ignore */ }
+    try {
+      setResponseHeader(k, v);
+    } catch {
+      /* ignore */
+    }
   }
 }
 
@@ -61,7 +65,11 @@ export const securityMiddleware = createMiddleware().server(async ({ next }) => 
   applySecurityHeaders();
 
   let req: Request | null = null;
-  try { req = getRequest(); } catch { /* no request */ }
+  try {
+    req = getRequest();
+  } catch {
+    /* no request */
+  }
   if (!req) return next();
 
   const url = new URL(req.url);
@@ -92,14 +100,17 @@ export const securityMiddleware = createMiddleware().server(async ({ next }) => 
     try {
       const { data } = await supabaseAdmin.rpc("is_ip_blocked", { _ip: ip as any });
       blocked = Boolean(data);
-    } catch { blocked = false; }
+    } catch {
+      blocked = false;
+    }
     blockedCache.set(ip, { value: blocked, until: Date.now() + CACHE_TTL_MS });
   }
 
   if (blocked) {
     await recordEvent(ip, "blocked_request", path, "warn", { method: req.method });
     return new Response("Forbidden — your IP is blocked.", {
-      status: 403, headers: SECURITY_HEADERS,
+      status: 403,
+      headers: SECURITY_HEADERS,
     });
   }
 
@@ -108,10 +119,15 @@ export const securityMiddleware = createMiddleware().server(async ({ next }) => 
   let allowed = true;
   try {
     const { data } = await supabaseAdmin.rpc("rate_limit_check", {
-      _ip: ip as any, _bucket: rule.bucket, _limit: rule.limit, _window_seconds: rule.window,
+      _ip: ip as any,
+      _bucket: rule.bucket,
+      _limit: rule.limit,
+      _window_seconds: rule.window,
     });
     allowed = data !== false;
-  } catch { allowed = true; }
+  } catch {
+    allowed = true;
+  }
 
   if (!allowed) {
     await recordEvent(ip, "rate_limit", path, "warn", { bucket: rule.bucket, limit: rule.limit });
@@ -128,20 +144,28 @@ export const securityMiddleware = createMiddleware().server(async ({ next }) => 
     if (!hit && (req.method === "POST" || req.method === "PUT" || req.method === "PATCH")) {
       const ct = req.headers.get("content-type") || "";
       if (ct.includes("application/json") || ct.includes("text/")) {
-        const text = await req.clone().text().catch(() => "");
+        const text = await req
+          .clone()
+          .text()
+          .catch(() => "");
         if (text) hit = scanPayload(text);
       }
     }
     if (hit) {
       await recordEvent(ip, "suspicious_payload", path, "critical", {
-        category: hit.category, sample: hit.sample, method: req.method,
+        category: hit.category,
+        sample: hit.sample,
+        method: req.method,
       });
       blockedCache.delete(ip);
       return new Response("Request blocked by security policy.", {
-        status: 400, headers: SECURITY_HEADERS,
+        status: 400,
+        headers: SECURITY_HEADERS,
       });
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   return next();
 });

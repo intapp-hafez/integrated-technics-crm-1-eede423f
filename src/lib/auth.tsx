@@ -72,11 +72,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     const [{ data: profileRow }, { data: roleRows }] = await Promise.all([
-      supabase.from("profiles").select("id,user_id,full_name_en,full_name_ar,email,avatar_url,title_en,title_ar").eq("user_id", currentUser.id).maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("id,user_id,full_name_en,full_name_ar,email,avatar_url,title_en,title_ar")
+        .eq("user_id", currentUser.id)
+        .maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", currentUser.id),
     ]);
     setProfile((profileRow as Profile) ?? null);
-    const allRoles = ((roleRows ?? []).map((r) => r.role as string));
+    const allRoles = (roleRows ?? []).map((r) => r.role as string);
     const resolved = allRoles.filter((r): r is Role => (ROLE_PRIORITY as string[]).includes(r));
     setRoles(resolved);
     const top = ROLE_PRIORITY.find((r) => resolved.includes(r)) ?? null;
@@ -88,7 +92,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       // Defer reload to avoid deadlocks in onAuthStateChange
-      setTimeout(() => { load(session?.user ?? null); }, 0);
+      setTimeout(() => {
+        load(session?.user ?? null);
+      }, 0);
     });
     // Then bootstrap initial session
     supabase.auth.getSession().then(async ({ data }) => {
@@ -97,13 +103,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
     return () => sub.subscription.unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const role = ROLE_PRIORITY.find((r) => roles.includes(r)) ?? null;
   const panel: Panel | null = role;
 
-  const refresh = async () => { await load(user); };
+  const refresh = async () => {
+    await load(user);
+  };
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -115,13 +123,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Ctx.Provider value={{
-      loading, user, profile, roles, role, panel,
-      isAdmin: role === "admin",
-      isManager: role === "manager",
-      isFinance: role === "finance",
-      refresh, signOut,
-    }}>
+    <Ctx.Provider
+      value={{
+        loading,
+        user,
+        profile,
+        roles,
+        role,
+        panel,
+        isAdmin: role === "admin",
+        isManager: role === "manager",
+        isFinance: role === "finance",
+        refresh,
+        signOut,
+      }}
+    >
       {children}
     </Ctx.Provider>
   );

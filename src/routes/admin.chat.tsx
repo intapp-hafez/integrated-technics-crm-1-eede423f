@@ -18,8 +18,18 @@ function AdminChatPage() {
 
   const contacts = chatContactsFor(role ?? "admin", profile?.id, users, employees);
 
-  const meName = (dir === "rtl" ? profile?.full_name_ar : profile?.full_name_en) || profile?.full_name_en || "Admin";
-  const meInitials = (meName || "").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "AD";
+  const meName =
+    (dir === "rtl" ? profile?.full_name_ar : profile?.full_name_en) ||
+    profile?.full_name_en ||
+    "Admin";
+  const meInitials =
+    (meName || "")
+      .split(" ")
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "AD";
 
   return (
     <AppShell

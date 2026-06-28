@@ -23,8 +23,12 @@ function fmtCairo(y: number, m: number, d: number) {
 export interface TargetPeriod {
   targetType: TargetType;
   periodName: "Year" | "Quarter" | "Month";
-  psY: number; psM: number; psD: number;
-  peY: number; peM: number; peD: number;
+  psY: number;
+  psM: number;
+  psD: number;
+  peY: number;
+  peM: number;
+  peD: number;
   periodStartIso: string;
   periodEndIso: string;
   periodStartMs: number;
@@ -48,18 +52,30 @@ export function computeTargetPeriod(targetType: TargetType): TargetPeriod {
   const year = Number(nowParts.year);
   const month = Number(nowParts.month) - 1;
 
-  let psY = year, psM = 0, psD = 1;
-  let peY = year, peM = 11, peD = 31;
+  let psY = year,
+    psM = 0,
+    psD = 1;
+  let peY = year,
+    peM = 11,
+    peD = 31;
   let periodName: "Year" | "Quarter" | "Month" = "Year";
 
   if (targetType === "monthly") {
-    psY = year; psM = month; psD = 1;
-    peY = year; peM = month; peD = daysInMonth(year, month);
+    psY = year;
+    psM = month;
+    psD = 1;
+    peY = year;
+    peM = month;
+    peD = daysInMonth(year, month);
     periodName = "Month";
   } else if (targetType === "quarterly") {
     const qStart = Math.floor(month / 3) * 3;
-    psY = year; psM = qStart; psD = 1;
-    peY = year; peM = qStart + 2; peD = daysInMonth(year, qStart + 2);
+    psY = year;
+    psM = qStart;
+    psD = 1;
+    peY = year;
+    peM = qStart + 2;
+    peD = daysInMonth(year, qStart + 2);
     periodName = "Quarter";
   }
 
@@ -69,7 +85,12 @@ export function computeTargetPeriod(targetType: TargetType): TargetPeriod {
   return {
     targetType,
     periodName,
-    psY, psM, psD, peY, peM, peD,
+    psY,
+    psM,
+    psD,
+    peY,
+    peM,
+    peD,
     periodStartIso,
     periodEndIso,
     periodStartMs: new Date(periodStartIso).getTime(),
@@ -85,7 +106,12 @@ export function fmtCairoDate(y: number, m: number, d: number) {
 
 /** Sum value of won leads whose updatedAt falls inside the period. */
 export function sumWonInPeriod(
-  leads: Array<{ status?: string; value?: number | null; updatedAt?: string | null; updatedAtIso?: string | null }>,
+  leads: Array<{
+    status?: string;
+    value?: number | null;
+    updatedAt?: string | null;
+    updatedAtIso?: string | null;
+  }>,
   period: { periodStartMs: number; periodEndMs: number },
 ): number {
   return leads

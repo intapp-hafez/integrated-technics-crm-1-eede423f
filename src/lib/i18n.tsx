@@ -19,7 +19,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
     try {
       const saved = localStorage.getItem("int-crm:lang");
-      return (saved === "ar" || saved === "en") ? saved : "en";
+      return saved === "ar" || saved === "en" ? saved : "en";
     } catch {
       return "en";
     }
@@ -27,7 +27,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLang = (l: Lang) => {
     setLangState(l);
-    try { localStorage.setItem("int-crm:lang", l); } catch {}
+    try {
+      localStorage.setItem("int-crm:lang", l);
+    } catch {}
   };
 
   useEffect(() => {

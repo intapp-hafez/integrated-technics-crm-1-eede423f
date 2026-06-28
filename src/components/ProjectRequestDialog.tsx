@@ -26,12 +26,20 @@ const schema = z.object({
   client_name_en: z.string().trim().min(2).max(120),
   contact_name_en: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(255),
-  phone: z.string().trim().regex(/^[0-9 +()\-]{6,25}$/, "Invalid phone"),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[0-9 +()\-]{6,25}$/, "Invalid phone"),
   account_type: z.string().max(80).optional().or(z.literal("")),
   other_account_type: z.string().max(120).optional().or(z.literal("")),
 });
 
-type LocRow = { city_en: string; city_ar: string | null; districts_en: string[] | null; districts_ar: string[] | null };
+type LocRow = {
+  city_en: string;
+  city_ar: string | null;
+  districts_en: string[] | null;
+  districts_ar: string[] | null;
+};
 type Pair = { en: string; ar: string };
 
 const FALLBACK_CATEGORIES: Pair[] = [
@@ -74,17 +82,31 @@ const FALLBACK_TYPES: Pair[] = [
   { en: "Sports Facility", ar: "منشأة رياضية" },
 ];
 
-const inputCls = "h-9 w-full rounded-lg border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
-const selectCls = "h-9 w-full rounded-lg border border-border bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
+const inputCls =
+  "h-9 w-full rounded-lg border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
+const selectCls =
+  "h-9 w-full rounded-lg border border-border bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
 const labelCls = "mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground";
 const sectionCls = "mb-1 text-[11px] font-bold uppercase tracking-wider text-primary";
 
-export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existingRequest }: { profileId?: string | null; onClose: () => void; onSubmitted?: () => void; existingRequest?: any }) {
+export function ProjectRequestDialog({
+  profileId,
+  onClose,
+  onSubmitted,
+  existingRequest,
+}: {
+  profileId?: string | null;
+  onClose: () => void;
+  onSubmitted?: () => void;
+  existingRequest?: any;
+}) {
   const { lang } = useI18n();
   const isAr = lang === "ar";
   const L = {
     title: isAr ? "طلب حساب جديد" : "Request New Account",
-    subtitle: isAr ? "قم بملء التفاصيل أدناه — سيقوم مديرك بمراجعتها والموافقة عليها" : "Fill in the details below — your manager will review and approve",
+    subtitle: isAr
+      ? "قم بملء التفاصيل أدناه — سيقوم مديرك بمراجعتها والموافقة عليها"
+      : "Fill in the details below — your manager will review and approve",
     accountInfo: isAr ? "معلومات الحساب" : "Account Info",
     accountName: isAr ? "اسم الحساب *" : "Account Name *",
     accountNamePh: isAr ? "مثال: تجهيز مكتب – وسط المدينة" : "e.g. Office Fit-out – Downtown",
@@ -124,7 +146,9 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
     phoneLabel: isAr ? "رقم الهاتف *" : "Phone *",
     extraContacts: isAr ? "جهات اتصال إضافية" : "Extra Contacts",
     addContact: isAr ? "إضافة جهة اتصال" : "Add Contact",
-    noExtraContacts: isAr ? "لا توجد جهات اتصال إضافية. انقر فوق 'إضافة جهة اتصال' لإضافة واحدة." : "No extra contacts yet. Click \"Add Contact\" to add one.",
+    noExtraContacts: isAr
+      ? "لا توجد جهات اتصال إضافية. انقر فوق 'إضافة جهة اتصال' لإضافة واحدة."
+      : 'No extra contacts yet. Click "Add Contact" to add one.',
     name: isAr ? "الاسم" : "Name",
     namePh: isAr ? "الاسم الكامل" : "Full name",
     titleRole: isAr ? "المسمى الوظيفي / الدور" : "Title / Role",
@@ -134,7 +158,9 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
     submitting: isAr ? "جاري الإرسال…" : "Submitting…",
     errorFix: isAr ? "يرجى إصلاح الأخطاء" : "Please fix errors",
     errorNoProfile: isAr ? "لم يتم تحميل الملف الشخصي" : "Profile not loaded",
-    successSent: isAr ? "تم إرسال الطلب إلى مديرك والمسؤول" : "Request sent to your manager and admin",
+    successSent: isAr
+      ? "تم إرسال الطلب إلى مديرك والمسؤول"
+      : "Request sent to your manager and admin",
   };
   const [v, setV] = useState<Record<string, string>>({});
   const [phone, setPhone] = useState("+20");
@@ -142,7 +168,9 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
   const [locations, setLocations] = useState<LocRow[]>([]);
   const [categories, setCategories] = useState<Pair[]>(FALLBACK_CATEGORIES);
   const [types, setTypes] = useState<Pair[]>(FALLBACK_TYPES);
-  const [extraContacts, setExtraContacts] = useState<Array<{ name: string; title: string; phone: string; email: string }>>([]);
+  const [extraContacts, setExtraContacts] = useState<
+    Array<{ name: string; title: string; phone: string; email: string }>
+  >([]);
 
   useEffect(() => {
     if (existingRequest) {
@@ -172,13 +200,16 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
       setPhone(existingRequest.phone || "+20");
       if (existingRequest.extra_contacts) {
         try {
-          const parsed = typeof existingRequest.extra_contacts === 'string' 
-            ? JSON.parse(existingRequest.extra_contacts) 
-            : existingRequest.extra_contacts;
+          const parsed =
+            typeof existingRequest.extra_contacts === "string"
+              ? JSON.parse(existingRequest.extra_contacts)
+              : existingRequest.extra_contacts;
           // Handle double-encoded JSON just in case
-          const arr = typeof parsed === 'string' ? JSON.parse(parsed) : parsed;
+          const arr = typeof parsed === "string" ? JSON.parse(parsed) : parsed;
           if (Array.isArray(arr)) setExtraContacts(arr);
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
     }
   }, [existingRequest]);
@@ -186,8 +217,13 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
   useEffect(() => {
     (async () => {
       const [locRes, projRes] = await Promise.all([
-        supabase.from("locations").select("city_en, city_ar, districts_en, districts_ar").order("city_en"),
-        supabase.from("projects").select("category_en, category_ar, project_type_en, project_type_ar"),
+        supabase
+          .from("locations")
+          .select("city_en, city_ar, districts_en, districts_ar")
+          .order("city_en"),
+        supabase
+          .from("projects")
+          .select("category_en, category_ar, project_type_en, project_type_ar"),
       ]);
       if (locRes.data) setLocations(locRes.data as LocRow[]);
       if (projRes.data) {
@@ -205,10 +241,15 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
     })();
   }, []);
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setV(s => ({ ...s, [k]: e.target.value }));
+  const set =
+    (k: string) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      setV((s) => ({ ...s, [k]: e.target.value }));
 
-  const selectedCity = useMemo(() => locations.find(l => l.city_en === v.city_en), [locations, v.city_en]);
+  const selectedCity = useMemo(
+    () => locations.find((l) => l.city_en === v.city_en),
+    [locations, v.city_en],
+  );
   const districtPairs = useMemo<Pair[]>(() => {
     if (!selectedCity) return [];
     const en = selectedCity.districts_en ?? [];
@@ -217,79 +258,115 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
   }, [selectedCity]);
 
   const onCity = (en: string) => {
-    const row = locations.find(l => l.city_en === en);
-    setV(s => ({ ...s, city_en: en, city_ar: row?.city_ar ?? "", district_en: "", district_ar: "" }));
+    const row = locations.find((l) => l.city_en === en);
+    setV((s) => ({
+      ...s,
+      city_en: en,
+      city_ar: row?.city_ar ?? "",
+      district_en: "",
+      district_ar: "",
+    }));
   };
   const onDistrict = (en: string) => {
-    const d = districtPairs.find(p => p.en === en);
-    setV(s => ({ ...s, district_en: en, district_ar: d?.ar ?? "" }));
+    const d = districtPairs.find((p) => p.en === en);
+    setV((s) => ({ ...s, district_en: en, district_ar: d?.ar ?? "" }));
   };
   const onCategory = (en: string) => {
-    const p = categories.find(c => c.en === en);
-    setV(s => ({ ...s, category_en: en, category_ar: p?.ar ?? "" }));
+    const p = categories.find((c) => c.en === en);
+    setV((s) => ({ ...s, category_en: en, category_ar: p?.ar ?? "" }));
   };
   const onType = (en: string) => {
-    const p = types.find(c => c.en === en);
-    setV(s => ({ ...s, project_type_en: en, project_type_ar: p?.ar ?? "" }));
+    const p = types.find((c) => c.en === en);
+    setV((s) => ({ ...s, project_type_en: en, project_type_ar: p?.ar ?? "" }));
   };
 
-  const addContact = () => setExtraContacts(prev => [...prev, { name: "", title: "", phone: "", email: "" }]);
-  const removeContact = (i: number) => setExtraContacts(prev => prev.filter((_, idx) => idx !== i));
+  const addContact = () =>
+    setExtraContacts((prev) => [...prev, { name: "", title: "", phone: "", email: "" }]);
+  const removeContact = (i: number) =>
+    setExtraContacts((prev) => prev.filter((_, idx) => idx !== i));
   const updateContact = (i: number, field: "name" | "title" | "phone" | "email", val: string) =>
-    setExtraContacts(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
+    setExtraContacts((prev) => prev.map((c, idx) => (idx === i ? { ...c, [field]: val } : c)));
 
   const submit = async () => {
     const parsed = schema.safeParse({ ...v, phone });
-    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? L.errorFix); return; }
-    if (!profileId && !existingRequest) { toast.error(L.errorNoProfile); return; }
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? L.errorFix);
+      return;
+    }
+    if (!profileId && !existingRequest) {
+      toast.error(L.errorNoProfile);
+      return;
+    }
     const d = parsed.data;
     setBusy(true);
-    
+
     const payload = {
-      name_en: d.name_en, name_ar: d.name_ar || null,
+      name_en: d.name_en,
+      name_ar: d.name_ar || null,
       description_en: d.description_en || null,
-      category_en: d.category_en || null, category_ar: d.category_ar || null,
-      project_type_en: d.project_type_en || null, project_type_ar: d.project_type_ar || null,
-      city_en: d.city_en || null, city_ar: d.city_ar || null,
-      district_en: d.district_en || null, district_ar: d.district_ar || null,
+      category_en: d.category_en || null,
+      category_ar: d.category_ar || null,
+      project_type_en: d.project_type_en || null,
+      project_type_ar: d.project_type_ar || null,
+      city_en: d.city_en || null,
+      city_ar: d.city_ar || null,
+      district_en: d.district_en || null,
+      district_ar: d.district_ar || null,
       street_en: d.street_en || null,
       budget: d.budget ?? 0,
-      start_date: d.start_date || null, end_date: d.end_date || null,
-      competitors: d.competitors ? d.competitors.split(",").map(s => s.trim()).filter(Boolean) : [],
+      start_date: d.start_date || null,
+      end_date: d.end_date || null,
+      competitors: d.competitors
+        ? d.competitors
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
       client_name_en: d.client_name_en,
       contact_name_en: d.contact_name_en,
-      email: d.email, phone: d.phone,
+      email: d.email,
+      phone: d.phone,
       account_type: d.account_type || null,
-      other_account_type: d.account_type === "Other" ? (d.other_account_type || null) : null,
-      extra_contacts: extraContacts.filter(c => c.name.trim()).length > 0
-        ? JSON.stringify(extraContacts.filter(c => c.name.trim()))
-        : null,
+      other_account_type: d.account_type === "Other" ? d.other_account_type || null : null,
+      extra_contacts:
+        extraContacts.filter((c) => c.name.trim()).length > 0
+          ? JSON.stringify(extraContacts.filter((c) => c.name.trim()))
+          : null,
     };
 
     let error;
     if (existingRequest) {
-      const { error: updateError } = await supabase.from("project_requests").update(payload).eq("id", existingRequest.id);
+      const { error: updateError } = await supabase
+        .from("project_requests")
+        .update(payload)
+        .eq("id", existingRequest.id);
       error = updateError;
     } else {
       const { error: insertError } = await supabase.from("project_requests").insert({
         requested_by: profileId,
-        ...payload
+        ...payload,
       } as any);
       error = insertError;
     }
-    
+
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success(L.successSent);
     onSubmitted?.();
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" dir={isAr ? "rtl" : "ltr"}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+      dir={isAr ? "rtl" : "ltr"}
+    >
       <div
         className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl"
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="mb-5 flex items-center justify-between">
@@ -297,7 +374,10 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
             <h2 className="font-display text-lg font-bold text-foreground">{L.title}</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">{L.subtitle}</p>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent transition-colors">
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent transition-colors"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -307,11 +387,21 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
             <span className={labelCls}>{L.accountName}</span>
-            <input value={v.name_en ?? ""} onChange={set("name_en")} className={inputCls} placeholder={L.accountNamePh} />
+            <input
+              value={v.name_en ?? ""}
+              onChange={set("name_en")}
+              className={inputCls}
+              placeholder={L.accountNamePh}
+            />
           </label>
           <label className="block">
             <span className={labelCls}>{L.accountType}</span>
-            <select value={v.account_type ?? ""} onChange={set("account_type")} className={selectCls} dir={isAr ? "rtl" : "ltr"}>
+            <select
+              value={v.account_type ?? ""}
+              onChange={set("account_type")}
+              className={selectCls}
+              dir={isAr ? "rtl" : "ltr"}
+            >
               <option value="">{L.select}</option>
               <option value="End User">{L.endUser}</option>
               <option value="Contractor">{L.contractor}</option>
@@ -322,49 +412,99 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
           {v.account_type === "Other" && (
             <label className="block sm:col-span-2">
               <span className={labelCls}>{L.specifyType}</span>
-              <input value={v.other_account_type ?? ""} onChange={set("other_account_type")} className={inputCls} placeholder={L.specifyPh} />
+              <input
+                value={v.other_account_type ?? ""}
+                onChange={set("other_account_type")}
+                className={inputCls}
+                placeholder={L.specifyPh}
+              />
             </label>
           )}
           <div className="hidden">
-          <label className="block">
-            <span className={labelCls}>{L.category}</span>
-            <select className={selectCls} value={v.category_en ?? ""} onChange={e => onCategory(e.target.value)}>
-              <option value="">{L.selectCategory}</option>
-              {categories.map(c => <option key={c.en} value={c.en}>{isAr && c.ar ? c.ar : c.en}</option>)}
-            </select>
-          </label>
-          <label className="block">
-            <span className={labelCls}>{L.projectType}</span>
-            <select className={selectCls} value={v.project_type_en ?? ""} onChange={e => onType(e.target.value)}>
-              <option value="">{L.selectType}</option>
-              {types.map(c => <option key={c.en} value={c.en}>{isAr && c.ar ? c.ar : c.en}</option>)}
-            </select>
-          </label>
+            <label className="block">
+              <span className={labelCls}>{L.category}</span>
+              <select
+                className={selectCls}
+                value={v.category_en ?? ""}
+                onChange={(e) => onCategory(e.target.value)}
+              >
+                <option value="">{L.selectCategory}</option>
+                {categories.map((c) => (
+                  <option key={c.en} value={c.en}>
+                    {isAr && c.ar ? c.ar : c.en}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className={labelCls}>{L.projectType}</span>
+              <select
+                className={selectCls}
+                value={v.project_type_en ?? ""}
+                onChange={(e) => onType(e.target.value)}
+              >
+                <option value="">{L.selectType}</option>
+                {types.map((c) => (
+                  <option key={c.en} value={c.en}>
+                    {isAr && c.ar ? c.ar : c.en}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          {/* Hidden but submitted fields */}
-          <input type="hidden" value={v.category_ar ?? ""} readOnly />
-          <input type="hidden" value={v.project_type_ar ?? ""} readOnly />
+            {/* Hidden but submitted fields */}
+            <input type="hidden" value={v.category_ar ?? ""} readOnly />
+            <input type="hidden" value={v.project_type_ar ?? ""} readOnly />
 
-          <label className="block">
-            <span className={labelCls}>{L.budget}</span>
-            <input type="number" min={0} value={v.budget ?? ""} onChange={set("budget")} className={inputCls} placeholder="0" />
-          </label>
-          <label className="block">
-            <span className={labelCls}>{L.startDate}</span>
-            <input type="date" value={v.start_date ?? ""} onChange={set("start_date")} className={inputCls} />
-          </label>
-          <label className="block">
-            <span className={labelCls}>{L.endDate}</span>
-            <input type="date" value={v.end_date ?? ""} min={v.start_date || undefined} onChange={set("end_date")} className={inputCls} />
-          </label>
+            <label className="block">
+              <span className={labelCls}>{L.budget}</span>
+              <input
+                type="number"
+                min={0}
+                value={v.budget ?? ""}
+                onChange={set("budget")}
+                className={inputCls}
+                placeholder="0"
+              />
+            </label>
+            <label className="block">
+              <span className={labelCls}>{L.startDate}</span>
+              <input
+                type="date"
+                value={v.start_date ?? ""}
+                onChange={set("start_date")}
+                className={inputCls}
+              />
+            </label>
+            <label className="block">
+              <span className={labelCls}>{L.endDate}</span>
+              <input
+                type="date"
+                value={v.end_date ?? ""}
+                min={v.start_date || undefined}
+                onChange={set("end_date")}
+                className={inputCls}
+              />
+            </label>
           </div>
           <label className="block sm:col-span-2">
             <span className={labelCls}>{L.description}</span>
-            <textarea value={v.description_en ?? ""} onChange={set("description_en")} rows={2} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" placeholder={L.descriptionPh} />
+            <textarea
+              value={v.description_en ?? ""}
+              onChange={set("description_en")}
+              rows={2}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+              placeholder={L.descriptionPh}
+            />
           </label>
           <label className="block sm:col-span-2">
             <span className={labelCls}>{L.competitors}</span>
-            <input value={v.competitors ?? ""} onChange={set("competitors")} className={inputCls} placeholder={L.competitorsPh} />
+            <input
+              value={v.competitors ?? ""}
+              onChange={set("competitors")}
+              className={inputCls}
+              placeholder={L.competitorsPh}
+            />
           </label>
         </div>
 
@@ -373,21 +513,43 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
             <span className={labelCls}>{L.city}</span>
-            <select className={selectCls} value={v.city_en ?? ""} onChange={e => onCity(e.target.value)}>
+            <select
+              className={selectCls}
+              value={v.city_en ?? ""}
+              onChange={(e) => onCity(e.target.value)}
+            >
               <option value="">{L.selectCity}</option>
-              {locations.map(l => <option key={l.city_en} value={l.city_en}>{isAr && l.city_ar ? l.city_ar : l.city_en}</option>)}
+              {locations.map((l) => (
+                <option key={l.city_en} value={l.city_en}>
+                  {isAr && l.city_ar ? l.city_ar : l.city_en}
+                </option>
+              ))}
             </select>
           </label>
           <label className="block">
             <span className={labelCls}>{L.district}</span>
-            <select className={selectCls} value={v.district_en ?? ""} onChange={e => onDistrict(e.target.value)} disabled={!selectedCity}>
+            <select
+              className={selectCls}
+              value={v.district_en ?? ""}
+              onChange={(e) => onDistrict(e.target.value)}
+              disabled={!selectedCity}
+            >
               <option value="">{selectedCity ? L.selectDistrict : L.selectDistrictFirst}</option>
-              {districtPairs.map(d => <option key={d.en} value={d.en}>{isAr && d.ar ? d.ar : d.en}</option>)}
+              {districtPairs.map((d) => (
+                <option key={d.en} value={d.en}>
+                  {isAr && d.ar ? d.ar : d.en}
+                </option>
+              ))}
             </select>
           </label>
           <label className="block sm:col-span-2">
             <span className={labelCls}>{L.street}</span>
-            <input value={v.street_en ?? ""} onChange={set("street_en")} className={inputCls} placeholder={L.streetPh} />
+            <input
+              value={v.street_en ?? ""}
+              onChange={set("street_en")}
+              className={inputCls}
+              placeholder={L.streetPh}
+            />
           </label>
         </div>
 
@@ -396,15 +558,32 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
             <span className={labelCls}>{L.fullName}</span>
-            <input value={v.contact_name_en ?? ""} onChange={set("contact_name_en")} className={inputCls} placeholder={L.fullNamePh} />
+            <input
+              value={v.contact_name_en ?? ""}
+              onChange={set("contact_name_en")}
+              className={inputCls}
+              placeholder={L.fullNamePh}
+            />
           </label>
           <label className="block">
             <span className={labelCls}>{L.company}</span>
-            <input value={v.client_name_en ?? ""} onChange={set("client_name_en")} className={inputCls} placeholder={L.companyPh} />
+            <input
+              value={v.client_name_en ?? ""}
+              onChange={set("client_name_en")}
+              className={inputCls}
+              placeholder={L.companyPh}
+            />
           </label>
           <label className="block">
             <span className={labelCls}>{L.email}</span>
-            <input type="email" value={v.email ?? ""} onChange={set("email")} className={inputCls} placeholder="email@example.com" dir="ltr" />
+            <input
+              type="email"
+              value={v.email ?? ""}
+              onChange={set("email")}
+              className={inputCls}
+              placeholder="email@example.com"
+              dir="ltr"
+            />
           </label>
           <div className="block">
             <span className={labelCls}>{L.phoneLabel}</span>
@@ -439,19 +618,39 @@ export function ProjectRequestDialog({ profileId, onClose, onSubmitted, existing
               <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${isAr ? "pl-8" : "pr-8"}`}>
                 <label className="block">
                   <span className={labelCls}>{L.name}</span>
-                  <input value={c.name} onChange={e => updateContact(i, "name", e.target.value)} placeholder={L.namePh} className={inputCls} />
+                  <input
+                    value={c.name}
+                    onChange={(e) => updateContact(i, "name", e.target.value)}
+                    placeholder={L.namePh}
+                    className={inputCls}
+                  />
                 </label>
                 <label className="block">
                   <span className={labelCls}>{L.titleRole}</span>
-                  <input value={c.title} onChange={e => updateContact(i, "title", e.target.value)} placeholder={L.titleRolePh} className={inputCls} />
+                  <input
+                    value={c.title}
+                    onChange={(e) => updateContact(i, "title", e.target.value)}
+                    placeholder={L.titleRolePh}
+                    className={inputCls}
+                  />
                 </label>
                 <label className="block">
                   <span className={labelCls}>{L.email}</span>
-                  <input type="email" value={c.email || ""} onChange={e => updateContact(i, "email", e.target.value)} placeholder="email@example.com" className={inputCls} dir="ltr" />
+                  <input
+                    type="email"
+                    value={c.email || ""}
+                    onChange={(e) => updateContact(i, "email", e.target.value)}
+                    placeholder="email@example.com"
+                    className={inputCls}
+                    dir="ltr"
+                  />
                 </label>
                 <div className="block">
                   <span className={labelCls}>{L.phoneLabel}</span>
-                  <PhoneInput value={c.phone || "+20"} onChange={val => updateContact(i, "phone", val)} />
+                  <PhoneInput
+                    value={c.phone || "+20"}
+                    onChange={(val) => updateContact(i, "phone", val)}
+                  />
                 </div>
               </div>
             </div>

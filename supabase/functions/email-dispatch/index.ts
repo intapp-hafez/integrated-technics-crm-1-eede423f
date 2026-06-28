@@ -22,7 +22,10 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 const j = (s: number, b: unknown) =>
-  new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json", ...CORS } });
+  new Response(JSON.stringify(b), {
+    status: s,
+    headers: { "Content-Type": "application/json", ...CORS },
+  });
 
 const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
@@ -59,7 +62,10 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
   const { data: cfgRow, error: cfgErr } = await admin
-    .from("smtp_settings").select("*").eq("id", 1).maybeSingle();
+    .from("smtp_settings")
+    .select("*")
+    .eq("id", 1)
+    .maybeSingle();
   if (cfgErr) return j(500, { error: cfgErr.message });
   if (!cfgRow || !cfgRow.enabled) return j(200, { ok: true, skipped: "smtp_disabled" });
 
@@ -98,8 +104,12 @@ Deno.serve(async (req) => {
   const results: any[] = [];
   for (const job of jobs) {
     const { data: claim } = await admin
-      .from("email_jobs").update({ status: "sending" })
-      .eq("id", job.id).eq("status", "queued").select("id").maybeSingle();
+      .from("email_jobs")
+      .update({ status: "sending" })
+      .eq("id", job.id)
+      .eq("status", "queued")
+      .select("id")
+      .maybeSingle();
     if (!claim) continue;
 
     const attempts = (job.attempts || 0) + 1;
@@ -108,7 +118,11 @@ Deno.serve(async (req) => {
 
     const logDelivery = async (status: string, err: string | null) => {
       const rows = (to.length ? to : ["(none)"]).map((r: string) => ({
-        job_id: job.id, recipient: r, status, error: err, attempt: attempts,
+        job_id: job.id,
+        recipient: r,
+        status,
+        error: err,
+        attempt: attempts,
       }));
       await admin.from("email_delivery_logs").insert(rows);
     };
@@ -125,54 +139,75 @@ Deno.serve(async (req) => {
         html: job.body || "",
       });
 
-      await admin.from("email_jobs").update({
-        status: "sent",
-        sent_at: new Date().toISOString(),
-        error: null,
-        attempts,
-        last_attempt_at: new Date().toISOString(),
-      }).eq("id", job.id);
+      await admin
+        .from("email_jobs")
+        .update({
+          status: "sent",
+          sent_at: new Date().toISOString(),
+          error: null,
+          attempts,
+          last_attempt_at: new Date().toISOString(),
+        })
+        .eq("id", job.id);
       await logDelivery("sent", null);
       results.push({ id: job.id, status: "sent", attempts });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       const exhausted = attempts >= maxAttempts;
       if (exhausted) {
-        await admin.from("email_jobs").update({
-          status: "failed",
-          error: `${msg} (attempt ${attempts}/${maxAttempts})`,
-          attempts,
-          last_attempt_at: new Date().toISOString(),
-        }).eq("id", job.id);
+        await admin
+          .from("email_jobs")
+          .update({
+            status: "failed",
+            error: `${msg} (attempt ${attempts}/${maxAttempts})`,
+            attempts,
+            last_attempt_at: new Date().toISOString(),
+          })
+          .eq("id", job.id);
         await logDelivery("failed", msg);
         results.push({ id: job.id, status: "failed", attempts, error: msg });
       } else {
         const backoff = Math.min(MAX_DELAY_MS, BASE_DELAY_MS * 2 ** (attempts - 1));
         const jitter = Math.floor(Math.random() * 5_000);
         const nextRun = new Date(Date.now() + backoff + jitter).toISOString();
-        await admin.from("email_jobs").update({
-          status: "queued",
-          error: `${msg} (attempt ${attempts}/${maxAttempts}, retrying)`,
-          attempts,
-          last_attempt_at: new Date().toISOString(),
-          scheduled_for: nextRun,
-        }).eq("id", job.id);
+        await admin
+          .from("email_jobs")
+          .update({
+            status: "queued",
+            error: `${msg} (attempt ${attempts}/${maxAttempts}, retrying)`,
+            attempts,
+            last_attempt_at: new Date().toISOString(),
+            scheduled_for: nextRun,
+          })
+          .eq("id", job.id);
         await logDelivery("retry", msg);
         results.push({ id: job.id, status: "retry", attempts, error: msg });
       }
     }
   }
 
-  try { await client.close(); } catch (_) {}
+  try {
+    await client.close();
+  } catch (_) {}
 
   const sent = results.filter((r) => r.status === "sent").length;
   const failed = results.filter((r) => r.status === "failed").length;
   const retried = results.filter((r) => r.status === "retry").length;
-  await logAudit(admin, {
-    action: "email.dispatch",
-    resource_type: "email_jobs",
-    metadata: { processed: results.length, sent, failed, retried, job_ids: results.map((r) => r.id) },
-  }, req);
+  await logAudit(
+    admin,
+    {
+      action: "email.dispatch",
+      resource_type: "email_jobs",
+      metadata: {
+        processed: results.length,
+        sent,
+        failed,
+        retried,
+        job_ids: results.map((r) => r.id),
+      },
+    },
+    req,
+  );
 
   return j(200, { ok: true, processed: results.length, results });
 });

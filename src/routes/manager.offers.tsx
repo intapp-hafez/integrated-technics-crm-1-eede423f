@@ -19,15 +19,24 @@ function ManagerOffersPage() {
   const [search, setSearch] = useState("");
   const [filterOwner, setFilterOwner] = useState("");
   const [filterClient, setFilterClient] = useState("");
-  const isDetail = useRouterState({ select: (s) => s.location.pathname.startsWith("/manager/offers/") });
+  const isDetail = useRouterState({
+    select: (s) => s.location.pathname.startsWith("/manager/offers/"),
+  });
 
-  const ownersList = useMemo(() => Array.from(new Set(quotations.map(q => q.owner).filter(Boolean))), [quotations]);
-  const clientsList = useMemo(() => Array.from(new Set(quotations.map(q => q.client).filter(Boolean))), [quotations]);
+  const ownersList = useMemo(
+    () => Array.from(new Set(quotations.map((q) => q.owner).filter(Boolean))),
+    [quotations],
+  );
+  const clientsList = useMemo(
+    () => Array.from(new Set(quotations.map((q) => q.client).filter(Boolean))),
+    [quotations],
+  );
 
   const filtered = useMemo(() => {
     return quotations.filter((q) => {
-      const matchSearch = q.client.toLowerCase().includes(search.toLowerCase()) || 
-                          q.id.toLowerCase().includes(search.toLowerCase());
+      const matchSearch =
+        q.client.toLowerCase().includes(search.toLowerCase()) ||
+        q.id.toLowerCase().includes(search.toLowerCase());
       const matchOwner = filterOwner ? q.owner === filterOwner : true;
       const matchClient = filterClient ? q.client === filterClient : true;
       return matchSearch && matchOwner && matchClient;
@@ -36,27 +45,26 @@ function ManagerOffersPage() {
 
   if (isDetail) return <Outlet />;
 
-
   const stats = {
     total: quotations.length,
-    accepted: quotations.filter(q => q.status === "accepted").length,
-    negotiating: quotations.filter(q => q.status === "negotiating").length,
-    value: quotations.reduce((s, q) => s + (q.status !== "rejected" ? q.value : 0), 0)
+    accepted: quotations.filter((q) => q.status === "accepted").length,
+    negotiating: quotations.filter((q) => q.status === "negotiating").length,
+    value: quotations.reduce((s, q) => s + (q.status !== "rejected" ? q.value : 0), 0),
   };
 
   const exportCsv = async () => {
     const XLSX = await import("xlsx");
-    const data = filtered.map(q => ({
-      "ID": shortId(q.id),
+    const data = filtered.map((q) => ({
+      ID: shortId(q.id),
       "Client / العميل": q.client,
       "Date / التاريخ": q.submissionDate,
       "Value / القيمة": q.value,
       "Status / الحالة": t(q.status as any) || q.status.replace("_", " "),
       "Revisions / المراجعات": q.revisions,
       "Owner / المالك": q.owner,
-      "Feedback / الملاحظات": q.feedback || "—"
+      "Feedback / الملاحظات": q.feedback || "—",
     }));
-    
+
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Offers");
@@ -64,16 +72,50 @@ function ManagerOffersPage() {
   };
 
   return (
-    <AppShell panel="manager" user={{ name: "hafez Rahim", role: t("manager"), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" }} pageTitle={t("offers")}>
+    <AppShell
+      panel="manager"
+      user={{
+        name: "hafez Rahim",
+        role: t("manager"),
+        initials: "HR",
+        photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
+      }}
+      pageTitle={t("offers")}
+    >
       <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
         {[
-          { label: dir === "rtl" ? "إجمالي العروض" : "Total Offers", v: stats.total, color: "text-foreground", bg: "bg-secondary" },
-          { label: t("accepted"), v: stats.accepted, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: t("negotiating"), v: stats.negotiating, color: "text-violet-600", bg: "bg-violet-50" },
-          { label: dir === "rtl" ? "قيمة العروض النشطة" : "Active Value", v: fmtMoney(stats.value), color: "text-primary", bg: "bg-primary/10" },
+          {
+            label: dir === "rtl" ? "إجمالي العروض" : "Total Offers",
+            v: stats.total,
+            color: "text-foreground",
+            bg: "bg-secondary",
+          },
+          {
+            label: t("accepted"),
+            v: stats.accepted,
+            color: "text-emerald-600",
+            bg: "bg-emerald-50",
+          },
+          {
+            label: t("negotiating"),
+            v: stats.negotiating,
+            color: "text-violet-600",
+            bg: "bg-violet-50",
+          },
+          {
+            label: dir === "rtl" ? "قيمة العروض النشطة" : "Active Value",
+            v: fmtMoney(stats.value),
+            color: "text-primary",
+            bg: "bg-primary/10",
+          },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</div>
+          <div
+            key={s.label}
+            className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]"
+          >
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {s.label}
+            </div>
             <div className={`mt-2 font-mono text-2xl font-bold ${s.color}`}>{s.v}</div>
           </div>
         ))}
@@ -81,7 +123,10 @@ function ManagerOffersPage() {
 
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 sm:max-w-xs">
-          <Search className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.75rem" }} />
+          <Search
+            className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            style={{ insetInlineStart: "0.75rem" }}
+          />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -96,7 +141,11 @@ function ManagerOffersPage() {
           className="h-10 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none"
         >
           <option value="">{dir === "rtl" ? "جميع المُلّاك" : "All Owners"}</option>
-          {ownersList.map(o => <option key={o} value={o}>{o}</option>)}
+          {ownersList.map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
         </select>
         <select
           value={filterClient}
@@ -104,9 +153,16 @@ function ManagerOffersPage() {
           className="h-10 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none"
         >
           <option value="">{dir === "rtl" ? "جميع العملاء" : "All Clients"}</option>
-          {clientsList.map(c => <option key={c} value={c}>{c}</option>)}
+          {clientsList.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
         </select>
-        <button onClick={exportCsv} className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-semibold hover:bg-accent ms-auto">
+        <button
+          onClick={exportCsv}
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-semibold hover:bg-accent ms-auto"
+        >
           <Download className="h-4 w-4" /> Export
         </button>
       </div>
@@ -116,44 +172,86 @@ function ManagerOffersPage() {
           <table className="w-full text-sm">
             <thead className="bg-secondary/60">
               <tr>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">ID</th>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("client")}</th>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("date")}</th>
-                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("value")}</th>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("status")}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("revisions")}</th>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("owner")}</th>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("feedback")}</th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  ID
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("client")}
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("date")}
+                </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("value")}
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("status")}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("revisions")}
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("owner")}
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("feedback")}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map((q) => (
                 <tr key={q.id} className="cursor-pointer transition hover:bg-primary/5">
                   <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                    <Link to="/manager/offers/$quotationId" params={{ quotationId: q.id }} className="hover:text-primary">{shortId(q.id)}</Link>
+                    <Link
+                      to="/manager/offers/$quotationId"
+                      params={{ quotationId: q.id }}
+                      className="hover:text-primary"
+                    >
+                      {shortId(q.id)}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 font-semibold text-foreground">
-                    <Link to="/manager/offers/$quotationId" params={{ quotationId: q.id }} className="hover:text-primary">{q.client}</Link>
+                    <Link
+                      to="/manager/offers/$quotationId"
+                      params={{ quotationId: q.id }}
+                      className="hover:text-primary"
+                    >
+                      {q.client}
+                    </Link>
                   </td>
 
                   <td className="px-4 py-3 text-muted-foreground">{q.submissionDate}</td>
-                  <td className="px-4 py-3 text-end font-mono font-bold text-foreground">{fmtMoney(q.value)}</td>
+                  <td className="px-4 py-3 text-end font-mono font-bold text-foreground">
+                    {fmtMoney(q.value)}
+                  </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={q.status} label={t(q.status as any) || q.status.replace("_", " ")} />
+                    <StatusBadge
+                      status={q.status}
+                      label={t(q.status as any) || q.status.replace("_", " ")}
+                    />
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-bold text-foreground">
                       {q.revisions}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs font-semibold text-muted-foreground">{q.owner}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground truncate max-w-[200px]" title={q.feedback}>
+                  <td className="px-4 py-3 text-xs font-semibold text-muted-foreground">
+                    {q.owner}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-xs text-muted-foreground truncate max-w-[200px]"
+                    title={q.feedback}
+                  >
                     {q.feedback || "—"}
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">{t("nothingHere")}</td></tr>
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                    {t("nothingHere")}
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>

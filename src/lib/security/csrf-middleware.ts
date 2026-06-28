@@ -44,9 +44,13 @@ export const requireCsrf = createMiddleware({ type: "function" })
           _path: req ? new URL(req.url).pathname : "/",
           _user_id: null as any,
           _severity: "warn",
-          _details: { reason: !cookieTok ? "no_cookie" : !headerTok ? "no_header" : "mismatch" } as any,
+          _details: {
+            reason: !cookieTok ? "no_cookie" : !headerTok ? "no_header" : "mismatch",
+          } as any,
         });
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       throw new Response("CSRF token invalid", { status: 403 });
     }
     return next();

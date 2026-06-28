@@ -5,16 +5,46 @@ import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState, type ActivityType, type ActivityStatus } from "@/lib/store";
 import { employees as employeesData } from "@/lib/mock-data";
 import { useMemo, useState, useEffect } from "react";
-import { Phone, Users2, MapPin, Mail, ClipboardCheck, RefreshCw, Plus, CheckCircle2, Circle, PlayCircle, X, Bell, Send, Timer, TrendingUp, Activity as ActivityIcon, Target, Flame, CalendarDays, ChevronDown, ChevronUp, LayoutList, Grid3X3 } from "lucide-react";
+import {
+  Phone,
+  Users2,
+  MapPin,
+  Mail,
+  ClipboardCheck,
+  RefreshCw,
+  Plus,
+  CheckCircle2,
+  Circle,
+  PlayCircle,
+  X,
+  Bell,
+  Send,
+  Timer,
+  TrendingUp,
+  Activity as ActivityIcon,
+  Target,
+  Flame,
+  CalendarDays,
+  ChevronDown,
+  ChevronUp,
+  LayoutList,
+  Grid3X3,
+} from "lucide-react";
 import { useRole } from "@/lib/role";
 import { NewActivityDialog } from "@/components/NewActivityDialog";
 import { ActivityApprovalCard } from "@/components/ActivityApprovalCard";
 import { RejectActivityDialog } from "@/components/RejectActivityDialog";
 import { toast } from "sonner";
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
 import { Download } from "lucide-react";
-
 
 export const Route = createFileRoute("/admin/activities")({
   component: ActivitiesPage,
@@ -22,9 +52,20 @@ export const Route = createFileRoute("/admin/activities")({
 });
 
 const ICONS: Record<string, any> = {
-  Call: Phone, Meeting: Users2, "Site Visit": MapPin, "Follow-up": RefreshCw, Inspection: ClipboardCheck, Email: Mail,
+  Call: Phone,
+  Meeting: Users2,
+  "Site Visit": MapPin,
+  "Follow-up": RefreshCw,
+  Inspection: ClipboardCheck,
+  Email: Mail,
 };
-const STATUS_ICON: Record<ActivityStatus, any> = { pending: Circle, in_progress: PlayCircle, done: CheckCircle2, cancelled: X, delayed: Circle };
+const STATUS_ICON: Record<ActivityStatus, any> = {
+  pending: Circle,
+  in_progress: PlayCircle,
+  done: CheckCircle2,
+  cancelled: X,
+  delayed: Circle,
+};
 const STATUS_TONE: Record<ActivityStatus, string> = {
   pending: "text-muted-foreground",
   in_progress: "text-amber-600",
@@ -33,11 +74,20 @@ const STATUS_TONE: Record<ActivityStatus, string> = {
   delayed: "text-sky-600",
 };
 const ACT_I18N: Record<string, any> = {
-  Call: "actCall", Meeting: "actMeeting", "Site Visit": "actSiteVisit",
-  "Follow-up": "actFollowUp", Inspection: "actInspection", Email: "actEmail",
-  Demo: "typeDemo", Workshop: "typeWorkshop", Presentation: "typePresentation",
-  Negotiation: "typeNegotiation", Proposal: "typeProposal", Training: "typeTraining",
-  "Contract Signing": "typeContractSigning", Handover: "typeHandover",
+  Call: "actCall",
+  Meeting: "actMeeting",
+  "Site Visit": "actSiteVisit",
+  "Follow-up": "actFollowUp",
+  Inspection: "actInspection",
+  Email: "actEmail",
+  Demo: "typeDemo",
+  Workshop: "typeWorkshop",
+  Presentation: "typePresentation",
+  Negotiation: "typeNegotiation",
+  Proposal: "typeProposal",
+  Training: "typeTraining",
+  "Contract Signing": "typeContractSigning",
+  Handover: "typeHandover",
 };
 
 type Period = "today" | "yesterday" | "week" | "month" | "all";
@@ -49,15 +99,31 @@ const PERIODS: { key: Period }[] = [
   { key: "all" },
 ];
 
-function startOfDay(d: Date) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+function startOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
 function inPeriod(dateStr: string, period: Period): boolean {
   if (period === "all") return true;
   const d = startOfDay(new Date(dateStr + "T00:00:00"));
   const today = startOfDay(new Date());
   if (period === "today") return d.getTime() === today.getTime();
-  if (period === "yesterday") { const y = new Date(today); y.setDate(today.getDate() - 1); return d.getTime() === y.getTime(); }
-  if (period === "week") { const w = new Date(today); w.setDate(today.getDate() - 6); return d >= w && d <= today; }
-  if (period === "month") { const m = new Date(today); m.setDate(today.getDate() - 29); return d >= m && d <= today; }
+  if (period === "yesterday") {
+    const y = new Date(today);
+    y.setDate(today.getDate() - 1);
+    return d.getTime() === y.getTime();
+  }
+  if (period === "week") {
+    const w = new Date(today);
+    w.setDate(today.getDate() - 6);
+    return d >= w && d <= today;
+  }
+  if (period === "month") {
+    const m = new Date(today);
+    m.setDate(today.getDate() - 29);
+    return d >= m && d <= today;
+  }
   return true;
 }
 
@@ -72,7 +138,12 @@ function ActivitiesPage() {
   const [reminderFor, setReminderFor] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<{ id: string; title: string } | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const toggle = (id: string) => setExpanded((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggle = (id: string) =>
+    setExpanded((s) => {
+      const n = new Set(s);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
   const [filter, setFilter] = useState<"all" | ActivityType>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | ActivityStatus>("all");
   const [period, setPeriod] = useState<Period>("today");
@@ -90,16 +161,22 @@ function ActivitiesPage() {
 
   const list = useMemo(() => {
     return periodList
-      .filter((a) =>
-        (filter === "all" || a.type === filter) &&
-        (statusFilter === "all" || a.status === statusFilter) &&
-        (ownerFilter === "all" || (a.owner && a.owner !== "Unassigned" ? a.owner : (a as any).createdByName ?? "Unassigned") === ownerFilter),
+      .filter(
+        (a) =>
+          (filter === "all" || a.type === filter) &&
+          (statusFilter === "all" || a.status === statusFilter) &&
+          (ownerFilter === "all" ||
+            (a.owner && a.owner !== "Unassigned"
+              ? a.owner
+              : ((a as any).createdByName ?? "Unassigned")) === ownerFilter),
       )
       .sort((a, b) => (b.dueDate + b.time).localeCompare(a.dueDate + a.time));
   }, [periodList, filter, statusFilter, ownerFilter]);
 
   // Reset page when filters change
-  useEffect(() => { setPage(1); }, [filter, statusFilter, ownerFilter, period]);
+  useEffect(() => {
+    setPage(1);
+  }, [filter, statusFilter, ownerFilter, period]);
   const totalPages = Math.ceil(list.length / pageSize);
   const paginated = list.slice((page - 1) * pageSize, page * pageSize);
 
@@ -115,27 +192,52 @@ function ActivitiesPage() {
 
   // Per-employee summary for the active period
   const empSummary = useMemo(() => {
-    const m = new Map<string, {
-      name: string; photo?: string; initials: string;
-      total: number; done: number; pending: number; inprog: number; cancelled: number;
-      mins: number; minsDone: number;
-      types: Record<string, number>;
-    }>();
+    const m = new Map<
+      string,
+      {
+        name: string;
+        photo?: string;
+        initials: string;
+        total: number;
+        done: number;
+        pending: number;
+        inprog: number;
+        cancelled: number;
+        mins: number;
+        minsDone: number;
+        types: Record<string, number>;
+      }
+    >();
     for (const a of periodList) {
       const hasRealOwner = a.owner && a.owner !== "Unassigned";
       const ownerName = hasRealOwner ? a.owner : (a.createdByName ?? "Unassigned");
       const emp = employeesData.find((e) => e.name === ownerName);
-      const photo = (hasRealOwner ? emp?.photo : (a.createdByPhoto ?? emp?.photo));
-      const initials = ownerName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+      const photo = hasRealOwner ? emp?.photo : (a.createdByPhoto ?? emp?.photo);
+      const initials = ownerName
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
       const cur = m.get(ownerName) ?? {
-        name: ownerName, photo, initials,
-        total: 0, done: 0, pending: 0, inprog: 0, cancelled: 0,
-        mins: 0, minsDone: 0, types: {},
+        name: ownerName,
+        photo,
+        initials,
+        total: 0,
+        done: 0,
+        pending: 0,
+        inprog: 0,
+        cancelled: 0,
+        mins: 0,
+        minsDone: 0,
+        types: {},
       };
       cur.total += 1;
       cur.mins += a.estMinutes ?? 0;
-      if (a.status === "done") { cur.done += 1; cur.minsDone += a.estMinutes ?? 0; }
-      else if (a.status === "pending") cur.pending += 1;
+      if (a.status === "done") {
+        cur.done += 1;
+        cur.minsDone += a.estMinutes ?? 0;
+      } else if (a.status === "pending") cur.pending += 1;
       else if (a.status === "in_progress") cur.inprog += 1;
       else if (a.status === "cancelled") cur.cancelled += 1;
       cur.types[a.type] = (cur.types[a.type] ?? 0) + 1;
@@ -156,7 +258,8 @@ function ActivitiesPage() {
   }, [periodList]);
 
   const fmtH = (mins: number) => {
-    const h = Math.floor(mins / 60); const m = mins % 60;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
     return h ? `${h}h ${m ? `${m}m` : ""}`.trim() : `${m}m`;
   };
 
@@ -191,7 +294,16 @@ function ActivitiesPage() {
   const activePeriodSub = periodSubMap[period];
 
   return (
-    <AppShell panel={role} user={{ name: "hafez Rahim", role: t(role as any), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" }} pageTitle={t("activities")}>
+    <AppShell
+      panel={role}
+      user={{
+        name: "hafez Rahim",
+        role: t(role as any),
+        initials: "HR",
+        photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
+      }}
+      pageTitle={t("activities")}
+    >
       {/* Hero header with period tabs + KPIs */}
       <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-card shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-start justify-between gap-4 p-5 pb-3">
@@ -201,13 +313,19 @@ function ActivitiesPage() {
             </div>
             <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-foreground">
               {activePeriodLabel}{" "}
-              <span className="text-base font-medium text-muted-foreground">· {activePeriodSub}</span>
+              <span className="text-base font-medium text-muted-foreground">
+                · {activePeriodSub}
+              </span>
             </h2>
           </div>
           <div className="flex gap-2">
             <button
               disabled
-              title={isAr ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم." : "We apologise — this option is currently not working. Thanks for your understanding."}
+              title={
+                isAr
+                  ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم."
+                  : "We apologise — this option is currently not working. Thanks for your understanding."
+              }
               className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium opacity-40"
             >
               <Download className="h-3.5 w-3.5 rotate-180" /> {t("importExcel")}
@@ -228,7 +346,10 @@ function ActivitiesPage() {
             return (
               <button
                 key={p.key}
-                onClick={() => { setPeriod(p.key); setOwnerFilter("all"); }}
+                onClick={() => {
+                  setPeriod(p.key);
+                  setOwnerFilter("all");
+                }}
                 className={`group relative inline-flex items-center gap-2 rounded-t-xl border border-b-0 px-4 py-2.5 text-sm font-semibold transition ${
                   active
                     ? "border-border bg-card text-foreground shadow-[var(--shadow-soft)]"
@@ -237,7 +358,11 @@ function ActivitiesPage() {
               >
                 <CalendarDays className={`h-4 w-4 ${active ? "text-primary" : ""}`} />
                 {periodLabelMap[p.key]}
-                {active && <span className="ms-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">{activities.filter(a => inPeriod(a.dueDate, p.key)).length}</span>}
+                {active && (
+                  <span className="ms-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">
+                    {activities.filter((a) => inPeriod(a.dueDate, p.key)).length}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -245,11 +370,37 @@ function ActivitiesPage() {
 
         {/* KPI strip */}
         <div className="grid grid-cols-2 gap-3 border-t border-border bg-card p-5 md:grid-cols-5">
-          <Kpi icon={ActivityIcon} label={t("kpiTotal")} value={String(kpis.total)} tone="text-foreground" />
-          <Kpi icon={CheckCircle2} label={t("kpiDone")} value={String(kpis.done)} tone="text-emerald-600" />
-          <Kpi icon={PlayCircle} label={t("kpiInProgress")} value={String(kpis.inprog)} tone="text-amber-600" />
-          <Kpi icon={Circle} label={t("kpiPending")} value={String(kpis.pending)} tone="text-muted-foreground" />
-          <Kpi icon={TrendingUp} label={t("kpiCompletion")} value={`${kpis.completion}%`} tone="text-primary" sub={fmtH(kpis.mins)} />
+          <Kpi
+            icon={ActivityIcon}
+            label={t("kpiTotal")}
+            value={String(kpis.total)}
+            tone="text-foreground"
+          />
+          <Kpi
+            icon={CheckCircle2}
+            label={t("kpiDone")}
+            value={String(kpis.done)}
+            tone="text-emerald-600"
+          />
+          <Kpi
+            icon={PlayCircle}
+            label={t("kpiInProgress")}
+            value={String(kpis.inprog)}
+            tone="text-amber-600"
+          />
+          <Kpi
+            icon={Circle}
+            label={t("kpiPending")}
+            value={String(kpis.pending)}
+            tone="text-muted-foreground"
+          />
+          <Kpi
+            icon={TrendingUp}
+            label={t("kpiCompletion")}
+            value={`${kpis.completion}%`}
+            tone="text-primary"
+            sub={fmtH(kpis.mins)}
+          />
         </div>
       </div>
 
@@ -258,10 +409,15 @@ function ActivitiesPage() {
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Flame className="h-4 w-4 text-primary" />
-            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">{t("employeePulse")} · {activePeriodLabel}</h3>
+            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+              {t("employeePulse")} · {activePeriodLabel}
+            </h3>
           </div>
           {ownerFilter !== "all" && (
-            <button onClick={() => setOwnerFilter("all")} className="text-xs font-semibold text-primary hover:underline">
+            <button
+              onClick={() => setOwnerFilter("all")}
+              className="text-xs font-semibold text-primary hover:underline"
+            >
               {t("clearFilter")} ({ownerFilter})
             </button>
           )}
@@ -287,20 +443,38 @@ function ActivitiesPage() {
                 >
                   <div className="flex items-center gap-3">
                     {e.photo ? (
-                      <img src={e.photo} alt={`${e.name} avatar`} className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20" />
+                      <img
+                        src={e.photo}
+                        alt={`${e.name} avatar`}
+                        className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20"
+                      />
                     ) : (
-                      <div role="img" aria-label={`${e.name} avatar`} className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{e.initials}</div>
+                      <div
+                        role="img"
+                        aria-label={`${e.name} avatar`}
+                        className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground"
+                      >
+                        {e.initials}
+                      </div>
                     )}
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-semibold text-foreground">{e.name}</div>
                       <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                         <TopIcon className="h-3 w-3" />
-                        <span>{topType ?? "—"} · {e.total}</span>
+                        <span>
+                          {topType ?? "—"} · {e.total}
+                        </span>
                       </div>
                     </div>
                     <div className="text-end">
-                      <div className={`font-mono text-xl font-extrabold ${completion >= 75 ? "text-emerald-600" : completion >= 40 ? "text-amber-600" : "text-rose-600"}`}>{completion}%</div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("kpiDone")}</div>
+                      <div
+                        className={`font-mono text-xl font-extrabold ${completion >= 75 ? "text-emerald-600" : completion >= 40 ? "text-amber-600" : "text-rose-600"}`}
+                      >
+                        {completion}%
+                      </div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {t("kpiDone")}
+                      </div>
                     </div>
                   </div>
 
@@ -312,10 +486,26 @@ function ActivitiesPage() {
                   </div>
 
                   <div className="mt-3 grid grid-cols-4 gap-1.5 text-center">
-                    <Mini label={t("kpiDone")} value={e.done} tone="bg-emerald-50 text-emerald-700 ring-emerald-200" />
-                    <Mini label={t("inProgress")} value={e.inprog} tone="bg-amber-50 text-amber-700 ring-amber-200" />
-                    <Mini label={t("kpiPending")} value={e.pending} tone="bg-secondary text-muted-foreground ring-border" />
-                    <Mini label={t("time")} value={fmtH(e.mins)} tone="bg-primary/10 text-primary ring-primary/20" />
+                    <Mini
+                      label={t("kpiDone")}
+                      value={e.done}
+                      tone="bg-emerald-50 text-emerald-700 ring-emerald-200"
+                    />
+                    <Mini
+                      label={t("inProgress")}
+                      value={e.inprog}
+                      tone="bg-amber-50 text-amber-700 ring-amber-200"
+                    />
+                    <Mini
+                      label={t("kpiPending")}
+                      value={e.pending}
+                      tone="bg-secondary text-muted-foreground ring-border"
+                    />
+                    <Mini
+                      label={t("time")}
+                      value={fmtH(e.mins)}
+                      tone="bg-primary/10 text-primary ring-primary/20"
+                    />
                   </div>
                 </button>
               );
@@ -347,10 +537,13 @@ function ActivitiesPage() {
             <button
               key={tp}
               onClick={() => setFilter(tp as any)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${filter === tp ? "bg-primary text-primary-foreground" : "bg-card text-foreground ring-1 ring-border hover:bg-accent"
-                }`}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                filter === tp
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground ring-1 ring-border hover:bg-accent"
+              }`}
             >
-              {tp === "all" ? t("all") : (ACT_I18N[tp] ? t(ACT_I18N[tp]) : tp)}
+              {tp === "all" ? t("all") : ACT_I18N[tp] ? t(ACT_I18N[tp]) : tp}
             </button>
           ))}
           {(() => {
@@ -360,7 +553,10 @@ function ActivitiesPage() {
             return moreTypes.length > 0 ? (
               <select
                 value={isMore ? (filter as string) : ""}
-                onChange={(e) => { const v = e.target.value; if (v) setFilter(v as any); }}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v) setFilter(v as any);
+                }}
                 className={`h-8 rounded-full px-3 text-xs font-semibold focus:outline-none ${isMore ? "bg-primary text-primary-foreground" : "bg-card text-foreground ring-1 ring-border"}`}
               >
                 <option value="">{t("more")}</option>
@@ -378,7 +574,9 @@ function ActivitiesPage() {
           onChange={(e) => setStatusFilter(e.target.value as any)}
           className="h-9 rounded-lg border border-border bg-card px-2 text-sm focus:border-primary focus:outline-none"
         >
-          <option value="all">{t("all")} — {t("status")}</option>
+          <option value="all">
+            {t("all")} — {t("status")}
+          </option>
           <option value="pending">{t("pending")}</option>
           <option value="in_progress">{t("inProgress")}</option>
           <option value="done">{t("done")}</option>
@@ -419,7 +617,12 @@ function ActivitiesPage() {
                   return (
                     <TableRow
                       key={a.id}
-                      onClick={() => navigate({ to: "/admin/activities/$activityId", params: { activityId: a.id } })}
+                      onClick={() =>
+                        navigate({
+                          to: "/admin/activities/$activityId",
+                          params: { activityId: a.id },
+                        })
+                      }
                       className="cursor-pointer"
                     >
                       <TableCell>
@@ -429,15 +632,25 @@ function ActivitiesPage() {
                       </TableCell>
                       <TableCell>
                         <div className="font-semibold text-foreground">{a.title}</div>
-                        <div className="text-xs text-muted-foreground">{ACT_I18N[a.type] ? t(ACT_I18N[a.type]) : a.type}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {ACT_I18N[a.type] ? t(ACT_I18N[a.type]) : a.type}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {displayPhoto ? (
-                            <img src={displayPhoto} alt="" className="h-5 w-5 rounded-full object-cover" />
+                            <img
+                              src={displayPhoto}
+                              alt=""
+                              className="h-5 w-5 rounded-full object-cover"
+                            />
                           ) : (
                             <div className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-foreground">
-                              {displayName.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                              {displayName
+                                .split(" ")
+                                .map((w) => w[0])
+                                .join("")
+                                .slice(0, 2)}
                             </div>
                           )}
                           <span className="text-sm text-muted-foreground">{displayName}</span>
@@ -445,13 +658,20 @@ function ActivitiesPage() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{a.dueDate}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{a.time}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{lead?.company ?? a.projectId ?? "—"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {lead?.company ?? a.projectId ?? "—"}
+                      </TableCell>
                       <TableCell>
-                        <div className={`flex items-center gap-1.5 text-xs font-semibold ${STATUS_TONE[a.status]}`} onClick={(e) => e.stopPropagation()}>
+                        <div
+                          className={`flex items-center gap-1.5 text-xs font-semibold ${STATUS_TONE[a.status]}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <SIcon className="h-3.5 w-3.5" />
                           <select
                             value={a.status}
-                            onChange={(e) => actions.setActivityStatus(a.id, e.target.value as ActivityStatus)}
+                            onChange={(e) =>
+                              actions.setActivityStatus(a.id, e.target.value as ActivityStatus)
+                            }
                             className={`bg-transparent text-xs font-semibold capitalize focus:outline-none cursor-pointer ${STATUS_TONE[a.status]}`}
                           >
                             <option value="pending">{t("actPostponed")}</option>
@@ -464,28 +684,46 @@ function ActivitiesPage() {
                       </TableCell>
                       <TableCell>
                         {a.approvalStatus === "pending" && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">{t("approvalPending")}</span>
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                            {t("approvalPending")}
+                          </span>
                         )}
                         {a.approvalStatus === "approved" && (
-                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">{t("approvalApproved")}</span>
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                            {t("approvalApproved")}
+                          </span>
                         )}
                         {a.approvalStatus === "rejected" && (
-                          <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700" title={a.rejectionReason}>{t("approvalRejected")}</span>
+                          <span
+                            className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700"
+                            title={a.rejectionReason}
+                          >
+                            {t("approvalRejected")}
+                          </span>
                         )}
-                        {!a.approvalStatus && <span className="text-xs text-muted-foreground">—</span>}
+                        {!a.approvalStatus && (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="inline-flex items-center gap-1">
                           {a.approvalStatus === "pending" && canApprove && (
                             <>
                               <button
-                                onClick={() => { actions.approveActivity(a.id); toast.success(t("approvalApproved")); }}
+                                onClick={() => {
+                                  actions.approveActivity(a.id);
+                                  toast.success(t("approvalApproved"));
+                                }}
                                 className="rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
-                              >{t("approveActivity")}</button>
+                              >
+                                {t("approveActivity")}
+                              </button>
                               <button
                                 onClick={() => setRejectFor({ id: a.id, title: a.title })}
                                 className="rounded-md bg-rose-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-rose-700"
-                              >{t("rejectActivity")}</button>
+                              >
+                                {t("rejectActivity")}
+                              </button>
                             </>
                           )}
                           {a.status !== "done" && (
@@ -503,7 +741,12 @@ function ActivitiesPage() {
                 })}
                 {list.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">{t("noActivitiesFilters")}</TableCell>
+                    <TableCell
+                      colSpan={9}
+                      className="py-8 text-center text-sm text-muted-foreground"
+                    >
+                      {t("noActivitiesFilters")}
+                    </TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -513,12 +756,27 @@ function ActivitiesPage() {
             <div className="border-t border-border p-4">
               <div className="flex items-center justify-between">
                 <div className="text-xs text-muted-foreground">
-                  Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, list.length)} of {list.length} entries
+                  Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, list.length)} of{" "}
+                  {list.length} entries
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50">Previous</button>
-                  <div className="px-2 text-xs font-semibold">{page} / {totalPages}</div>
-                  <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50">Next</button>
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <div className="px-2 text-xs font-semibold">
+                    {page} / {totalPages}
+                  </div>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
             </div>
@@ -529,9 +787,16 @@ function ActivitiesPage() {
           {grouped.map(([date, items]) => (
             <div key={date}>
               <div className="mb-2 flex items-center gap-3">
-                <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">{dayLabel(date)}</h3>
-                <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-mono text-muted-foreground">{date}</span>
-                <span className="text-xs text-muted-foreground">{items.length} item(s) · {fmtH(items.reduce((s, a) => s + (a.estMinutes ?? 0), 0))} total</span>
+                <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                  {dayLabel(date)}
+                </h3>
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                  {date}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {items.length} item(s) ·{" "}
+                  {fmtH(items.reduce((s, a) => s + (a.estMinutes ?? 0), 0))} total
+                </span>
                 <div className="h-px flex-1 bg-border" />
               </div>
               <div className="space-y-2">
@@ -546,7 +811,12 @@ function ActivitiesPage() {
                   return (
                     <div
                       key={a.id}
-                      onClick={() => navigate({ to: "/admin/activities/$activityId", params: { activityId: a.id } })}
+                      onClick={() =>
+                        navigate({
+                          to: "/admin/activities/$activityId",
+                          params: { activityId: a.id },
+                        })
+                      }
                       className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:border-primary/40 cursor-pointer"
                     >
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -555,59 +825,116 @@ function ActivitiesPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-foreground">{a.title}</span>
-                          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{ACT_I18N[a.type] ? t(ACT_I18N[a.type]) : a.type}</span>
+                          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            {ACT_I18N[a.type] ? t(ACT_I18N[a.type]) : a.type}
+                          </span>
                           {a.estMinutes != null && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary ring-1 ring-primary/20"><Timer className="h-3 w-3" /> {fmtH(a.estMinutes)}</span>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary ring-1 ring-primary/20">
+                              <Timer className="h-3 w-3" /> {fmtH(a.estMinutes)}
+                            </span>
                           )}
                         </div>
                         <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                           {displayPhoto ? (
-                            <img src={displayPhoto} alt={`${displayName} avatar`} className="h-5 w-5 rounded-full object-cover" />
+                            <img
+                              src={displayPhoto}
+                              alt={`${displayName} avatar`}
+                              className="h-5 w-5 rounded-full object-cover"
+                            />
                           ) : (
-                            <div role="img" aria-label={`${displayName} avatar`} className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[9px] font-bold text-foreground">{displayName.split(" ").map(w => w[0]).join("").slice(0, 2)}</div>
+                            <div
+                              role="img"
+                              aria-label={`${displayName} avatar`}
+                              className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[9px] font-bold text-foreground"
+                            >
+                              {displayName
+                                .split(" ")
+                                .map((w) => w[0])
+                                .join("")
+                                .slice(0, 2)}
+                            </div>
                           )}
-                          <span>{displayName} · {a.time}{lead ? ` · ${lead.company}` : a.projectId ? ` · ${a.projectId}` : ""}</span>
+                          <span>
+                            {displayName} · {a.time}
+                            {lead ? ` · ${lead.company}` : a.projectId ? ` · ${a.projectId}` : ""}
+                          </span>
                           {a.presalesTeam && a.presalesTeam.length > 0 && (
                             <div className="flex -space-x-1" title={t("presalesTeam")}>
                               {a.presalesTeam.map((p) => (
-                                <div key={p} className="flex h-4 w-4 items-center justify-center rounded-full border border-card bg-secondary text-[8px] font-bold text-foreground">
-                                  {p.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                                <div
+                                  key={p}
+                                  className="flex h-4 w-4 items-center justify-center rounded-full border border-card bg-secondary text-[8px] font-bold text-foreground"
+                                >
+                                  {p
+                                    .split(" ")
+                                    .map((w) => w[0])
+                                    .join("")
+                                    .slice(0, 2)}
                                 </div>
                               ))}
                             </div>
                           )}
                         </div>
-                        {a.notes && <div className="mt-1 text-xs text-muted-foreground">📝 {a.notes}</div>}
+                        {a.notes && (
+                          <div className="mt-1 text-xs text-muted-foreground">📝 {a.notes}</div>
+                        )}
                       </div>
-                      <div className={`flex items-center gap-1.5 text-xs font-semibold ${STATUS_TONE[a.status]}`}>
+                      <div
+                        className={`flex items-center gap-1.5 text-xs font-semibold ${STATUS_TONE[a.status]}`}
+                      >
                         <SIcon className="h-4 w-4" />
                         <span className="capitalize">
-                          {a.status === "done" ? t("actAttended") : a.status === "cancelled" ? t("actNotAttended") : t("actPostponed")}
+                          {a.status === "done"
+                            ? t("actAttended")
+                            : a.status === "cancelled"
+                              ? t("actNotAttended")
+                              : t("actPostponed")}
                         </span>
                       </div>
                       {a.approvalStatus === "pending" && (
                         <div className="flex items-center gap-1.5">
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">{t("approvalPending")}</span>
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                            {t("approvalPending")}
+                          </span>
                           {canApprove && (
                             <>
                               <button
-                                onClick={(e) => { e.stopPropagation(); actions.approveActivity(a.id); toast.success(t("approvalApproved")); }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  actions.approveActivity(a.id);
+                                  toast.success(t("approvalApproved"));
+                                }}
                                 className="rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
-                              >{t("approveActivity")}</button>
+                              >
+                                {t("approveActivity")}
+                              </button>
                               <button
-                                onClick={(e) => { e.stopPropagation(); setRejectFor({ id: a.id, title: a.title }); }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setRejectFor({ id: a.id, title: a.title });
+                                }}
                                 className="rounded-md bg-rose-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-rose-700"
-                              >{t("rejectActivity")}</button>
+                              >
+                                {t("rejectActivity")}
+                              </button>
                             </>
                           )}
                         </div>
                       )}
                       {a.approvalStatus === "rejected" && (
-                        <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700" title={a.rejectionReason}>{t("approvalRejected")}</span>
+                        <span
+                          className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700"
+                          title={a.rejectionReason}
+                        >
+                          {t("approvalRejected")}
+                        </span>
                       )}
                       {a.status !== "done" && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); setReminderFor(a.id); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReminderFor(a.id);
+                          }}
                           className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary ring-1 ring-primary/20 hover:bg-primary/20"
                           title="Send reminder"
                         >
@@ -616,7 +943,10 @@ function ActivitiesPage() {
                       )}
                       {a.status !== "done" && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); actions.setActivityStatus(a.id, "done"); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            actions.setActivityStatus(a.id, "done");
+                          }}
                           className={`rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100 ${isAdmin ? "" : "opacity-50 pointer-events-none"}`}
                         >
                           {t("markDone")}
@@ -636,16 +966,35 @@ function ActivitiesPage() {
         </div>
       )}
 
-
       {open && <NewActivityDialog onClose={() => setOpen(false)} />}
       {showImport && <ExcelImportModal type="activities" onClose={() => setShowImport(false)} />}
-      {reminderFor && <ReminderDialog activityId={reminderFor} onClose={() => setReminderFor(null)} />}
-      {rejectFor && <RejectActivityDialog activityId={rejectFor.id} activityTitle={rejectFor.title} onClose={() => setRejectFor(null)} />}
+      {reminderFor && (
+        <ReminderDialog activityId={reminderFor} onClose={() => setReminderFor(null)} />
+      )}
+      {rejectFor && (
+        <RejectActivityDialog
+          activityId={rejectFor.id}
+          activityTitle={rejectFor.title}
+          onClose={() => setRejectFor(null)}
+        />
+      )}
     </AppShell>
   );
 }
 
-function Kpi({ icon: I, label, value, tone, sub }: { icon: any; label: string; value: string; tone: string; sub?: string }) {
+function Kpi({
+  icon: I,
+  label,
+  value,
+  tone,
+  sub,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  tone: string;
+  sub?: string;
+}) {
   return (
     <div className="rounded-xl border border-border bg-background p-3">
       <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -666,50 +1015,96 @@ function Mini({ label, value, tone }: { label: string; value: number | string; t
   );
 }
 
-
 function ReminderDialog({ activityId, onClose }: { activityId: string; onClose: () => void }) {
   const { t } = useI18n();
   const { activities, leads, settings } = useStoreState();
   const activity = activities.find((a) => a.id === activityId);
-  const channelTemplates = settings.templates.filter((t) => t.channel === "Email" || t.channel === "WhatsApp" || t.channel === "SMS");
+  const channelTemplates = settings.templates.filter(
+    (t) => t.channel === "Email" || t.channel === "WhatsApp" || t.channel === "SMS",
+  );
   const [templateId, setTemplateId] = useState(channelTemplates[0]?.id ?? "");
   const [sent, setSent] = useState(false);
   if (!activity) return null;
   const template = settings.templates.find((t) => t.id === templateId);
   const lead = activity.leadId ? leads.find((l) => l.id === activity.leadId) : undefined;
-  const fill = (s: string) => s
-    .replaceAll("{{contact}}", lead?.contact ?? "there")
-    .replaceAll("{{company}}", lead?.company ?? activity.projectId ?? "—")
-    .replaceAll("{{date}}", activity.dueDate)
-    .replaceAll("{{time}}", activity.time);
+  const fill = (s: string) =>
+    s
+      .replaceAll("{{contact}}", lead?.contact ?? "there")
+      .replaceAll("{{company}}", lead?.company ?? activity.projectId ?? "—")
+      .replaceAll("{{date}}", activity.dueDate)
+      .replaceAll("{{time}}", activity.time);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-lg font-bold text-foreground inline-flex items-center gap-2"><Bell className="h-5 w-5 text-primary" /> {t("sendRemindBtn")}</h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="h-5 w-5" /></button>
+          <h3 className="font-display text-lg font-bold text-foreground inline-flex items-center gap-2">
+            <Bell className="h-5 w-5 text-primary" /> {t("sendRemindBtn")}
+          </h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-5 w-5" />
+          </button>
         </div>
         <div className="mb-3 rounded-lg bg-secondary/50 p-3 text-xs">
           <div className="font-semibold text-foreground">{activity.title}</div>
-          <div className="text-muted-foreground">{activity.dueDate} {activity.time} · {activity.owner && activity.owner !== "Unassigned" ? activity.owner : ((activity as any).createdByName ?? "Unassigned")}{lead ? ` · ${lead.company}` : ""}</div>
+          <div className="text-muted-foreground">
+            {activity.dueDate} {activity.time} ·{" "}
+            {activity.owner && activity.owner !== "Unassigned"
+              ? activity.owner
+              : ((activity as any).createdByName ?? "Unassigned")}
+            {lead ? ` · ${lead.company}` : ""}
+          </div>
         </div>
         <label className="block">
-          <div className="mb-1 text-xs font-semibold text-muted-foreground">Template (Email / WhatsApp / SMS)</div>
-          <select value={templateId} onChange={(e) => { setTemplateId(e.target.value); setSent(false); }} className="h-10 w-full rounded-lg border border-border bg-background px-2 text-sm">
-            {channelTemplates.map((t) => <option key={t.id} value={t.id}>[{t.channel}] {t.name}</option>)}
+          <div className="mb-1 text-xs font-semibold text-muted-foreground">
+            Template (Email / WhatsApp / SMS)
+          </div>
+          <select
+            value={templateId}
+            onChange={(e) => {
+              setTemplateId(e.target.value);
+              setSent(false);
+            }}
+            className="h-10 w-full rounded-lg border border-border bg-background px-2 text-sm"
+          >
+            {channelTemplates.map((t) => (
+              <option key={t.id} value={t.id}>
+                [{t.channel}] {t.name}
+              </option>
+            ))}
           </select>
         </label>
         {template && (
           <div className="mt-3 rounded-lg border border-border bg-background p-3 text-sm">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-primary">{template.channel} preview</div>
-            {template.subject && <div className="mt-1 font-semibold text-foreground">{fill(template.subject)}</div>}
-            <div className="mt-1 whitespace-pre-wrap text-xs text-muted-foreground">{fill(template.body)}</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-primary">
+              {template.channel} preview
+            </div>
+            {template.subject && (
+              <div className="mt-1 font-semibold text-foreground">{fill(template.subject)}</div>
+            )}
+            <div className="mt-1 whitespace-pre-wrap text-xs text-muted-foreground">
+              {fill(template.body)}
+            </div>
           </div>
         )}
-        {sent && <div className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">✓ {t("reminderDispatched")}</div>}
+        {sent && (
+          <div className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+            ✓ {t("reminderDispatched")}
+          </div>
+        )}
         <div className="mt-5 flex justify-end">
-          <button onClick={onClose} className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent">{t("close")}</button>
+          <button
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent"
+          >
+            {t("close")}
+          </button>
           <button
             disabled={!template || sent}
             onClick={() => {
@@ -722,7 +1117,8 @@ function ReminderDialog({ activityId, onClose }: { activityId: string; onClose: 
             }}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90 disabled:opacity-60"
           >
-            <Send className="h-4 w-4" /> {sent ? t("sent") : `${t("sendVia")} ${template?.channel ?? ""}`}
+            <Send className="h-4 w-4" />{" "}
+            {sent ? t("sent") : `${t("sendVia")} ${template?.channel ?? ""}`}
           </button>
         </div>
       </div>

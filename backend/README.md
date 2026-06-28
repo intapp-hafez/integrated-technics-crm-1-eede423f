@@ -37,12 +37,12 @@ backend/
 
 ## Bilingual convention
 
-| Column pattern         | Example                                 |
-|------------------------|------------------------------------------|
-| `name_en` / `name_ar`  | `"Aramco Digital"` / `"أرامكو ديجيتال"` |
-| `title_en` / `title_ar`| Activity / notification titles           |
-| `body_en` / `body_ar`  | Long descriptions                        |
-| `label_en` / `label_ar`| Settings (statuses, stages, etc.)        |
+| Column pattern          | Example                                 |
+| ----------------------- | --------------------------------------- |
+| `name_en` / `name_ar`   | `"Aramco Digital"` / `"أرامكو ديجيتال"` |
+| `title_en` / `title_ar` | Activity / notification titles          |
+| `body_en` / `body_ar`   | Long descriptions                       |
+| `label_en` / `label_ar` | Settings (statuses, stages, etc.)       |
 
 Client convention: a helper `t(row, lang)` picks `*_${lang}` and falls back to the other.
 

@@ -24,7 +24,9 @@ export function LocationPicker({ cities, city, district, onChange, label }: Prop
       >
         <option value="">Select city…</option>
         {cities.map((c) => (
-          <option key={c.name} value={c.name}>{c.name}</option>
+          <option key={c.name} value={c.name}>
+            {c.name}
+          </option>
         ))}
       </select>
       <select
@@ -35,7 +37,9 @@ export function LocationPicker({ cities, city, district, onChange, label }: Prop
       >
         <option value="">{current ? "Select district…" : "—"}</option>
         {districts.map((d) => (
-          <option key={d} value={d}>{d}</option>
+          <option key={d} value={d}>
+            {d}
+          </option>
         ))}
       </select>
     </div>

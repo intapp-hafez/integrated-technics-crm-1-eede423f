@@ -52,9 +52,7 @@ export function cairoWeekday(date: Date = new Date()): string {
 /** True for Friday/Saturday — the Egyptian weekend. Accepts Date or "YYYY-MM-DD". */
 export function isEgyptWeekend(input: Date | string): boolean {
   const wd =
-    typeof input === "string"
-      ? cairoWeekday(new Date(`${input}T12:00:00Z`))
-      : cairoWeekday(input);
+    typeof input === "string" ? cairoWeekday(new Date(`${input}T12:00:00Z`)) : cairoWeekday(input);
   return wd === "Fri" || wd === "Sat";
 }
 

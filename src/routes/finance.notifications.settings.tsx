@@ -12,7 +12,11 @@ function Page() {
   return (
     <NotificationSettingsPage
       panel="finance"
-      user={{ name: "Layla Hassan", role: dir === "rtl" ? "مالية" : "Finance Officer", initials: "LH" }}
+      user={{
+        name: "Layla Hassan",
+        role: dir === "rtl" ? "مالية" : "Finance Officer",
+        initials: "LH",
+      }}
     />
   );
 }

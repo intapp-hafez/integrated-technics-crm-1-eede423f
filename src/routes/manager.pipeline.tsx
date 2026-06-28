@@ -9,7 +9,10 @@ import { MultiSelect } from "@/components/PipelineFilters";
 import { GripVertical, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { StageTransitionDialog, type StageTransitionPayload } from "@/components/StageTransitionDialog";
+import {
+  StageTransitionDialog,
+  type StageTransitionPayload,
+} from "@/components/StageTransitionDialog";
 
 export const Route = createFileRoute("/manager/pipeline")({
   component: PipelinePage,
@@ -23,7 +26,12 @@ function PipelinePage() {
   const navigate = useNavigate();
   const { role } = useRole();
   const panel = role;
-  const user = { name: "hafez Rahim", role: t(role as any), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" };
+  const user = {
+    name: "hafez Rahim",
+    role: t(role as any),
+    initials: "HR",
+    photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
+  };
   const [dragId, setDragId] = useState<string | null>(null);
   const [overStage, setOverStage] = useState<LeadStatus | null>(null);
   const [activeStage, setActiveStage] = useState<string | null>(null);
@@ -31,25 +39,28 @@ function PipelinePage() {
   const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [pending, setPending] = useState<StageTransitionPayload | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const scrollBy = (dir: 1 | -1) => scrollRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+  const scrollBy = (dir: 1 | -1) =>
+    scrollRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
 
   const allStages = settings.stages.filter((s) => s.key !== "archived");
-  const stages = stageFilter.length === 0
-    ? allStages
-    : allStages.filter((s) => stageFilter.includes(s.key));
+  const stages =
+    stageFilter.length === 0 ? allStages : allStages.filter((s) => stageFilter.includes(s.key));
 
   // Manager only sees team leads (must have an owner in the team)
   const teamLeads = leads.filter((l) => l.owner && teamNames.has(l.owner));
 
-  const employeeOptions = Array.from(teamNames).sort((a, b) => a.localeCompare(b)).map((n) => ({ value: n, label: n }));
+  const employeeOptions = Array.from(teamNames)
+    .sort((a, b) => a.localeCompare(b))
+    .map((n) => ({ value: n, label: n }));
   const stageOptions = allStages.map((s) => ({
     value: s.key,
     label: (t(s.key as any) as string) ?? s.label,
   }));
 
-  const visibleLeads = employeeFilter.length === 0
-    ? teamLeads
-    : teamLeads.filter((l) => employeeFilter.includes(l.owner));
+  const visibleLeads =
+    employeeFilter.length === 0
+      ? teamLeads
+      : teamLeads.filter((l) => employeeFilter.includes(l.owner));
 
   return (
     <AppShell panel={panel} user={user} pageTitle={t("pipeline")}>
@@ -72,10 +83,20 @@ function PipelinePage() {
             onChange={setStageFilter}
           />
           <div className="flex items-center gap-1">
-            <Button variant="outline" size="icon" onClick={() => scrollBy(-1)} aria-label="Scroll stages left">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => scrollBy(-1)}
+              aria-label="Scroll stages left"
+            >
               <ChevronLeft />
             </Button>
-            <Button variant="outline" size="icon" onClick={() => scrollBy(1)} aria-label="Scroll stages right">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => scrollBy(1)}
+              aria-label="Scroll stages right"
+            >
               <ChevronRight />
             </Button>
           </div>
@@ -91,7 +112,10 @@ function PipelinePage() {
           return (
             <div
               key={stage.key}
-              onDragOver={(e) => { e.preventDefault(); setOverStage(stage.key as LeadStatus); }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setOverStage(stage.key as LeadStatus);
+              }}
               onDragLeave={() => setOverStage((s) => (s === stage.key ? null : s))}
               onDrop={(e) => {
                 e.preventDefault();
@@ -119,14 +143,20 @@ function PipelinePage() {
               >
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full" style={{ background: stage.color }} />
-                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">{t(stage.key as any) ?? stage.label}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                    {t(stage.key as any) ?? stage.label}
+                  </span>
                   <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground ring-1 ring-border">
                     {stageLeads.length}
                   </span>
                 </div>
-                {isActive && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden />}
+                {isActive && (
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden />
+                )}
               </button>
-              <div className="mb-2 px-1 font-mono text-[10px] text-muted-foreground">{fmtMoney(totalValue)}</div>
+              <div className="mb-2 px-1 font-mono text-[10px] text-muted-foreground">
+                {fmtMoney(totalValue)}
+              </div>
               <div className="min-h-[80px] space-y-2">
                 {stageLeads.map((l) => (
                   <div
@@ -137,12 +167,18 @@ function PipelinePage() {
                       e.dataTransfer.effectAllowed = "move";
                       e.dataTransfer.setData("text/lead-id", l.id);
                     }}
-                    onDragEnd={() => { setDragId(null); setOverStage(null); }}
+                    onDragEnd={() => {
+                      setDragId(null);
+                      setOverStage(null);
+                    }}
                     onClick={() => {
                       navigate({ to: "/manager/leads/$leadId", params: { leadId: l.id } });
                     }}
-                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${dragId === l.id ? "opacity-50 border-primary" : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
-                      }`}
+                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${
+                      dragId === l.id
+                        ? "opacity-50 border-primary"
+                        : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -160,18 +196,27 @@ function PipelinePage() {
                       </Link>
                     </div>
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="font-mono text-xs font-bold text-primary">{fmtMoney(l.value)}</span>
+                      <span className="font-mono text-xs font-bold text-primary">
+                        {fmtMoney(l.value)}
+                      </span>
                       <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
-                        {l.owner.split(" ").map((w: string) => w[0]).join("")}
+                        {l.owner
+                          .split(" ")
+                          .map((w: string) => w[0])
+                          .join("")}
                       </div>
                     </div>
                     {l.probability !== undefined && (
                       <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-[10px] text-muted-foreground">
                         <span className="inline-flex items-center gap-1 font-semibold">
-                          <div className={`h-1.5 w-1.5 rounded-full ${l.probability >= 70 ? "bg-emerald-500" : l.probability >= 40 ? "bg-amber-500" : "bg-rose-500"}`} />
+                          <div
+                            className={`h-1.5 w-1.5 rounded-full ${l.probability >= 70 ? "bg-emerald-500" : l.probability >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
+                          />
                           {l.probability}% {t("probability")}
                         </span>
-                        {l.expectedCloseDate && <span className="font-mono">{l.expectedCloseDate}</span>}
+                        {l.expectedCloseDate && (
+                          <span className="font-mono">{l.expectedCloseDate}</span>
+                        )}
                       </div>
                     )}
                   </div>

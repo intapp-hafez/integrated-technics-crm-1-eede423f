@@ -16,16 +16,27 @@ function friendlyAuthError(msg: string, isAr: boolean): string {
     return isAr ? "البريد الإلكتروني أو كلمة المرور غير صحيحة." : "Incorrect email or password.";
   }
   if (m.includes("email not confirmed")) {
-    return isAr ? "لم يتم تأكيد البريد الإلكتروني بعد. تحقق من بريدك." : "Your email isn't confirmed yet. Check your inbox.";
+    return isAr
+      ? "لم يتم تأكيد البريد الإلكتروني بعد. تحقق من بريدك."
+      : "Your email isn't confirmed yet. Check your inbox.";
   }
-  if (m.includes("user disabled") || m.includes("banned") || m.includes("user is disabled") || m.includes("user_banned")) {
-    return isAr ? "هذا الحساب معطّل أو موقوف. تواصل مع المسؤول." : "This account is disabled or locked. Contact your administrator.";
+  if (
+    m.includes("user disabled") ||
+    m.includes("banned") ||
+    m.includes("user is disabled") ||
+    m.includes("user_banned")
+  ) {
+    return isAr
+      ? "هذا الحساب معطّل أو موقوف. تواصل مع المسؤول."
+      : "This account is disabled or locked. Contact your administrator.";
   }
   if (m.includes("too many") || m.includes("rate limit") || m.includes("over_request_rate")) {
     return isAr ? "محاولات كثيرة جدًا. حاول لاحقًا." : "Too many attempts. Please try again later.";
   }
   if (m.includes("network") || m.includes("failed to fetch")) {
-    return isAr ? "تعذّر الاتصال بالخادم. تحقق من الإنترنت." : "Network error. Check your connection.";
+    return isAr
+      ? "تعذّر الاتصال بالخادم. تحقق من الإنترنت."
+      : "Network error. Check your connection.";
   }
   return msg;
 }
@@ -71,7 +82,11 @@ function Index() {
 
       if (profileRow && profileRow.active === false) {
         await supabase.auth.signOut();
-        setError(dir === "rtl" ? "هذا الحساب معطّل. تواصل مع المسؤول." : "This account is deactivated. Contact your administrator.");
+        setError(
+          dir === "rtl"
+            ? "هذا الحساب معطّل. تواصل مع المسؤول."
+            : "This account is deactivated. Contact your administrator.",
+        );
         return;
       }
 
@@ -99,13 +114,13 @@ function Index() {
       setStoredRole(role);
       navigate({ to: PANEL_PATH[role], replace: true });
     } catch (err) {
-      setError(friendlyAuthError(err instanceof Error ? err.message : "Sign in failed", dir === "rtl"));
+      setError(
+        friendlyAuthError(err instanceof Error ? err.message : "Sign in failed", dir === "rtl"),
+      );
     } finally {
       setLoading(false);
     }
   }
-
-
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background" dir={dir}>
@@ -154,7 +169,10 @@ function Index() {
 
       {/* Login card */}
       <div className="relative flex min-h-screen items-center justify-center px-6 py-12 lg:ms-[50%] lg:w-1/2">
-        <div className="absolute top-6 flex items-center gap-3" style={{ insetInlineEnd: "1.5rem" }}>
+        <div
+          className="absolute top-6 flex items-center gap-3"
+          style={{ insetInlineEnd: "1.5rem" }}
+        >
           <LangToggle />
         </div>
 
@@ -182,7 +200,10 @@ function Index() {
                 {t("email")}
               </label>
               <div className="relative mt-1.5">
-                <Mail className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.875rem" }} />
+                <Mail
+                  className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  style={{ insetInlineStart: "0.875rem" }}
+                />
                 <input
                   type="email"
                   required
@@ -200,7 +221,10 @@ function Index() {
                 {t("password")}
               </label>
               <div className="relative mt-1.5">
-                <Lock className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" style={{ insetInlineStart: "0.875rem" }} />
+                <Lock
+                  className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  style={{ insetInlineStart: "0.875rem" }}
+                />
                 <input
                   type={showPassword ? "text" : "password"}
                   required

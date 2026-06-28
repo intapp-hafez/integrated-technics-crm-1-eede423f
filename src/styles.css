@@ -156,16 +156,16 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-family: "Inter Variable", "Inter", system-ui, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   html[dir="rtl"] body {
-    font-family: 'Cairo', 'Inter Variable', 'Inter', system-ui, sans-serif;
+    font-family: "Cairo", "Inter Variable", "Inter", system-ui, sans-serif;
   }
 
   .font-display {
-    font-family: 'Inter Variable', 'Inter', sans-serif;
+    font-family: "Inter Variable", "Inter", sans-serif;
     letter-spacing: -0.02em;
   }
 }

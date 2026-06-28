@@ -23,8 +23,13 @@ function ManagerChatPage() {
     profile?.full_name_en ||
     "Manager";
   const meInitials =
-    (meName || "").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() ||
-    "MG";
+    (meName || "")
+      .split(" ")
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "MG";
 
   return (
     <AppShell

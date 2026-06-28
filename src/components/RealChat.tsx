@@ -25,11 +25,56 @@ interface Props {
 }
 
 const EMOJIS = [
-  "😀","😁","😂","🤣","😊","😇","🙂","😉","😍","🥰",
-  "😘","😎","🤩","🤔","🤗","🤝","👍","👎","👏","🙌",
-  "🙏","💪","🔥","✨","🎉","🎯","💼","📈","📊","📝",
-  "📌","📎","📧","📞","✅","❌","⚠️","⏰","💡","💯",
-  "❤️","💙","💚","💛","🧡","💜","🤍","🌟","⭐","☕",
+  "😀",
+  "😁",
+  "😂",
+  "🤣",
+  "😊",
+  "😇",
+  "🙂",
+  "😉",
+  "😍",
+  "🥰",
+  "😘",
+  "😎",
+  "🤩",
+  "🤔",
+  "🤗",
+  "🤝",
+  "👍",
+  "👎",
+  "👏",
+  "🙌",
+  "🙏",
+  "💪",
+  "🔥",
+  "✨",
+  "🎉",
+  "🎯",
+  "💼",
+  "📈",
+  "📊",
+  "📝",
+  "📌",
+  "📎",
+  "📧",
+  "📞",
+  "✅",
+  "❌",
+  "⚠️",
+  "⏰",
+  "💡",
+  "💯",
+  "❤️",
+  "💙",
+  "💚",
+  "💛",
+  "🧡",
+  "💜",
+  "🤍",
+  "🌟",
+  "⭐",
+  "☕",
 ];
 
 export function RealChat({
@@ -48,7 +93,9 @@ export function RealChat({
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
-  const [activeCat, setActiveCat] = useState<"greetings" | "tasks" | "approvals" | "closing">("greetings");
+  const [activeCat, setActiveCat] = useState<"greetings" | "tasks" | "approvals" | "closing">(
+    "greetings",
+  );
   const [loading, setLoading] = useState(true);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -56,15 +103,45 @@ export function RealChat({
   const quickReplies = useMemo(() => {
     const ar = {
       greetings: ["مرحبًا 👋", "صباح الخير ☀️", "مساء النور 🌙", "أهلًا بك 🤝", "كيف حالك؟ 🙂"],
-      tasks: ["ابدأ بالعميل التالي 📌", "حدّث حالة المشروع 📊", "أرسل التقرير اليومي 📝", "تواصل مع العميل 📞", "راجع العرض 📄"],
-      approvals: ["تمت الموافقة ✅", "بحاجة إلى تعديل ⚠️", "مرفوض ❌", "موافق مبدئيًا 👍", "انتظر مراجعة الإدارة 🕒"],
+      tasks: [
+        "ابدأ بالعميل التالي 📌",
+        "حدّث حالة المشروع 📊",
+        "أرسل التقرير اليومي 📝",
+        "تواصل مع العميل 📞",
+        "راجع العرض 📄",
+      ],
+      approvals: [
+        "تمت الموافقة ✅",
+        "بحاجة إلى تعديل ⚠️",
+        "مرفوض ❌",
+        "موافق مبدئيًا 👍",
+        "انتظر مراجعة الإدارة 🕒",
+      ],
       closing: ["شكرًا لجهودك 🙏", "عمل ممتاز 🔥", "إلى اللقاء 👋", "بالتوفيق ✨", "نتابع غدًا 📅"],
     };
     const en = {
       greetings: ["Hi 👋", "Good morning ☀️", "Good evening 🌙", "Welcome 🤝", "How are you? 🙂"],
-      tasks: ["Move to next lead 📌", "Update project status 📊", "Send daily report 📝", "Call the client 📞", "Review the offer 📄"],
-      approvals: ["Approved ✅", "Needs revision ⚠️", "Rejected ❌", "Tentatively approved 👍", "Pending admin review 🕒"],
-      closing: ["Thanks for your effort 🙏", "Great job 🔥", "Bye 👋", "Good luck ✨", "Let's follow up tomorrow 📅"],
+      tasks: [
+        "Move to next lead 📌",
+        "Update project status 📊",
+        "Send daily report 📝",
+        "Call the client 📞",
+        "Review the offer 📄",
+      ],
+      approvals: [
+        "Approved ✅",
+        "Needs revision ⚠️",
+        "Rejected ❌",
+        "Tentatively approved 👍",
+        "Pending admin review 🕒",
+      ],
+      closing: [
+        "Thanks for your effort 🙏",
+        "Great job 🔥",
+        "Bye 👋",
+        "Good luck ✨",
+        "Let's follow up tomorrow 📅",
+      ],
     };
     return lang === "ar" ? ar : en;
   }, [lang]);
@@ -81,7 +158,7 @@ export function RealChat({
         .from("messages")
         .select("id,sender_id,recipient_id,body,created_at,delivered_at,read_at")
         .or(
-          `and(sender_id.eq.${myId},recipient_id.eq.${peerProfileId}),and(sender_id.eq.${peerProfileId},recipient_id.eq.${myId})`
+          `and(sender_id.eq.${myId},recipient_id.eq.${peerProfileId}),and(sender_id.eq.${peerProfileId},recipient_id.eq.${myId})`,
         )
         .order("created_at", { ascending: true })
         .limit(500);
@@ -188,12 +265,21 @@ export function RealChat({
     yesterday.setDate(today.getDate() - 1);
     if (dayKey(iso) === dayKey(today.toISOString())) return t("today");
     if (dayKey(iso) === dayKey(yesterday.toISOString())) return t("yesterday");
-    return d.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", { day: "2-digit", month: "short", year: "numeric" });
+    return d.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   const Avatar = ({ photo, initials, alt }: { photo?: string; initials: string; alt: string }) =>
     photo ? (
-      <img src={photo} alt={alt} loading="lazy" className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-primary/30" />
+      <img
+        src={photo}
+        alt={alt}
+        loading="lazy"
+        className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-primary/30"
+      />
     ) : (
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 text-[10px] font-bold text-primary-foreground">
         {initials}
@@ -210,7 +296,10 @@ export function RealChat({
   let lastDay = "";
 
   return (
-    <div className="flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]" dir={dir}>
+    <div
+      className="flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
+      dir={dir}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-border bg-gradient-to-r from-secondary/60 to-secondary/20 px-5 py-3">
         <div className="relative">
@@ -278,26 +367,35 @@ export function RealChat({
                   </div>
                   <div className="mt-1 flex items-center gap-1 px-1 text-[10px] text-muted-foreground">
                     <span>{fmtTime(m.created_at)}</span>
-                    {mine && (() => {
-                      const isPending = m.id.startsWith("tmp-");
-                      const tip = isPending
-                        ? (lang === "ar" ? "جارٍ الإرسال" : "Sending")
-                        : m.read_at
-                        ? `${lang === "ar" ? "تمت القراءة" : "Read"} • ${fmtTime(m.read_at)}`
-                        : m.delivered_at
-                        ? `${lang === "ar" ? "تم التسليم" : "Delivered"} • ${fmtTime(m.delivered_at)}`
-                        : (lang === "ar" ? "تم الإرسال" : "Sent");
-                      const icon = isPending ? (
-                        <Clock className="h-3 w-3 opacity-60" />
-                      ) : m.read_at ? (
-                        <CheckCheck className="h-3 w-3 text-sky-500" />
-                      ) : m.delivered_at ? (
-                        <CheckCheck className="h-3 w-3 opacity-70" />
-                      ) : (
-                        <Check className="h-3 w-3 opacity-70" />
-                      );
-                      return <span title={tip} aria-label={tip}>{icon}</span>;
-                    })()}
+                    {mine &&
+                      (() => {
+                        const isPending = m.id.startsWith("tmp-");
+                        const tip = isPending
+                          ? lang === "ar"
+                            ? "جارٍ الإرسال"
+                            : "Sending"
+                          : m.read_at
+                            ? `${lang === "ar" ? "تمت القراءة" : "Read"} • ${fmtTime(m.read_at)}`
+                            : m.delivered_at
+                              ? `${lang === "ar" ? "تم التسليم" : "Delivered"} • ${fmtTime(m.delivered_at)}`
+                              : lang === "ar"
+                                ? "تم الإرسال"
+                                : "Sent";
+                        const icon = isPending ? (
+                          <Clock className="h-3 w-3 opacity-60" />
+                        ) : m.read_at ? (
+                          <CheckCheck className="h-3 w-3 text-sky-500" />
+                        ) : m.delivered_at ? (
+                          <CheckCheck className="h-3 w-3 opacity-70" />
+                        ) : (
+                          <Check className="h-3 w-3 opacity-70" />
+                        );
+                        return (
+                          <span title={tip} aria-label={tip}>
+                            {icon}
+                          </span>
+                        );
+                      })()}
                   </div>
                 </div>
               </div>
@@ -392,7 +490,9 @@ export function RealChat({
               }
             }}
             rows={1}
-            placeholder={!myId ? (lang === "ar" ? "يجب تسجيل الدخول" : "Sign in to chat") : t("typeMessage")}
+            placeholder={
+              !myId ? (lang === "ar" ? "يجب تسجيل الدخول" : "Sign in to chat") : t("typeMessage")
+            }
             disabled={!myId || !peerProfileId}
             className="max-h-28 min-h-[40px] flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
           />

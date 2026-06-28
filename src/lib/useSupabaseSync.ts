@@ -17,10 +17,24 @@ export function useSupabaseSync() {
     refetchInterval: 60_000,
     queryFn: async () => {
       const [
-        leadsRes, projectsRes, quotationsRes, activitiesRes, profilesRes,
-        attendanceRes, historyRes, notificationsRes, locationsRes, stagesRes,
-        usersRes, departmentsRes, positionsRes, clientsRes, projectMembersRes,
-        quotationItemsRes, rolePermsRes, projectRequestsRes,
+        leadsRes,
+        projectsRes,
+        quotationsRes,
+        activitiesRes,
+        profilesRes,
+        attendanceRes,
+        historyRes,
+        notificationsRes,
+        locationsRes,
+        stagesRes,
+        usersRes,
+        departmentsRes,
+        positionsRes,
+        clientsRes,
+        projectMembersRes,
+        quotationItemsRes,
+        rolePermsRes,
+        projectRequestsRes,
       ] = await Promise.all([
         supabase.from("leads").select("*").order("created_at", { ascending: false }),
         supabase.from("projects").select("*").order("created_at", { ascending: false }),
@@ -29,7 +43,11 @@ export function useSupabaseSync() {
         supabase.from("profiles").select("*").eq("active", true),
         supabase.from("attendance").select("*").order("date", { ascending: false }).limit(200),
         supabase.from("history").select("*").order("created_at", { ascending: false }).limit(200),
-        supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(50),
+        supabase
+          .from("notifications")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(50),
         supabase.from("locations").select("*"),
         supabase.from("pipeline_stages").select("*").order("sort_order"),
         supabase.rpc("admin_users_list").then(async (res: any) => {
@@ -51,13 +69,21 @@ export function useSupabaseSync() {
             })),
           };
         }),
-        supabase.from("departments" as any).select("*").order("name_en"),
-        supabase.from("positions" as any).select("*").order("name_en"),
+        supabase
+          .from("departments" as any)
+          .select("*")
+          .order("name_en"),
+        supabase
+          .from("positions" as any)
+          .select("*")
+          .order("name_en"),
         supabase.from("clients").select("*"),
         supabase.from("project_members").select("*"),
         supabase.from("quotation_items").select("*").order("sort_order"),
         supabase.from("role_permissions").select("*"),
-        supabase.from("project_requests").select("id, status, created_project_id, requested_by, name_en"),
+        supabase
+          .from("project_requests")
+          .select("id, status, created_project_id, requested_by, name_en"),
       ]);
       return {
         leads: leadsRes.data ?? [],
@@ -82,7 +108,6 @@ export function useSupabaseSync() {
     },
   });
 
-
   const { data, refetch } = syncQuery;
 
   // Realtime: invalidate the sync query when relevant tables change so
@@ -93,9 +118,19 @@ export function useSupabaseSync() {
     let pending: ReturnType<typeof setTimeout> | null = null;
     const trigger = () => {
       if (pending) clearTimeout(pending);
-      pending = setTimeout(() => { void refetch(); }, 250);
+      pending = setTimeout(() => {
+        void refetch();
+      }, 250);
     };
-    const tables = ["attendance", "profiles", "leads", "activities", "projects", "history", "notifications"];
+    const tables = [
+      "attendance",
+      "profiles",
+      "leads",
+      "activities",
+      "projects",
+      "history",
+      "notifications",
+    ];
     const channel = supabase.channel("app-sync");
     for (const table of tables) {
       channel.on("postgres_changes" as any, { event: "*", schema: "public", table }, trigger);
@@ -106,6 +141,30 @@ export function useSupabaseSync() {
       void supabase.removeChannel(channel);
     };
   }, [user, refetch]);
+
+  // Presence channel — tracks who is actively using the app right now.
+  useEffect(() => {
+    if (!user) return;
+    const presenceChannel = supabase.channel("app-presence", {
+      config: { presence: { key: user.id } },
+    });
+
+    presenceChannel
+      .on("presence", { event: "sync" }, () => {
+        const state = presenceChannel.presenceState<{ userId: string }>();
+        const ids = Object.keys(state);
+        actions.setOnlineUsers(ids);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await presenceChannel.track({ userId: user.id, ts: Date.now() });
+        }
+      });
+
+    return () => {
+      void supabase.removeChannel(presenceChannel);
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!data) return;
@@ -123,8 +182,12 @@ export function useSupabaseSync() {
         active: u.active,
       })),
     ].filter((p) => p.id || p.user_id);
-    const profileById = new Map(directoryProfiles.filter((p: any) => p.id).map((p: any) => [p.id, p]));
-    const profileByCreatedUserId = new Map<string, any>(directoryProfiles.filter((p: any) => p.user_id).map((p: any) => [p.user_id, p]));
+    const profileById = new Map(
+      directoryProfiles.filter((p: any) => p.id).map((p: any) => [p.id, p]),
+    );
+    const profileByCreatedUserId = new Map<string, any>(
+      directoryProfiles.filter((p: any) => p.user_id).map((p: any) => [p.user_id, p]),
+    );
     // nameOf always returns the English name — used as a stable identity key for
     // filtering (owner, actor). Arabic display is resolved at render time in the UI.
     const nameOf = (id: string | null) => {
@@ -152,18 +215,15 @@ export function useSupabaseSync() {
     const me = (data.profiles as any[]).find((p) => p.user_id === user?.id);
     setProfileMap(nameToId, me?.id ?? null, user?.id ?? null);
 
-
     const leadDistricts: Record<string, string> = {};
     const leads = data.leads.map((l: any) => {
       const district = pick(l.district_en, l.district_ar);
       const creatorProfile: any = profileByCreatedUserId.get(l.created_by);
       if (district) leadDistricts[l.id] = district;
-      const effectiveOwnerProfile: any = l.owner_id
-        ? profileById.get(l.owner_id)
-        : creatorProfile;
+      const effectiveOwnerProfile: any = l.owner_id ? profileById.get(l.owner_id) : creatorProfile;
       // Always use English name as the stable owner key for filtering.
       const effectiveOwnerName = effectiveOwnerProfile
-        ? (effectiveOwnerProfile.full_name_en || effectiveOwnerProfile.full_name_ar || "Unassigned")
+        ? effectiveOwnerProfile.full_name_en || effectiveOwnerProfile.full_name_ar || "Unassigned"
         : "Unassigned";
       return {
         id: l.id,
@@ -179,7 +239,9 @@ export function useSupabaseSync() {
         updatedAt: new Date(l.updated_at).toLocaleString(),
         updatedAtIso: l.updated_at ?? undefined,
         createdBy: l.created_by ?? undefined,
-        createdByName: creatorProfile ? pick(creatorProfile.full_name_en, creatorProfile.full_name_ar) : undefined,
+        createdByName: creatorProfile
+          ? pick(creatorProfile.full_name_en, creatorProfile.full_name_ar)
+          : undefined,
         createdByPhoto: creatorProfile?.avatar_url ?? undefined,
         city: pick(l.city_en, l.city_ar) || "—",
         country: l.country ?? "Egypt",
@@ -198,7 +260,7 @@ export function useSupabaseSync() {
     const memberNamesByProject = new Map<string, string[]>();
     const memberProfileIdsByProject = new Map<string, string[]>();
     const memberUserIdsByProject = new Map<string, string[]>();
-    for (const m of (data.projectMembers as any[])) {
+    for (const m of data.projectMembers as any[]) {
       memberCountByProject.set(m.project_id, (memberCountByProject.get(m.project_id) ?? 0) + 1);
       const prof: any = profileById.get(m.profile_id);
       const pids = memberProfileIdsByProject.get(m.project_id) ?? [];
@@ -221,11 +283,12 @@ export function useSupabaseSync() {
       const district = pick(p.district_en, p.district_ar);
       if (city || district) projectLocations[p.id] = { city, district };
       const client = p.client_id ? clientById.get(p.client_id) : undefined;
-      
+
       const req = data.projectRequests?.find((r: any) => r.created_project_id === p.id);
       const actualCreatorId = req?.requested_by || p.created_by;
-      const creatorProfile: any = profileById.get(actualCreatorId) || profileByCreatedUserId.get(actualCreatorId);
-      
+      const creatorProfile: any =
+        profileById.get(actualCreatorId) || profileByCreatedUserId.get(actualCreatorId);
+
       return {
         id: p.id,
         name: pick(p.name_en, p.name_ar),
@@ -257,12 +320,18 @@ export function useSupabaseSync() {
           // Handle double-encoded JSON: parse in a loop until we get an array
           let attempts = 0;
           while (typeof raw === "string" && attempts++ < 3) {
-            try { raw = JSON.parse(raw); } catch { return undefined; }
+            try {
+              raw = JSON.parse(raw);
+            } catch {
+              return undefined;
+            }
           }
           return Array.isArray(raw) ? raw : undefined;
         })(),
         createdBy: actualCreatorId ?? undefined,
-        createdByName: creatorProfile ? pick(creatorProfile.full_name_en, creatorProfile.full_name_ar) : undefined,
+        createdByName: creatorProfile
+          ? pick(creatorProfile.full_name_en, creatorProfile.full_name_ar)
+          : undefined,
         managerId: p.manager_id ?? undefined,
       };
     });
@@ -291,7 +360,7 @@ export function useSupabaseSync() {
         total: Number(it.total ?? Number(it.qty ?? 1) * Number(it.unit_price ?? 0)),
       }));
       const ownerName = ownerProfile
-        ? (pick(ownerProfile.full_name_en, ownerProfile.full_name_ar) || "Unassigned")
+        ? pick(ownerProfile.full_name_en, ownerProfile.full_name_ar) || "Unassigned"
         : lead?.owner || "Unassigned";
       return {
         id: q.code ?? q.id,
@@ -316,7 +385,9 @@ export function useSupabaseSync() {
         ownerPhoto: ownerProfile?.avatar_url ?? lead?.ownerPhoto ?? undefined,
         createdById: q.created_by ?? undefined,
         approvedAt: q.approved_at ?? undefined,
-        approvedByName: approverProfile ? pick(approverProfile.full_name_en, approverProfile.full_name_ar) : undefined,
+        approvedByName: approverProfile
+          ? pick(approverProfile.full_name_en, approverProfile.full_name_ar)
+          : undefined,
         createdAt: q.created_at ?? undefined,
         updatedAt: q.updated_at ?? undefined,
         feedback: pick(q.description_en, q.description_ar) || undefined,
@@ -326,9 +397,9 @@ export function useSupabaseSync() {
 
     const profileByUserId = new Map<string, any>(
       (data.profiles as any[]).map((p) => [p.user_id, p]),
-
     );
-    const profileFromUserId = (uid: string | null | undefined) => (uid ? profileByUserId.get(uid) : undefined);
+    const profileFromUserId = (uid: string | null | undefined) =>
+      uid ? profileByUserId.get(uid) : undefined;
     const activities = data.activities.map((a: any) => {
       const creator = profileFromUserId(a.created_by);
       const approver = profileFromUserId(a.approved_by);
@@ -356,7 +427,11 @@ export function useSupabaseSync() {
         rejectionReason: a.rejection_reason ?? undefined,
         reviewNote: a.review_note ?? undefined,
         createdBy: a.created_by ?? undefined,
-        createdByName: creator ? pick(creator.full_name_en, creator.full_name_ar) : (a.owner_id ? nameOf(a.owner_id) : undefined),
+        createdByName: creator
+          ? pick(creator.full_name_en, creator.full_name_ar)
+          : a.owner_id
+            ? nameOf(a.owner_id)
+            : undefined,
         createdByPhoto: creator?.avatar_url ?? undefined,
       };
     });
@@ -373,7 +448,6 @@ export function useSupabaseSync() {
       lng: r.lng !== null && r.lng !== undefined ? Number(r.lng) : null,
     }));
 
-
     const history = data.history.map((h: any) => ({
       id: h.id,
       ts: h.created_at,
@@ -386,7 +460,6 @@ export function useSupabaseSync() {
       details: pick(h.details_en, h.details_ar) || undefined,
     }));
 
-
     const myProfileId = me?.id ?? null;
     const myDisplayName = me ? pick(me.full_name_en, me.full_name_ar) : "";
     const notifications = data.notifications.map((n: any) => {
@@ -394,9 +467,10 @@ export function useSupabaseSync() {
       const targeted = aud.length > 0;
       // If row is targeted to specific profile(s), expose ME in audience so the
       // role-agnostic gating in NotificationsMenu/Page lets me see it.
-      const audience = targeted && myProfileId && aud.includes(myProfileId) && myDisplayName
-        ? [myDisplayName]
-        : undefined;
+      const audience =
+        targeted && myProfileId && aud.includes(myProfileId) && myDisplayName
+          ? [myDisplayName]
+          : undefined;
       return {
         id: n.id,
         type: n.type,
@@ -405,7 +479,9 @@ export function useSupabaseSync() {
         bodyEn: n.body_en ?? "",
         bodyAr: n.body_ar ?? n.body_en ?? "",
         ts: n.created_at,
-        unread: myProfileId ? (n.unread_by ?? []).includes(myProfileId) : (n.unread_by ?? []).length > 0,
+        unread: myProfileId
+          ? (n.unread_by ?? []).includes(myProfileId)
+          : (n.unread_by ?? []).length > 0,
         href: n.href ?? undefined,
         audience,
       };
@@ -414,17 +490,29 @@ export function useSupabaseSync() {
     const locations = data.locations.length
       ? data.locations.map((l: any) => ({
           name: pick(l.city_en, l.city_ar),
-          districts: ar ? (l.districts_ar ?? l.districts_en ?? []) : (l.districts_en ?? l.districts_ar ?? []),
+          districts: ar
+            ? (l.districts_ar ?? l.districts_en ?? [])
+            : (l.districts_en ?? l.districts_ar ?? []),
         }))
       : undefined;
 
     const stages = data.stages.length
-      ? data.stages.map((s: any) => ({ key: s.key, label: pick(s.label_en, s.label_ar), color: s.color }))
+      ? data.stages.map((s: any) => ({
+          key: s.key,
+          label: pick(s.label_en, s.label_ar),
+          color: s.color,
+        }))
       : undefined;
 
     // Derive employees array (Employee shape) from profiles + leads aggregates.
     // Only include profiles whose user has the 'employee' role.
-    const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).map((w) => w[0]?.toUpperCase() ?? "").join("").slice(0, 2) || "??";
+    const initialsOf = (name: string) =>
+      name
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((w) => w[0]?.toUpperCase() ?? "")
+        .join("")
+        .slice(0, 2) || "??";
     const employeeUserIds = new Set<string>(
       (data.users as any[])
         .filter((u) => (u.roles ?? []).includes("employee"))
@@ -461,14 +549,15 @@ export function useSupabaseSync() {
     });
 
     // Users from admin RPC (admin-only). Fallback: derive from profiles when unavailable.
-    const profileByUser = new Map<string, any>(
-      (data.profiles as any[]).map((p) => [p.user_id, p]),
-    );
+    const profileByUser = new Map<string, any>((data.profiles as any[]).map((p) => [p.user_id, p]));
     const mapUser = (u: any, p: any | undefined) => ({
       id: u.user_id ?? p?.user_id,
       profileId: u.profile_id ?? p?.id,
       // AppUser.name must be English — used as filter key in useMyTeam, leads filtering, etc.
-      name: (p?.full_name_en ?? u.full_name_en) || (p?.full_name_ar ?? u.full_name_ar) || (u.email ?? "—"),
+      name:
+        (p?.full_name_en ?? u.full_name_en) ||
+        (p?.full_name_ar ?? u.full_name_ar) ||
+        (u.email ?? "—"),
       nameAr: p?.full_name_ar ?? u.full_name_ar ?? "",
       email: u.email ?? p?.email ?? "",
       phone: p?.phone ?? "",
@@ -489,7 +578,16 @@ export function useSupabaseSync() {
     const users = (data.users as any[]).length
       ? (data.users as any[]).map((u) => mapUser(u, profileByUser.get(u.user_id)))
       : (data.profiles as any[]).map((p) =>
-          mapUser({ user_id: p.user_id, profile_id: p.id, email: p.email, roles: ["employee"], active: p.active }, p),
+          mapUser(
+            {
+              user_id: p.user_id,
+              profile_id: p.id,
+              email: p.email,
+              roles: ["employee"],
+              active: p.active,
+            },
+            p,
+          ),
         );
 
     const meProfile = (data.profiles as any[]).find((p) => p.user_id === user?.id);
@@ -528,8 +626,16 @@ export function useSupabaseSync() {
       settings: {
         ...(locations ? { locations } : {}),
         ...(stages ? { stages } : {}),
-        departments: (data.departments as any[]).map((d) => ({ id: d.id, nameEn: d.name_en ?? "", nameAr: d.name_ar ?? "" })),
-        positions: (data.positions as any[]).map((p) => ({ id: p.id, nameEn: p.name_en ?? "", nameAr: p.name_ar ?? "" })),
+        departments: (data.departments as any[]).map((d) => ({
+          id: d.id,
+          nameEn: d.name_en ?? "",
+          nameAr: d.name_ar ?? "",
+        })),
+        positions: (data.positions as any[]).map((p) => ({
+          id: p.id,
+          nameEn: p.name_en ?? "",
+          nameAr: p.name_ar ?? "",
+        })),
         ...((data as any).rolePerms?.length ? { rolePermsRows: (data as any).rolePerms } : {}),
       } as any,
       projectRequests: (data as any).projectRequests ?? [],

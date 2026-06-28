@@ -19,27 +19,31 @@ function ManagerReportsPage() {
   const { teamEmployees: employees } = useMyTeam();
   const today = new Date().toISOString().slice(0, 10);
 
-  const report = useMemo(() => employees.map((e) => {
-    const myLeads = leads.filter((l) => l.owner === e.name);
-    const myActs = activities.filter((a) => a.owner === e.name);
-    const wonLeads = myLeads.filter((l) => l.status === "won");
-    const doneActs = myActs.filter((a) => a.status === "done");
-    const todayMins = activities
-      .filter((a) => a.owner === e.name && a.dueDate === today)
-      .reduce((s, a) => s + (a.estMinutes ?? 0), 0);
-    const revenue = wonLeads.reduce((s, l) => s + l.value, 0);
-    const fmtH = (m: number) => m ? `${Math.floor(m / 60)}h ${m % 60}m` : "0";
-    return {
-      ...e,
-      totalLeads: myLeads.length,
-      wonLeads: wonLeads.length,
-      totalActs: myActs.length,
-      doneActs: doneActs.length,
-      todayHours: fmtH(todayMins),
-      revenue,
-      convRate: myLeads.length ? Math.round((wonLeads.length / myLeads.length) * 100) : 0,
-    };
-  }), [activities, leads, employees, today]);
+  const report = useMemo(
+    () =>
+      employees.map((e) => {
+        const myLeads = leads.filter((l) => l.owner === e.name);
+        const myActs = activities.filter((a) => a.owner === e.name);
+        const wonLeads = myLeads.filter((l) => l.status === "won");
+        const doneActs = myActs.filter((a) => a.status === "done");
+        const todayMins = activities
+          .filter((a) => a.owner === e.name && a.dueDate === today)
+          .reduce((s, a) => s + (a.estMinutes ?? 0), 0);
+        const revenue = wonLeads.reduce((s, l) => s + l.value, 0);
+        const fmtH = (m: number) => (m ? `${Math.floor(m / 60)}h ${m % 60}m` : "0");
+        return {
+          ...e,
+          totalLeads: myLeads.length,
+          wonLeads: wonLeads.length,
+          totalActs: myActs.length,
+          doneActs: doneActs.length,
+          todayHours: fmtH(todayMins),
+          revenue,
+          convRate: myLeads.length ? Math.round((wonLeads.length / myLeads.length) * 100) : 0,
+        };
+      }),
+    [activities, leads, employees, today],
+  );
 
   const totals = {
     leads: report.reduce((s, r) => s + r.totalLeads, 0),
@@ -61,27 +65,78 @@ function ManagerReportsPage() {
       DoneActivities: r.doneActs,
       TodayHours: r.todayHours,
       Revenue: r.revenue,
-      Performance: r.annualTarget ? `${Math.round(((r.achievedTarget ?? 0) / r.annualTarget) * 100)}%` : `${r.perf}%`,
+      Performance: r.annualTarget
+        ? `${Math.round(((r.achievedTarget ?? 0) / r.annualTarget) * 100)}%`
+        : `${r.perf}%`,
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
-    ws["!cols"] = [{ wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 15 }, { wch: 12 }];
+    ws["!cols"] = [
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 12 },
+    ];
     XLSX.utils.book_append_sheet(wb, ws, "Team Report");
     XLSX.writeFile(wb, `INT-CRM-Team-Report-${stamp}.xlsx`);
   };
 
   return (
-    <AppShell panel="manager" user={{ name: "hafez Rahim", role: t("manager"), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" }} pageTitle={t("reports")}>
+    <AppShell
+      panel="manager"
+      user={{
+        name: "hafez Rahim",
+        role: t("manager"),
+        initials: "HR",
+        photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
+      }}
+      pageTitle={t("reports")}
+    >
       {/* Summary KPIs */}
       <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
         {[
-          { icon: Users, label: dir === "rtl" ? "إجمالي العملاء" : "Total Leads", value: totals.leads, color: "text-sky-600", bg: "bg-sky-50" },
-          { icon: CheckCircle2, label: dir === "rtl" ? "صفقات مُغلقة" : "Won Deals", value: totals.won, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { icon: Clock, label: dir === "rtl" ? "إجمالي الأنشطة" : "Total Activities", value: totals.acts, color: "text-amber-600", bg: "bg-amber-50" },
-          { icon: TrendingUp, label: dir === "rtl" ? "الإيرادات" : "Revenue", value: fmtMoney(totals.revenue), color: "text-primary", bg: "bg-primary/10" },
+          {
+            icon: Users,
+            label: dir === "rtl" ? "إجمالي العملاء" : "Total Leads",
+            value: totals.leads,
+            color: "text-sky-600",
+            bg: "bg-sky-50",
+          },
+          {
+            icon: CheckCircle2,
+            label: dir === "rtl" ? "صفقات مُغلقة" : "Won Deals",
+            value: totals.won,
+            color: "text-emerald-600",
+            bg: "bg-emerald-50",
+          },
+          {
+            icon: Clock,
+            label: dir === "rtl" ? "إجمالي الأنشطة" : "Total Activities",
+            value: totals.acts,
+            color: "text-amber-600",
+            bg: "bg-amber-50",
+          },
+          {
+            icon: TrendingUp,
+            label: dir === "rtl" ? "الإيرادات" : "Revenue",
+            value: fmtMoney(totals.revenue),
+            color: "text-primary",
+            bg: "bg-primary/10",
+          },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div
+            key={s.label}
+            className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]"
+          >
             <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.bg} ${s.color}`}>
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.bg} ${s.color}`}
+              >
                 <s.icon className="h-5 w-5" />
               </div>
               <div>
@@ -111,15 +166,33 @@ function ManagerReportsPage() {
           <table className="w-full text-sm">
             <thead className="bg-secondary/60">
               <tr>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("name")}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("leads")}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("won")}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{dir === "rtl" ? "معدل التحويل" : "Conv %"}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("activities")}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{dir === "rtl" ? "مُنجز" : "Done"}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{dir === "rtl" ? "ساعات اليوم" : "Today"}</th>
-                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{dir === "rtl" ? "الإيرادات" : "Revenue"}</th>
-                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("performance")}</th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("name")}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("leads")}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("won")}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {dir === "rtl" ? "معدل التحويل" : "Conv %"}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("activities")}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {dir === "rtl" ? "مُنجز" : "Done"}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {dir === "rtl" ? "ساعات اليوم" : "Today"}
+                </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {dir === "rtl" ? "الإيرادات" : "Revenue"}
+                </th>
+                <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("performance")}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -136,39 +209,71 @@ function ManagerReportsPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center font-mono font-semibold text-foreground">{r.totalLeads}</td>
-                  <td className="px-4 py-3 text-center font-mono font-semibold text-emerald-600">{r.wonLeads}</td>
+                  <td className="px-4 py-3 text-center font-mono font-semibold text-foreground">
+                    {r.totalLeads}
+                  </td>
+                  <td className="px-4 py-3 text-center font-mono font-semibold text-emerald-600">
+                    {r.wonLeads}
+                  </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.convRate >= 30 ? "bg-emerald-50 text-emerald-700" : r.convRate >= 15 ? "bg-amber-50 text-amber-700" : "bg-rose-50 text-rose-700"}`}>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.convRate >= 30 ? "bg-emerald-50 text-emerald-700" : r.convRate >= 15 ? "bg-amber-50 text-amber-700" : "bg-rose-50 text-rose-700"}`}
+                    >
                       {r.convRate}%
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center font-mono text-foreground">{r.totalActs}</td>
                   <td className="px-4 py-3 text-center font-mono text-emerald-600">{r.doneActs}</td>
-                  <td className="px-4 py-3 text-center font-mono text-foreground">{r.todayHours}</td>
-                  <td className="px-4 py-3 text-end font-mono font-semibold text-primary">{fmtMoney(r.revenue)}</td>
+                  <td className="px-4 py-3 text-center font-mono text-foreground">
+                    {r.todayHours}
+                  </td>
+                  <td className="px-4 py-3 text-end font-mono font-semibold text-primary">
+                    {fmtMoney(r.revenue)}
+                  </td>
                   <td className="px-4 py-3">
-                    {r.annualTarget ? (() => {
-                      const targetPerc = Math.round(((r.achievedTarget ?? 0) / r.annualTarget) * 100);
-                      const barColor = targetPerc >= 100 ? "from-emerald-400 to-emerald-600" : targetPerc >= 75 ? "from-amber-400 to-amber-600" : "from-rose-400 to-rose-600";
-                      const textColor = targetPerc >= 100 ? "text-emerald-600" : targetPerc >= 75 ? "text-amber-600" : "text-rose-600";
-                      return (
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
-                              <div className={`h-full rounded-full bg-gradient-to-r ${barColor}`} style={{ width: `${Math.min(targetPerc, 100)}%` }} />
+                    {r.annualTarget ? (
+                      (() => {
+                        const targetPerc = Math.round(
+                          ((r.achievedTarget ?? 0) / r.annualTarget) * 100,
+                        );
+                        const barColor =
+                          targetPerc >= 100
+                            ? "from-emerald-400 to-emerald-600"
+                            : targetPerc >= 75
+                              ? "from-amber-400 to-amber-600"
+                              : "from-rose-400 to-rose-600";
+                        const textColor =
+                          targetPerc >= 100
+                            ? "text-emerald-600"
+                            : targetPerc >= 75
+                              ? "text-amber-600"
+                              : "text-rose-600";
+                        return (
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
+                                <div
+                                  className={`h-full rounded-full bg-gradient-to-r ${barColor}`}
+                                  style={{ width: `${Math.min(targetPerc, 100)}%` }}
+                                />
+                              </div>
+                              <span className={`font-mono text-xs font-bold ${textColor}`}>
+                                {targetPerc}%
+                              </span>
                             </div>
-                            <span className={`font-mono text-xs font-bold ${textColor}`}>{targetPerc}%</span>
+                            <div className="mt-1 text-center font-mono text-[9px] text-muted-foreground">
+                              {fmtMoney(r.achievedTarget ?? 0)} / {fmtMoney(r.annualTarget)}
+                            </div>
                           </div>
-                          <div className="mt-1 text-center font-mono text-[9px] text-muted-foreground">
-                            {fmtMoney(r.achievedTarget ?? 0)} / {fmtMoney(r.annualTarget)}
-                          </div>
-                        </div>
-                      );
-                    })() : (
+                        );
+                      })()
+                    ) : (
                       <div className="flex items-center gap-2">
                         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
-                          <div className="h-full rounded-full bg-gradient-to-r from-primary to-orange-500" style={{ width: `${r.perf}%` }} />
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-primary to-orange-500"
+                            style={{ width: `${r.perf}%` }}
+                          />
                         </div>
                         <span className="font-mono text-xs font-bold text-primary">{r.perf}%</span>
                       </div>

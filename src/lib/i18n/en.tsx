@@ -154,7 +154,8 @@ export const en = {
   location: "Location",
   locations: "Locations",
   adminAccessRequired: "Admin Access Required",
-  adminAccessMsg: "You are signed in as Employee. The Admin panel and its settings, automations and configuration are restricted.",
+  adminAccessMsg:
+    "You are signed in as Employee. The Admin panel and its settings, automations and configuration are restricted.",
   goToEmployeePanel: "Go to Employee Panel",
   switchAccount: "Switch account",
   managerPanel: "Manager Panel",
@@ -166,7 +167,8 @@ export const en = {
   tableView: "Table",
   cardView: "Cards",
   accessRestricted: "Access Restricted",
-  accessRestrictedMsg: "Only Admin users can configure system settings. Contact your administrator for access.",
+  accessRestrictedMsg:
+    "Only Admin users can configure system settings. Contact your administrator for access.",
   offers: "Quotations & Offers",
   probability: "Probability",
   expectedClose: "Expected Close",
@@ -191,7 +193,8 @@ export const en = {
   dragCardHint: "Drag any card to a different column — the change is auto-logged to History.",
   openLead: "Open lead",
   dropLeadsHere: "Drop leads here",
-  dailyWorkingHoursPerEmployee: "Daily working hours per employee, computed from logged activities and their estimated time.",
+  dailyWorkingHoursPerEmployee:
+    "Daily working hours per employee, computed from logged activities and their estimated time.",
   noActivityInRange: "No activity in this range.",
   totalEstimatedTime: "Total estimated time per employee across all activities & leads.",
   noEntriesMatchFilters: "No entries match these filters.",
@@ -214,7 +217,8 @@ export const en = {
   stagesDesc: "Inline-rename a stage label. Changes are logged to History.",
   activityTypesDesc: "Available types when scheduling activities.",
   egDemo: "e.g. Demo, Workshop",
-  locationsDesc: "Cities and districts used across leads and accounts (e.g. Cairo · Nasr City, Maadi).",
+  locationsDesc:
+    "Cities and districts used across leads and accounts (e.g. Cairo · Nasr City, Maadi).",
   automationsDesc: "Toggle to enable or disable workflow rules.",
   templatesDesc: "Templates for emails, SMS, WhatsApp, and push messages.",
   addDistrictTo: "Add district to",
@@ -248,7 +252,7 @@ export const en = {
   inNegotiation: "In negotiation",
   closedWonWeek: "Closed won (week)",
   lostWeek: "Lost (week)",
-  noLeadsYet: "No leads yet. Click \"New Lead\" to get started.",
+  noLeadsYet: 'No leads yet. Click "New Lead" to get started.',
   nothingHere: "Nothing here. Pick a different filter.",
   workingOn: "What are you working on?",
   noLead: "No lead",
@@ -469,9 +473,5 @@ export const en = {
   importFailed: "Import failed",
   allTime: "All time",
 };
-
-
-
-
 
 export type Dict = Record<keyof typeof en, string>;

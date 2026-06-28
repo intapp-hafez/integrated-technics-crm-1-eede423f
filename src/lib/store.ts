@@ -1,5 +1,12 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { leads, activities, projects, attendanceToday, employees as mockEmployees, quotations } from "./mock-data";
+import {
+  leads,
+  activities,
+  projects,
+  attendanceToday,
+  employees as mockEmployees,
+  quotations,
+} from "./mock-data";
 import type { Lead, LeadStatus, Quotation } from "./mock-data";
 
 export type Employee = (typeof mockEmployees)[number];
@@ -28,10 +35,16 @@ export interface HistoryEntry {
   details?: string;
   targetId?: string;
   targetTable?: string;
-
 }
 
-export type ActivityType = "Call" | "Meeting" | "Site Visit" | "Follow-up" | "Inspection" | "Email" | (string & {});
+export type ActivityType =
+  | "Call"
+  | "Meeting"
+  | "Site Visit"
+  | "Follow-up"
+  | "Inspection"
+  | "Email"
+  | (string & {});
 export type ActivityStatus = "pending" | "in_progress" | "done" | "cancelled" | "delayed";
 export type ActivityApprovalStatus = "pending" | "approved" | "rejected";
 export interface Activity {
@@ -183,7 +196,7 @@ export interface Project {
   memberProfileIds?: string[];
   memberUserIds?: string[];
   startDate?: string; // YYYY-MM-DD
-  endDate?: string;   // YYYY-MM-DD
+  endDate?: string; // YYYY-MM-DD
   accountType?: string;
   otherAccountType?: string;
   extraContacts?: Array<{ name: string; title: string; phone: string; email: string }>;
@@ -205,7 +218,6 @@ export interface AttendanceRecord {
   accuracy?: number | null;
 }
 
-
 export interface Profile {
   profileId?: string;
   userId?: string;
@@ -223,9 +235,16 @@ export interface Profile {
   targetType?: "yearly" | "quarterly" | "monthly";
 }
 
-
-export interface DepartmentItem { id: string; nameEn: string; nameAr: string }
-export interface PositionItem { id: string; nameEn: string; nameAr: string }
+export interface DepartmentItem {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+}
+export interface PositionItem {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+}
 
 interface Settings {
   statuses: string[];
@@ -239,7 +258,6 @@ interface Settings {
   positions: PositionItem[];
   workdayHours: number;
 }
-
 
 interface State {
   leads: any[];
@@ -258,6 +276,8 @@ interface State {
   employees: Employee[];
   notifications: AppNotification[];
   projectRequests?: any[];
+  onlineUserIds: string[];
+  celebrationLead?: any;
 }
 
 import * as sb from "./supabaseWrites";
@@ -267,62 +287,240 @@ const id = (p: string) => sb.newUuid();
 
 const today = new Date();
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
-const addDays = (n: number) => { const d = new Date(today); d.setDate(d.getDate() + n); return ymd(d); };
+const addDays = (n: number) => {
+  const d = new Date(today);
+  d.setDate(d.getDate() + n);
+  return ymd(d);
+};
 
 const seedHistory: HistoryEntry[] = [
-  { id: "H-001", ts: new Date(Date.now() - 1000 * 60 * 12).toISOString(), module: "pipeline", actor: "hafez Rahim", target: "Aramco Digital", action: "Moved to Negotiation", details: "From Proposal → Negotiation" },
-  { id: "H-002", ts: new Date(Date.now() - 1000 * 60 * 45).toISOString(), module: "lead", actor: "Nour Khaled", target: "Red Sea Global", action: "Created proposal", details: "Value SAR 280K" },
-  { id: "H-003", ts: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), module: "activity", actor: "Omar Tarek", target: "STC Group", action: "Logged call", details: "Discovery call — 35 min" },
-  { id: "H-004", ts: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), module: "project", actor: "Aisha Mahmoud", target: "P-206 STC DC4", action: "Status changed to At Risk" },
-  { id: "H-005", ts: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), module: "employee", actor: "Yusuf Saleh", target: "Layla Hassan", action: "Updated role", details: "Field Operations → Senior Field Ops" },
-  { id: "H-006", ts: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(), module: "settings", actor: "hafez Rahim", target: "Pipeline", action: "Renamed stage", details: "‘Won’ retained" },
-  { id: "H-007", ts: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), module: "lead", actor: "Layla Hassan", target: "NEOM Logistics", action: "Lead created", details: "Source: Event" },
+  {
+    id: "H-001",
+    ts: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+    module: "pipeline",
+    actor: "hafez Rahim",
+    target: "Aramco Digital",
+    action: "Moved to Negotiation",
+    details: "From Proposal → Negotiation",
+  },
+  {
+    id: "H-002",
+    ts: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    module: "lead",
+    actor: "Nour Khaled",
+    target: "Red Sea Global",
+    action: "Created proposal",
+    details: "Value SAR 280K",
+  },
+  {
+    id: "H-003",
+    ts: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    module: "activity",
+    actor: "Omar Tarek",
+    target: "STC Group",
+    action: "Logged call",
+    details: "Discovery call — 35 min",
+  },
+  {
+    id: "H-004",
+    ts: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+    module: "project",
+    actor: "Aisha Mahmoud",
+    target: "P-206 STC DC4",
+    action: "Status changed to At Risk",
+  },
+  {
+    id: "H-005",
+    ts: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    module: "employee",
+    actor: "Yusuf Saleh",
+    target: "Layla Hassan",
+    action: "Updated role",
+    details: "Field Operations → Senior Field Ops",
+  },
+  {
+    id: "H-006",
+    ts: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
+    module: "settings",
+    actor: "hafez Rahim",
+    target: "Pipeline",
+    action: "Renamed stage",
+    details: "‘Won’ retained",
+  },
+  {
+    id: "H-007",
+    ts: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+    module: "lead",
+    actor: "Layla Hassan",
+    target: "NEOM Logistics",
+    action: "Lead created",
+    details: "Source: Event",
+  },
 ];
 
-function allCrud(): CrudOp[] { return ["create", "read", "update", "delete"]; }
+function allCrud(): CrudOp[] {
+  return ["create", "read", "update", "delete"];
+}
 function defaultPermissions(): Record<UserRoleKey, RolePermission> {
   const allPages = [...APP_PAGES] as AppPage[];
-  const mk = (pages: AppPage[], crudByPage: Partial<Record<AppPage, CrudOp[]>>, defaultCrud: CrudOp[] = ["read"]): RolePermission => ({
+  const mk = (
+    pages: AppPage[],
+    crudByPage: Partial<Record<AppPage, CrudOp[]>>,
+    defaultCrud: CrudOp[] = ["read"],
+  ): RolePermission => ({
     pages,
-    crud: Object.fromEntries(allPages.map((p) => [p, pages.includes(p) ? (crudByPage[p] ?? defaultCrud) : []])) as Record<AppPage, CrudOp[]>,
+    crud: Object.fromEntries(
+      allPages.map((p) => [p, pages.includes(p) ? (crudByPage[p] ?? defaultCrud) : []]),
+    ) as Record<AppPage, CrudOp[]>,
   });
   return {
     admin: mk(allPages, Object.fromEntries(allPages.map((p) => [p, allCrud()])), allCrud()),
     manager: mk(
-      ["dashboard", "leads", "pipeline", "activities", "projects", "employees", "attendance", "offers", "quotations", "reports", "notifications", "chat", "profile", "history"],
-      { leads: allCrud(), pipeline: allCrud(), activities: allCrud(), projects: ["read", "update"], attendance: ["read", "update"], offers: ["read", "update"], quotations: ["read", "update"], notifications: ["create", "read", "update"], chat: ["create", "read"], profile: ["read", "update"] },
+      [
+        "dashboard",
+        "leads",
+        "pipeline",
+        "activities",
+        "projects",
+        "employees",
+        "attendance",
+        "offers",
+        "quotations",
+        "reports",
+        "notifications",
+        "chat",
+        "profile",
+        "history",
+      ],
+      {
+        leads: allCrud(),
+        pipeline: allCrud(),
+        activities: allCrud(),
+        projects: ["read", "update"],
+        attendance: ["read", "update"],
+        offers: ["read", "update"],
+        quotations: ["read", "update"],
+        notifications: ["create", "read", "update"],
+        chat: ["create", "read"],
+        profile: ["read", "update"],
+      },
     ),
     hr: mk(
       ["dashboard", "employees", "attendance", "notifications", "chat", "profile", "history"],
-      { employees: allCrud(), attendance: allCrud(), notifications: ["read", "update"], chat: ["create", "read"], profile: ["read", "update"] },
+      {
+        employees: allCrud(),
+        attendance: allCrud(),
+        notifications: ["read", "update"],
+        chat: ["create", "read"],
+        profile: ["read", "update"],
+      },
     ),
     finance: mk(
-      ["dashboard", "offers", "quotations", "projects", "reports", "notifications", "chat", "profile", "history"],
-      { offers: allCrud(), quotations: allCrud(), projects: ["read", "update"], reports: ["read"], notifications: ["read", "update"], chat: ["create", "read"], profile: ["read", "update"] },
+      [
+        "dashboard",
+        "offers",
+        "quotations",
+        "projects",
+        "reports",
+        "notifications",
+        "chat",
+        "profile",
+        "history",
+      ],
+      {
+        offers: allCrud(),
+        quotations: allCrud(),
+        projects: ["read", "update"],
+        reports: ["read"],
+        notifications: ["read", "update"],
+        chat: ["create", "read"],
+        profile: ["read", "update"],
+      },
     ),
     employee: mk(
       ["dashboard", "leads", "activities", "attendance", "notifications", "chat", "profile"],
-      { leads: ["create", "read", "update"], activities: ["create", "read", "update"], attendance: ["create", "read"], notifications: ["read", "update"], chat: ["create", "read"], profile: ["read", "update"] },
+      {
+        leads: ["create", "read", "update"],
+        activities: ["create", "read", "update"],
+        attendance: ["create", "read"],
+        notifications: ["read", "update"],
+        chat: ["create", "read"],
+        profile: ["read", "update"],
+      },
     ),
   };
 }
 
 const seedUsers: AppUser[] = [
-  { id: "U-1", name: "hafez Rahim", email: "hafez.rahim@integratedtechnics.com", role: "admin", active: true },
-  { id: "U-2", name: "Nour Khaled", email: "nour.khaled@integratedtechnics.com", role: "manager", active: true },
-  { id: "U-3", name: "Layla Hassan", email: "layla.hassan@integratedtechnics.com", role: "hr", active: true },
-  { id: "U-4", name: "Yusuf Saleh", email: "yusuf.saleh@integratedtechnics.com", role: "finance", active: true },
-  { id: "U-5", name: "Omar Tarek", email: "omar.tarek@integratedtechnics.com", role: "employee", active: true },
+  {
+    id: "U-1",
+    name: "hafez Rahim",
+    email: "hafez.rahim@integratedtechnics.com",
+    role: "admin",
+    active: true,
+  },
+  {
+    id: "U-2",
+    name: "Nour Khaled",
+    email: "nour.khaled@integratedtechnics.com",
+    role: "manager",
+    active: true,
+  },
+  {
+    id: "U-3",
+    name: "Layla Hassan",
+    email: "layla.hassan@integratedtechnics.com",
+    role: "hr",
+    active: true,
+  },
+  {
+    id: "U-4",
+    name: "Yusuf Saleh",
+    email: "yusuf.saleh@integratedtechnics.com",
+    role: "finance",
+    active: true,
+  },
+  {
+    id: "U-5",
+    name: "Omar Tarek",
+    email: "omar.tarek@integratedtechnics.com",
+    role: "employee",
+    active: true,
+  },
 ];
 
 const seedNotes: Note[] = [
-  { id: "N-1", leadId: "L-1042", ts: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(), author: "hafez Rahim", text: "Client requested a revised SLA with 4-hour response window." },
-  { id: "N-2", leadId: "L-1042", ts: new Date(Date.now() - 1000 * 60 * 60 * 28).toISOString(), author: "Nour Khaled", text: "Site survey scheduled for next Tuesday with their facilities team." },
+  {
+    id: "N-1",
+    leadId: "L-1042",
+    ts: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+    author: "hafez Rahim",
+    text: "Client requested a revised SLA with 4-hour response window.",
+  },
+  {
+    id: "N-2",
+    leadId: "L-1042",
+    ts: new Date(Date.now() - 1000 * 60 * 60 * 28).toISOString(),
+    author: "Nour Khaled",
+    text: "Site survey scheduled for next Tuesday with their facilities team.",
+  },
 ];
 
 const seedAttachments: Attachment[] = [
-  { id: "F-1", leadId: "L-1042", name: "Aramco_RFP_v2.pdf", size: "2.4 MB", ts: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString() },
-  { id: "F-2", leadId: "L-1042", name: "Site_Survey_Photos.zip", size: "18.1 MB", ts: new Date(Date.now() - 1000 * 60 * 60 * 50).toISOString() },
+  {
+    id: "F-1",
+    leadId: "L-1042",
+    name: "Aramco_RFP_v2.pdf",
+    size: "2.4 MB",
+    ts: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString(),
+  },
+  {
+    id: "F-2",
+    leadId: "L-1042",
+    name: "Site_Survey_Photos.zip",
+    size: "18.1 MB",
+    ts: new Date(Date.now() - 1000 * 60 * 60 * 50).toISOString(),
+  },
 ];
 
 const seedProfile: Profile = {
@@ -333,16 +531,35 @@ const seedProfile: Profile = {
   email: "hafez.rahim@integratedtechnics.com",
   phone: "+20 100 123 4567",
   location: "Cairo HQ, Egypt",
-  skills: ["Enterprise Sales", "CRM Strategy", "Odoo 19", "Negotiation", "Pipeline Management", "PMP Certified", "ITIL v4", "GDPR Compliance"],
+  skills: [
+    "Enterprise Sales",
+    "CRM Strategy",
+    "Odoo 19",
+    "Negotiation",
+    "Pipeline Management",
+    "PMP Certified",
+    "ITIL v4",
+    "GDPR Compliance",
+  ],
   manager: "Nour Khaled",
-  avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+  avatarUrl:
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
   targetValue: 1200000,
   targetType: "yearly",
 };
 
-
 const seedSettings: Settings = {
-  statuses: ["new", "qualified", "contacted", "meeting_scheduled", "proposal_sent", "negotiation", "won", "lost", "archived"],
+  statuses: [
+    "new",
+    "qualified",
+    "contacted",
+    "meeting_scheduled",
+    "proposal_sent",
+    "negotiation",
+    "won",
+    "lost",
+    "archived",
+  ],
   stages: [
     { key: "new", label: "New", color: "#64748b" },
     { key: "qualified", label: "Qualified", color: "#8b5cf6" },
@@ -354,22 +571,91 @@ const seedSettings: Settings = {
     { key: "lost", label: "Lost", color: "#ef4444" },
     { key: "archived", label: "Archived", color: "#9ca3af" },
   ],
-  activityTypes: ["Call", "Meeting", "Site Visit", "Follow-up", "Inspection", "Email", "Demo", "Workshop", "Presentation", "Negotiation", "Proposal", "Training", "Contract Signing", "Handover"],
+  activityTypes: [
+    "Call",
+    "Meeting",
+    "Site Visit",
+    "Follow-up",
+    "Inspection",
+    "Email",
+    "Demo",
+    "Workshop",
+    "Presentation",
+    "Negotiation",
+    "Proposal",
+    "Training",
+    "Contract Signing",
+    "Handover",
+  ],
   automations: [
-    { id: "AU-1", name: "Auto-assign new web leads", trigger: "Lead created from Website", action: "Assign to Nour Khaled", enabled: true },
-    { id: "AU-2", name: "Notify owner on stage change", trigger: "Pipeline stage moved", action: "Send push notification", enabled: true },
-    { id: "AU-3", name: "Escalate stalled proposals", trigger: "Lead in Proposal > 7 days", action: "Notify sales director", enabled: false },
-    { id: "AU-4", name: "Create kickoff project on Won", trigger: "Lead marked as Won", action: "Auto-create Project draft", enabled: true },
+    {
+      id: "AU-1",
+      name: "Auto-assign new web leads",
+      trigger: "Lead created from Website",
+      action: "Assign to Nour Khaled",
+      enabled: true,
+    },
+    {
+      id: "AU-2",
+      name: "Notify owner on stage change",
+      trigger: "Pipeline stage moved",
+      action: "Send push notification",
+      enabled: true,
+    },
+    {
+      id: "AU-3",
+      name: "Escalate stalled proposals",
+      trigger: "Lead in Proposal > 7 days",
+      action: "Notify sales director",
+      enabled: false,
+    },
+    {
+      id: "AU-4",
+      name: "Create kickoff project on Won",
+      trigger: "Lead marked as Won",
+      action: "Auto-create Project draft",
+      enabled: true,
+    },
   ],
   templates: [
-    { id: "T-1", name: "Welcome email", channel: "Email", subject: "Welcome to Integrated Technics", body: "Dear {{contact}}, thank you for your interest in our services..." },
-    { id: "T-2", name: "Proposal reminder", channel: "Email", subject: "Following up on your proposal — {{company}}", body: "Hi {{contact}}, just checking if you had a chance to review our proposal..." },
-    { id: "T-3", name: "Site visit confirmation", channel: "SMS", subject: "", body: "Hello {{contact}}, our engineer will arrive at {{time}} on {{date}}. — INT" },
-    { id: "T-4", name: "Won deal notification", channel: "WhatsApp", subject: "", body: "🎉 Welcome aboard {{company}}! Your project kickoff is being prepared." },
+    {
+      id: "T-1",
+      name: "Welcome email",
+      channel: "Email",
+      subject: "Welcome to Integrated Technics",
+      body: "Dear {{contact}}, thank you for your interest in our services...",
+    },
+    {
+      id: "T-2",
+      name: "Proposal reminder",
+      channel: "Email",
+      subject: "Following up on your proposal — {{company}}",
+      body: "Hi {{contact}}, just checking if you had a chance to review our proposal...",
+    },
+    {
+      id: "T-3",
+      name: "Site visit confirmation",
+      channel: "SMS",
+      subject: "",
+      body: "Hello {{contact}}, our engineer will arrive at {{time}} on {{date}}. — INT",
+    },
+    {
+      id: "T-4",
+      name: "Won deal notification",
+      channel: "WhatsApp",
+      subject: "",
+      body: "🎉 Welcome aboard {{company}}! Your project kickoff is being prepared.",
+    },
   ],
   locations: [
-    { name: "Cairo", districts: ["Nasr City", "Maadi", "Heliopolis", "Zamalek", "Downtown", "New Cairo"] },
-    { name: "Giza", districts: ["Dokki", "Mohandessin", "6th of October", "Sheikh Zayed", "Haram"] },
+    {
+      name: "Cairo",
+      districts: ["Nasr City", "Maadi", "Heliopolis", "Zamalek", "Downtown", "New Cairo"],
+    },
+    {
+      name: "Giza",
+      districts: ["Dokki", "Mohandessin", "6th of October", "Sheikh Zayed", "Haram"],
+    },
     { name: "Alexandria", districts: ["Smouha", "Sidi Gaber", "Stanley", "Miami", "Montaza"] },
     { name: "Hurghada", districts: ["Sakkala", "Sahl Hasheesh", "El Dahar"] },
     { name: "Luxor", districts: ["East Bank", "West Bank", "Karnak"] },
@@ -380,7 +666,6 @@ const seedSettings: Settings = {
   positions: [],
   workdayHours: 8,
 };
-
 
 const seedAttendance: AttendanceRecord[] = attendanceToday.records.map((r) => ({
   id: `AT-${r.id}`,
@@ -434,13 +719,22 @@ const initialState: State = {
   employees: mockEmployees.map((e) => ({ ...e })),
   notifications: [],
   projectRequests: [],
+  onlineUserIds: [],
+  celebrationLead: null,
 };
 
 let state: State = initialState;
 
 const listeners = new Set<() => void>();
-const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l); }; };
-const emit = () => { listeners.forEach((l) => l()); };
+const subscribe = (l: () => void) => {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+};
+const emit = () => {
+  listeners.forEach((l) => l());
+};
 const getSnap = () => state;
 const getServerSnap = () => initialState;
 
@@ -455,7 +749,9 @@ function loadPersisted<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch { return fallback; }
+  } catch {
+    return fallback;
+  }
 }
 function persist() {
   if (typeof window === "undefined") return;
@@ -473,7 +769,9 @@ function persist() {
     localStorage.setItem("int-crm:permissions", JSON.stringify(state.settings.permissions));
     localStorage.setItem("int-crm:workdayHours", JSON.stringify(state.settings.workdayHours));
     localStorage.setItem("int-crm:notifications", JSON.stringify(state.notifications));
-  } catch { /* quota or serialization issue — ignore */ }
+  } catch {
+    /* quota or serialization issue — ignore */
+  }
 }
 
 let _hydrated = false;
@@ -484,7 +782,9 @@ function hydrateFromStorage() {
     localStorage.removeItem("int-crm:profile");
     localStorage.removeItem("int-crm:activities:v2");
     localStorage.removeItem("int-crm:attendance");
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   state = {
     ...state,
     leads: loadPersisted("int-crm:leads", state.leads),
@@ -521,12 +821,17 @@ function logHistory(entry: Omit<HistoryEntry, "id" | "ts">) {
   set((s) => ({ ...s, history: [{ id: id("H"), ts: now(), ...entry }, ...s.history] }));
 }
 
-function pushNotificationInternal(n: Omit<AppNotification, "id" | "ts" | "unread"> & { unread?: boolean }) {
+function pushNotificationInternal(
+  n: Omit<AppNotification, "id" | "ts" | "unread"> & { unread?: boolean },
+) {
   const notif: AppNotification = { id: id("N"), ts: now(), unread: n.unread ?? true, ...n };
   set((s) => ({ ...s, notifications: [notif, ...s.notifications].slice(0, 100) }));
 }
 
 export const actions = {
+  clearCelebration() {
+    set((s) => ({ ...s, celebrationLead: null }));
+  },
   moveLead(leadId: string, to: LeadStatus, actor = "hafez Rahim") {
     let from: LeadStatus | undefined;
     let company = "";
@@ -540,10 +845,17 @@ export const actions = {
         }
         return l;
       }),
+      celebrationLead: to === "won" && from !== "won" ? s.leads.find((l) => l.id === leadId) || null : s.celebrationLead,
     }));
     if (from && from !== to) {
       const label = (k: LeadStatus) => state.settings.stages.find((x) => x.key === k)?.label ?? k;
-      logHistory({ module: "pipeline", actor, target: company || leadId, action: `Moved to ${label(to)}`, details: `${label(from)} → ${label(to)}` });
+      logHistory({
+        module: "pipeline",
+        actor,
+        target: company || leadId,
+        action: `Moved to ${label(to)}`,
+        details: `${label(from)} → ${label(to)}`,
+      });
       sb.sbUpdateLead(leadId, { status: to });
       const lead = state.leads.find((l) => l.id === leadId);
       const ownerName = lead?.owner;
@@ -562,21 +874,46 @@ export const actions = {
     const note: Note = { id: id("N"), leadId, ts: now(), author, text };
     set((s) => ({ ...s, notes: [note, ...s.notes] }));
     const company = state.leads.find((l) => l.id === leadId)?.company ?? leadId;
-    logHistory({ module: "lead", actor: author, target: company, action: "Added note", details: text.slice(0, 80) });
+    logHistory({
+      module: "lead",
+      actor: author,
+      target: company,
+      action: "Added note",
+      details: text.slice(0, 80),
+    });
     sb.sbAddNote(note.id, leadId, text);
   },
-  addAttachment(leadId: string, name: string, size = "—", author = "hafez Rahim", dataUrl?: string, mime?: string) {
+  addAttachment(
+    leadId: string,
+    name: string,
+    size = "—",
+    author = "hafez Rahim",
+    dataUrl?: string,
+    mime?: string,
+  ) {
     const att: Attachment = { id: id("F"), leadId, name, size, ts: now(), dataUrl, mime };
     set((s) => ({ ...s, attachments: [att, ...s.attachments] }));
     const company = state.leads.find((l) => l.id === leadId)?.company ?? leadId;
-    logHistory({ module: "lead", actor: author, target: company, action: "Uploaded attachment", details: name });
+    logHistory({
+      module: "lead",
+      actor: author,
+      target: company,
+      action: "Uploaded attachment",
+      details: name,
+    });
   },
   removeAttachment(attId: string, actor = "hafez Rahim") {
     const att = state.attachments.find((a) => a.id === attId);
     set((s) => ({ ...s, attachments: s.attachments.filter((a) => a.id !== attId) }));
     if (att) {
       const company = state.leads.find((l) => l.id === att.leadId)?.company ?? att.leadId;
-      logHistory({ module: "lead", actor, target: company, action: "Removed attachment", details: att.name });
+      logHistory({
+        module: "lead",
+        actor,
+        target: company,
+        action: "Removed attachment",
+        details: att.name,
+      });
     }
   },
   removeNote(noteId: string, actor = "hafez Rahim") {
@@ -601,9 +938,10 @@ export const actions = {
       action: `Sent ${template.channel} reminder`,
       details: `“${template.name}” → ${activity.title}`,
     });
-    const ownerName = activity.owner && activity.owner !== "Unassigned"
-      ? activity.owner
-      : (activity as any).createdByName;
+    const ownerName =
+      activity.owner && activity.owner !== "Unassigned"
+        ? activity.owner
+        : (activity as any).createdByName;
     if (ownerName) {
       pushNotificationInternal({
         type: "activity",
@@ -632,8 +970,16 @@ export const actions = {
       createdByPhoto: a.createdByPhoto ?? myPhoto,
     };
     set((s) => ({ ...s, activities: [act, ...s.activities] }));
-    const target = act.leadId ? state.leads.find((l) => l.id === act.leadId)?.company ?? act.leadId : act.projectId ?? "—";
-    logHistory({ module: "activity", actor: act.owner, target, action: `Scheduled ${act.type}`, details: `${act.title} @ ${act.dueDate} ${act.time}` });
+    const target = act.leadId
+      ? (state.leads.find((l) => l.id === act.leadId)?.company ?? act.leadId)
+      : (act.projectId ?? "—");
+    logHistory({
+      module: "activity",
+      actor: act.owner,
+      target,
+      action: `Scheduled ${act.type}`,
+      details: `${act.title} @ ${act.dueDate} ${act.time}`,
+    });
     sb.sbAddActivity(act.id, act);
     if (ownerName && me && ownerName !== me) {
       pushNotificationInternal({
@@ -646,7 +992,7 @@ export const actions = {
         audience: [ownerName],
       });
     }
-    
+
     const ownerUser = state.users.find((u) => u.name === ownerName);
     const managerName = state.users.find((u) => u.id === ownerUser?.managerId)?.name;
     const admins = state.users.filter((u) => u.role === "admin").map((u) => u.name);
@@ -667,11 +1013,19 @@ export const actions = {
     set((s) => ({
       ...s,
       activities: s.activities.map((a) => {
-        if (a.id === actId) { title = a.title; return { ...a, status }; }
+        if (a.id === actId) {
+          title = a.title;
+          return { ...a, status };
+        }
         return a;
       }),
     }));
-    logHistory({ module: "activity", actor, target: title, action: `Marked ${status.replace("_", " ")}` });
+    logHistory({
+      module: "activity",
+      actor,
+      target: title,
+      action: `Marked ${status.replace("_", " ")}`,
+    });
     sb.sbUpdateActivity(actId, { status });
   },
   approveActivity(actId: string, actor = "hafez Rahim", reviewNote?: string) {
@@ -683,12 +1037,25 @@ export const actions = {
         if (a.id === actId) {
           title = a.title;
           ownerName = a.owner;
-          return { ...a, approvalStatus: "approved", approvedByName: actor, approvedAt: new Date().toISOString(), reviewNote: reviewNote ?? a.reviewNote, rejectionReason: undefined };
+          return {
+            ...a,
+            approvalStatus: "approved",
+            approvedByName: actor,
+            approvedAt: new Date().toISOString(),
+            reviewNote: reviewNote ?? a.reviewNote,
+            rejectionReason: undefined,
+          };
         }
         return a;
       }),
     }));
-    logHistory({ module: "activity", actor, target: title, action: "Approved activity", details: reviewNote });
+    logHistory({
+      module: "activity",
+      actor,
+      target: title,
+      action: "Approved activity",
+      details: reviewNote,
+    });
     sb.sbApproveActivity(actId, reviewNote);
     if (ownerName && ownerName !== actor) {
       pushNotificationInternal({
@@ -711,12 +1078,24 @@ export const actions = {
         if (a.id === actId) {
           title = a.title;
           ownerName = a.owner;
-          return { ...a, approvalStatus: "rejected", rejectionReason: reason, approvedByName: actor, approvedAt: new Date().toISOString() };
+          return {
+            ...a,
+            approvalStatus: "rejected",
+            rejectionReason: reason,
+            approvedByName: actor,
+            approvedAt: new Date().toISOString(),
+          };
         }
         return a;
       }),
     }));
-    logHistory({ module: "activity", actor, target: title, action: "Rejected activity", details: reason });
+    logHistory({
+      module: "activity",
+      actor,
+      target: title,
+      action: "Rejected activity",
+      details: reason,
+    });
     sb.sbRejectActivity(actId, reason);
     if (ownerName && ownerName !== actor) {
       pushNotificationInternal({
@@ -738,28 +1117,46 @@ export const actions = {
     sb.sbSetActivityReviewNote(actId, note);
   },
   toggleAutomation(ruleId: string) {
-    let name = "", enabled = false;
+    let name = "",
+      enabled = false;
     set((s) => ({
       ...s,
       settings: {
         ...s.settings,
         automations: s.settings.automations.map((r) => {
-          if (r.id === ruleId) { name = r.name; enabled = !r.enabled; return { ...r, enabled }; }
+          if (r.id === ruleId) {
+            name = r.name;
+            enabled = !r.enabled;
+            return { ...r, enabled };
+          }
           return r;
         }),
       },
     }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: name, action: enabled ? "Enabled automation" : "Disabled automation" });
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: name,
+      action: enabled ? "Enabled automation" : "Disabled automation",
+    });
   },
   addAutomation(name: string, trigger: string, action: string) {
     set((s) => ({
       ...s,
       settings: {
         ...s.settings,
-        automations: [...s.settings.automations, { id: id("AU"), name, trigger, action, enabled: true }],
+        automations: [
+          ...s.settings.automations,
+          { id: id("AU"), name, trigger, action, enabled: true },
+        ],
       },
     }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: name, action: "Added automation rule" });
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: name,
+      action: "Added automation rule",
+    });
   },
   updateAutomation(ruleId: string, payload: Partial<AutomationRule>) {
     let name = "";
@@ -768,17 +1165,25 @@ export const actions = {
       settings: {
         ...s.settings,
         automations: s.settings.automations.map((r) => {
-          if (r.id === ruleId) { name = payload.name ?? r.name; return { ...r, ...payload }; }
+          if (r.id === ruleId) {
+            name = payload.name ?? r.name;
+            return { ...r, ...payload };
+          }
           return r;
         }),
       },
     }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: name, action: "Updated automation rule" });
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: name,
+      action: "Updated automation rule",
+    });
   },
   deleteAutomation(ruleId: string) {
     let name = "";
     set((s) => {
-      name = s.settings.automations.find(r => r.id === ruleId)?.name ?? "";
+      name = s.settings.automations.find((r) => r.id === ruleId)?.name ?? "";
       return {
         ...s,
         settings: {
@@ -787,14 +1192,37 @@ export const actions = {
         },
       };
     });
-    logHistory({ module: "settings", actor: "hafez Rahim", target: name, action: "Deleted automation rule" });
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: name,
+      action: "Deleted automation rule",
+    });
   },
   renameStage(key: string, label: string) {
-    set((s) => ({ ...s, settings: { ...s.settings, stages: s.settings.stages.map((st) => st.key === key ? { ...st, label } : st) } }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: "Pipeline", action: "Renamed stage", details: `${key} → ${label}` });
+    set((s) => ({
+      ...s,
+      settings: {
+        ...s.settings,
+        stages: s.settings.stages.map((st) => (st.key === key ? { ...st, label } : st)),
+      },
+    }));
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: "Pipeline",
+      action: "Renamed stage",
+      details: `${key} → ${label}`,
+    });
   },
   setStageColor(key: string, color: string) {
-    set((s) => ({ ...s, settings: { ...s.settings, stages: s.settings.stages.map((st) => st.key === key ? { ...st, color } : st) } }));
+    set((s) => ({
+      ...s,
+      settings: {
+        ...s.settings,
+        stages: s.settings.stages.map((st) => (st.key === key ? { ...st, color } : st)),
+      },
+    }));
   },
   reorderStages(fromIdx: number, toIdx: number, actor = "hafez Rahim") {
     if (fromIdx === toIdx) return;
@@ -814,16 +1242,36 @@ export const actions = {
         },
       };
     });
-    logHistory({ module: "settings", actor, target: "Pipeline", action: "Reordered stages", details: `${movedLabel} → position ${toIdx + 1}` });
+    logHistory({
+      module: "settings",
+      actor,
+      target: "Pipeline",
+      action: "Reordered stages",
+      details: `${movedLabel} → position ${toIdx + 1}`,
+    });
   },
   addStatus(label: string) {
     const lbl = label.trim();
     if (!lbl) return;
-    const key = lbl.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+    const key = lbl
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
     if (!key) return;
     set((s) => {
       if (s.settings.statuses.includes(key)) return s;
-      const palette = ["#64748b", "#3b82f6", "#8b5cf6", "#0ea5e9", "#f59e0b", "#ec4899", "#10b981", "#ef4444", "#9ca3af", "#14b8a6"];
+      const palette = [
+        "#64748b",
+        "#3b82f6",
+        "#8b5cf6",
+        "#0ea5e9",
+        "#f59e0b",
+        "#ec4899",
+        "#10b981",
+        "#ef4444",
+        "#9ca3af",
+        "#14b8a6",
+      ];
       const color = palette[s.settings.stages.length % palette.length];
       return {
         ...s,
@@ -834,7 +1282,13 @@ export const actions = {
         },
       };
     });
-    logHistory({ module: "settings", actor: "hafez Rahim", target: "Pipeline", action: "Added status", details: lbl });
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: "Pipeline",
+      action: "Added status",
+      details: lbl,
+    });
   },
   removeStatus(key: string) {
     if (["new", "won", "lost"].includes(key)) return;
@@ -846,41 +1300,97 @@ export const actions = {
         stages: s.settings.stages.filter((st) => st.key !== key),
       },
     }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: "Pipeline", action: "Removed status", details: key });
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: "Pipeline",
+      action: "Removed status",
+      details: key,
+    });
   },
   setWorkdayHours(h: number) {
     const v = Math.max(1, Math.min(24, Number(h) || 8));
     set((s) => ({ ...s, settings: { ...s.settings, workdayHours: v } }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: "Workday", action: "Updated standard workday", details: `${v}h` });
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: "Workday",
+      action: "Updated standard workday",
+      details: `${v}h`,
+    });
   },
   addActivityType(t: string) {
     const n = t.trim();
     if (!n) return;
     if (state.settings.activityTypes.some((x) => x.toLowerCase() === n.toLowerCase())) return;
-    set((s) => ({ ...s, settings: { ...s.settings, activityTypes: [...s.settings.activityTypes, n as ActivityType] } }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: "Activities", action: "Added activity type", details: n });
+    set((s) => ({
+      ...s,
+      settings: { ...s.settings, activityTypes: [...s.settings.activityTypes, n as ActivityType] },
+    }));
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: "Activities",
+      action: "Added activity type",
+      details: n,
+    });
   },
   removeActivityType(t: string) {
-    set((s) => ({ ...s, settings: { ...s.settings, activityTypes: s.settings.activityTypes.filter((x) => x !== t) } }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: "Activities", action: "Removed activity type", details: t });
+    set((s) => ({
+      ...s,
+      settings: { ...s.settings, activityTypes: s.settings.activityTypes.filter((x) => x !== t) },
+    }));
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: "Activities",
+      action: "Removed activity type",
+      details: t,
+    });
   },
   addCity(name: string, nameAr?: string) {
     const n = name.trim();
     if (!n) return;
     if (state.settings.locations.some((c) => c.name.toLowerCase() === n.toLowerCase())) return;
-    set((s) => ({ ...s, settings: { ...s.settings, locations: [...s.settings.locations, { name: n, nameAr: nameAr?.trim() || undefined, districts: [], districtsAr: {} }] } }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: "Locations", action: "Added city", details: n });
+    set((s) => ({
+      ...s,
+      settings: {
+        ...s.settings,
+        locations: [
+          ...s.settings.locations,
+          { name: n, nameAr: nameAr?.trim() || undefined, districts: [], districtsAr: {} },
+        ],
+      },
+    }));
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: "Locations",
+      action: "Added city",
+      details: n,
+    });
   },
   removeCity(name: string) {
-    set((s) => ({ ...s, settings: { ...s.settings, locations: s.settings.locations.filter((c) => c.name !== name) } }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: "Locations", action: "Removed city", details: name });
+    set((s) => ({
+      ...s,
+      settings: { ...s.settings, locations: s.settings.locations.filter((c) => c.name !== name) },
+    }));
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: "Locations",
+      action: "Removed city",
+      details: name,
+    });
   },
   updateCityAr(name: string, nameAr: string) {
     set((s) => ({
       ...s,
       settings: {
         ...s.settings,
-        locations: s.settings.locations.map((c) => c.name === name ? { ...c, nameAr: nameAr.trim() || undefined } : c),
+        locations: s.settings.locations.map((c) =>
+          c.name === name ? { ...c, nameAr: nameAr.trim() || undefined } : c,
+        ),
       },
     }));
   },
@@ -900,7 +1410,13 @@ export const actions = {
         }),
       },
     }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: city, action: "Added district", details: d });
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: city,
+      action: "Added district",
+      details: d,
+    });
   },
   removeDistrict(city: string, district: string) {
     set((s) => ({
@@ -911,46 +1427,83 @@ export const actions = {
           if (c.name !== city) return c;
           const nextAr = { ...(c.districtsAr ?? {}) };
           delete nextAr[district];
-          return { ...c, districts: c.districts.filter((x) => x !== district), districtsAr: nextAr };
+          return {
+            ...c,
+            districts: c.districts.filter((x) => x !== district),
+            districtsAr: nextAr,
+          };
         }),
       },
     }));
-    logHistory({ module: "settings", actor: "hafez Rahim", target: city, action: "Removed district", details: district });
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: city,
+      action: "Removed district",
+      details: district,
+    });
   },
   setLeadLocation(leadId: string, city: string, district: string) {
     let company = leadId;
     set((s) => ({
       ...s,
       leads: s.leads.map((l) => {
-        if (l.id === leadId) { company = l.company; return { ...l, city }; }
+        if (l.id === leadId) {
+          company = l.company;
+          return { ...l, city };
+        }
         return l;
       }),
       leadDistricts: { ...s.leadDistricts, [leadId]: district },
     }));
-    logHistory({ module: "lead", actor: "hafez Rahim", target: company, action: "Updated location", details: `${city}${district ? ` · ${district}` : ""}` });
+    logHistory({
+      module: "lead",
+      actor: "hafez Rahim",
+      target: company,
+      action: "Updated location",
+      details: `${city}${district ? ` · ${district}` : ""}`,
+    });
     sb.sbUpdateLead(leadId, { city });
     sb.sbSetLeadDistrict(leadId, district);
   },
   setProjectLocation(projectId: string, city: string, district: string) {
-    set((s) => ({ ...s, projectLocations: { ...s.projectLocations, [projectId]: { city, district } } }));
-    logHistory({ module: "project", actor: "hafez Rahim", target: projectId, action: "Updated location", details: `${city}${district ? ` · ${district}` : ""}` });
+    set((s) => ({
+      ...s,
+      projectLocations: { ...s.projectLocations, [projectId]: { city, district } },
+    }));
+    logHistory({
+      module: "project",
+      actor: "hafez Rahim",
+      target: projectId,
+      action: "Updated location",
+      details: `${city}${district ? ` · ${district}` : ""}`,
+    });
   },
   // ---- Notifications ----
   pushNotification(n: Omit<AppNotification, "id" | "ts" | "unread"> & { unread?: boolean }) {
     pushNotificationInternal(n);
   },
   markNotificationRead(notifId: string) {
-    set((s) => ({ ...s, notifications: s.notifications.map((n) => n.id === notifId ? { ...n, unread: false } : n) }));
+    set((s) => ({
+      ...s,
+      notifications: s.notifications.map((n) => (n.id === notifId ? { ...n, unread: false } : n)),
+    }));
     void sb.sbMarkNotificationRead(notifId);
   },
   markNotificationUnread(notifId: string) {
-    set((s) => ({ ...s, notifications: s.notifications.map((n) => n.id === notifId ? { ...n, unread: true } : n) }));
+    set((s) => ({
+      ...s,
+      notifications: s.notifications.map((n) => (n.id === notifId ? { ...n, unread: true } : n)),
+    }));
     void sb.sbMarkNotificationUnread(notifId);
   },
   markAllNotificationsRead(audience?: string) {
-    set((s) => ({ ...s, notifications: s.notifications.map((n) =>
-      !audience || !n.audience || n.audience.includes(audience) ? { ...n, unread: false } : n
-    ) }));
+    set((s) => ({
+      ...s,
+      notifications: s.notifications.map((n) =>
+        !audience || !n.audience || n.audience.includes(audience) ? { ...n, unread: false } : n,
+      ),
+    }));
     void sb.sbMarkAllNotificationsRead();
   },
   dismissNotification(notifId: string) {
@@ -992,7 +1545,13 @@ export const actions = {
       }),
     }));
     if (previousOwner === newOwner) return;
-    logHistory({ module: "lead", actor, target: company, action: "Reassigned lead", details: `${previousOwner} → ${newOwner}` });
+    logHistory({
+      module: "lead",
+      actor,
+      target: company,
+      action: "Reassigned lead",
+      details: `${previousOwner} → ${newOwner}`,
+    });
     sb.sbUpdateLead(leadId, { owner: newOwner });
     // Notify the new owner across panels
     pushNotificationInternal({
@@ -1042,7 +1601,8 @@ export const actions = {
         bodyEn: `${company}: ${label(prevStatus)} → ${label(patch.status)}`,
         bodyAr: `${company}: ${label(prevStatus)} ← ${label(patch.status)}`,
         href: `/admin/leads/${leadId}`,
-        audience: updatedLead.owner && updatedLead.owner !== actor ? [updatedLead.owner] : undefined,
+        audience:
+          updatedLead.owner && updatedLead.owner !== actor ? [updatedLead.owner] : undefined,
       });
     }
     // Auto-convert to quotation when lead enters "won" stage
@@ -1066,7 +1626,13 @@ export const actions = {
       owner: lead.owner,
     };
     set((s) => ({ ...s, quotations: [quotation, ...s.quotations] }));
-    logHistory({ module: "pipeline", actor, target: `${quotation.id} · ${quotation.client}`, action: "Lead converted to quotation", details: `From lead ${lead.id}` });
+    logHistory({
+      module: "pipeline",
+      actor,
+      target: `${quotation.id} · ${quotation.client}`,
+      action: "Lead converted to quotation",
+      details: `From lead ${lead.id}`,
+    });
     pushNotificationInternal({
       type: "quotation",
       titleEn: "Lead converted to quotation",
@@ -1090,7 +1656,10 @@ export const actions = {
     set((s) => ({
       ...s,
       activities: s.activities.map((a) => {
-        if (a.id === actId) { title = patch.title ?? a.title; return { ...a, ...patch }; }
+        if (a.id === actId) {
+          title = patch.title ?? a.title;
+          return { ...a, ...patch };
+        }
         return a;
       }),
     }));
@@ -1106,11 +1675,11 @@ export const actions = {
   // ---- Projects CRUD ----
   addProject(input: Omit<Project, "id">, actor = "hafez Rahim") {
     const me = state.profile?.name && state.profile.name !== "—" ? state.profile.name : undefined;
-    const project: Project = { 
+    const project: Project = {
       createdByName: me,
       createdBy: state.profile?.userId,
-      ...input, 
-      id: id("P") 
+      ...input,
+      id: id("P"),
     };
     set((s) => ({ ...s, projects: [project, ...s.projects] }));
     logHistory({ module: "project", actor, target: project.name, action: "Project created" });
@@ -1151,7 +1720,10 @@ export const actions = {
         bodyEn: `${name}: ${prevStatus} → ${patch.status}`,
         bodyAr: `${name}: ${prevStatus} ← ${patch.status}`,
         href: `/admin/projects/${projectId}`,
-        audience: nextProject.teamMembers && nextProject.teamMembers.length ? nextProject.teamMembers : undefined,
+        audience:
+          nextProject.teamMembers && nextProject.teamMembers.length
+            ? nextProject.teamMembers
+            : undefined,
       });
     } else if (nextProject) {
       pushNotificationInternal({
@@ -1161,7 +1733,10 @@ export const actions = {
         bodyEn: `${name} updated by ${actor}`,
         bodyAr: `تم تحديث ${name} بواسطة ${actor}`,
         href: `/admin/projects/${projectId}`,
-        audience: nextProject.teamMembers && nextProject.teamMembers.length ? nextProject.teamMembers : undefined,
+        audience:
+          nextProject.teamMembers && nextProject.teamMembers.length
+            ? nextProject.teamMembers
+            : undefined,
       });
     }
   },
@@ -1175,7 +1750,13 @@ export const actions = {
   addAttendance(input: Omit<AttendanceRecord, "id">, actor = "hafez Rahim") {
     const rec: AttendanceRecord = { ...input, id: id("AT") };
     set((s) => ({ ...s, attendance: [rec, ...s.attendance] }));
-    logHistory({ module: "employee", actor, target: rec.owner, action: "Attendance logged", details: `${rec.date} ${rec.checkIn}` });
+    logHistory({
+      module: "employee",
+      actor,
+      target: rec.owner,
+      action: "Attendance logged",
+      details: `${rec.date} ${rec.checkIn}`,
+    });
     sb.sbAddAttendance(rec.id, rec);
     pushNotificationInternal({
       type: "attendance",
@@ -1191,7 +1772,10 @@ export const actions = {
     set((s) => ({
       ...s,
       attendance: s.attendance.map((a) => {
-        if (a.id === recId) { owner = a.owner; return { ...a, ...patch }; }
+        if (a.id === recId) {
+          owner = a.owner;
+          return { ...a, ...patch };
+        }
         return a;
       }),
     }));
@@ -1215,14 +1799,25 @@ export const actions = {
   // ---- Profile ----
   updateProfile(patch: Partial<Profile>, actor = "hafez Rahim") {
     set((s) => ({ ...s, profile: { ...s.profile, ...patch } }));
-    logHistory({ module: "employee", actor, target: state.profile.name, action: "Updated profile" });
+    logHistory({
+      module: "employee",
+      actor,
+      target: state.profile.name,
+      action: "Updated profile",
+    });
     sb.sbUpdateOwnProfile(patch);
   },
   // ---- Users CRUD ----
   addUser(input: Omit<AppUser, "id">, actor = "hafez Rahim") {
     const user: AppUser = { ...input, id: id("U") };
     set((s) => ({ ...s, users: [user, ...s.users] }));
-    logHistory({ module: "settings", actor, target: user.name, action: "User created", details: user.role });
+    logHistory({
+      module: "settings",
+      actor,
+      target: user.name,
+      action: "User created",
+      details: user.role,
+    });
   },
   updateUser(userId: string, patch: Partial<AppUser>, actor = "hafez Rahim") {
     let name = userId;
@@ -1257,13 +1852,19 @@ export const actions = {
     // Audit manager reassignment with old/new manager names.
     if (patch.managerId !== undefined && patch.managerId !== previousManagerId) {
       const prevName = previousManagerId
-        ? state.users.find((u) => u.profileId === previousManagerId)?.name ?? "—"
+        ? (state.users.find((u) => u.profileId === previousManagerId)?.name ?? "—")
         : "—";
       const newName = patch.managerId
-        ? state.users.find((u) => u.profileId === patch.managerId)?.name ?? "—"
+        ? (state.users.find((u) => u.profileId === patch.managerId)?.name ?? "—")
         : "—";
       const details = `Manager: ${prevName} → ${newName}`;
-      logHistory({ module: "employee", actor, target: name, action: "Manager reassigned", details });
+      logHistory({
+        module: "employee",
+        actor,
+        target: name,
+        action: "Manager reassigned",
+        details,
+      });
       void sb.sbAddHistory({
         module: "employee",
         actionEn: "Manager reassigned",
@@ -1301,7 +1902,13 @@ export const actions = {
         },
       };
     });
-    logHistory({ module: "settings", actor: "hafez Rahim", target: role, action: "Updated permissions", details: `${page}: ${ops.join(",") || "none"}` });
+    logHistory({
+      module: "settings",
+      actor: "hafez Rahim",
+      target: role,
+      action: "Updated permissions",
+      details: `${page}: ${ops.join(",") || "none"}`,
+    });
     void sb.sbSaveRolePermission(role, page, ops);
   },
   // ---- Quotations ----
@@ -1313,7 +1920,12 @@ export const actions = {
       quotations: s.quotations.map((q) => {
         if (q.id === qId) {
           prev = q;
-          next = { ...q, ...patch, revisions: patch.value !== undefined && patch.value !== q.value ? q.revisions + 1 : q.revisions };
+          next = {
+            ...q,
+            ...patch,
+            revisions:
+              patch.value !== undefined && patch.value !== q.value ? q.revisions + 1 : q.revisions,
+          };
           return next;
         }
         return q;
@@ -1321,9 +1933,17 @@ export const actions = {
     }));
     if (!prev || !next) return;
     const details: string[] = [];
-    if (patch.value !== undefined && patch.value !== prev.value) details.push(`Value ${prev.value} → ${patch.value}`);
-    if (patch.status && patch.status !== prev.status) details.push(`Status ${prev.status} → ${patch.status}`);
-    logHistory({ module: "pipeline", actor, target: `${next.id} · ${next.client}`, action: "Quotation updated", details: details.join(" · ") });
+    if (patch.value !== undefined && patch.value !== prev.value)
+      details.push(`Value ${prev.value} → ${patch.value}`);
+    if (patch.status && patch.status !== prev.status)
+      details.push(`Status ${prev.status} → ${patch.status}`);
+    logHistory({
+      module: "pipeline",
+      actor,
+      target: `${next.id} · ${next.client}`,
+      action: "Quotation updated",
+      details: details.join(" · "),
+    });
     sb.sbUpdateQuotation(qId, patch);
     pushNotificationInternal({
       type: "quotation",
@@ -1364,6 +1984,10 @@ export const actions = {
       }
       return { ...s, ...slices, settings: nextSettings };
     });
+  },
+  // ---- Real-time presence ----
+  setOnlineUsers(userIds: string[]) {
+    set((s) => ({ ...s, onlineUserIds: userIds }));
   },
 };
 

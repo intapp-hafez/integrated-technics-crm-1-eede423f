@@ -16,7 +16,12 @@ function AttendancePage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { attendance, employees } = useStoreState();
-  const user = { name: "hafez Rahim", role: t("admin"), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" };
+  const user = {
+    name: "hafez Rahim",
+    role: t("admin"),
+    initials: "HR",
+    photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
+  };
 
   const today = cairoIsoDate();
   const todays = useMemo(() => attendance.filter((r) => r.date === today), [attendance, today]);
@@ -35,7 +40,10 @@ function AttendancePage() {
   };
 
   const summary = useMemo(() => {
-    let present = 0, late = 0, absent = 0, totalHours = 0;
+    let present = 0,
+      late = 0,
+      absent = 0,
+      totalHours = 0;
     for (const r of todays) {
       if (!r.checkIn) absent += 1;
       else if (r.checkIn > "08:15") late += 1;
@@ -58,7 +66,10 @@ function AttendancePage() {
         date: r.date,
         in: r.checkIn || "—",
         out: r.checkOut || "—",
-        status: (r.checkIn ? (isLate ? "late" : "present") : "absent") as "present" | "late" | "absent",
+        status: (r.checkIn ? (isLate ? "late" : "present") : "absent") as
+          | "present"
+          | "late"
+          | "absent",
         hours: r.hours || "—",
         hoursNum: parseHours(r.hours),
         location: r.location || "—",
@@ -69,26 +80,63 @@ function AttendancePage() {
   const totalAllHours = useMemo(() => records.reduce((s, r) => s + r.hoursNum, 0), [records]);
 
   const stats = [
-    { label: t("presentToday"), v: String(summary.present), total: String(summary.total), Icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: t("late"), v: String(summary.late), total: String(summary.total), Icon: AlertTriangle, color: "text-amber-600", bg: "bg-amber-50" },
-    { label: t("absent"), v: String(summary.absent), total: String(summary.total), Icon: XCircle, color: "text-rose-600", bg: "bg-rose-50" },
-    { label: "Total hours today", v: fmtHours(summary.totalHours), total: `${fmtHours(summary.avgHours)} avg`, Icon: Clock4, color: "text-primary", bg: "bg-primary/10" },
+    {
+      label: t("presentToday"),
+      v: String(summary.present),
+      total: String(summary.total),
+      Icon: CheckCircle2,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+    },
+    {
+      label: t("late"),
+      v: String(summary.late),
+      total: String(summary.total),
+      Icon: AlertTriangle,
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+    },
+    {
+      label: t("absent"),
+      v: String(summary.absent),
+      total: String(summary.total),
+      Icon: XCircle,
+      color: "text-rose-600",
+      bg: "bg-rose-50",
+    },
+    {
+      label: "Total hours today",
+      v: fmtHours(summary.totalHours),
+      total: `${fmtHours(summary.avgHours)} avg`,
+      Icon: Clock4,
+      color: "text-primary",
+      bg: "bg-primary/10",
+    },
   ];
 
   return (
     <AppShell panel="admin" user={user} pageTitle={t("attendance")}>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div
+            key={s.label}
+            className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]"
+          >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</span>
-              <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${s.bg} ${s.color}`}>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {s.label}
+              </span>
+              <div
+                className={`flex h-9 w-9 items-center justify-center rounded-lg ${s.bg} ${s.color}`}
+              >
                 <s.Icon className="h-4 w-4" />
               </div>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
               <span className="font-display text-3xl font-bold text-foreground">{s.v}</span>
-              <span className="text-sm text-muted-foreground">{s.total.includes("avg") ? s.total : `/ ${s.total}`}</span>
+              <span className="text-sm text-muted-foreground">
+                {s.total.includes("avg") ? s.total : `/ ${s.total}`}
+              </span>
             </div>
           </div>
         ))}
@@ -96,22 +144,39 @@ function AttendancePage() {
 
       <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
-          <h3 className="font-display text-base font-bold text-foreground">{t("todaysRecordsTitle")}</h3>
+          <h3 className="font-display text-base font-bold text-foreground">
+            {t("todaysRecordsTitle")}
+          </h3>
           <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-            <Clock4 className="h-3.5 w-3.5" /> Total: {fmtHours(totalAllHours)} · {records.length} {records.length === 1 ? "entry" : "entries"}
+            <Clock4 className="h-3.5 w-3.5" /> Total: {fmtHours(totalAllHours)} · {records.length}{" "}
+            {records.length === 1 ? "entry" : "entries"}
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-secondary/60">
               <tr>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("name")}</th>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("date")}</th>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("checkIn")}</th>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("checkOut")}</th>
-                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Hours</th>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("locationGPS")}</th>
-                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("status")}</th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("name")}
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("date")}
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("checkIn")}
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("checkOut")}
+                </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Hours
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("locationGPS")}
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("status")}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -120,16 +185,32 @@ function AttendancePage() {
                 return (
                   <tr
                     key={r.id}
-                    onClick={() => emp && navigate({ to: "/admin/employees/$employeeId", params: { employeeId: emp.id } })}
+                    onClick={() =>
+                      emp &&
+                      navigate({
+                        to: "/admin/employees/$employeeId",
+                        params: { employeeId: emp.id },
+                      })
+                    }
                     className={`${emp ? "cursor-pointer" : ""} hover:bg-primary/5`}
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {emp?.photo ? (
-                          <img src={emp.photo} alt={r.name} loading="lazy" className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-primary/30" />
+                          <img
+                            src={emp.photo}
+                            alt={r.name}
+                            loading="lazy"
+                            className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-primary/30"
+                          />
                         ) : (
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 text-[10px] font-bold text-primary-foreground">
-                            {emp?.avatar ?? r.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2)}
+                            {emp?.avatar ??
+                              r.name
+                                .split(" ")
+                                .map((w: string) => w[0])
+                                .join("")
+                                .slice(0, 2)}
                           </div>
                         )}
                         <span className="font-semibold text-foreground">{r.name}</span>
@@ -138,26 +219,41 @@ function AttendancePage() {
                     <td className="px-4 py-3 font-mono text-muted-foreground">{r.date}</td>
                     <td className="px-4 py-3 font-mono text-foreground">{r.in}</td>
                     <td className="px-4 py-3 font-mono text-muted-foreground">{r.out}</td>
-                    <td className="px-4 py-3 text-end font-mono font-semibold text-foreground">{r.hoursNum > 0 ? fmtHours(r.hoursNum) : "—"}</td>
+                    <td className="px-4 py-3 text-end font-mono font-semibold text-foreground">
+                      {r.hoursNum > 0 ? fmtHours(r.hoursNum) : "—"}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="h-3 w-3" />
                         {r.location}
                       </div>
                     </td>
-                    <td className="px-4 py-3"><StatusBadge status={r.status} label={t(r.status as any)} /></td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={r.status} label={t(r.status as any)} />
+                    </td>
                   </tr>
                 );
               })}
               {records.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">No records</td></tr>
+                <tr>
+                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    No records
+                  </td>
+                </tr>
               )}
             </tbody>
             {records.length > 0 && (
               <tfoot className="bg-secondary/40">
                 <tr>
-                  <td colSpan={4} className="px-4 py-3 text-end text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Total hours</td>
-                  <td className="px-4 py-3 text-end font-mono text-sm font-bold text-foreground">{fmtHours(totalAllHours)}</td>
+                  <td
+                    colSpan={4}
+                    className="px-4 py-3 text-end text-[11px] font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Total hours
+                  </td>
+                  <td className="px-4 py-3 text-end font-mono text-sm font-bold text-foreground">
+                    {fmtHours(totalAllHours)}
+                  </td>
                   <td colSpan={2} />
                 </tr>
               </tfoot>

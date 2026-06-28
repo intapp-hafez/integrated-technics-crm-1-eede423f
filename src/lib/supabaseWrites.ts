@@ -11,14 +11,19 @@ let profileByName = new Map<string, string>();
 let currentProfileId: string | null = null;
 let currentUserId: string | null = null;
 
-export function setProfileMap(map: Map<string, string>, profileId: string | null, userId: string | null) {
+export function setProfileMap(
+  map: Map<string, string>,
+  profileId: string | null,
+  userId: string | null,
+) {
   profileByName = map;
   currentProfileId = profileId;
   currentUserId = userId;
 }
 
-const ownerId = (name?: string) => (name ? profileByName.get(name) ?? null : null);
-const isUuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+const ownerId = (name?: string) => (name ? (profileByName.get(name) ?? null) : null);
+const isUuid = (v: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
 function warn(label: string, error: unknown) {
   console.warn(`[supabase] ${label} failed`, error);
@@ -40,7 +45,7 @@ export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
     value: l.value,
     owner_id: ownerId(l.owner),
     city_en: l.city || null,
-    country: l.country || 'Egypt',
+    country: l.country || "Egypt",
     street_en: l.street ?? null,
     lat: l.lat ?? null,
     lng: l.lng ?? null,
@@ -72,7 +77,10 @@ export async function sbUpdateLead(id: string, patch: Partial<Lead>) {
   if (patch.expectedCloseDate !== undefined) row.expected_close_date = patch.expectedCloseDate;
   if (patch.projectId !== undefined) row.project_id = patch.projectId ?? null;
   if (Object.keys(row).length === 0) return;
-  const { error } = await supabase.from("leads").update(row as any).eq("id", id);
+  const { error } = await supabase
+    .from("leads")
+    .update(row as any)
+    .eq("id", id);
   if (error) warn("Update lead", error);
 }
 
@@ -115,17 +123,23 @@ export async function sbUpdateActivity(id: string, patch: Partial<Activity>) {
   const row: Record<string, any> = {};
   if (patch.type !== undefined) row.type = patch.type;
   if (patch.title !== undefined) row.title_en = patch.title;
-  if (patch.leadId !== undefined) row.lead_id = patch.leadId && isUuid(patch.leadId) ? patch.leadId : null;
-  if (patch.projectId !== undefined) row.project_id = patch.projectId && isUuid(patch.projectId) ? patch.projectId : null;
+  if (patch.leadId !== undefined)
+    row.lead_id = patch.leadId && isUuid(patch.leadId) ? patch.leadId : null;
+  if (patch.projectId !== undefined)
+    row.project_id = patch.projectId && isUuid(patch.projectId) ? patch.projectId : null;
   if (patch.dueDate !== undefined) row.due_date = patch.dueDate;
   if (patch.time !== undefined) row.time = patch.time && patch.time !== "—" ? patch.time : null;
   if (patch.owner !== undefined) row.owner_id = ownerId(patch.owner);
   if (patch.status !== undefined) row.status = patch.status;
   if (patch.notes !== undefined) row.notes_en = patch.notes;
   if (patch.estMinutes !== undefined) row.est_minutes = patch.estMinutes;
-  if (patch.presalesTeam !== undefined) row.presales_team = patch.presalesTeam.map((n) => ownerId(n)).filter(Boolean);
+  if (patch.presalesTeam !== undefined)
+    row.presales_team = patch.presalesTeam.map((n) => ownerId(n)).filter(Boolean);
   if (Object.keys(row).length === 0) return;
-  const { error } = await supabase.from("activities").update(row as any).eq("id", id);
+  const { error } = await supabase
+    .from("activities")
+    .update(row as any)
+    .eq("id", id);
   if (error) warn("Update activity", error);
 }
 
@@ -144,7 +158,10 @@ export async function sbApproveActivity(id: string, reviewNote?: string) {
     rejection_reason: null,
   };
   if (reviewNote !== undefined) patch.review_note = reviewNote || null;
-  const { error } = await supabase.from("activities").update(patch as any).eq("id", id);
+  const { error } = await supabase
+    .from("activities")
+    .update(patch as any)
+    .eq("id", id);
   if (error) warn("Approve activity", error);
 }
 
@@ -152,14 +169,22 @@ export async function sbRejectActivity(id: string, reason: string) {
   if (!isUuid(id) || !currentUserId) return;
   const { error } = await supabase
     .from("activities")
-    .update({ approval_status: "rejected", approved_by: currentUserId, approved_at: new Date().toISOString(), rejection_reason: reason } as any)
+    .update({
+      approval_status: "rejected",
+      approved_by: currentUserId,
+      approved_at: new Date().toISOString(),
+      rejection_reason: reason,
+    } as any)
     .eq("id", id);
   if (error) warn("Reject activity", error);
 }
 
 export async function sbSetActivityReviewNote(id: string, note: string) {
   if (!isUuid(id)) return;
-  const { error } = await supabase.from("activities").update({ review_note: note || null } as any).eq("id", id);
+  const { error } = await supabase
+    .from("activities")
+    .update({ review_note: note || null } as any)
+    .eq("id", id);
   if (error) warn("Save review note", error);
 }
 
@@ -190,9 +215,9 @@ export async function sbAddProject(id: string, p: Project) {
   if (error) warn("Save project", error);
   else if (p.teamMembers && p.teamMembers.length > 0) {
     const inserts = p.teamMembers
-      .map(name => profileByName.get(name))
+      .map((name) => profileByName.get(name))
       .filter(Boolean)
-      .map(pid => ({ project_id: id, profile_id: pid as string }));
+      .map((pid) => ({ project_id: id, profile_id: pid as string }));
     if (inserts.length > 0) {
       await supabase.from("project_members").insert(inserts);
     }
@@ -213,20 +238,24 @@ export async function sbUpdateProject(id: string, patch: Partial<Project>) {
   if ((patch as any).endDate !== undefined) row.end_date = (patch as any).endDate || null;
   if (patch.accountType !== undefined) row.account_type = patch.accountType;
   if (patch.otherAccountType !== undefined) row.other_account_type = patch.otherAccountType;
-  if (patch.extraContacts !== undefined) row.extra_contacts = patch.extraContacts?.length ? patch.extraContacts : null;
+  if (patch.extraContacts !== undefined)
+    row.extra_contacts = patch.extraContacts?.length ? patch.extraContacts : null;
   if (patch.client !== undefined) row.client_name = patch.client;
   if (patch.clientEmail !== undefined) row.client_email = patch.clientEmail;
   if (patch.clientPhone !== undefined) row.client_phone = patch.clientPhone;
   if (Object.keys(row).length > 0) {
-    const { error } = await supabase.from("projects").update(row as any).eq("id", id);
+    const { error } = await supabase
+      .from("projects")
+      .update(row as any)
+      .eq("id", id);
     if (error) warn("Update project", error);
   }
   if (patch.teamMembers !== undefined) {
     await supabase.from("project_members").delete().eq("project_id", id);
     const inserts = patch.teamMembers
-      .map(name => profileByName.get(name))
+      .map((name) => profileByName.get(name))
       .filter(Boolean)
-      .map(pid => ({ project_id: id, profile_id: pid as string }));
+      .map((pid) => ({ project_id: id, profile_id: pid as string }));
     if (inserts.length > 0) {
       await supabase.from("project_members").insert(inserts);
     }
@@ -240,18 +269,29 @@ export async function sbDeleteProject(id: string) {
 }
 
 // ---------------- Notes (lead_notes) ----------------
-export function getCurrentProfileId() { return currentProfileId; }
-export function getCurrentUserId() { return currentUserId; }
+export function getCurrentProfileId() {
+  return currentProfileId;
+}
+export function getCurrentUserId() {
+  return currentUserId;
+}
 
 export async function sbAddNote(id: string, leadId: string, text: string) {
   if (!isUuid(leadId) || !currentProfileId) {
     const msg = "Sign in required to save notes";
-    toast.error(msg); throw new Error(msg);
+    toast.error(msg);
+    throw new Error(msg);
   }
   const { error } = await supabase.from("lead_notes").insert({
-    id, lead_id: leadId, text_en: text, author_id: currentProfileId,
+    id,
+    lead_id: leadId,
+    text_en: text,
+    author_id: currentProfileId,
   });
-  if (error) { warn("Save note", error); throw error; }
+  if (error) {
+    warn("Save note", error);
+    throw error;
+  }
 }
 
 export async function sbDeleteNote(id: string) {
@@ -267,7 +307,10 @@ export async function sbListLeadNotes(leadId: string) {
     .select("id, text_en, text_ar, author_id, created_at")
     .eq("lead_id", leadId)
     .order("created_at", { ascending: false });
-  if (error) { warn("Load notes", error); return []; }
+  if (error) {
+    warn("Load notes", error);
+    return [];
+  }
   return data ?? [];
 }
 
@@ -282,13 +325,19 @@ export async function sbListLeadAttachments(leadId: string) {
     .eq("parent_table", "lead")
     .eq("parent_id", leadId)
     .order("created_at", { ascending: false });
-  if (error) { warn("Load attachments", error); return []; }
+  if (error) {
+    warn("Load attachments", error);
+    return [];
+  }
   return data ?? [];
 }
 
 export const LEAD_ATTACHMENT_MAX_BYTES = 3 * 1024 * 1024; // 3 MB
 export const LEAD_ATTACHMENT_ALLOWED_MIME = [
-  "application/pdf", "image/png", "image/jpeg", "image/jpg",
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
 ] as const;
 export const LEAD_ATTACHMENT_ALLOWED_EXT = ["pdf", "png", "jpg", "jpeg"] as const;
 
@@ -305,26 +354,37 @@ export function validateLeadAttachment(file: File): string | null {
 export async function sbUploadLeadAttachment(leadId: string, file: File) {
   if (!isUuid(leadId) || !currentUserId) {
     const msg = "Sign in required to upload attachments";
-    toast.error(msg); throw new Error(msg);
+    toast.error(msg);
+    throw new Error(msg);
   }
   const invalid = validateLeadAttachment(file);
-  if (invalid) { toast.error(invalid); throw new Error(invalid); }
+  if (invalid) {
+    toast.error(invalid);
+    throw new Error(invalid);
+  }
   const safeName = file.name.replace(/[^\w.\-]+/g, "_");
   const path = `${currentUserId}/${leadId}/${Date.now()}-${safeName}`;
   const up = await supabase.storage.from(LEAD_BUCKET).upload(path, file, {
     contentType: file.type || undefined,
     upsert: false,
   });
-  if (up.error) { warn("Upload file", up.error); throw up.error; }
-  const { data, error } = await supabase.from("attachments").insert({
-    parent_table: "lead",
-    parent_id: leadId,
-    name_en: file.name,
-    storage_path: path,
-    mime: file.type || null,
-    size_bytes: file.size,
-    uploaded_by: currentUserId,
-  }).select("id, name_en, storage_path, mime, size_bytes, uploaded_by, created_at").single();
+  if (up.error) {
+    warn("Upload file", up.error);
+    throw up.error;
+  }
+  const { data, error } = await supabase
+    .from("attachments")
+    .insert({
+      parent_table: "lead",
+      parent_id: leadId,
+      name_en: file.name,
+      storage_path: path,
+      mime: file.type || null,
+      size_bytes: file.size,
+      uploaded_by: currentUserId,
+    })
+    .select("id, name_en, storage_path, mime, size_bytes, uploaded_by, created_at")
+    .single();
   if (error) {
     warn("Save attachment", error);
     await supabase.storage.from(LEAD_BUCKET).remove([path]);
@@ -335,14 +395,22 @@ export async function sbUploadLeadAttachment(leadId: string, file: File) {
 
 export async function sbDeleteLeadAttachment(attId: string, storagePath: string) {
   const { error } = await supabase.from("attachments").delete().eq("id", attId);
-  if (error) { warn("Delete attachment", error); return false; }
+  if (error) {
+    warn("Delete attachment", error);
+    return false;
+  }
   await supabase.storage.from(LEAD_BUCKET).remove([storagePath]);
   return true;
 }
 
 export async function sbSignedAttachmentUrl(storagePath: string) {
-  const { data, error } = await supabase.storage.from(LEAD_BUCKET).createSignedUrl(storagePath, 60 * 10);
-  if (error) { warn("Sign URL", error); return null; }
+  const { data, error } = await supabase.storage
+    .from(LEAD_BUCKET)
+    .createSignedUrl(storagePath, 60 * 10);
+  if (error) {
+    warn("Sign URL", error);
+    return null;
+  }
   return data.signedUrl;
 }
 
@@ -373,10 +441,12 @@ export async function sbUpdateAttendance(id: string, patch: Partial<AttendanceRe
   if (patch.lng !== undefined) row.lng = patch.lng;
   if (Object.keys(row).length === 0) return;
 
-  const { error } = await supabase.from("attendance").update(row as any).eq("id", id);
+  const { error } = await supabase
+    .from("attendance")
+    .update(row as any)
+    .eq("id", id);
   if (error) warn("Update attendance", error);
 }
-
 
 // ---------------- Quotations ----------------
 export async function sbUpdateQuotation(id: string, patch: Partial<Quotation>) {
@@ -387,7 +457,10 @@ export async function sbUpdateQuotation(id: string, patch: Partial<Quotation>) {
   if (patch.feedback !== undefined) row.description_en = patch.feedback;
   if (Object.keys(row).length === 0) return;
   const column = isUuid(id) ? "id" : "code";
-  const { error } = await supabase.from("quotations").update(row as any).eq(column, id);
+  const { error } = await supabase
+    .from("quotations")
+    .update(row as any)
+    .eq(column, id);
   if (error) warn("Update quotation", error);
 }
 
@@ -395,9 +468,9 @@ export function newUuid() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
   }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -406,7 +479,14 @@ export function newUuid() {
 import type { AppUser, UserRoleKey } from "./store";
 
 // ---------------- History (audit log) ----------------
-export type HistoryModuleDb = "lead" | "pipeline" | "project" | "employee" | "activity" | "settings" | "user";
+export type HistoryModuleDb =
+  | "lead"
+  | "pipeline"
+  | "project"
+  | "employee"
+  | "activity"
+  | "settings"
+  | "user";
 export async function sbAddHistory(entry: {
   module: HistoryModuleDb;
   actionEn: string;
@@ -438,7 +518,10 @@ export async function sbAddHistory(entry: {
 const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const PHONE_RE = /^[0-9 +()\-]{6,25}$/;
 
-export function validateProfilePatch(patch: Partial<AppUser>, opts?: { selfProfileId?: string }): string | null {
+export function validateProfilePatch(
+  patch: Partial<AppUser>,
+  opts?: { selfProfileId?: string },
+): string | null {
   if (patch.email !== undefined) {
     const v = (patch.email ?? "").trim();
     if (!v) return "Email is required";
@@ -455,7 +538,8 @@ export function validateProfilePatch(patch: Partial<AppUser>, opts?: { selfProfi
   }
   if (patch.managerId !== undefined && patch.managerId) {
     if (!isUuid(patch.managerId)) return "Manager reference is invalid";
-    if (opts?.selfProfileId && patch.managerId === opts.selfProfileId) return "A user cannot be their own manager";
+    if (opts?.selfProfileId && patch.managerId === opts.selfProfileId)
+      return "A user cannot be their own manager";
   }
   return null;
 }
@@ -463,7 +547,10 @@ export function validateProfilePatch(patch: Partial<AppUser>, opts?: { selfProfi
 export async function sbUpdateProfile(profileId: string | undefined, patch: Partial<AppUser>) {
   if (!profileId || !isUuid(profileId)) return;
   const err = validateProfilePatch(patch, { selfProfileId: profileId });
-  if (err) { toast.error(err); throw new Error(err); }
+  if (err) {
+    toast.error(err);
+    throw new Error(err);
+  }
   const row: Record<string, any> = {};
   if (patch.name !== undefined) row.full_name_en = patch.name;
   if (patch.nameAr !== undefined) row.full_name_ar = patch.nameAr || null;
@@ -478,19 +565,29 @@ export async function sbUpdateProfile(profileId: string | undefined, patch: Part
   if (patch.avatarUrl !== undefined) row.avatar_url = patch.avatarUrl || null;
   if (patch.targetType !== undefined) row.target_type = patch.targetType;
   if (patch.targetValue !== undefined) row.target_value = patch.targetValue;
-  if ((patch as any).annualTarget !== undefined) { row.target_value = Number((patch as any).annualTarget); row.annual_target = Number((patch as any).annualTarget); }
+  if ((patch as any).annualTarget !== undefined) {
+    row.target_value = Number((patch as any).annualTarget);
+    row.annual_target = Number((patch as any).annualTarget);
+  }
   if ((patch as any).q1Target !== undefined) row.q1_target = Number((patch as any).q1Target);
   if ((patch as any).q2Target !== undefined) row.q2_target = Number((patch as any).q2Target);
   if ((patch as any).q3Target !== undefined) row.q3_target = Number((patch as any).q3Target);
   if ((patch as any).q4Target !== undefined) row.q4_target = Number((patch as any).q4Target);
-  if ((patch as any).weeklyMeetingsTarget !== undefined) row.weekly_meetings_target = Number((patch as any).weeklyMeetingsTarget);
+  if ((patch as any).weeklyMeetingsTarget !== undefined)
+    row.weekly_meetings_target = Number((patch as any).weeklyMeetingsTarget);
   if ((patch as any).startDate !== undefined) row.start_date = (patch as any).startDate || null;
   if (patch.skills !== undefined) row.skills = patch.skills;
   if (patch.active !== undefined) row.active = patch.active;
   if (patch.managerId !== undefined) row.manager_id = patch.managerId || null;
   if (Object.keys(row).length === 0) return;
-  const { error } = await supabase.from("profiles").update(row as any).eq("id", profileId);
-  if (error) { warn("Update profile", error); throw error; }
+  const { error } = await supabase
+    .from("profiles")
+    .update(row as any)
+    .eq("id", profileId);
+  if (error) {
+    warn("Update profile", error);
+    throw error;
+  }
 }
 
 // ---------------- Role permissions ----------------
@@ -517,17 +614,26 @@ export async function sbUpdateOwnProfile(patch: Partial<Profile>) {
   if (patch.avatarUrl !== undefined) row.avatar_url = patch.avatarUrl || null;
   if (patch.skills !== undefined) row.skills = patch.skills;
   if (Object.keys(row).length === 0) return;
-  const { error } = await supabase.from("profiles").update(row as any).eq("id", currentProfileId);
+  const { error } = await supabase
+    .from("profiles")
+    .update(row as any)
+    .eq("id", currentProfileId);
   if (error) warn("Update profile", error);
 }
 
 export async function sbAssignRole(userId: string, role: UserRoleKey, previousRole?: UserRoleKey) {
   if (!isUuid(userId)) return;
   if (previousRole && previousRole !== role) {
-    const { error: rmErr } = await supabase.rpc("admin_remove_role", { _user_id: userId, _role: previousRole as any });
+    const { error: rmErr } = await supabase.rpc("admin_remove_role", {
+      _user_id: userId,
+      _role: previousRole as any,
+    });
     if (rmErr) warn("Remove role", rmErr);
   }
-  const { error } = await supabase.rpc("admin_assign_role", { _user_id: userId, _role: role as any });
+  const { error } = await supabase.rpc("admin_assign_role", {
+    _user_id: userId,
+    _role: role as any,
+  });
   if (error) warn("Assign role", error);
 }
 

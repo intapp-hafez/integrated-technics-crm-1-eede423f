@@ -2,7 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { ChevronDown, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-interface Option { value: string; label: string }
+interface Option {
+  value: string;
+  label: string;
+}
 
 export function MultiSelect({
   label,
@@ -38,7 +41,7 @@ export function MultiSelect({
     selected.length === 0
       ? (placeholder ?? t("all") ?? "All")
       : selected.length === 1
-        ? options.find((o) => o.value === selected[0])?.label ?? selected[0]
+        ? (options.find((o) => o.value === selected[0])?.label ?? selected[0])
         : `${selected.length} selected`;
 
   return (

@@ -9,39 +9,39 @@ export interface CountryCode {
 
 export const COUNTRY_CODES: CountryCode[] = [
   // Arab countries
-  { flag: "🇪🇬", name: "Egypt",        code: "+20",  digits: 10 },
-  { flag: "🇸🇦", name: "Saudi Arabia", code: "+966", digits: 9  },
-  { flag: "🇦🇪", name: "UAE",          code: "+971", digits: 9  },
-  { flag: "🇰🇼", name: "Kuwait",       code: "+965", digits: 8  },
-  { flag: "🇶🇦", name: "Qatar",        code: "+974", digits: 8  },
-  { flag: "🇧🇭", name: "Bahrain",      code: "+973", digits: 8  },
-  { flag: "🇴🇲", name: "Oman",         code: "+968", digits: 8  },
-  { flag: "🇯🇴", name: "Jordan",       code: "+962", digits: 9  },
-  { flag: "🇱🇧", name: "Lebanon",      code: "+961", digits: 8  },
-  { flag: "🇮🇶", name: "Iraq",         code: "+964", digits: 10 },
-  { flag: "🇸🇾", name: "Syria",        code: "+963", digits: 9  },
-  { flag: "🇱🇾", name: "Libya",        code: "+218", digits: 9  },
-  { flag: "🇹🇳", name: "Tunisia",      code: "+216", digits: 8  },
-  { flag: "🇩🇿", name: "Algeria",      code: "+213", digits: 9  },
-  { flag: "🇲🇦", name: "Morocco",      code: "+212", digits: 9  },
-  { flag: "🇾🇪", name: "Yemen",        code: "+967", digits: 9  },
-  { flag: "🇸🇩", name: "Sudan",        code: "+249", digits: 9  },
-  { flag: "🇵🇸", name: "Palestine",    code: "+970", digits: 9  },
-  { flag: "🇩🇯", name: "Djibouti",    code: "+253", digits: 8  },
-  { flag: "🇲🇷", name: "Mauritania",  code: "+222", digits: 8  },
-  { flag: "🇸🇴", name: "Somalia",     code: "+252", digits: 8  },
+  { flag: "🇪🇬", name: "Egypt", code: "+20", digits: 10 },
+  { flag: "🇸🇦", name: "Saudi Arabia", code: "+966", digits: 9 },
+  { flag: "🇦🇪", name: "UAE", code: "+971", digits: 9 },
+  { flag: "🇰🇼", name: "Kuwait", code: "+965", digits: 8 },
+  { flag: "🇶🇦", name: "Qatar", code: "+974", digits: 8 },
+  { flag: "🇧🇭", name: "Bahrain", code: "+973", digits: 8 },
+  { flag: "🇴🇲", name: "Oman", code: "+968", digits: 8 },
+  { flag: "🇯🇴", name: "Jordan", code: "+962", digits: 9 },
+  { flag: "🇱🇧", name: "Lebanon", code: "+961", digits: 8 },
+  { flag: "🇮🇶", name: "Iraq", code: "+964", digits: 10 },
+  { flag: "🇸🇾", name: "Syria", code: "+963", digits: 9 },
+  { flag: "🇱🇾", name: "Libya", code: "+218", digits: 9 },
+  { flag: "🇹🇳", name: "Tunisia", code: "+216", digits: 8 },
+  { flag: "🇩🇿", name: "Algeria", code: "+213", digits: 9 },
+  { flag: "🇲🇦", name: "Morocco", code: "+212", digits: 9 },
+  { flag: "🇾🇪", name: "Yemen", code: "+967", digits: 9 },
+  { flag: "🇸🇩", name: "Sudan", code: "+249", digits: 9 },
+  { flag: "🇵🇸", name: "Palestine", code: "+970", digits: 9 },
+  { flag: "🇩🇯", name: "Djibouti", code: "+253", digits: 8 },
+  { flag: "🇲🇷", name: "Mauritania", code: "+222", digits: 8 },
+  { flag: "🇸🇴", name: "Somalia", code: "+252", digits: 8 },
   // divider handled by option grouping
-  { flag: "🇺🇸", name: "USA / Canada", code: "+1",   digits: 10 },
-  { flag: "🇬🇧", name: "UK",           code: "+44",  digits: 10 },
-  { flag: "🇩🇪", name: "Germany",      code: "+49",  digits: 10 },
-  { flag: "🇫🇷", name: "France",       code: "+33",  digits: 9  },
-  { flag: "🇹🇷", name: "Turkey",       code: "+90",  digits: 10 },
-  { flag: "🇮🇳", name: "India",        code: "+91",  digits: 10 },
-  { flag: "🇵🇰", name: "Pakistan",     code: "+92",  digits: 10 },
-  { flag: "🇨🇳", name: "China",        code: "+86",  digits: 11 },
-  { flag: "🇷🇺", name: "Russia",       code: "+7",   digits: 10 },
-  { flag: "🇮🇹", name: "Italy",        code: "+39",  digits: 10 },
-  { flag: "🇪🇸", name: "Spain",        code: "+34",  digits: 9  },
+  { flag: "🇺🇸", name: "USA / Canada", code: "+1", digits: 10 },
+  { flag: "🇬🇧", name: "UK", code: "+44", digits: 10 },
+  { flag: "🇩🇪", name: "Germany", code: "+49", digits: 10 },
+  { flag: "🇫🇷", name: "France", code: "+33", digits: 9 },
+  { flag: "🇹🇷", name: "Turkey", code: "+90", digits: 10 },
+  { flag: "🇮🇳", name: "India", code: "+91", digits: 10 },
+  { flag: "🇵🇰", name: "Pakistan", code: "+92", digits: 10 },
+  { flag: "🇨🇳", name: "China", code: "+86", digits: 11 },
+  { flag: "🇷🇺", name: "Russia", code: "+7", digits: 10 },
+  { flag: "🇮🇹", name: "Italy", code: "+39", digits: 10 },
+  { flag: "🇪🇸", name: "Spain", code: "+34", digits: 9 },
 ];
 
 const ARAB_CODES = COUNTRY_CODES.slice(0, 21);
@@ -56,7 +56,7 @@ interface PhoneInputProps {
 
 /** Splits a stored full phone into {code, local} */
 function split(full: string): { code: string; local: string } {
-  const match = COUNTRY_CODES.find(c => full.startsWith(c.code));
+  const match = COUNTRY_CODES.find((c) => full.startsWith(c.code));
   if (match) return { code: match.code, local: full.slice(match.code.length) };
   return { code: "+20", local: full.replace(/^\+?\d{1,3}/, "") };
 }
@@ -66,7 +66,7 @@ export function PhoneInput({ value, onChange, className = "", placeholder }: Pho
   const [code, setCode] = useState(initCode);
   const [local, setLocal] = useState(initLocal);
 
-  const country = COUNTRY_CODES.find(c => c.code === code) ?? COUNTRY_CODES[0];
+  const country = COUNTRY_CODES.find((c) => c.code === code) ?? COUNTRY_CODES[0];
   const digits = country.digits;
   const localClean = local.replace(/\D/g, "");
   const isValid = localClean.length === digits;
@@ -88,19 +88,19 @@ export function PhoneInput({ value, onChange, className = "", placeholder }: Pho
       {/* Country code picker */}
       <select
         value={code}
-        onChange={e => handleCode(e.target.value)}
+        onChange={(e) => handleCode(e.target.value)}
         className="h-9 rounded-lg border border-border bg-background px-1.5 text-sm shrink-0 focus:outline-none focus:ring-2 focus:ring-primary/40"
         style={{ minWidth: "90px" }}
       >
         <optgroup label="Arab Countries">
-          {ARAB_CODES.map(c => (
+          {ARAB_CODES.map((c) => (
             <option key={c.code} value={c.code}>
               {c.flag} {c.code}
             </option>
           ))}
         </optgroup>
         <optgroup label="Other Countries">
-          {OTHER_CODES.map(c => (
+          {OTHER_CODES.map((c) => (
             <option key={c.code} value={c.code}>
               {c.flag} {c.code}
             </option>
@@ -114,7 +114,7 @@ export function PhoneInput({ value, onChange, className = "", placeholder }: Pho
           type="tel"
           inputMode="numeric"
           value={local}
-          onChange={e => handleLocal(e.target.value)}
+          onChange={(e) => handleLocal(e.target.value)}
           placeholder={placeholder ?? `${digits} digits`}
           className={[
             "h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2",
@@ -124,10 +124,12 @@ export function PhoneInput({ value, onChange, className = "", placeholder }: Pho
           ].join(" ")}
         />
         {isDirty && (
-          <span className={[
-            "absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold",
-            isValid ? "text-emerald-500" : "text-destructive",
-          ].join(" ")}>
+          <span
+            className={[
+              "absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold",
+              isValid ? "text-emerald-500" : "text-destructive",
+            ].join(" ")}
+          >
             {localClean.length}/{digits}
           </span>
         )}

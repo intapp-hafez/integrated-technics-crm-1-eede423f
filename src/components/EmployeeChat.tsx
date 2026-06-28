@@ -25,19 +25,82 @@ interface Props {
 const storageKey = (id: string) => `int-crm:chat:${id}`;
 
 const EMOJIS = [
-  "😀","😁","😂","🤣","😊","😇","🙂","😉","😍","🥰",
-  "😘","😎","🤩","🤔","🤗","🤝","👍","👎","👏","🙌",
-  "🙏","💪","🔥","✨","🎉","🎯","💼","📈","📊","📝",
-  "📌","📎","📧","📞","✅","❌","⚠️","⏰","💡","💯",
-  "❤️","💙","💚","💛","🧡","💜","🤍","🌟","⭐","☕",
+  "😀",
+  "😁",
+  "😂",
+  "🤣",
+  "😊",
+  "😇",
+  "🙂",
+  "😉",
+  "😍",
+  "🥰",
+  "😘",
+  "😎",
+  "🤩",
+  "🤔",
+  "🤗",
+  "🤝",
+  "👍",
+  "👎",
+  "👏",
+  "🙌",
+  "🙏",
+  "💪",
+  "🔥",
+  "✨",
+  "🎉",
+  "🎯",
+  "💼",
+  "📈",
+  "📊",
+  "📝",
+  "📌",
+  "📎",
+  "📧",
+  "📞",
+  "✅",
+  "❌",
+  "⚠️",
+  "⏰",
+  "💡",
+  "💯",
+  "❤️",
+  "💙",
+  "💚",
+  "💛",
+  "🧡",
+  "💜",
+  "🤍",
+  "🌟",
+  "⭐",
+  "☕",
 ];
 
 function seedFor(_id: string, employeeName: string, adminName: string): Msg[] {
   const now = Date.now();
   return [
-    { id: "s1", from: "employee", text: `مرحبًا ${adminName} 👋، أحتاج مراجعة العرض المرسل لشركة Aramco.`, ts: now - 1000 * 60 * 60 * 26, read: true },
-    { id: "s2", from: "admin", text: `أهلًا ${employeeName.split(" ")[0]} 🙌، تمام سأراجعه اليوم وأرد عليك.`, ts: now - 1000 * 60 * 60 * 25, read: true },
-    { id: "s3", from: "employee", text: "شكرًا 🙏، في انتظار ملاحظاتك.", ts: now - 1000 * 60 * 60 * 24, read: true },
+    {
+      id: "s1",
+      from: "employee",
+      text: `مرحبًا ${adminName} 👋، أحتاج مراجعة العرض المرسل لشركة Aramco.`,
+      ts: now - 1000 * 60 * 60 * 26,
+      read: true,
+    },
+    {
+      id: "s2",
+      from: "admin",
+      text: `أهلًا ${employeeName.split(" ")[0]} 🙌، تمام سأراجعه اليوم وأرد عليك.`,
+      ts: now - 1000 * 60 * 60 * 25,
+      read: true,
+    },
+    {
+      id: "s3",
+      from: "employee",
+      text: "شكرًا 🙏، في انتظار ملاحظاتك.",
+      ts: now - 1000 * 60 * 60 * 24,
+      read: true,
+    },
   ];
 }
 
@@ -56,7 +119,9 @@ export function EmployeeChat({
   const [draft, setDraft] = useState("");
   const [sendAs, setSendAs] = useState<"admin" | "employee">(viewerRole);
   const [showEmoji, setShowEmoji] = useState(false);
-  const [activeCat, setActiveCat] = useState<"greetings" | "tasks" | "approvals" | "closing">("greetings");
+  const [activeCat, setActiveCat] = useState<"greetings" | "tasks" | "approvals" | "closing">(
+    "greetings",
+  );
   const [typing, setTyping] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -65,15 +130,45 @@ export function EmployeeChat({
   const quickReplies = useMemo(() => {
     const ar = {
       greetings: ["مرحبًا 👋", "صباح الخير ☀️", "مساء النور 🌙", "أهلًا بك 🤝", "كيف حالك؟ 🙂"],
-      tasks: ["ابدأ بالعميل التالي 📌", "حدّث حالة المشروع 📊", "أرسل التقرير اليومي 📝", "تواصل مع العميل 📞", "راجع العرض 📄"],
-      approvals: ["تمت الموافقة ✅", "بحاجة إلى تعديل ⚠️", "مرفوض ❌", "موافق مبدئيًا 👍", "انتظر مراجعة الإدارة 🕒"],
+      tasks: [
+        "ابدأ بالعميل التالي 📌",
+        "حدّث حالة المشروع 📊",
+        "أرسل التقرير اليومي 📝",
+        "تواصل مع العميل 📞",
+        "راجع العرض 📄",
+      ],
+      approvals: [
+        "تمت الموافقة ✅",
+        "بحاجة إلى تعديل ⚠️",
+        "مرفوض ❌",
+        "موافق مبدئيًا 👍",
+        "انتظر مراجعة الإدارة 🕒",
+      ],
       closing: ["شكرًا لجهودك 🙏", "عمل ممتاز 🔥", "إلى اللقاء 👋", "بالتوفيق ✨", "نتابع غدًا 📅"],
     };
     const en = {
       greetings: ["Hi 👋", "Good morning ☀️", "Good evening 🌙", "Welcome 🤝", "How are you? 🙂"],
-      tasks: ["Move to next lead 📌", "Update project status 📊", "Send daily report 📝", "Call the client 📞", "Review the offer 📄"],
-      approvals: ["Approved ✅", "Needs revision ⚠️", "Rejected ❌", "Tentatively approved 👍", "Pending admin review 🕒"],
-      closing: ["Thanks for your effort 🙏", "Great job 🔥", "Bye 👋", "Good luck ✨", "Let's follow up tomorrow 📅"],
+      tasks: [
+        "Move to next lead 📌",
+        "Update project status 📊",
+        "Send daily report 📝",
+        "Call the client 📞",
+        "Review the offer 📄",
+      ],
+      approvals: [
+        "Approved ✅",
+        "Needs revision ⚠️",
+        "Rejected ❌",
+        "Tentatively approved 👍",
+        "Pending admin review 🕒",
+      ],
+      closing: [
+        "Thanks for your effort 🙏",
+        "Great job 🔥",
+        "Bye 👋",
+        "Good luck ✨",
+        "Let's follow up tomorrow 📅",
+      ],
     };
     return lang === "ar" ? ar : en;
   }, [lang]);
@@ -105,7 +200,13 @@ export function EmployeeChat({
   const pushMessage = (from: "admin" | "employee", text: string) => {
     setMessages((m) => [
       ...m,
-      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, from, text, ts: Date.now(), read: false },
+      {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        from,
+        text,
+        ts: Date.now(),
+        read: false,
+      },
     ]);
   };
 
@@ -120,21 +221,26 @@ export function EmployeeChat({
     // Simulated auto-reply from the other side
     if (replyTimer.current) window.clearTimeout(replyTimer.current);
     setTyping(true);
-    replyTimer.current = window.setTimeout(() => {
-      setTyping(false);
-      const other = sendAs === "admin" ? "employee" : "admin";
-      const pool = lang === "ar"
-        ? ["تمام 👍", "تم الاستلام ✅", "سأتابع الآن 🙌", "شكرًا 🙏", "حاضر 💪"]
-        : ["Okay 👍", "Got it ✅", "On it 🙌", "Thanks 🙏", "Sure thing 💪"];
-      pushMessage(other, pool[Math.floor(Math.random() * pool.length)]);
-      // mark previous outgoing as read
-      setMessages((m) => m.map((x) => (x.from === sendAs ? { ...x, read: true } : x)));
-    }, 1400 + Math.random() * 900);
+    replyTimer.current = window.setTimeout(
+      () => {
+        setTyping(false);
+        const other = sendAs === "admin" ? "employee" : "admin";
+        const pool =
+          lang === "ar"
+            ? ["تمام 👍", "تم الاستلام ✅", "سأتابع الآن 🙌", "شكرًا 🙏", "حاضر 💪"]
+            : ["Okay 👍", "Got it ✅", "On it 🙌", "Thanks 🙏", "Sure thing 💪"];
+        pushMessage(other, pool[Math.floor(Math.random() * pool.length)]);
+        // mark previous outgoing as read
+        setMessages((m) => m.map((x) => (x.from === sendAs ? { ...x, read: true } : x)));
+      },
+      1400 + Math.random() * 900,
+    );
   };
 
   const clear = () => {
     if (typeof window === "undefined") return;
-    if (!window.confirm(lang === "ar" ? "هل تريد مسح المحادثة؟" : "Clear this conversation?")) return;
+    if (!window.confirm(lang === "ar" ? "هل تريد مسح المحادثة؟" : "Clear this conversation?"))
+      return;
     setMessages([]);
     localStorage.removeItem(storageKey(employeeId));
   };
@@ -157,12 +263,21 @@ export function EmployeeChat({
     yesterday.setDate(today.getDate() - 1);
     if (dayKey(ts) === dayKey(today.getTime())) return t("today");
     if (dayKey(ts) === dayKey(yesterday.getTime())) return t("yesterday");
-    return d.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", { day: "2-digit", month: "short", year: "numeric" });
+    return d.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   const Avatar = ({ photo, initials, alt }: { photo?: string; initials: string; alt: string }) =>
     photo ? (
-      <img src={photo} alt={alt} loading="lazy" className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-primary/30" />
+      <img
+        src={photo}
+        alt={alt}
+        loading="lazy"
+        className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-primary/30"
+      />
     ) : (
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 text-[10px] font-bold text-primary-foreground">
         {initials}
@@ -179,7 +294,10 @@ export function EmployeeChat({
   let lastDay = "";
 
   return (
-    <div className="flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]" dir={dir}>
+    <div
+      className="flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
+      dir={dir}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-border bg-gradient-to-r from-secondary/60 to-secondary/20 px-5 py-3">
         <div className="relative">
@@ -253,9 +371,12 @@ export function EmployeeChat({
                   </div>
                   <div className="mt-1 flex items-center gap-1 px-1 text-[10px] text-muted-foreground">
                     <span>{fmtTime(m.ts)}</span>
-                    {mine && (
-                      m.read ? <CheckCheck className="h-3 w-3 text-sky-500" /> : <Check className="h-3 w-3" />
-                    )}
+                    {mine &&
+                      (m.read ? (
+                        <CheckCheck className="h-3 w-3 text-sky-500" />
+                      ) : (
+                        <Check className="h-3 w-3" />
+                      ))}
                   </div>
                 </div>
               </div>
@@ -330,8 +451,10 @@ export function EmployeeChat({
         )}
 
         {showEmoji && (
-          <div className="absolute bottom-[88px] z-20 grid w-[280px] grid-cols-10 gap-1 rounded-xl border border-border bg-popover p-2 shadow-lg"
-               style={dir === "rtl" ? { right: 12 } : { left: 12 }}>
+          <div
+            className="absolute bottom-[88px] z-20 grid w-[280px] grid-cols-10 gap-1 rounded-xl border border-border bg-popover p-2 shadow-lg"
+            style={dir === "rtl" ? { right: 12 } : { left: 12 }}
+          >
             {EMOJIS.map((e) => (
               <button
                 key={e}

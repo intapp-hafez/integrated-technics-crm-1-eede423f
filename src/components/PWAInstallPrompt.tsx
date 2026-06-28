@@ -57,7 +57,11 @@ export function PWAInstallPrompt() {
   return (
     <div
       className="fixed bottom-4 z-[100] mx-4 flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-lg animate-in slide-in-from-bottom-4 fade-in duration-300"
-      style={{ insetInlineStart: dir === "rtl" ? undefined : "1rem", insetInlineEnd: dir === "rtl" ? "1rem" : undefined, maxWidth: 420 }}
+      style={{
+        insetInlineStart: dir === "rtl" ? undefined : "1rem",
+        insetInlineEnd: dir === "rtl" ? "1rem" : undefined,
+        maxWidth: 420,
+      }}
       dir={dir}
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">

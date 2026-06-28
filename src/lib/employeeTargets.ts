@@ -11,7 +11,10 @@ export interface LeadIdentityLike {
   createdByName?: string | null;
 }
 
-export function isLeadRelatedToEmployee(lead: LeadIdentityLike, employee: EmployeeIdentity): boolean {
+export function isLeadRelatedToEmployee(
+  lead: LeadIdentityLike,
+  employee: EmployeeIdentity,
+): boolean {
   if (!lead || !employee) return false;
   if (employee.profileId && lead.ownerId === employee.profileId) return true;
   if (employee.userId && lead.createdBy === employee.userId) return true;
