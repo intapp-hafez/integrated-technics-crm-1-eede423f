@@ -717,3 +717,32 @@ export async function sbPushNotification(input: {
   } as any);
   if (error) warn("Push notification", error);
 }
+
+// ---------------- Admin Tasks ----------------
+export async function sbAddAdminTask(task: any) {
+  const { error } = await supabase.from("admin_tasks" as any).insert({
+    id: task.id,
+    title: task.title,
+    details: task.details,
+    date: task.date,
+    status: task.status,
+  });
+  if (error) warn("Save admin task", error);
+}
+
+export async function sbUpdateAdminTaskStatus(id: string, status: string) {
+  if (!isUuid(id)) return;
+  const { error } = await supabase.from("admin_tasks" as any).update({ status }).eq("id", id);
+  if (error) warn("Update admin task status", error);
+}
+
+export async function sbAddAdminTaskActivity(act: any) {
+  const { error } = await supabase.from("admin_task_activities" as any).insert({
+    id: act.id,
+    task_id: act.taskId,
+    ts: act.ts,
+    actor: act.actor,
+    details: act.details,
+  });
+  if (error) warn("Save admin task activity", error);
+}

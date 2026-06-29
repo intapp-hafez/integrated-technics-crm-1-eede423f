@@ -474,4 +474,5 @@ export const ar: Dict = {
   importSuccess: "تم الاستيراد بنجاح",
   importFailed: "فشل الاستيراد",
   allTime: "كل الوقت",
+  toDoList: "قائمة المهام",
 }; // Force HMR reload

@@ -1,0 +1,106 @@
+# INT-CRM — System Audit Report
+_Generated: 2026-06-29_
+
+---
+
+## 🔴 Bugs / Code Issues
+
+| # | File | Issue |
+|---|------|-------|
+| 1 | `admin.activities.tsx:278` | **Debug `console.log` left in production code** — `console.log("DEBUG lang:", lang, ...)` should be removed immediately. |
+| 2 | `admin.security.tsx:364,369` | **Two more stray `console.log` calls** in production. Remove. |
+| 3 | `admin.leads.tsx`, `manager.leads.tsx`, `employee.leads.tsx` | **Hardcoded fallback user** `"hafez Rahim"` used in `actor` defaults across `actions.moveLead` and form submissions. Should use the authenticated user's name from `useAuth()`. |
+| 4 | `admin.activities.tsx`, `admin.projects.tsx`, `admin.reports.tsx`, `admin.offers.tsx` | **Hardcoded user object** `{ name: "hafez Rahim", initials: "HR" }` passed to `AppShell`. The AppShell already overrides this from the authenticated profile — these can be cleaned up with a dummy `{}` prop. |
+| 5 | `admin.settings.tsx` | File is 119 KB — **extremely large** and likely has maintainability/perf issues. Should be split into sub-components. |
+| 6 | Store `celebrationLead` | After `moveLead`, the `celebrationLead` is set to `s.leads.find(...)` **before** the new status is applied to the array — leads to potentially capturing the pre-update object. The `find` runs on the old state. |
+
+---
+
+## 🟡 Missing Features
+
+### Lead Management
+- **Lead assignment**: No UI to bulk-reassign leads from one employee to another.
+- **Lead merge**: Duplicate leads cannot be merged.
+- **Lead import via Excel**: The Import Excel button is **disabled** with a placeholder apology message in all three panels (admin/manager/employee). It exists but is not wired.
+- **Lost reason tracking**: When a lead is moved to "Lost", no reason/notes are captured.
+- **Follow-up reminders**: No automated follow-up scheduler — e.g., "remind me in 3 days" on a lead.
+
+### Pipeline
+- **Pipeline WIP limits**: No ability to set maximum leads per stage (Work-In-Progress limits).
+- **Forecast view**: No view showing predicted close dates vs. target for the month/quarter.
+
+### Activities
+- **Recurring activities**: No recurrence option (e.g., weekly check-in).
+- **Calendar view**: Only table/card views exist. A proper **calendar/timeline view** is missing.
+- **Import Excel**: Button is disabled with apology message — not wired.
+- **Activity outcome**: When marking an activity "Done," there is no structured outcome field (deal discussed, next step agreed, etc.).
+
+### Projects (Accounts)
+- **Project milestones**: No sub-task/milestone tracking within a project.
+- **Project financial summary**: No invoice/payment tracking linked to a project.
+- **Project documents**: No file attachment section on project detail view.
+- **Import Excel**: Button is disabled — not implemented.
+
+### Quotations / Offers
+- **Create offer from CRM**: No way to create a new quotation directly from the CRM (Admin/Manager). The create button is absent.
+- **Status transition workflow**: No approval workflow — anyone can change any offer status.
+- **PDF generation**: No built-in offer PDF export. The export only produces XLSX.
+
+### Clients
+- **Client detail page**: Clicking a client name has no destination — there is no client detail/profile page.
+- **Client create/edit**: No form to add or edit a client record directly from the CRM.
+- **Client interaction history**: No timeline of all leads, activities, and quotations linked to a client.
+
+### Reports
+- **Date range export**: Reports can be filtered by date, but the CSV export always exports all data regardless of the active filter.
+- **Scheduled reports**: No ability to schedule a report email (weekly/monthly digest).
+- **Individual employee report**: No drill-down page for a specific employee's performance history.
+
+### Notifications
+- **Email notifications**: The notification system is in-app only. No actual email delivery is wired for standard CRM events (new lead assigned, activity due, etc.).
+- **Push notifications / PWA**: `PWAInstallPrompt.tsx` exists but push notification integration is not visible.
+
+### HR / Attendance
+- **Leave requests**: No leave request/approval workflow visible in the employee panel.
+- **Overtime tracking**: Attendance only tracks check-in/out but not overtime approval.
+
+### Finance Panel
+- **Payments module**: Finance dashboard has quotations but no payment/invoice tracking against approved quotes.
+- **Revenue recognition**: No mechanism to mark revenue as "collected" vs "pending".
+
+---
+
+## 🟢 Enhancement Opportunities
+
+### UX / Performance
+| # | Area | Suggestion |
+|---|------|------------|
+| 1 | **Lead Details Page** | Add a "Previous / Next Lead" navigation arrow so users can browse leads without going back to the list. |
+| 2 | **Pipeline Board** | Add per-column total value display (sum of all lead values in that stage). |
+| 3 | **Global Search** | Currently exists but search scope is unclear. Expand it to explicitly search across leads, projects, clients, activities, and employees with sectioned results. |
+| 4 | **Table Pagination** | "Showing X to Y of Z entries" text is not localized in Arabic on several pages. |
+| 5 | **Admin Dashboard** | The KPI delta values (e.g., `delta={12.4}`) are all **hardcoded** — they don't reflect real period-over-period change. |
+| 6 | **Manager Dashboard** | KPI deltas are also hardcoded (`delta={0}` / `delta={2.1}`). |
+| 7 | **Dark Mode** | Glassmorphism/frosted effects are defined in CSS vars but dark mode is not explicitly togglable by the user from the UI. |
+| 8 | **Mobile UX** | Bottom navigation only shows 5 items; some panels (Finance) have more nav items that are completely invisible on mobile. |
+| 9 | **Loading States** | Most pages that fetch from Supabase show no loading skeletons — they either show empty state or nothing during loading. |
+| 10 | **Error Boundaries** | No React error boundary wrappers visible — a single component crash would white-screen the entire app. |
+
+### Code Quality
+| # | Area | Suggestion |
+|---|------|------------|
+| 11 | **`admin.settings.tsx`** | At 119 KB, this file should be split into separate `SettingsPipelineTab`, `SettingsLocationsTab`, etc. components. |
+| 12 | **LeadFormModal duplication** | The `LeadFormModal` component is nearly identical across `admin.leads.tsx`, `manager.leads.tsx`, and `employee.leads.tsx`. Should be extracted into a shared `src/components/leads/LeadFormModal.tsx`. |
+| 13 | **Hardcoded actor** | The `actor = "hafez Rahim"` default in store actions should use the authenticated session. |
+| 14 | **`any` types in store** | `leads: any[]`, `projectRequests?: any[]` in the `State` interface. These should be properly typed. |
+| 15 | **`window.confirm()`** for destructive actions | All delete buttons use a native browser `confirm()`. Replace with a styled `ConfirmDialog` component for consistency. |
+
+---
+
+## 📊 Priority Summary
+
+| Priority | Count | Examples |
+|----------|-------|---------|
+| 🔴 Fix Now | 6 | Debug logs, hardcoded actor, celebration lead timing bug |
+| 🟡 Missing Features | 20+ | Client detail page, PDF quotes, lost reason, calendar view |
+| 🟢 Enhancements | 15 | Hardcoded KPI deltas, error boundaries, shared LeadFormModal |

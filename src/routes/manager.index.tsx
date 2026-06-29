@@ -17,9 +17,9 @@ export const Route = createFileRoute("/manager/")({
 function ManagerDashboard() {
   const { t, dir } = useI18n();
   const { activities: storeActivities, leads: storeLeads } = useStoreState();
-  const { teamEmployees: employees, includesOwner } = useMyTeam();
+  const { teamEmployees: employees, includesLead, includesActivity } = useMyTeam();
   const { profile } = useAuth();
-  const meName = profile?.full_name_en || profile?.full_name_ar || "hafez Rahim";
+  const meName = profile?.full_name_en || profile?.full_name_ar || "";
   const user = {
     name: meName,
     role: t("manager"),
@@ -50,12 +50,12 @@ function ManagerDashboard() {
   const totalAchieved = managerAchieved + teamAchieved;
 
   const teamLeads = useMemo(
-    () => storeLeads.filter((l) => includesOwner(l.owner)),
-    [storeLeads, includesOwner],
+    () => storeLeads.filter((l) => includesLead(l)),
+    [storeLeads, includesLead],
   );
   const teamActivities = useMemo(
-    () => storeActivities.filter((a) => includesOwner(a.owner)),
-    [storeActivities, includesOwner],
+    () => storeActivities.filter((a) => includesActivity(a)),
+    [storeActivities, includesActivity],
   );
 
   const totalLeads = teamLeads.length;

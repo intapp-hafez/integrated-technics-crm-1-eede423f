@@ -1,3 +1,4 @@
+﻿import { LeadFormModal } from '@/components/leads/LeadFormModal';
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
@@ -29,12 +30,12 @@ const leadSchema = z.object({
     .max(255, "Email too long")
     .or(z.literal("")),
   industry: z.string().trim().max(80, "Industry too long").optional(),
-  value: z.number().min(0, "Value must be ≥ 0").max(1_000_000_000, "Value too high"),
+  value: z.number().min(0, "Value must be â‰¥ 0").max(1_000_000_000, "Value too high"),
 });
 
 export const Route = createFileRoute("/manager/leads")({
   component: ManagerLeadsPage,
-  head: () => ({ meta: [{ title: "Our Leads · INT-CRM" }] }),
+  head: () => ({ meta: [{ title: "Our Leads Â· INT-CRM" }] }),
 });
 
 function ManagerLeadsPage() {
@@ -48,7 +49,7 @@ function ManagerLeadsPage() {
 function ManagerLeadsListPage() {
   const { t, lang } = useI18n();
   const { leads, settings } = useStoreState();
-  const { includesOwner, teamEmployees } = useMyTeam();
+  const { includesLead, teamEmployees } = useMyTeam();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [owner, setOwner] = useState<string>("all");
@@ -66,8 +67,8 @@ function ManagerLeadsListPage() {
     settings.stages.find((s) => s.key === k)?.label ?? t(k as any) ?? k;
 
   const teamLeads = useMemo(
-    () => leads.filter((l) => includesOwner(l.owner)),
-    [leads, includesOwner],
+    () => leads.filter((l) => includesLead(l)),
+    [leads, includesLead],
   );
 
   const filtered = useMemo(() => {
@@ -114,12 +115,12 @@ function ManagerLeadsListPage() {
   };
 
   return (
-    <AppShell panel="manager" user={user} pageTitle={isAr ? "فرص فريقنا" : "Our Leads"}>
+    <AppShell panel="manager" user={user} pageTitle={isAr ? "ÙØ±Øµ ÙØ±ÙŠÙ‚Ù†Ø§" : "Our Leads"}>
       {/* KPI strip */}
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {isAr ? "إجمالي الفرص" : "Total Leads"}
+            {isAr ? "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„ÙØ±Øµ" : "Total Leads"}
           </div>
           <div className="mt-1 font-mono text-2xl font-extrabold text-foreground">
             {filtered.length}
@@ -127,7 +128,7 @@ function ManagerLeadsListPage() {
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {isAr ? "القيمة الإجمالية" : "Pipeline Value"}
+            {isAr ? "Ø§Ù„Ù‚ÙŠÙ…Ø© Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠØ©" : "Pipeline Value"}
           </div>
           <div className="mt-1 font-mono text-2xl font-extrabold text-primary">
             {fmtMoney(totalValue)}
@@ -135,7 +136,7 @@ function ManagerLeadsListPage() {
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {isAr ? "تم الفوز" : "Won"}
+            {isAr ? "ØªÙ… Ø§Ù„ÙÙˆØ²" : "Won"}
           </div>
           <div className="mt-1 font-mono text-2xl font-extrabold text-emerald-600">{wonCount}</div>
         </div>
@@ -149,7 +150,7 @@ function ManagerLeadsListPage() {
             onChange={(e) => setStatus(e.target.value)}
             className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs"
           >
-            <option value="all">{isAr ? "كل الحالات" : "All statuses"}</option>
+            <option value="all">{isAr ? "ÙƒÙ„ Ø§Ù„Ø­Ø§Ù„Ø§Øª" : "All statuses"}</option>
             {settings.stages.map((s) => (
               <option key={s.key} value={s.key}>
                 {s.label}
@@ -161,7 +162,7 @@ function ManagerLeadsListPage() {
             onChange={(e) => setOwner(e.target.value)}
             className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs"
           >
-            <option value="all">{isAr ? "كل الفريق" : "All team"}</option>
+            <option value="all">{isAr ? "ÙƒÙ„ Ø§Ù„ÙØ±ÙŠÙ‚" : "All team"}</option>
             {teamEmployees.map((e) => (
               <option key={e.id} value={e.name}>
                 {e.name}
@@ -172,8 +173,8 @@ function ManagerLeadsListPage() {
             disabled
             title={
               isAr
-                ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم."
-                : "We apologise — this option is currently not working. Thanks for your understanding."
+                ? "Ù†Ø¹ØªØ°Ø± â€” Ù‡Ø°Ø§ Ø§Ù„Ø®ÙŠØ§Ø± ØºÙŠØ± Ù…ØªØ§Ø­ Ø­Ø§Ù„ÙŠØ§Ù‹. Ø´ÙƒØ±Ø§Ù‹ Ù„ØªÙÙ‡Ù…ÙƒÙ…."
+                : "We apologise â€” this option is currently not working. Thanks for your understanding."
             }
             className="shrink-0 inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium opacity-40"
           >
@@ -195,7 +196,7 @@ function ManagerLeadsListPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={isAr ? "ابحث بالشركة أو الجهة..." : "Search company, contact, city..."}
+            placeholder={isAr ? "Ø§Ø¨Ø­Ø« Ø¨Ø§Ù„Ø´Ø±ÙƒØ© Ø£Ùˆ Ø§Ù„Ø¬Ù‡Ø©..." : "Search company, contact, city..."}
             className="h-9 w-full rounded-lg border border-border bg-card ps-9 pe-3 text-xs outline-none focus:border-primary"
           />
         </div>
@@ -223,7 +224,7 @@ function ManagerLeadsListPage() {
                   {t("value")}
                 </th>
                 <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {isAr ? "المدينة" : "City"}
+                  {isAr ? "Ø§Ù„Ù…Ø¯ÙŠÙ†Ø©" : "City"}
                 </th>
               </tr>
             </thead>
@@ -254,20 +255,20 @@ function ManagerLeadsListPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{l.contact}</td>
-                  <td className="px-4 py-3 text-foreground">{l.owner || "—"}</td>
+                  <td className="px-4 py-3 text-foreground">{l.owner || "â€”"}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={l.status} label={stageLabel(l.status)} />
                   </td>
                   <td className="px-4 py-3 text-end font-mono font-semibold text-foreground">
                     {fmtMoney(l.value || 0)}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{l.city || "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{l.city || "â€”"}</td>
                 </tr>
               ))}
               {paginated.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">
-                    {isAr ? "لا توجد فرص لعرضها" : "No leads to show for your team."}
+                    {isAr ? "Ù„Ø§ ØªÙˆØ¬Ø¯ ÙØ±Øµ Ù„Ø¹Ø±Ø¶Ù‡Ø§" : "No leads to show for your team."}
                   </td>
                 </tr>
               )}
@@ -309,8 +310,6 @@ function ManagerLeadsListPage() {
         <LeadFormModal
           initial={editing === "new" ? null : editing}
           locations={settings.locations}
-          teamEmployees={teamEmployees}
-          user={user}
           onClose={() => setEditing(null)}
         />
       )}
@@ -319,388 +318,6 @@ function ManagerLeadsListPage() {
   );
 }
 
-function LeadFormModal({
-  initial,
-  locations,
-  teamEmployees,
-  user,
-  onClose,
-}: {
-  initial: Lead | null;
-  locations: LocationCity[];
-  teamEmployees: any[];
-  user: any;
-  onClose: () => void;
-}) {
-  const { t, lang } = useI18n();
-  const isAr = lang === "ar";
-  const {
-    leadDistricts,
-    settings,
-    projects,
-    profile: myProfile,
-    projectRequests,
-    activities,
-  } = useStoreState();
-  const [projectId, setProjectId] = useState(() => {
-    if (!initial) return "";
-    if (initial.projectId) return initial.projectId;
-    const latest = activities
-      .filter((a) => a.leadId === initial.id && a.projectId)
-      .sort((a, b) => new Date(b.createdAt || b.dueDate).getTime() - new Date(a.createdAt || a.dueDate).getTime())[0];
-    if (latest?.projectId) return latest.projectId;
-    return projects.find((p) => p.name === initial.company)?.id ?? "";
-  });
 
-  const approvedRequests = (projectRequests || []).filter(
-    (req: any) => req.status === "approved" && req.requested_by === myProfile.profileId,
-  );
-  const requestedProjectIds = approvedRequests
-    .map((req: any) => req.created_project_id)
-    .filter(Boolean);
-  const requestedProjectNames = new Set(
-    approvedRequests.map((req: any) => req.name_en?.trim().toLowerCase()).filter(Boolean),
-  );
 
-  const myProjects = filterMyProjects(projects as Project[], {
-    profileId: myProfile.profileId,
-    userId: myProfile.userId ?? user?.id,
-    name: myProfile.name,
-  }).concat(
-    (projects as Project[]).filter(
-      (p) =>
-        (requestedProjectIds.includes(p.id) ||
-          requestedProjectNames.has(p.name?.trim().toLowerCase())) &&
-        !isProjectMemberOf(p, {
-          profileId: myProfile.profileId,
-          userId: myProfile.userId ?? user?.id,
-          name: myProfile.name,
-        }),
-    ),
-  );
-  const STATUSES = settings.statuses;
-  const stageLabel = (k: string) => settings.stages.find((s) => s.key === k)?.label ?? k;
-  const cities = locations.map((c) => c.name);
-  const cityLabel = (name: string) => {
-    if (!isAr) return name;
-    return locations.find((c) => c.name === name)?.nameAr || name;
-  };
-  const districtLabel = (cityName: string, d: string) => {
-    if (!isAr) return d;
-    return locations.find((c) => c.name === cityName)?.districtsAr?.[d] || d;
-  };
-  const [company, setCompany] = useState(initial?.company ?? "");
-  const [contact, setContact] = useState(initial?.contact ?? "");
-  const [email, setEmail] = useState(initial?.email ?? "");
-  const [industry, setIndustry] = useState(initial?.industry ?? "");
-  const [source, setSource] = useState(initial?.source ?? "Website");
-  const [status, setStatus] = useState<LeadStatus>(initial?.status ?? "new");
-  const [value, setValue] = useState(initial?.value ?? 0);
-  const [probability, setProbability] = useState(initial?.probability ?? 0);
-  const [expectedCloseDate, setExpectedCloseDate] = useState<string>(
-    (initial as any)?.expectedCloseDate ?? "",
-  );
-  const [description, setDescription] = useState<string>((initial as any)?.description ?? "");
-  const [country, setCountry] = useState<string>((initial as any)?.country ?? "Egypt");
-  const [city, setCity] = useState(initial?.city ?? cities[0] ?? "Cairo");
-  const [district, setDistrict] = useState(initial ? (leadDistricts[initial.id] ?? "") : "");
-  const [street, setStreet] = useState(initial?.street ?? "");
-  const [owner, setOwner] = useState<string>(initial?.owner ?? user.name);
 
-  const districts = locations.find((c) => c.name === city)?.districts ?? [];
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const selectedProject = projects.find((p) => p.id === projectId);
-
-  const onProjectChange = (pid: string) => {
-    setProjectId(pid);
-    const p = projects.find((x) => x.id === pid);
-    if (p) {
-      setCompany(p.name);
-      setContact(p.client);
-      setIndustry(p.category);
-      setValue(p.offeredValue ?? p.budget ?? 0);
-      if (p.clientEmail) setEmail(p.clientEmail);
-    } else {
-      setCompany("");
-    }
-  };
-
-  const submit = () => {
-    const parsed = leadSchema.safeParse({ company, contact, email, industry, value });
-    if (!parsed.success) {
-      const fieldErrors: Record<string, string> = {};
-      for (const issue of parsed.error.issues) {
-        const k = issue.path[0] as string;
-        if (k && !fieldErrors[k]) fieldErrors[k] = issue.message;
-      }
-      setErrors(fieldErrors);
-      return;
-    }
-    setErrors({});
-    const clean = parsed.data;
-
-    const safePayload = {
-      company: clean.company,
-      contact: clean.contact,
-      email: clean.email,
-      industry: clean.industry ?? "",
-      source,
-      status,
-      value: clean.value,
-      probability,
-      city,
-      country,
-      street,
-      owner,
-      projectId: projectId || undefined,
-      expectedCloseDate: expectedCloseDate || undefined,
-      description: description || undefined,
-    } as any;
-    let leadId: string;
-    if (initial) {
-      actions.updateLead(initial.id, safePayload);
-      leadId = initial.id;
-    } else {
-      actions.addLead({ ...safePayload, lat: 30.0444, lng: 31.2357 });
-      const latest = (
-        typeof window !== "undefined"
-          ? JSON.parse(localStorage.getItem("int-crm:leads") || "[]")
-          : []
-      ) as Lead[];
-      leadId = latest[0]?.id ?? "";
-    }
-    if (leadId) actions.setLeadLocation(leadId, city, district);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4">
-      <div
-        className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-foreground">
-            {initial ? `${t("edit")} ${t("leads")}` : t("addLead")}
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1 text-muted-foreground hover:bg-accent"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="grid max-h-[70vh] grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-2">
-          <Field label={t("account" as any) ?? "Account"}>
-            <select
-              value={projectId}
-              onChange={(e) => onProjectChange(e.target.value)}
-              className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
-            >
-              <option value="">
-                {t("selectAccountPlaceholder" as any) ?? "Select account..."}
-              </option>
-              {myProjects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label={t("company")} error={errors.company}>
-            <input
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              placeholder="Company name"
-              maxLength={120}
-              aria-invalid={!!errors.company}
-              className={`h-9 w-full rounded-lg border bg-background px-3 text-sm ${errors.company ? "border-rose-500" : "border-border"}`}
-            />
-          </Field>
-          <Field label={t("client")} error={errors.contact}>
-            <input
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              placeholder="Client name"
-              maxLength={120}
-              aria-invalid={!!errors.contact}
-              className={`h-9 w-full rounded-lg border bg-background px-3 text-sm ${errors.contact ? "border-rose-500" : "border-border"}`}
-            />
-          </Field>
-          <Field label={t("companyEmail")} error={errors.email}>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="info@company.com"
-              maxLength={255}
-              aria-invalid={!!errors.email}
-              className={`h-9 w-full rounded-lg border bg-background px-3 text-sm ${errors.email ? "border-rose-500" : "border-border"}`}
-            />
-          </Field>
-          <Field label="Assign to">
-            <select
-              value={owner}
-              onChange={(e) => setOwner(e.target.value)}
-              className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
-            >
-              <option value={user.name}>{user.name} (Me)</option>
-              {teamEmployees
-                .filter((emp) => emp.name !== user.name)
-                .map((e) => (
-                  <option key={e.id} value={e.name}>
-                    {e.name}
-                  </option>
-                ))}
-            </select>
-          </Field>
-          <Field label={t("status")}>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as LeadStatus)}
-              className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
-            >
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {stageLabel(s)}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label={`${t("value")} ($)`}>
-            <input
-              type="number"
-              value={value}
-              onChange={(e) => setValue(Number(e.target.value))}
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-            />
-          </Field>
-          <Field label="Probability %">
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={probability}
-              onChange={(e) => setProbability(Number(e.target.value))}
-              placeholder="0"
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-            />
-          </Field>
-          <Field label="Expected Close Date">
-            <input
-              type="date"
-              value={expectedCloseDate}
-              onChange={(e) => setExpectedCloseDate(e.target.value)}
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-            />
-          </Field>
-          <Field label={t("industry")} error={errors.industry}>
-            <input
-              value={industry}
-              onChange={(e) => setIndustry(e.target.value)}
-              placeholder="e.g. Construction"
-              maxLength={80}
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-            />
-          </Field>
-          <Field label="Country">
-            <input
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              placeholder="Egypt"
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-            />
-          </Field>
-          <Field label={t("city")}>
-            <select
-              value={city}
-              onChange={(e) => {
-                setCity(e.target.value);
-                setDistrict("");
-              }}
-              className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
-            >
-              {cities.map((c) => (
-                <option key={c} value={c}>
-                  {cityLabel(c)}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label={t("district")}>
-            <select
-              value={district}
-              onChange={(e) => setDistrict(e.target.value)}
-              className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
-            >
-              <option value="">—</option>
-              {districts.map((d) => (
-                <option key={d} value={d}>
-                  {districtLabel(city, d)}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <label className="sm:col-span-2 block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              {t("street")}
-            </span>
-            <input
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-              placeholder="e.g. 10 Abbas El-Akkad St."
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-            />
-          </label>
-          <label className="sm:col-span-2 block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Description
-            </span>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="Brief notes about this lead..."
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-          </label>
-        </div>
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent"
-          >
-            {t("cancel")}
-          </button>
-          <button
-            onClick={submit}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-          >
-            {initial ? t("save") : t("create")}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </span>
-      {children}
-      {error && <span className="mt-1 block text-[11px] font-semibold text-rose-600">{error}</span>}
-    </label>
-  );
-}

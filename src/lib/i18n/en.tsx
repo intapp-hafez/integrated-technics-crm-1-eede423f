@@ -472,6 +472,7 @@ export const en = {
   importSuccess: "Import successful",
   importFailed: "Import failed",
   allTime: "All time",
+  toDoList: "To-Do List",
 };
 
 export type Dict = Record<keyof typeof en, string>;

@@ -17,6 +17,7 @@ import { SupabasePreflight } from "@/lib/supabase-preflight";
 import { Toaster } from "sonner";
 import { useCsrfBootstrap } from "@/lib/security/use-csrf";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 function NotFoundComponent() {
   return (
@@ -179,7 +180,9 @@ function RootComponent() {
         <I18nProvider>
           <RoleProvider>
             <CsrfBootstrap />
-            <Outlet />
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
             <PWAInstallPrompt />
             <Toaster position="top-right" richColors closeButton />
           </RoleProvider>

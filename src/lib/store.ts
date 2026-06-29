@@ -30,7 +30,7 @@ export interface HistoryEntry {
   ts: string; // ISO
   module: HistoryModule;
   action: string;
-  actor: string;
+  actor?: string;
   target: string;
   details?: string;
   targetId?: string;
@@ -147,6 +147,24 @@ export interface RolePermission {
   pages: AppPage[];
   crud: Record<AppPage, CrudOp[]>;
 }
+
+export type AdminTaskStatus = "new" | "in progress" | "done" | "delayed";
+
+export interface AdminTaskActivity {
+  id: string;
+  taskId: string;
+  ts: string;
+  actor: string;
+  details: string;
+}
+
+export interface AdminTask {
+  id: string;
+  title: string;
+  details: string;
+  date: string;
+  status: AdminTaskStatus;
+}
 export interface AppUser {
   id: string; // auth user_id
   profileId?: string;
@@ -259,8 +277,13 @@ interface Settings {
   workdayHours: number;
 }
 
+export interface ProjectRequest {
+  id: string;
+  [key: string]: any;
+}
+
 interface State {
-  leads: any[];
+  leads: Lead[];
   history: HistoryEntry[];
   activities: Activity[];
   notes: Note[];
@@ -275,9 +298,11 @@ interface State {
   users: AppUser[];
   employees: Employee[];
   notifications: AppNotification[];
-  projectRequests?: any[];
+  projectRequests?: ProjectRequest[];
   onlineUserIds: string[];
-  celebrationLead?: any;
+  celebrationLead?: Lead | null;
+  adminTasks: AdminTask[];
+  adminTaskActivities: AdminTaskActivity[];
 }
 
 import * as sb from "./supabaseWrites";
@@ -298,10 +323,10 @@ const seedHistory: HistoryEntry[] = [
     id: "H-001",
     ts: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
     module: "pipeline",
-    actor: "hafez Rahim",
+    actor: "System",
     target: "Aramco Digital",
     action: "Moved to Negotiation",
-    details: "From Proposal → Negotiation",
+    details: "From Proposal â†’ Negotiation",
   },
   {
     id: "H-002",
@@ -319,7 +344,7 @@ const seedHistory: HistoryEntry[] = [
     actor: "Omar Tarek",
     target: "STC Group",
     action: "Logged call",
-    details: "Discovery call — 35 min",
+    details: "Discovery call â€” 35 min",
   },
   {
     id: "H-004",
@@ -336,16 +361,16 @@ const seedHistory: HistoryEntry[] = [
     actor: "Yusuf Saleh",
     target: "Layla Hassan",
     action: "Updated role",
-    details: "Field Operations → Senior Field Ops",
+    details: "Field Operations â†’ Senior Field Ops",
   },
   {
     id: "H-006",
     ts: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
     module: "settings",
-    actor: "hafez Rahim",
+    actor: "System",
     target: "Pipeline",
     action: "Renamed stage",
-    details: "‘Won’ retained",
+    details: "â€˜Wonâ€™ retained",
   },
   {
     id: "H-007",
@@ -454,7 +479,7 @@ function defaultPermissions(): Record<UserRoleKey, RolePermission> {
 const seedUsers: AppUser[] = [
   {
     id: "U-1",
-    name: "hafez Rahim",
+    name: "Admin",
     email: "hafez.rahim@integratedtechnics.com",
     role: "admin",
     active: true,
@@ -494,7 +519,7 @@ const seedNotes: Note[] = [
     id: "N-1",
     leadId: "L-1042",
     ts: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-    author: "hafez Rahim",
+    author: "Admin",
     text: "Client requested a revised SLA with 4-hour response window.",
   },
   {
@@ -524,8 +549,8 @@ const seedAttachments: Attachment[] = [
 ];
 
 const seedProfile: Profile = {
-  name: "hafez Rahim",
-  nameAr: "حافظ رحيم",
+  name: "Admin",
+  nameAr: "Ù…Ø¯ÙŠØ± Ø§Ù„Ù†Ø¸Ø§Ù…",
   title: "Sales Director",
   department: "Sales Department",
   email: "hafez.rahim@integratedtechnics.com",
@@ -629,7 +654,7 @@ const seedSettings: Settings = {
       id: "T-2",
       name: "Proposal reminder",
       channel: "Email",
-      subject: "Following up on your proposal — {{company}}",
+      subject: "Following up on your proposal â€” {{company}}",
       body: "Hi {{contact}}, just checking if you had a chance to review our proposal...",
     },
     {
@@ -637,14 +662,14 @@ const seedSettings: Settings = {
       name: "Site visit confirmation",
       channel: "SMS",
       subject: "",
-      body: "Hello {{contact}}, our engineer will arrive at {{time}} on {{date}}. — INT",
+      body: "Hello {{contact}}, our engineer will arrive at {{time}} on {{date}}. â€” INT",
     },
     {
       id: "T-4",
       name: "Won deal notification",
       channel: "WhatsApp",
       subject: "",
-      body: "🎉 Welcome aboard {{company}}! Your project kickoff is being prepared.",
+      body: "ðŸŽ‰ Welcome aboard {{company}}! Your project kickoff is being prepared.",
     },
   ],
   locations: [
@@ -670,10 +695,10 @@ const seedSettings: Settings = {
 const seedAttendance: AttendanceRecord[] = attendanceToday.records.map((r) => ({
   id: `AT-${r.id}`,
   date: new Date().toISOString().slice(0, 10),
-  checkIn: r.in === "—" ? "" : r.in,
-  checkOut: r.out === "—" ? "" : r.out,
+  checkIn: r.in === "â€”" ? "" : r.in,
+  checkOut: r.out === "â€”" ? "" : r.out,
   hours: r.hours,
-  location: r.location === "—" ? "Cairo HQ" : r.location,
+  location: r.location === "â€”" ? "Cairo HQ" : r.location,
   owner: r.name,
 }));
 
@@ -697,7 +722,7 @@ const seedActivities: Activity[] = activities.map((a, i) => ({
   createdAt: new Date().toISOString(),
 }));
 
-// Initial seed state — identical on server and first client render to avoid hydration mismatches.
+// Initial seed state â€” identical on server and first client render to avoid hydration mismatches.
 const initialState: State = {
   leads: leads.map((l) => ({ ...l })),
   history: seedHistory,
@@ -721,6 +746,8 @@ const initialState: State = {
   projectRequests: [],
   onlineUserIds: [],
   celebrationLead: null,
+  adminTasks: [],
+  adminTaskActivities: [],
 };
 
 let state: State = initialState;
@@ -770,7 +797,7 @@ function persist() {
     localStorage.setItem("int-crm:workdayHours", JSON.stringify(state.settings.workdayHours));
     localStorage.setItem("int-crm:notifications", JSON.stringify(state.notifications));
   } catch {
-    /* quota or serialization issue — ignore */
+    /* quota or serialization issue â€” ignore */
   }
 }
 
@@ -817,8 +844,9 @@ export function useStoreState(): State {
   return mounted ? snap : initialState;
 }
 
-function logHistory(entry: Omit<HistoryEntry, "id" | "ts">) {
-  set((s) => ({ ...s, history: [{ id: id("H"), ts: now(), ...entry }, ...s.history] }));
+function logHistory(entry: Omit<HistoryEntry, "id" | "ts"> & { actor?: string }) {
+  const normalizedEntry = { ...entry, actor: entry.actor ?? "System" };
+  set((s) => ({ ...s, history: [{ id: id("H"), ts: now(), ...normalizedEntry }, ...s.history] }));
 }
 
 function pushNotificationInternal(
@@ -832,21 +860,26 @@ export const actions = {
   clearCelebration() {
     set((s) => ({ ...s, celebrationLead: null }));
   },
-  moveLead(leadId: string, to: LeadStatus, actor = "hafez Rahim") {
+  moveLead(leadId: string, to: LeadStatus, actor?: string) {
     let from: LeadStatus | undefined;
     let company = "";
-    set((s) => ({
-      ...s,
-      leads: s.leads.map((l) => {
+    
+    set((s) => {
+      from = s.leads.find((l) => l.id === leadId)?.status;
+      company = s.leads.find((l) => l.id === leadId)?.company ?? "";
+      const updatedLeads = s.leads.map((l) => {
         if (l.id === leadId) {
-          from = l.status;
-          company = l.company;
           return { ...l, status: to, updatedAt: "just now" };
         }
         return l;
-      }),
-      celebrationLead: to === "won" && from !== "won" ? s.leads.find((l) => l.id === leadId) || null : s.celebrationLead,
-    }));
+      });
+      return {
+        ...s,
+        leads: updatedLeads,
+        celebrationLead:
+          to === "won" && from !== "won" ? updatedLeads.find((l) => l.id === leadId) || null : s.celebrationLead,
+      };
+    });
     if (from && from !== to) {
       const label = (k: LeadStatus) => state.settings.stages.find((x) => x.key === k)?.label ?? k;
       logHistory({
@@ -854,7 +887,7 @@ export const actions = {
         actor,
         target: company || leadId,
         action: `Moved to ${label(to)}`,
-        details: `${label(from)} → ${label(to)}`,
+        details: `${label(from)} â†’ ${label(to)}`,
       });
       sb.sbUpdateLead(leadId, { status: to });
       const lead = state.leads.find((l) => l.id === leadId);
@@ -862,21 +895,22 @@ export const actions = {
       pushNotificationInternal({
         type: "lead",
         titleEn: "Lead status changed",
-        titleAr: "تم تغيير حالة العميل",
-        bodyEn: `${company || leadId}: ${label(from)} → ${label(to)}`,
-        bodyAr: `${company || leadId}: ${label(from)} ← ${label(to)}`,
+        titleAr: "ØªÙ… ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ø¹Ù…ÙŠÙ„",
+        bodyEn: `${company || leadId}: ${label(from)} â†’ ${label(to)}`,
+        bodyAr: `${company || leadId}: ${label(from)} â† ${label(to)}`,
         href: `/admin/leads/${leadId}`,
         audience: ownerName && ownerName !== actor ? [ownerName] : undefined,
       });
     }
   },
-  addNote(leadId: string, text: string, author = "hafez Rahim") {
-    const note: Note = { id: id("N"), leadId, ts: now(), author, text };
+  addNote(leadId: string, text: string, author?: string) {
+    const resolvedAuthor = (author ?? state.profile?.name ?? "System") as string;
+    const note: Note = { id: id("N"), leadId, ts: now(), author: resolvedAuthor, text };
     set((s) => ({ ...s, notes: [note, ...s.notes] }));
     const company = state.leads.find((l) => l.id === leadId)?.company ?? leadId;
     logHistory({
       module: "lead",
-      actor: author,
+      actor: (author ?? state.profile?.name ?? "System") as string,
       target: company,
       action: "Added note",
       details: text.slice(0, 80),
@@ -886,23 +920,24 @@ export const actions = {
   addAttachment(
     leadId: string,
     name: string,
-    size = "—",
-    author = "hafez Rahim",
+    size = "â€”",
+    author?: string,
     dataUrl?: string,
     mime?: string,
   ) {
+    const resolvedAuthor: string = author ?? state.profile?.name ?? "System";
     const att: Attachment = { id: id("F"), leadId, name, size, ts: now(), dataUrl, mime };
     set((s) => ({ ...s, attachments: [att, ...s.attachments] }));
     const company = state.leads.find((l) => l.id === leadId)?.company ?? leadId;
     logHistory({
       module: "lead",
-      actor: author,
+      actor: resolvedAuthor,
       target: company,
       action: "Uploaded attachment",
       details: name,
     });
   },
-  removeAttachment(attId: string, actor = "hafez Rahim") {
+  removeAttachment(attId: string, actor?: string) {
     const att = state.attachments.find((a) => a.id === attId);
     set((s) => ({ ...s, attachments: s.attachments.filter((a) => a.id !== attId) }));
     if (att) {
@@ -916,7 +951,7 @@ export const actions = {
       });
     }
   },
-  removeNote(noteId: string, actor = "hafez Rahim") {
+  removeNote(noteId: string, actor?: string) {
     const note = state.notes.find((n) => n.id === noteId);
     set((s) => ({ ...s, notes: s.notes.filter((n) => n.id !== noteId) }));
     if (note) {
@@ -925,7 +960,7 @@ export const actions = {
       sb.sbDeleteNote(noteId);
     }
   },
-  sendReminder(activityId: string, templateId: string, actor = "hafez Rahim") {
+  sendReminder(activityId: string, templateId: string, actor?: string) {
     const activity = state.activities.find((a) => a.id === activityId);
     const template = state.settings.templates.find((t) => t.id === templateId);
     if (!activity || !template) return;
@@ -936,7 +971,7 @@ export const actions = {
       actor,
       target,
       action: `Sent ${template.channel} reminder`,
-      details: `“${template.name}” → ${activity.title}`,
+      details: `â€œ${template.name}â€ â†’ ${activity.title}`,
     });
     const ownerName =
       activity.owner && activity.owner !== "Unassigned"
@@ -946,16 +981,16 @@ export const actions = {
       pushNotificationInternal({
         type: "activity",
         titleEn: `Reminder: ${activity.title}`,
-        titleAr: `تذكير: ${activity.title}`,
-        bodyEn: `${actor} sent a ${template.channel} reminder · due ${activity.dueDate} ${activity.time}${lead ? ` · ${lead.company}` : ""}`,
-        bodyAr: `${actor} أرسل تذكيرًا عبر ${template.channel} · مستحق ${activity.dueDate} ${activity.time}`,
+        titleAr: `ØªØ°ÙƒÙŠØ±: ${activity.title}`,
+        bodyEn: `${actor} sent a ${template.channel} reminder Â· due ${activity.dueDate} ${activity.time}${lead ? ` Â· ${lead.company}` : ""}`,
+        bodyAr: `${actor} Ø£Ø±Ø³Ù„ ØªØ°ÙƒÙŠØ±Ù‹Ø§ Ø¹Ø¨Ø± ${template.channel} Â· Ù…Ø³ØªØ­Ù‚ ${activity.dueDate} ${activity.time}`,
         href: `/employee/activities/${activity.id}`,
         audience: [ownerName],
       });
     }
   },
   addActivity(a: Omit<Activity, "id" | "createdAt" | "status"> & { status?: ActivityStatus }) {
-    const me = state.profile?.name && state.profile.name !== "—" ? state.profile.name : undefined;
+    const me = state.profile?.name && state.profile.name !== "â€”" ? state.profile.name : undefined;
     const myPhoto = state.profile?.avatarUrl;
     const ownerName = a.owner && a.owner !== "Unassigned" ? a.owner : (me ?? "Unassigned");
     const act: Activity = {
@@ -972,7 +1007,7 @@ export const actions = {
     set((s) => ({ ...s, activities: [act, ...s.activities] }));
     const target = act.leadId
       ? (state.leads.find((l) => l.id === act.leadId)?.company ?? act.leadId)
-      : (act.projectId ?? "—");
+      : (act.projectId ?? "â€”");
     logHistory({
       module: "activity",
       actor: act.owner,
@@ -985,9 +1020,9 @@ export const actions = {
       pushNotificationInternal({
         type: "activity",
         titleEn: "New activity assigned",
-        titleAr: "تم تعيين نشاط جديد",
+        titleAr: "ØªÙ… ØªØ¹ÙŠÙŠÙ† Ù†Ø´Ø§Ø· Ø¬Ø¯ÙŠØ¯",
         bodyEn: `${me} scheduled ${act.type}: "${act.title}" on ${act.dueDate}`,
-        bodyAr: `قام ${me} بجدولة "${act.title}" في ${act.dueDate}`,
+        bodyAr: `Ù‚Ø§Ù… ${me} Ø¨Ø¬Ø¯ÙˆÙ„Ø© "${act.title}" ÙÙŠ ${act.dueDate}`,
         href: `/employee/activities/${act.id}`,
         audience: [ownerName],
       });
@@ -1001,14 +1036,14 @@ export const actions = {
     pushNotificationInternal({
       type: "activity",
       titleEn: "New activity created",
-      titleAr: "تم إنشاء نشاط جديد",
-      bodyEn: `${act.type} "${act.title}" — owner: ${ownerName}`,
-      bodyAr: `${act.type} "${act.title}" — المالك: ${ownerName}`,
+      titleAr: "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ù†Ø´Ø§Ø· Ø¬Ø¯ÙŠØ¯",
+      bodyEn: `${act.type} "${act.title}" â€” owner: ${ownerName}`,
+      bodyAr: `${act.type} "${act.title}" â€” Ø§Ù„Ù…Ø§Ù„Ùƒ: ${ownerName}`,
       href: `/admin/activities/${act.id}`,
       audience: notifyAudience.length > 0 ? notifyAudience : undefined,
     });
   },
-  setActivityStatus(actId: string, status: ActivityStatus, actor = "hafez Rahim") {
+  setActivityStatus(actId: string, status: ActivityStatus, actor?: string) {
     let title = "";
     set((s) => ({
       ...s,
@@ -1028,7 +1063,8 @@ export const actions = {
     });
     sb.sbUpdateActivity(actId, { status });
   },
-  approveActivity(actId: string, actor = "hafez Rahim", reviewNote?: string) {
+  approveActivity(actId: string, actor?: string, reviewNote?: string) {
+    const resolvedActor: string = actor ?? state.profile?.name ?? "System";
     let title = "";
     let ownerName = "";
     set((s) => ({
@@ -1040,7 +1076,7 @@ export const actions = {
           return {
             ...a,
             approvalStatus: "approved",
-            approvedByName: actor,
+            approvedByName: resolvedActor,
             approvedAt: new Date().toISOString(),
             reviewNote: reviewNote ?? a.reviewNote,
             rejectionReason: undefined,
@@ -1051,25 +1087,26 @@ export const actions = {
     }));
     logHistory({
       module: "activity",
-      actor,
+      actor: resolvedActor,
+
       target: title,
       action: "Approved activity",
       details: reviewNote,
     });
     sb.sbApproveActivity(actId, reviewNote);
-    if (ownerName && ownerName !== actor) {
+    if (ownerName && ownerName !== resolvedActor) {
       pushNotificationInternal({
         type: "activity",
         titleEn: "Activity approved",
-        titleAr: "تمت الموافقة على النشاط",
-        bodyEn: `${actor} approved “${title}”${reviewNote ? ` — ${reviewNote}` : ""}`,
-        bodyAr: `${actor} اعتمد "${title}"${reviewNote ? ` — ${reviewNote}` : ""}`,
+        titleAr: "ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ù†Ø´Ø§Ø·",
+        bodyEn: `${actor} approved â€œ${title}â€${reviewNote ? ` â€” ${reviewNote}` : ""}`,
+        bodyAr: `${actor} Ø§Ø¹ØªÙ…Ø¯ "${title}"${reviewNote ? ` â€” ${reviewNote}` : ""}`,
         audience: [ownerName],
         href: "/employee/activities",
       });
     }
   },
-  rejectActivity(actId: string, reason: string, actor = "hafez Rahim") {
+  rejectActivity(actId: string, reason: string, actor?: string) {
     let title = "";
     let ownerName = "";
     set((s) => ({
@@ -1101,15 +1138,15 @@ export const actions = {
       pushNotificationInternal({
         type: "activity",
         titleEn: "Activity rejected",
-        titleAr: "تم رفض النشاط",
-        bodyEn: `${actor} rejected “${title}” — ${reason}`,
-        bodyAr: `${actor} رفض "${title}" — ${reason}`,
+        titleAr: "ØªÙ… Ø±ÙØ¶ Ø§Ù„Ù†Ø´Ø§Ø·",
+        bodyEn: `${actor} rejected â€œ${title}â€ â€” ${reason}`,
+        bodyAr: `${actor} Ø±ÙØ¶ "${title}" â€” ${reason}`,
         audience: [ownerName],
         href: "/employee/activities",
       });
     }
   },
-  setActivityReviewNote(actId: string, note: string, actor = "hafez Rahim") {
+  setActivityReviewNote(actId: string, note: string, actor?: string) {
     set((s) => ({
       ...s,
       activities: s.activities.map((a) => (a.id === actId ? { ...a, reviewNote: note } : a)),
@@ -1135,7 +1172,7 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: name,
       action: enabled ? "Enabled automation" : "Disabled automation",
     });
@@ -1153,7 +1190,7 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: name,
       action: "Added automation rule",
     });
@@ -1175,7 +1212,7 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: name,
       action: "Updated automation rule",
     });
@@ -1194,7 +1231,7 @@ export const actions = {
     });
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: name,
       action: "Deleted automation rule",
     });
@@ -1209,10 +1246,10 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: "Pipeline",
       action: "Renamed stage",
-      details: `${key} → ${label}`,
+      details: `${key} â†’ ${label}`,
     });
   },
   setStageColor(key: string, color: string) {
@@ -1224,7 +1261,7 @@ export const actions = {
       },
     }));
   },
-  reorderStages(fromIdx: number, toIdx: number, actor = "hafez Rahim") {
+  reorderStages(fromIdx: number, toIdx: number, actor?: string) {
     if (fromIdx === toIdx) return;
     let movedLabel = "";
     set((s) => {
@@ -1247,7 +1284,7 @@ export const actions = {
       actor,
       target: "Pipeline",
       action: "Reordered stages",
-      details: `${movedLabel} → position ${toIdx + 1}`,
+      details: `${movedLabel} â†’ position ${toIdx + 1}`,
     });
   },
   addStatus(label: string) {
@@ -1284,7 +1321,7 @@ export const actions = {
     });
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: "Pipeline",
       action: "Added status",
       details: lbl,
@@ -1302,7 +1339,7 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: "Pipeline",
       action: "Removed status",
       details: key,
@@ -1313,7 +1350,7 @@ export const actions = {
     set((s) => ({ ...s, settings: { ...s.settings, workdayHours: v } }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: "Workday",
       action: "Updated standard workday",
       details: `${v}h`,
@@ -1329,7 +1366,7 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: "Activities",
       action: "Added activity type",
       details: n,
@@ -1342,7 +1379,7 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: "Activities",
       action: "Removed activity type",
       details: t,
@@ -1364,7 +1401,7 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: "Locations",
       action: "Added city",
       details: n,
@@ -1377,7 +1414,7 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: "Locations",
       action: "Removed city",
       details: name,
@@ -1412,7 +1449,7 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: city,
       action: "Added district",
       details: d,
@@ -1437,7 +1474,7 @@ export const actions = {
     }));
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: city,
       action: "Removed district",
       details: district,
@@ -1458,10 +1495,10 @@ export const actions = {
     }));
     logHistory({
       module: "lead",
-      actor: "hafez Rahim",
+      actor: "System",
       target: company,
       action: "Updated location",
-      details: `${city}${district ? ` · ${district}` : ""}`,
+      details: `${city}${district ? ` Â· ${district}` : ""}`,
     });
     sb.sbUpdateLead(leadId, { city });
     sb.sbSetLeadDistrict(leadId, district);
@@ -1473,10 +1510,10 @@ export const actions = {
     }));
     logHistory({
       module: "project",
-      actor: "hafez Rahim",
+      actor: "System",
       target: projectId,
       action: "Updated location",
-      details: `${city}${district ? ` · ${district}` : ""}`,
+      details: `${city}${district ? ` Â· ${district}` : ""}`,
     });
   },
   // ---- Notifications ----
@@ -1511,7 +1548,7 @@ export const actions = {
     void sb.sbDismissNotification(notifId);
   },
   // ---- Leads CRUD ----
-  addLead(input: Omit<Lead, "id" | "updatedAt">, actor = "hafez Rahim") {
+  addLead(input: Omit<Lead, "id" | "updatedAt">, actor?: string) {
     const lead: Lead = { ...input, id: id("L"), updatedAt: "just now" };
     set((s) => ({ ...s, leads: [lead, ...s.leads] }));
     logHistory({ module: "lead", actor, target: lead.company, action: "Lead created" });
@@ -1520,9 +1557,9 @@ export const actions = {
       pushNotificationInternal({
         type: "lead",
         titleEn: "New lead assigned",
-        titleAr: "تم تعيين عميل محتمل جديد",
+        titleAr: "ØªÙ… ØªØ¹ÙŠÙŠÙ† Ø¹Ù…ÙŠÙ„ Ù…Ø­ØªÙ…Ù„ Ø¬Ø¯ÙŠØ¯",
         bodyEn: `${lead.company} assigned to you by ${actor}`,
-        bodyAr: `تم تعيين ${lead.company} إليك من قبل ${actor}`,
+        bodyAr: `ØªÙ… ØªØ¹ÙŠÙŠÙ† ${lead.company} Ø¥Ù„ÙŠÙƒ Ù…Ù† Ù‚Ø¨Ù„ ${actor}`,
         audience: [lead.owner],
       });
     }
@@ -1530,7 +1567,7 @@ export const actions = {
       (actions as any).convertLeadToQuotation(lead, actor);
     }
   },
-  reassignLead(leadId: string, newOwner: string, actor = "hafez Rahim") {
+  reassignLead(leadId: string, newOwner: string, actor?: string) {
     let company = leadId;
     let previousOwner = "";
     set((s) => ({
@@ -1550,16 +1587,16 @@ export const actions = {
       actor,
       target: company,
       action: "Reassigned lead",
-      details: `${previousOwner} → ${newOwner}`,
+      details: `${previousOwner} â†’ ${newOwner}`,
     });
     sb.sbUpdateLead(leadId, { owner: newOwner });
     // Notify the new owner across panels
     pushNotificationInternal({
       type: "lead",
       titleEn: "Lead reassigned to you",
-      titleAr: "تم نقل عميل محتمل إليك",
+      titleAr: "ØªÙ… Ù†Ù‚Ù„ Ø¹Ù…ÙŠÙ„ Ù…Ø­ØªÙ…Ù„ Ø¥Ù„ÙŠÙƒ",
       bodyEn: `${company} now assigned to you (was ${previousOwner})`,
-      bodyAr: `${company} تم تعيينه إليك (كان مع ${previousOwner})`,
+      bodyAr: `${company} ØªÙ… ØªØ¹ÙŠÙŠÙ†Ù‡ Ø¥Ù„ÙŠÙƒ (ÙƒØ§Ù† Ù…Ø¹ ${previousOwner})`,
       href: "/employee/leads",
       audience: [newOwner],
     });
@@ -1567,13 +1604,13 @@ export const actions = {
     pushNotificationInternal({
       type: "lead",
       titleEn: "Lead ownership changed",
-      titleAr: "تم تغيير ملكية العميل",
-      bodyEn: `${company}: ${previousOwner} → ${newOwner}`,
-      bodyAr: `${company}: ${previousOwner} ← ${newOwner}`,
+      titleAr: "ØªÙ… ØªØºÙŠÙŠØ± Ù…Ù„ÙƒÙŠØ© Ø§Ù„Ø¹Ù…ÙŠÙ„",
+      bodyEn: `${company}: ${previousOwner} â†’ ${newOwner}`,
+      bodyAr: `${company}: ${previousOwner} â† ${newOwner}`,
       href: "/admin/leads",
     });
   },
-  updateLead(leadId: string, patch: Partial<Lead>, actor = "hafez Rahim") {
+  updateLead(leadId: string, patch: Partial<Lead>, actor?: string) {
     let company = leadId;
     let prevStatus: LeadStatus | undefined;
     let updatedLead: Lead | undefined;
@@ -1597,9 +1634,9 @@ export const actions = {
       pushNotificationInternal({
         type: "lead",
         titleEn: "Lead status changed",
-        titleAr: "تم تغيير حالة العميل",
-        bodyEn: `${company}: ${label(prevStatus)} → ${label(patch.status)}`,
-        bodyAr: `${company}: ${label(prevStatus)} ← ${label(patch.status)}`,
+        titleAr: "ØªÙ… ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ø¹Ù…ÙŠÙ„",
+        bodyEn: `${company}: ${label(prevStatus)} â†’ ${label(patch.status)}`,
+        bodyAr: `${company}: ${label(prevStatus)} â† ${label(patch.status)}`,
         href: `/admin/leads/${leadId}`,
         audience:
           updatedLead.owner && updatedLead.owner !== actor ? [updatedLead.owner] : undefined,
@@ -1610,7 +1647,7 @@ export const actions = {
       (actions as any).convertLeadToQuotation(updatedLead, actor);
     }
   },
-  convertLeadToQuotation(lead: Lead, actor = "hafez Rahim") {
+  convertLeadToQuotation(lead: Lead, actor?: string) {
     // Skip if already converted
     const existing = state.quotations.find((q) => q.leadId === lead.id);
     if (existing) return existing.id;
@@ -1629,29 +1666,29 @@ export const actions = {
     logHistory({
       module: "pipeline",
       actor,
-      target: `${quotation.id} · ${quotation.client}`,
+      target: `${quotation.id} Â· ${quotation.client}`,
       action: "Lead converted to quotation",
       details: `From lead ${lead.id}`,
     });
     pushNotificationInternal({
       type: "quotation",
       titleEn: "Lead converted to quotation",
-      titleAr: "تم تحويل العميل المحتمل إلى عرض سعر",
-      bodyEn: `${lead.company} → ${quotation.id} (${quotation.value})`,
-      bodyAr: `${lead.company} ← ${quotation.id}`,
+      titleAr: "ØªÙ… ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø§Ù„Ù…Ø­ØªÙ…Ù„ Ø¥Ù„Ù‰ Ø¹Ø±Ø¶ Ø³Ø¹Ø±",
+      bodyEn: `${lead.company} â†’ ${quotation.id} (${quotation.value})`,
+      bodyAr: `${lead.company} â† ${quotation.id}`,
       href: `/admin/offers/${quotation.id}`,
       audience: lead.owner ? [lead.owner] : undefined,
     });
     return qid;
   },
-  removeLead(leadId: string, actor = "hafez Rahim") {
+  removeLead(leadId: string, actor?: string) {
     const company = state.leads.find((l) => l.id === leadId)?.company ?? leadId;
     set((s) => ({ ...s, leads: s.leads.filter((l) => l.id !== leadId) }));
     logHistory({ module: "lead", actor, target: company, action: "Deleted lead" });
     sb.sbDeleteLead(leadId);
   },
   // ---- Activity CRUD extras ----
-  updateActivity(actId: string, patch: Partial<Activity>, actor = "hafez Rahim") {
+  updateActivity(actId: string, patch: Partial<Activity>, actor?: string) {
     let title = actId;
     set((s) => ({
       ...s,
@@ -1666,15 +1703,15 @@ export const actions = {
     logHistory({ module: "activity", actor, target: title, action: "Updated activity" });
     sb.sbUpdateActivity(actId, patch);
   },
-  removeActivity(actId: string, actor = "hafez Rahim") {
+  removeActivity(actId: string, actor?: string) {
     const title = state.activities.find((a) => a.id === actId)?.title ?? actId;
     set((s) => ({ ...s, activities: s.activities.filter((a) => a.id !== actId) }));
     logHistory({ module: "activity", actor, target: title, action: "Deleted activity" });
     sb.sbDeleteActivity(actId);
   },
   // ---- Projects CRUD ----
-  addProject(input: Omit<Project, "id">, actor = "hafez Rahim") {
-    const me = state.profile?.name && state.profile.name !== "—" ? state.profile.name : undefined;
+  addProject(input: Omit<Project, "id">, actor?: string) {
+    const me = state.profile?.name && state.profile.name !== "â€”" ? state.profile.name : undefined;
     const project: Project = {
       createdByName: me,
       createdBy: state.profile?.userId,
@@ -1687,14 +1724,14 @@ export const actions = {
     pushNotificationInternal({
       type: "project",
       titleEn: "New project created",
-      titleAr: "تم إنشاء مشروع جديد",
-      bodyEn: `${project.name} · ${project.client}`,
-      bodyAr: `${project.name} · ${project.client}`,
+      titleAr: "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ù…Ø´Ø±ÙˆØ¹ Ø¬Ø¯ÙŠØ¯",
+      bodyEn: `${project.name} Â· ${project.client}`,
+      bodyAr: `${project.name} Â· ${project.client}`,
       href: `/admin/projects/${project.id}`,
       audience: project.teamMembers && project.teamMembers.length ? project.teamMembers : undefined,
     });
   },
-  updateProject(projectId: string, patch: Partial<Project>, actor = "hafez Rahim") {
+  updateProject(projectId: string, patch: Partial<Project>, actor?: string) {
     let name = projectId;
     let prevStatus: string | undefined;
     let nextProject: Project | undefined;
@@ -1716,9 +1753,9 @@ export const actions = {
       pushNotificationInternal({
         type: "project",
         titleEn: "Project status changed",
-        titleAr: "تم تغيير حالة المشروع",
-        bodyEn: `${name}: ${prevStatus} → ${patch.status}`,
-        bodyAr: `${name}: ${prevStatus} ← ${patch.status}`,
+        titleAr: "ØªÙ… ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ù…Ø´Ø±ÙˆØ¹",
+        bodyEn: `${name}: ${prevStatus} â†’ ${patch.status}`,
+        bodyAr: `${name}: ${prevStatus} â† ${patch.status}`,
         href: `/admin/projects/${projectId}`,
         audience:
           nextProject.teamMembers && nextProject.teamMembers.length
@@ -1729,9 +1766,9 @@ export const actions = {
       pushNotificationInternal({
         type: "project",
         titleEn: "Project updated",
-        titleAr: "تم تحديث المشروع",
+        titleAr: "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø´Ø±ÙˆØ¹",
         bodyEn: `${name} updated by ${actor}`,
-        bodyAr: `تم تحديث ${name} بواسطة ${actor}`,
+        bodyAr: `ØªÙ… ØªØ­Ø¯ÙŠØ« ${name} Ø¨ÙˆØ§Ø³Ø·Ø© ${actor}`,
         href: `/admin/projects/${projectId}`,
         audience:
           nextProject.teamMembers && nextProject.teamMembers.length
@@ -1740,14 +1777,14 @@ export const actions = {
       });
     }
   },
-  removeProject(projectId: string, actor = "hafez Rahim") {
+  removeProject(projectId: string, actor?: string) {
     const name = state.projects.find((p) => p.id === projectId)?.name ?? projectId;
     set((s) => ({ ...s, projects: s.projects.filter((p) => p.id !== projectId) }));
     logHistory({ module: "project", actor, target: name, action: "Deleted project" });
     sb.sbDeleteProject(projectId);
   },
   // ---- Attendance CRUD ----
-  addAttendance(input: Omit<AttendanceRecord, "id">, actor = "hafez Rahim") {
+  addAttendance(input: Omit<AttendanceRecord, "id">, actor?: string) {
     const rec: AttendanceRecord = { ...input, id: id("AT") };
     set((s) => ({ ...s, attendance: [rec, ...s.attendance] }));
     logHistory({
@@ -1761,13 +1798,13 @@ export const actions = {
     pushNotificationInternal({
       type: "attendance",
       titleEn: "Check-in recorded",
-      titleAr: "تم تسجيل الحضور",
-      bodyEn: `${rec.owner} checked in at ${rec.checkIn} · ${rec.location}`,
-      bodyAr: `${rec.owner} سجل الحضور ${rec.checkIn} · ${rec.location}`,
+      titleAr: "ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø­Ø¶ÙˆØ±",
+      bodyEn: `${rec.owner} checked in at ${rec.checkIn} Â· ${rec.location}`,
+      bodyAr: `${rec.owner} Ø³Ø¬Ù„ Ø§Ù„Ø­Ø¶ÙˆØ± ${rec.checkIn} Â· ${rec.location}`,
       href: "/admin/attendance",
     });
   },
-  updateAttendance(recId: string, patch: Partial<AttendanceRecord>, actor = "hafez Rahim") {
+  updateAttendance(recId: string, patch: Partial<AttendanceRecord>, actor?: string) {
     let owner = "";
     set((s) => ({
       ...s,
@@ -1785,19 +1822,19 @@ export const actions = {
       pushNotificationInternal({
         type: "attendance",
         titleEn: "Check-out recorded",
-        titleAr: "تم تسجيل الانصراف",
-        bodyEn: `${owner} checked out at ${patch.checkOut}${patch.hours ? ` · ${patch.hours}` : ""}`,
-        bodyAr: `${owner} سجل الانصراف ${patch.checkOut}${patch.hours ? ` · ${patch.hours}` : ""}`,
+        titleAr: "ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø§Ù†ØµØ±Ø§Ù",
+        bodyEn: `${owner} checked out at ${patch.checkOut}${patch.hours ? ` Â· ${patch.hours}` : ""}`,
+        bodyAr: `${owner} Ø³Ø¬Ù„ Ø§Ù„Ø§Ù†ØµØ±Ø§Ù ${patch.checkOut}${patch.hours ? ` Â· ${patch.hours}` : ""}`,
         href: "/admin/attendance",
       });
     }
   },
-  removeAttendance(recId: string, actor = "hafez Rahim") {
+  removeAttendance(recId: string, actor?: string) {
     set((s) => ({ ...s, attendance: s.attendance.filter((a) => a.id !== recId) }));
     logHistory({ module: "employee", actor, target: recId, action: "Removed attendance" });
   },
   // ---- Profile ----
-  updateProfile(patch: Partial<Profile>, actor = "hafez Rahim") {
+  updateProfile(patch: Partial<Profile>, actor?: string) {
     set((s) => ({ ...s, profile: { ...s.profile, ...patch } }));
     logHistory({
       module: "employee",
@@ -1808,7 +1845,7 @@ export const actions = {
     sb.sbUpdateOwnProfile(patch);
   },
   // ---- Users CRUD ----
-  addUser(input: Omit<AppUser, "id">, actor = "hafez Rahim") {
+  addUser(input: Omit<AppUser, "id">, actor?: string) {
     const user: AppUser = { ...input, id: id("U") };
     set((s) => ({ ...s, users: [user, ...s.users] }));
     logHistory({
@@ -1819,7 +1856,7 @@ export const actions = {
       details: user.role,
     });
   },
-  updateUser(userId: string, patch: Partial<AppUser>, actor = "hafez Rahim") {
+  updateUser(userId: string, patch: Partial<AppUser>, actor?: string) {
     let name = userId;
     let profileId: string | undefined;
     let previousRole: UserRoleKey | undefined;
@@ -1852,12 +1889,12 @@ export const actions = {
     // Audit manager reassignment with old/new manager names.
     if (patch.managerId !== undefined && patch.managerId !== previousManagerId) {
       const prevName = previousManagerId
-        ? (state.users.find((u) => u.profileId === previousManagerId)?.name ?? "—")
-        : "—";
+        ? (state.users.find((u) => u.profileId === previousManagerId)?.name ?? "â€”")
+        : "â€”";
       const newName = patch.managerId
-        ? (state.users.find((u) => u.profileId === patch.managerId)?.name ?? "—")
-        : "—";
-      const details = `Manager: ${prevName} → ${newName}`;
+        ? (state.users.find((u) => u.profileId === patch.managerId)?.name ?? "â€”")
+        : "â€”";
+      const details = `Manager: ${prevName} â†’ ${newName}`;
       logHistory({
         module: "employee",
         actor,
@@ -1868,18 +1905,18 @@ export const actions = {
       void sb.sbAddHistory({
         module: "employee",
         actionEn: "Manager reassigned",
-        actionAr: "تمت إعادة تعيين المدير",
+        actionAr: "ØªÙ…Øª Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø§Ù„Ù…Ø¯ÙŠØ±",
         targetTable: "profiles",
         targetId: profileId,
         targetEn: name,
         targetAr: name,
         detailsEn: details,
-        detailsAr: `المدير: ${prevName} ← ${newName}`,
+        detailsAr: `Ø§Ù„Ù…Ø¯ÙŠØ±: ${prevName} â† ${newName}`,
       });
     }
     logHistory({ module: "settings", actor, target: name, action: "User updated" });
   },
-  removeUser(userId: string, actor = "hafez Rahim") {
+  removeUser(userId: string, actor?: string) {
     const name = state.users.find((u) => u.id === userId)?.name ?? userId;
     set((s) => ({ ...s, users: s.users.filter((u) => u.id !== userId) }));
     logHistory({ module: "settings", actor, target: name, action: "User deleted" });
@@ -1904,7 +1941,7 @@ export const actions = {
     });
     logHistory({
       module: "settings",
-      actor: "hafez Rahim",
+      actor: "System",
       target: role,
       action: "Updated permissions",
       details: `${page}: ${ops.join(",") || "none"}`,
@@ -1912,7 +1949,7 @@ export const actions = {
     void sb.sbSaveRolePermission(role, page, ops);
   },
   // ---- Quotations ----
-  updateQuotation(qId: string, patch: Partial<Quotation>, actor = "hafez Rahim") {
+  updateQuotation(qId: string, patch: Partial<Quotation>, actor?: string) {
     let prev: Quotation | undefined;
     let next: Quotation | undefined;
     set((s) => ({
@@ -1934,45 +1971,44 @@ export const actions = {
     if (!prev || !next) return;
     const details: string[] = [];
     if (patch.value !== undefined && patch.value !== prev.value)
-      details.push(`Value ${prev.value} → ${patch.value}`);
+      details.push(`Value ${prev.value} â†’ ${patch.value}`);
     if (patch.status && patch.status !== prev.status)
-      details.push(`Status ${prev.status} → ${patch.status}`);
+      details.push(`Status ${prev.status} â†’ ${patch.status}`);
     logHistory({
       module: "pipeline",
       actor,
-      target: `${next.id} · ${next.client}`,
+      target: `${next.id} Â· ${next.client}`,
       action: "Quotation updated",
-      details: details.join(" · "),
+      details: details.join(" Â· "),
     });
     sb.sbUpdateQuotation(qId, patch);
     pushNotificationInternal({
       type: "quotation",
       titleEn: patch.status === "accepted" ? "Quotation approved" : "Quotation updated",
-      titleAr: patch.status === "accepted" ? "تمت الموافقة على العرض" : "تم تحديث العرض",
-      bodyEn: `${next.id} · ${next.client} — ${details.join(" · ") || "updated"}`,
-      bodyAr: `${next.id} · ${next.client} — ${details.join(" · ") || "تحديث"}`,
+      titleAr: patch.status === "accepted" ? "ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø¹Ø±Ø¶" : "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¹Ø±Ø¶",
+      bodyEn: `${next.id} Â· ${next.client} â€” ${details.join(" Â· ") || "updated"}`,
+      bodyAr: `${next.id} Â· ${next.client} â€” ${details.join(" Â· ") || "ØªØ­Ø¯ÙŠØ«"}`,
       href: `/admin/offers/${next.id}`,
       audience: prev.owner !== actor ? [prev.owner] : undefined,
     });
   },
-  approveQuotation(qId: string, actor = "hafez Rahim") {
+  approveQuotation(qId: string, actor?: string) {
     (actions as any).updateQuotation(qId, { status: "accepted" as const }, actor);
   },
   // ---- Bulk hydrate from Supabase (replaces selected slices) ----
   hydrateFromSupabase(slices: Partial<State> & { settings?: any }) {
     set((s) => {
       const nextSettings: any = { ...s.settings, ...(slices.settings ?? {}) };
-      // Merge role_permissions rows from DB into the permissions matrix.
       const rows = nextSettings.rolePermsRows as Array<any> | undefined;
       if (rows && rows.length) {
         const perms = { ...nextSettings.permissions };
         for (const r of rows) {
           if (!perms[r.role]) continue;
           const ops: CrudOp[] = [];
-          if (r.can_create) ops.push("create");
-          if (r.can_read) ops.push("read");
-          if (r.can_update) ops.push("update");
-          if (r.can_delete) ops.push("delete");
+          if (r.can_create) ops.push('create');
+          if (r.can_read) ops.push('read');
+          if (r.can_update) ops.push('update');
+          if (r.can_delete) ops.push('delete');
           const cur = perms[r.role as UserRoleKey];
           const pages = ops.length
             ? Array.from(new Set([...cur.pages, r.page]))
@@ -1988,6 +2024,46 @@ export const actions = {
   // ---- Real-time presence ----
   setOnlineUsers(userIds: string[]) {
     set((s) => ({ ...s, onlineUserIds: userIds }));
+  },
+  // ---- Admin Tasks ----
+  addAdminTask(task: Omit<AdminTask, "id" | "status">) {
+    const newTask: AdminTask = { ...task, id: id("T"), status: "new" };
+    set((s) => ({ ...s, adminTasks: [newTask, ...s.adminTasks] }));
+    const actor: string = state.profile?.name ?? "System";
+    logHistory({
+      module: "settings", // using settings module for admin stuff
+      actor,
+      target: newTask.title,
+      action: "Created To-Do Task",
+    });
+    void sb.sbAddAdminTask(newTask);
+  },
+  updateAdminTaskStatus(taskId: string, status: AdminTaskStatus) {
+    let taskTitle = "";
+    set((s) => ({
+      ...s,
+      adminTasks: s.adminTasks.map((t) => {
+        if (t.id === taskId) {
+          taskTitle = t.title;
+          return { ...t, status };
+        }
+        return t;
+      }),
+    }));
+    const actor: string = state.profile?.name ?? "System";
+    logHistory({
+      module: "settings",
+      actor,
+      target: taskTitle || taskId,
+      action: `Updated To-Do Task status to ${status}`,
+    });
+    void sb.sbUpdateAdminTaskStatus(taskId, status);
+  },
+  addAdminTaskActivity(taskId: string, details: string) {
+    const actor: string = state.profile?.name ?? "System";
+    const act: AdminTaskActivity = { id: id("TA"), taskId, ts: now(), actor, details };
+    set((s) => ({ ...s, adminTaskActivities: [act, ...s.adminTaskActivities] }));
+    void sb.sbAddAdminTaskActivity(act);
   },
 };
 

@@ -12,7 +12,7 @@ function Page() {
   return (
     <NotificationSettingsPage
       panel="admin"
-      user={{ name: "hafez Rahim", role: t("admin"), initials: "HR" }}
+      user={{ name: "", role: t("admin"), initials: "HR" }}
     />
   );
 }

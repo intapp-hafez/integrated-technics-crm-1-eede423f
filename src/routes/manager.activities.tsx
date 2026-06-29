@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
@@ -40,7 +40,7 @@ import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/manager/activities")({
   component: ManagerActivitiesPage,
-  head: () => ({ meta: [{ title: "Team Activities · INT-CRM" }] }),
+  head: () => ({ meta: [{ title: "Team Activities Â· INT-CRM" }] }),
 });
 
 const ICONS: Record<string, any> = {
@@ -159,7 +159,7 @@ function ManagerActivitiesPage() {
     <AppShell
       panel="manager"
       user={{
-        name: "hafez Rahim",
+        name: "",
         role: t("manager"),
         initials: "HR",
         photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
@@ -233,8 +233,8 @@ function ManagerActivitiesPage() {
             disabled
             title={
               isAr
-                ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم."
-                : "We apologise — this option is currently not working. Thanks for your understanding."
+                ? "Ù†Ø¹ØªØ°Ø± â€” Ù‡Ø°Ø§ Ø§Ù„Ø®ÙŠØ§Ø± ØºÙŠØ± Ù…ØªØ§Ø­ Ø­Ø§Ù„ÙŠØ§Ù‹. Ø´ÙƒØ±Ø§Ù‹ Ù„ØªÙÙ‡Ù…ÙƒÙ…."
+                : "We apologise â€” this option is currently not working. Thanks for your understanding."
             }
             className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium opacity-40"
           >
@@ -332,7 +332,7 @@ function ManagerActivitiesPage() {
                         <TableCell className="text-sm text-muted-foreground">{a.dueDate}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{a.time}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {lead?.company ?? "—"}
+                          {lead?.company ?? "â€”"}
                         </TableCell>
                         <TableCell>
                           <div
@@ -375,7 +375,7 @@ function ManagerActivitiesPage() {
                             </span>
                           )}
                           {!a.approvalStatus && (
-                            <span className="text-xs text-muted-foreground">—</span>
+                            <span className="text-xs text-muted-foreground">â€”</span>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
@@ -431,7 +431,7 @@ function ManagerActivitiesPage() {
                   {date}
                 </h3>
                 <span className="text-xs text-muted-foreground">
-                  {items.length} item(s) ·{" "}
+                  {items.length} item(s) Â·{" "}
                   {fmtH(items.reduce((s, a) => s + (a.estMinutes ?? 0), 0))}
                 </span>
                 <div className="h-px flex-1 bg-border" />
@@ -470,8 +470,8 @@ function ManagerActivitiesPage() {
                               </div>
                             )}
                             <span>
-                              {a.createdByName ?? a.owner} · {a.time}
-                              {lead ? ` · ${lead.company}` : ""}
+                              {a.createdByName ?? a.owner} Â· {a.time}
+                              {lead ? ` Â· ${lead.company}` : ""}
                             </span>
                           </div>
                         </div>
@@ -551,3 +551,5 @@ function ManagerActivitiesPage() {
     </AppShell>
   );
 }
+
+

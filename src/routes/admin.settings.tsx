@@ -115,7 +115,7 @@ function SettingsPage() {
     <AppShell
       panel="admin"
       user={{
-        name: "hafez Rahim",
+        name: "",
         role: t("admin"),
         initials: "HR",
         photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
@@ -363,7 +363,7 @@ function UsersImportBar({
     ];
     const sampleRows = [
       [
-        "Hafez Rahim",
+        "",
         "جون دو",
         "Hafez@example.com",
         "password123",

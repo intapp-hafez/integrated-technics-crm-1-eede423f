@@ -44,6 +44,7 @@ import { Route as EmployeeChatRouteImport } from './routes/employee.chat'
 import { Route as EmployeeAttendanceRouteImport } from './routes/employee.attendance'
 import { Route as EmployeeActivitiesRouteImport } from './routes/employee.activities'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminTodoRouteImport } from './routes/admin.todo'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminSecurityRouteImport } from './routes/admin.security'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
@@ -254,6 +255,11 @@ const EmployeeActivitiesRoute = EmployeeActivitiesRouteImport.update({
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTodoRoute = AdminTodoRouteImport.update({
+  id: '/todo',
+  path: '/todo',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
@@ -471,6 +477,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/security': typeof AdminSecurityRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/todo': typeof AdminTodoRoute
   '/admin/users': typeof AdminUsersRoute
   '/employee/activities': typeof EmployeeActivitiesRouteWithChildren
   '/employee/attendance': typeof EmployeeAttendanceRoute
@@ -540,6 +547,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/security': typeof AdminSecurityRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/todo': typeof AdminTodoRoute
   '/admin/users': typeof AdminUsersRoute
   '/employee/activities': typeof EmployeeActivitiesRouteWithChildren
   '/employee/attendance': typeof EmployeeAttendanceRoute
@@ -614,6 +622,7 @@ export interface FileRoutesById {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/security': typeof AdminSecurityRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/todo': typeof AdminTodoRoute
   '/admin/users': typeof AdminUsersRoute
   '/employee/activities': typeof EmployeeActivitiesRouteWithChildren
   '/employee/attendance': typeof EmployeeAttendanceRoute
@@ -689,6 +698,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/security'
     | '/admin/settings'
+    | '/admin/todo'
     | '/admin/users'
     | '/employee/activities'
     | '/employee/attendance'
@@ -758,6 +768,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/security'
     | '/admin/settings'
+    | '/admin/todo'
     | '/admin/users'
     | '/employee/activities'
     | '/employee/attendance'
@@ -831,6 +842,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/security'
     | '/admin/settings'
+    | '/admin/todo'
     | '/admin/users'
     | '/employee/activities'
     | '/employee/attendance'
@@ -1136,6 +1148,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/todo': {
+      id: '/admin/todo'
+      path: '/todo'
+      fullPath: '/admin/todo'
+      preLoaderRoute: typeof AdminTodoRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/settings': {
@@ -1493,6 +1512,7 @@ interface AdminRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSecurityRoute: typeof AdminSecurityRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminTodoRoute: typeof AdminTodoRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -1514,6 +1534,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminSecurityRoute: AdminSecurityRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminTodoRoute: AdminTodoRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

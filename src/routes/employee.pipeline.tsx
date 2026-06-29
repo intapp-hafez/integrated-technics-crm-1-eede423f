@@ -19,7 +19,7 @@ export const Route = createFileRoute("/employee/pipeline")({
   head: () => ({ meta: [{ title: "Pipeline · INT-CRM" }] }),
 });
 
-const ME = "hafez Rahim";
+const ME = "";
 
 function PipelinePage() {
   const { t } = useI18n();

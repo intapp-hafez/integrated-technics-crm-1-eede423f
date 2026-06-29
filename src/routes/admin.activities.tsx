@@ -275,7 +275,7 @@ function ActivitiesPage() {
   };
 
   const activePeriod = PERIODS.find((p) => p.key === period)!;
-  console.log("DEBUG lang:", lang, "t('activitiesCommandCenter'):", t("activitiesCommandCenter"));
+
   const periodLabelMap: Record<Period, string> = {
     today: t("periodToday"),
     yesterday: t("periodYesterday"),
@@ -297,7 +297,7 @@ function ActivitiesPage() {
     <AppShell
       panel={role}
       user={{
-        name: "hafez Rahim",
+        name: "",
         role: t(role as any),
         initials: "HR",
         photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",

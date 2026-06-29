@@ -90,7 +90,7 @@ function ManagerEmployeesPage() {
   };
 
   const user = {
-    name: "hafez Rahim",
+    name: "",
     role: t("manager"),
     initials: "HR",
     photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",

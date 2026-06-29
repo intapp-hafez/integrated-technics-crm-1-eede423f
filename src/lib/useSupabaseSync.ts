@@ -35,6 +35,8 @@ export function useSupabaseSync() {
         quotationItemsRes,
         rolePermsRes,
         projectRequestsRes,
+        adminTasksRes,
+        adminTaskActivitiesRes,
       ] = await Promise.all([
         supabase.from("leads").select("*").order("created_at", { ascending: false }),
         supabase.from("projects").select("*").order("created_at", { ascending: false }),
@@ -84,6 +86,8 @@ export function useSupabaseSync() {
         supabase
           .from("project_requests")
           .select("id, status, created_project_id, requested_by, name_en"),
+        supabase.from("admin_tasks" as any).select("*").order("date", { ascending: false }),
+        supabase.from("admin_task_activities" as any).select("*").order("ts", { ascending: false }),
       ]);
       return {
         leads: leadsRes.data ?? [],
@@ -104,6 +108,8 @@ export function useSupabaseSync() {
         quotationItems: quotationItemsRes.data ?? [],
         rolePerms: (rolePermsRes as any)?.data ?? [],
         projectRequests: projectRequestsRes?.data ?? [],
+        adminTasks: adminTasksRes?.data ?? [],
+        adminTaskActivities: adminTaskActivitiesRes?.data ?? [],
       };
     },
   });
@@ -515,7 +521,10 @@ export function useSupabaseSync() {
         .slice(0, 2) || "??";
     const employeeUserIds = new Set<string>(
       (data.users as any[])
-        .filter((u) => (u.roles ?? []).includes("employee"))
+        .filter((u) => {
+          const roles = u.roles ?? [];
+          return roles.includes("employee") || roles.includes("manager") || roles.includes("admin");
+        })
         .map((u) => u.user_id),
     );
     const employeeProfiles = (data.users as any[]).length
@@ -639,6 +648,20 @@ export function useSupabaseSync() {
         ...((data as any).rolePerms?.length ? { rolePermsRows: (data as any).rolePerms } : {}),
       } as any,
       projectRequests: (data as any).projectRequests ?? [],
+      adminTasks: ((data as any).adminTasks ?? []).map((t: any) => ({
+        id: t.id,
+        title: t.title,
+        details: t.details,
+        date: t.date,
+        status: t.status,
+      })),
+      adminTaskActivities: ((data as any).adminTaskActivities ?? []).map((a: any) => ({
+        id: a.id,
+        taskId: a.task_id,
+        ts: a.ts,
+        actor: a.actor,
+        details: a.details,
+      })),
     });
   }, [data, lang, user?.id]);
 

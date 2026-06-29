@@ -110,7 +110,7 @@ function ProjectDetailsPage() {
   const { role } = useRole();
   const panel = role;
   const user = {
-    name: "hafez Rahim",
+    name: "",
     role: t(role as any),
     initials: "HR",
     photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",

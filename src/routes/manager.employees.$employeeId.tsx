@@ -46,7 +46,7 @@ function ManagerEmployeeDetailsPage() {
   const { teamEmployees: employees } = useMyTeam();
   const emp = employees.find((e) => e.id === employeeId);
   const user = {
-    name: "hafez Rahim",
+    name: "",
     role: t("manager"),
     initials: "HR",
     photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
@@ -138,7 +138,7 @@ function ManagerEmployeeDetailsPage() {
           leadId: companyToLead.get(h.target) as string | undefined,
           from,
           to,
-          actor: h.actor,
+          actor: h.actor ?? "System",
         };
       })
       .slice(0, 50);
