@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { shortId } from "@/lib/utils";
 import { CopyIdButton } from "@/components/CopyIdButton";
@@ -69,7 +70,12 @@ export function ActivityDetailView({
       : panel === "manager"
         ? "/manager/activities"
         : "/employee/activities";
-  const user = { name: "hafez Rahim", role: t(panel as any), initials: "HR" };
+  const { profile } = useAuth();
+  const user = { 
+    name: profile?.full_name_en || profile?.full_name_ar || "", 
+    role: t(panel as any), 
+    initials: (profile?.full_name_en || profile?.full_name_ar || "U").split(" ").map((s: string) => s[0]).join("").substring(0, 2).toUpperCase() 
+  };
 
   if (!a) {
     return (

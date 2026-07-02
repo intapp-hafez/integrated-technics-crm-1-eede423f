@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Send, Trash2, Smile, Paperclip, Check, CheckCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 interface Msg {
   id: string;
@@ -115,6 +116,7 @@ export function EmployeeChat({
   viewerRole = "admin",
 }: Props) {
   const { t, dir, lang } = useI18n();
+  const { confirm, ConfirmDialog } = useConfirm();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
   const [sendAs, setSendAs] = useState<"admin" | "employee">(viewerRole);
@@ -237,9 +239,9 @@ export function EmployeeChat({
     );
   };
 
-  const clear = () => {
+  const clear = async () => {
     if (typeof window === "undefined") return;
-    if (!window.confirm(lang === "ar" ? "هل تريد مسح المحادثة؟" : "Clear this conversation?"))
+    if (!(await confirm({ message: lang === "ar" ? "هل تريد مسح المحادثة؟" : "Clear this conversation?" })))
       return;
     setMessages([]);
     localStorage.removeItem(storageKey(employeeId));
@@ -298,6 +300,7 @@ export function EmployeeChat({
       className="flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
       dir={dir}
     >
+      <ConfirmDialog />
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-border bg-gradient-to-r from-secondary/60 to-secondary/20 px-5 py-3">
         <div className="relative">

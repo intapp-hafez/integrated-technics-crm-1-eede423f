@@ -23,6 +23,7 @@ import { z } from "zod";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
 import { Download } from "lucide-react";
 import { filterMyProjects, isProjectMemberOf } from "@/lib/employeeProjects";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const leadSchema = z.object({
   company: z
@@ -153,11 +154,13 @@ function LeadsPage() {
         />
       )}
       {showImport && <ExcelImportModal type="leads" onClose={() => setShowImport(false)} />}
+      <ConfirmDialog />
     </AppShell>
   );
 }
 
 function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
+  const { confirm, ConfirmDialog } = useConfirm();
   const { t } = useI18n();
   const { settings } = useStoreState();
   const [offset, setOffset] = useState(0);
@@ -192,13 +195,14 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
     if (next) actions.moveLead(l.id, next);
     setOffset(0);
   };
-  const remove = () => {
-    if (confirm(`${t("confirmDelete") || "Delete?"} (${l.company})`)) actions.removeLead(l.id);
+  const remove = async () => {
+    if (await confirm({ message: `${t("confirmDelete") || "Delete?"} (${l.company})` })) actions.removeLead(l.id);
     setOffset(0);
   };
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
+      <ConfirmDialog />
       <div className="absolute inset-y-0 end-0 flex w-[160px] items-stretch">
         {next && (
           <button

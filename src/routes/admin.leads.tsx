@@ -1,5 +1,5 @@
 import { LeadFormModal } from '@/components/leads/LeadFormModal';
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState, useSearch } from "@tanstack/react-router";
 import { shortId } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -7,9 +7,11 @@ import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
 import { actions, useStoreState, type LocationCity } from "@/lib/store";
 import { useRole } from "@/lib/role";
+import { useAuth } from "@/lib/auth";
 import { Plus, Filter, Download, Search, List, Map as MapIcon, Pencil, Trash2, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback, type ComponentType } from "react";
 import type { Lead, LeadStatus } from "@/lib/mock-data";
+import { useConfirm } from "@/components/ConfirmDialog";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
@@ -90,9 +92,10 @@ function LeadsPage() {
     select: (state) => state.location.pathname.startsWith("/admin/leads/")
   });
   const [tab, setTab] = useState<"list" | "map">("list");
-  const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">("all");
+  const searchParams = useSearch({ strict: false }) as Record<string, string>;
+  const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">((searchParams.status as LeadStatus | "all") || "all");
   const [cityFilter, setCityFilter] = useState<string>("all");
-  const [ownerFilter, setOwnerFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>(searchParams.owner || "all");
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [showImport, setShowImport] = useState(false);
@@ -118,13 +121,18 @@ function LeadsPage() {
     }
   }, [tab, LeadsMap]);
   const { role, isAdmin } = useRole();
-  const user = { name: "hafez Rahim", role: t(role as any), initials: "HR", photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" };
+  const { profile } = useAuth();
+  const user = { 
+    name: profile?.full_name_en || profile?.full_name_ar || "", 
+    role: t(role as any), 
+    initials: (profile?.full_name_en || profile?.full_name_ar || "U").split(" ").map((s: string) => s[0]).join("").substring(0, 2).toUpperCase(), 
+    photo: profile?.avatar_url || "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg" 
+  };
+  const { confirm, ConfirmDialog } = useConfirm();
 
-  if (isDetailRoute) {
-    return <Outlet />;
-  }
 
-  const owners = Array.from(new Set(leads.map((l) => l.owner).filter(Boolean)));
+
+  const owners = Array.from(new Set(leads.map((l) => l.owner || "Unassigned")));
   const citiesInLeads = Array.from(new Set(leads.map((l) => l.city).filter(Boolean)));
   const projectsInLeads = useMemo(() => {
     const names = new Set<string>();
@@ -144,7 +152,7 @@ function LeadsPage() {
   const filtered = leads.filter((l) => {
     if (statusFilter !== "all" && l.status !== statusFilter) return false;
     if (cityFilter !== "all" && l.city !== cityFilter) return false;
-    if (ownerFilter !== "all" && l.owner !== ownerFilter) return false;
+    if (ownerFilter !== "all" && (l.owner || "Unassigned") !== ownerFilter) return false;
     if (projectFilter !== "all") {
       const name = leadProjectName[l.id] ?? "";
       if (name !== projectFilter) return false;
@@ -262,6 +270,10 @@ function LeadsPage() {
     const items = filtered.filter((l) => l.status === s);
     return { status: s, count: items.length, value: items.reduce((acc, l) => acc + (l.value || 0), 0) };
   });
+
+  if (isDetailRoute) {
+    return <Outlet />;
+  }
 
   return (
     <AppShell panel={role} user={user} pageTitle={t("leads")}>
@@ -549,7 +561,7 @@ function LeadsPage() {
                         ) : (
                           <>
                             <button onClick={() => setEditing(l)} aria-label={t("edit")} className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"><Pencil className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => { if (confirm(`${t("confirmDelete")} (${l.company})`)) actions.removeLead(l.id); }} aria-label={t("delete")} className="rounded-md p-1.5 text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></button>
+                            <button onClick={async () => { if (await confirm({ message: `${t("confirmDelete")} (${l.company})` })) actions.removeLead(l.id); }} aria-label={t("delete")} className="rounded-md p-1.5 text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></button>
                           </>
                         )}
                       </div>
@@ -601,6 +613,7 @@ function LeadsPage() {
       {showImport && (
         <ExcelImportModal type="leads" onClose={() => setShowImport(false)} />
       )}
+      <ConfirmDialog />
     </AppShell>
   );
 }

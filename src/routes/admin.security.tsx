@@ -359,17 +359,7 @@ function SecurityCenterPage() {
       document.body.style.display = "none";
     }
 
-    // 2. Self-XSS console warning.
-    // eslint-disable-next-line no-console
-    console.log(
-      "%c⛔ STOP",
-      "color:#fff;background:#dc2626;font-size:32px;font-weight:900;padding:4px 12px;border-radius:6px;",
-    );
-    // eslint-disable-next-line no-console
-    console.log(
-      "%cPasting code here can hand your account to an attacker. Close this tab and contact IT if someone asked you to do this.",
-      "color:#b91c1c;font-size:14px;font-weight:600;",
-    );
+    // 2. Self-XSS console warning removed per audit.
 
     // 3. Devtools-open heuristic (window outer/inner delta).
     const devtoolsTimer = window.setInterval(() => {

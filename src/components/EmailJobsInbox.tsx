@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 type EmailJob = {
   id: string;
@@ -33,6 +34,7 @@ export function EmailJobsInbox() {
   const { dir } = useI18n();
   const { user, isAdmin } = useAuth() as any;
   const isAr = dir === "rtl";
+  const { confirm, ConfirmDialog } = useConfirm();
   const [jobs, setJobs] = useState<EmailJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
@@ -177,7 +179,7 @@ export function EmailJobsInbox() {
     }
   };
   const remove = async (id: string) => {
-    if (!confirm(isAr ? "حذف هذه المهمة؟" : "Delete this job?")) return;
+    if (!(await confirm({ message: isAr ? "حذف هذه المهمة؟" : "Delete this job?" }))) return;
     const { error } = await supabase.from("email_jobs").delete().eq("id", id);
     if (error) toast.error(error.message);
     else reload();
@@ -215,6 +217,7 @@ export function EmailJobsInbox() {
 
   return (
     <section>
+      <ConfirmDialog />
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
         <div>
           <h2 className="flex items-center gap-2 font-display text-lg font-bold text-foreground">

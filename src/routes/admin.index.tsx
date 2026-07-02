@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
   Users,
   Briefcase,
@@ -413,7 +414,7 @@ function useDashboardData(range: RangeKey) {
           type: "info",
           textEn: `${unassignedLeads} new lead${unassignedLeads > 1 ? "s" : ""} need to be assigned`,
           textAr: `${unassignedLeads} عملاء جدد بحاجة للتعيين`,
-          link: "/admin/leads",
+          link: "/admin/leads?owner=Unassigned",
         });
       }
 
@@ -836,27 +837,41 @@ function AdminDashboard() {
             </div>
             <DollarSign className="h-5 w-5 text-emerald-600" />
           </div>
-          <div className="mt-6 flex h-48 items-end gap-2">
-            {revenueMonths.map((m, i) => {
-              const h = (m.value / maxRevenue) * 100;
-              return (
-                <div key={i} className="group flex flex-1 flex-col items-center gap-2">
-                  <div className="relative flex w-full flex-1 items-end">
-                    <div
-                      className="w-full rounded-t-md bg-gradient-to-t from-emerald-500/40 to-emerald-500 transition-all hover:from-emerald-500 hover:to-emerald-400"
-                      style={{ height: `${Math.max(h, 2)}%` }}
-                      title={`${m.label}: ${fmtMoney(m.value)} (${m.count} ${t("leadsCount")})`}
-                    />
-                    <div className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-1.5 py-0.5 text-[10px] font-bold text-background opacity-0 transition group-hover:opacity-100">
-                      {fmtMoney(m.value)}
-                    </div>
-                  </div>
-                  <div className="text-[10px] font-semibold uppercase text-muted-foreground">
-                    {m.label}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-6 h-[250px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueMonths} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(val) => {
+                  if (val === 0) return "0";
+                  if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
+                  return `$${(val / 1000).toFixed(0)}k`;
+                }} />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="rounded-lg border bg-background p-3 shadow-md">
+                          <div className="mb-1 text-[10px] font-bold uppercase text-muted-foreground">{payload[0].payload.label}</div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-emerald-600">{fmtMoney(payload[0].value as number)}</span>
+                            <span className="text-xs text-muted-foreground">{payload[0].payload.count} {t("leadsCount")}</span>
+                          </div>
+                        </div>
+                      )
+                    }
+                    return null;
+                  }}
+                />
+                <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 

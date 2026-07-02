@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { PhoneInput } from "@/components/PhoneInput";
 import { supabase } from "@/integrations/supabase/client";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { ProjectRequestDialog } from "@/components/ProjectRequestDialog";
 
 export const Route = createFileRoute("/manager/projects")({
@@ -67,6 +68,7 @@ function ProjectsPage() {
     select: (state) => state.location.pathname.startsWith("/manager/projects/"),
   });
   const [editing, setEditing] = useState<Project | "new" | null>(null);
+  const { confirm, ConfirmDialog } = useConfirm();
   const [view, setView] = useState<"table" | "grid">("table");
   const [mainTab, setMainTab] = useState<"projects" | "pending">("projects");
   const [pendingCount, setPendingCount] = useState<number>(0);
@@ -596,8 +598,8 @@ function ProjectsPage() {
                               <Pencil className="h-3.5 w-3.5" />
                             </button>
                             <button
-                              onClick={() => {
-                                if (confirm(`${t("confirmDelete")} (${p.name})`))
+                              onClick={async () => {
+                                if (await confirm({ message: `${t("confirmDelete")} (${p.name})` }))
                                   actions.removeProject(p.id);
                               }}
                               aria-label={t("delete")}
@@ -709,8 +711,8 @@ function ProjectsPage() {
                       <Pencil className="h-3 w-3" /> {t("edit")}
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm(`${t("confirmDelete")} (${p.name})`))
+                      onClick={async () => {
+                        if (await confirm({ message: `${t("confirmDelete")} (${p.name})` }))
                           actions.removeProject(p.id);
                       }}
                       className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-rose-50 px-2 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100"
@@ -739,6 +741,7 @@ function ProjectsPage() {
         />
       )}
       {showImport && <ExcelImportModal type="projects" onClose={() => setShowImport(false)} />}
+      <ConfirmDialog />
     </AppShell>
   );
 }

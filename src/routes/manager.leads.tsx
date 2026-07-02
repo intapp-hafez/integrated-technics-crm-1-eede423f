@@ -1,4 +1,4 @@
-﻿import { LeadFormModal } from '@/components/leads/LeadFormModal';
+import { LeadFormModal } from '@/components/leads/LeadFormModal';
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
@@ -97,7 +97,7 @@ function ManagerLeadsListPage() {
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const { profile } = useAuth();
-  const meName = profile?.full_name_en || profile?.full_name_ar || "hafez Rahim";
+  const meName = profile?.full_name_en || profile?.full_name_ar || "";
 
   const user = {
     name: meName,

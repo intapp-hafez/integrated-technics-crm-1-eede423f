@@ -26,6 +26,7 @@ import {
   Download,
 } from "lucide-react";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/employee/activities")({
   component: MyActivitiesPage,
@@ -56,6 +57,7 @@ function MyActivitiesPage() {
   const [view, setView] = useState<"list" | "calendar">("list");
   const [editId, setEditId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const { confirm, ConfirmDialog } = useConfirm();
 
   const BUCKET_LABELS: Record<Bucket, string> = {
     past: t("today") === "اليوم" ? "الماضي" : "past",
@@ -277,9 +279,9 @@ function MyActivitiesPage() {
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <button
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.stopPropagation();
-                      if (confirm(`${t("confirmDelete")} "${a.title}"`))
+                      if (await confirm({ message: `${t("confirmDelete")} "${a.title}"` }))
                         actions.removeActivity(a.id);
                     }}
                     className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-rose-50 hover:text-rose-600"
@@ -315,6 +317,7 @@ function MyActivitiesPage() {
         )}
       </div>
       {showImport && <ExcelImportModal type="activities" onClose={() => setShowImport(false)} />}
+      <ConfirmDialog />
     </AppShell>
   );
 }

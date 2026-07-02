@@ -40,6 +40,7 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
+import { useConfirm } from "@/components/ConfirmDialog";
 import {
   APP_PAGES,
   USER_ROLES,
@@ -56,6 +57,8 @@ import {
   adminDeletePosition,
 } from "@/lib/admin-api";
 import { SendEmailEditor } from "@/components/SendEmailEditor";
+import { StatusesTab, StagesTab, ActivityTypesTab, WorkdayTab } from "@/components/admin/settings/PipelineTabs";
+import { DepartmentsTab, PositionsTab } from "@/components/admin/settings/OrgTabs";
 
 export const Route = createFileRoute("/admin/settings")({
   component: SettingsPage,
@@ -82,8 +85,6 @@ function SettingsPage() {
   const { t, lang } = useI18n();
   const { isAdmin } = useRole();
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("statuses");
-  const { settings } = useStoreState();
-  const [newType, setNewType] = useState("");
 
   if (!isAdmin) {
     return (
@@ -151,145 +152,26 @@ function SettingsPage() {
         </aside>
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-          {tab === "statuses" && (
-            <section>
-              <Header title={t("leadStatuses")} hint={t("statusesDesc")} />
-              <StatusesEditor />
-            </section>
-          )}
-
-          {tab === "stages" && (
-            <section>
-              <Header
-                title={t("pipelineStages")}
-                hint={`${t("stagesDesc") ?? ""} Drag the handle to reorder — this controls the progression order in the Pipeline board.`}
-              />
-              <div className="space-y-2">
-                {settings.stages.map((st, idx) => (
-                  <StageRow
-                    key={st.key}
-                    stageKey={st.key}
-                    label={st.label}
-                    color={st.color}
-                    index={idx}
-                    total={settings.stages.length}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {tab === "activities" && (
-            <section>
-              <Header title={t("activityTypes")} hint={t("activityTypesDesc")} />
-              <div className="mb-4 flex gap-2">
-                <input
-                  value={newType}
-                  onChange={(e) => setNewType(e.target.value)}
-                  placeholder="e.g. Demo, Workshop"
-                  className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
-                <button
-                  onClick={() => {
-                    if (newType.trim()) {
-                      actions.addActivityType(newType.trim());
-                      setNewType("");
-                    }
-                  }}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                >
-                  <Plus className="h-4 w-4" /> Add
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {settings.activityTypes.map((tp) => (
-                  <span
-                    key={tp}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground ring-1 ring-border"
-                  >
-                    {tp}
-                    <button
-                      onClick={() => actions.removeActivityType(tp)}
-                      className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                      aria-label={`Remove ${tp}`}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-                {settings.activityTypes.length === 0 && (
-                  <span className="text-sm text-muted-foreground">
-                    No activity types yet. Add one above.
-                  </span>
-                )}
-              </div>
-            </section>
-          )}
-
-          {tab === "workday" && (
-            <section>
-              <Header
-                title="Standard Workday Hours"
-                hint="Used as the 100% baseline when calculating attendance percentages across admin and employee panels."
-              />
-              <div className="flex flex-wrap items-end gap-4">
-                <div className="flex-1 min-w-[200px]">
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Hours per workday
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={24}
-                    step={0.5}
-                    value={settings.workdayHours ?? 8}
-                    onChange={(e) => actions.setWorkdayHours(Number(e.target.value))}
-                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-                <div className="rounded-lg bg-secondary px-4 py-2 text-sm">
-                  <span className="text-muted-foreground">Current baseline:</span>{" "}
-                  <span className="font-mono font-bold text-foreground">
-                    {settings.workdayHours ?? 8}h
-                  </span>{" "}
-                  <span className="text-muted-foreground">= 100%</span>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {tab === "departments" && (
-            <section>
-              <Header title="Departments" hint="Bilingual departments used across user profiles." />
-              <DepartmentsEditor />
-            </section>
-          )}
-
-          {tab === "positions" && (
-            <section>
-              <Header title="Positions" hint="Job titles / positions used across user profiles." />
-              <PositionsEditor />
-            </section>
-          )}
+          {tab === "statuses" && <StatusesTab />}
+          {tab === "stages" && <StagesTab />}
+          {tab === "activities" && <ActivityTypesTab />}
+          {tab === "workday" && <WorkdayTab />}
+          {tab === "departments" && <DepartmentsTab />}
+          {tab === "positions" && <PositionsTab />}
 
           {tab === "locations" && (
             <section>
               <Header title={t("locations")} hint={t("locationsDesc")} />
-              <LocationsEditor cities={settings.locations} />
+              <LocationsEditor cities={undefined} />
             </section>
           )}
 
           {tab === "users" && (
             <section>
-              <Header
-                title="Users & Permissions"
-                hint="Manage users and configure allowed pages and CRUD operations per role."
-              />
+              <Header title="Users & Permissions" hint="Manage users and configure allowed pages and CRUD operations per role." />
               <UsersEditor />
               <div className="mt-8">
-                <h3 className="mb-3 font-display text-base font-bold text-foreground">
-                  Role permissions
-                </h3>
+                <h3 className="mb-3 font-display text-base font-bold text-foreground">Role permissions</h3>
                 <PermissionsMatrix />
               </div>
             </section>
@@ -299,18 +181,13 @@ function SettingsPage() {
             <section>
               <Header
                 title={lang === "ar" ? "إدارة صلاحيات المستخدمين" : "User Roles Management"}
-                hint={
-                  lang === "ar"
-                    ? "عيّن أو أزل الصلاحيات لكل مستخدم. يتم منع إزالة آخر مدير."
-                    : "Assign or remove roles per user. The last admin cannot be removed."
-                }
+                hint={lang === "ar" ? "عيّن أو أزل الصلاحيات لكل مستخدم. يتم منع إزالة آخر مدير." : "Assign or remove roles per user. The last admin cannot be removed."}
               />
               <UserRolesEditor />
             </section>
           )}
 
           {tab === "automations" && <AutomationsEditor />}
-
           {tab === "templates" && <TemplatesEditor />}
           {tab === "send" && <SendEmailEditor />}
           {tab === "smtp" && <SmtpEditor />}
@@ -320,6 +197,7 @@ function SettingsPage() {
   );
 }
 
+// Local Header kept for tabs still rendered inline in this file
 function Header({ title, hint }: { title: string; hint: string }) {
   return (
     <div className="mb-5 border-b border-border pb-4">
@@ -1052,223 +930,6 @@ function PageBar({
   );
 }
 
-function DepartmentsEditor() {
-  const { settings } = useStoreState();
-  const qc = useQueryClient();
-  const addFn = adminAddDepartment;
-  const delFn = adminDeleteDepartment;
-  const [en, setEn] = useState("");
-  const [ar, setAr] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [page, setPage] = useState(1);
-  const items = settings.departments ?? [];
-  const existingEn = items.map((d) => d.nameEn);
-  const existingSet = new Set(existingEn.map((s) => s.trim().toLowerCase()));
-  const pageItems = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const add = async () => {
-    const name = en.trim();
-    if (!name) return;
-    if (existingSet.has(name.toLowerCase())) {
-      toast.error("Department already exists");
-      return;
-    }
-    setBusy(true);
-    try {
-      await addFn({ name_en: name, name_ar: ar.trim() || null });
-      setEn("");
-      setAr("");
-      qc.invalidateQueries({ queryKey: ["supabase-sync"] });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-  const remove = async (id: string) => {
-    if (!confirm("Delete this department?")) return;
-    try {
-      await delFn({ id });
-      qc.invalidateQueries({ queryKey: ["supabase-sync"] });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed");
-    }
-  };
-  return (
-    <div className="space-y-4">
-      <BilingualImportBar
-        label="departments"
-        templateName="departments-template.xlsx"
-        sheetName="Departments"
-        sampleRows={[
-          ["Sales", "المبيعات"],
-          ["Engineering", "الهندسة"],
-          ["Finance", "المالية"],
-        ]}
-        existingEn={existingEn}
-        onImportRow={async ({ en, ar }) => {
-          await addFn({ name_en: en, name_ar: ar || null });
-          qc.invalidateQueries({ queryKey: ["supabase-sync"] });
-        }}
-      />
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
-        <input
-          value={en}
-          onChange={(e) => setEn(e.target.value)}
-          placeholder="Name (EN)"
-          className={inputCls}
-        />
-        <input
-          value={ar}
-          onChange={(e) => setAr(e.target.value)}
-          placeholder="الاسم (AR)"
-          dir="rtl"
-          className={inputCls}
-        />
-        <button
-          onClick={add}
-          disabled={busy}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-        >
-          <Plus className="h-4 w-4" /> Add
-        </button>
-      </div>
-      <div className="divide-y divide-border rounded-lg border border-border">
-        {pageItems.map((d) => (
-          <div key={d.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
-            <div className="flex items-center gap-3">
-              <Building2 className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-foreground">{d.nameEn}</span>
-              {d.nameAr && (
-                <span className="text-xs text-muted-foreground" dir="rtl">
-                  {d.nameAr}
-                </span>
-              )}
-            </div>
-            <button
-              onClick={() => remove(d.id)}
-              className="rounded border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-600"
-            >
-              <Trash2 className="h-3 w-3" />
-            </button>
-          </div>
-        ))}
-        {items.length === 0 && (
-          <div className="p-4 text-center text-sm text-muted-foreground">No departments yet</div>
-        )}
-      </div>
-      <PageBar page={page} setPage={setPage} total={items.length} pageSize={PAGE_SIZE} />
-    </div>
-  );
-}
-
-function PositionsEditor() {
-  const { settings } = useStoreState();
-  const qc = useQueryClient();
-  const addFn = adminAddPosition;
-  const delFn = adminDeletePosition;
-  const [en, setEn] = useState("");
-  const [ar, setAr] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [page, setPage] = useState(1);
-  const items = settings.positions ?? [];
-  const existingEn = items.map((p) => p.nameEn);
-  const existingSet = new Set(existingEn.map((s) => s.trim().toLowerCase()));
-  const pageItems = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const add = async () => {
-    const name = en.trim();
-    if (!name) return;
-    if (existingSet.has(name.toLowerCase())) {
-      toast.error("Position already exists");
-      return;
-    }
-    setBusy(true);
-    try {
-      await addFn({ name_en: name, name_ar: ar.trim() || null });
-      setEn("");
-      setAr("");
-      qc.invalidateQueries({ queryKey: ["supabase-sync"] });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-  const remove = async (id: string) => {
-    if (!confirm("Delete this position?")) return;
-    try {
-      await delFn({ id });
-      qc.invalidateQueries({ queryKey: ["supabase-sync"] });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed");
-    }
-  };
-  return (
-    <div className="space-y-4">
-      <BilingualImportBar
-        label="positions"
-        templateName="positions-template.xlsx"
-        sheetName="Positions"
-        sampleRows={[
-          ["Sales Manager", "مدير مبيعات"],
-          ["Engineer", "مهندس"],
-          ["Accountant", "محاسب"],
-        ]}
-        existingEn={existingEn}
-        onImportRow={async ({ en, ar }) => {
-          await addFn({ name_en: en, name_ar: ar || null });
-          qc.invalidateQueries({ queryKey: ["supabase-sync"] });
-        }}
-      />
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
-        <input
-          value={en}
-          onChange={(e) => setEn(e.target.value)}
-          placeholder="Title (EN)"
-          className={inputCls}
-        />
-        <input
-          value={ar}
-          onChange={(e) => setAr(e.target.value)}
-          placeholder="المسمى (AR)"
-          dir="rtl"
-          className={inputCls}
-        />
-        <button
-          onClick={add}
-          disabled={busy}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-        >
-          <Plus className="h-4 w-4" /> Add
-        </button>
-      </div>
-      <div className="divide-y divide-border rounded-lg border border-border">
-        {pageItems.map((p) => (
-          <div key={p.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
-            <div className="flex items-center gap-3">
-              <Briefcase className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-foreground">{p.nameEn}</span>
-              {p.nameAr && (
-                <span className="text-xs text-muted-foreground" dir="rtl">
-                  {p.nameAr}
-                </span>
-              )}
-            </div>
-            <button
-              onClick={() => remove(p.id)}
-              className="rounded border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-600"
-            >
-              <Trash2 className="h-3 w-3" />
-            </button>
-          </div>
-        ))}
-        {items.length === 0 && (
-          <div className="p-4 text-center text-sm text-muted-foreground">No positions yet</div>
-        )}
-      </div>
-      <PageBar page={page} setPage={setPage} total={items.length} pageSize={PAGE_SIZE} />
-    </div>
-  );
-}
 
 const inputCls =
   "h-9 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
@@ -1295,6 +956,7 @@ function Field({
 
 function UserRow({ user }: { user: AppUser }) {
   const { settings, users } = useStoreState();
+  const { confirm, ConfirmDialog } = useConfirm();
   const [edit, setEdit] = useState(false);
   const [draft, setDraft] = useState<AppUser>(user);
   const [skillsText, setSkillsText] = useState((user.skills ?? []).join(", "));
@@ -1584,7 +1246,17 @@ function UserRow({ user }: { user: AppUser }) {
       </td>
       <td className="px-3 py-2 text-muted-foreground">{user.email}</td>
       <td className="px-3 py-2">
-        <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs font-semibold capitalize text-primary">
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${
+            user.role === "admin"
+              ? "bg-purple-500/10 text-purple-600"
+              : user.role === "manager"
+                ? "bg-emerald-500/10 text-emerald-600"
+                : user.role === "employee"
+                  ? "bg-primary-soft text-primary"
+                  : "bg-blue-500/10 text-blue-600"
+          }`}
+        >
           {user.role}
         </span>
       </td>
@@ -1600,6 +1272,7 @@ function UserRow({ user }: { user: AppUser }) {
         </button>
       </td>
       <td className="px-3 py-2 text-end">
+        <ConfirmDialog />
         <div className="inline-flex items-center gap-2">
           <button
             onClick={() => setEdit(true)}
@@ -1608,8 +1281,8 @@ function UserRow({ user }: { user: AppUser }) {
             Edit
           </button>
           <button
-            onClick={() => {
-              if (confirm(`Delete ${user.name}?`)) actions.removeUser(user.id);
+            onClick={async () => {
+              if (await confirm({ message: `Delete ${user.name}?` })) actions.removeUser(user.id);
             }}
             className="inline-flex items-center gap-1 rounded border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-600"
           >
@@ -1697,6 +1370,7 @@ type LocationRow = {
 
 function LocationsEditor(_props: { cities?: unknown }) {
   const { t } = useI18n();
+  const { confirm, ConfirmDialog } = useConfirm();
   const qc = useQueryClient();
   const { data: rows = [], refetch } = useQuery({
     queryKey: ["locations-admin"],
@@ -1903,6 +1577,7 @@ function LocationsEditor(_props: { cities?: unknown }) {
 
   return (
     <div className="space-y-4">
+      <ConfirmDialog />
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border bg-background p-3">
         <span className="text-xs font-semibold text-muted-foreground">Bulk import:</span>
         <button
@@ -1989,7 +1664,7 @@ function LocationsEditor(_props: { cities?: unknown }) {
                 </button>
                 <button
                   onClick={async () => {
-                    if (confirm(`${t("removeCity")} "${c.name}"?`)) {
+                    if (await confirm({ message: `${t("removeCity")} "${c.name}"?` })) {
                       try {
                         await dbRemoveCity(c.id);
                         invalidate();
@@ -2304,8 +1979,9 @@ type TemplateRow = {
 const CHANNELS = ["Email", "SMS", "WhatsApp", "Push"] as const;
 
 function TemplatesEditor() {
-  const { dir } = useI18n();
-  const isAr = dir === "rtl";
+  const { t, lang } = useI18n();
+  const { confirm, ConfirmDialog } = useConfirm();
+  const isAr = lang === "ar";
   const [rows, setRows] = useState<TemplateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<TemplateRow | null>(null);
@@ -2363,7 +2039,7 @@ function TemplatesEditor() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm(isAr ? "حذف هذا القالب؟" : "Delete this template?")) return;
+    if (!(await confirm({ message: isAr ? "حذف هذا القالب؟" : "Delete this template?" }))) return;
     const { error } = await supabase.from("notification_templates").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {
@@ -2374,6 +2050,7 @@ function TemplatesEditor() {
 
   return (
     <section>
+      <ConfirmDialog />
       <div className="mb-5 flex items-start justify-between gap-3 border-b border-border pb-4">
         <div>
           <h2 className="font-display text-lg font-bold text-foreground">
@@ -3030,6 +2707,7 @@ function UserRolesEditor() {
 
 function AutomationsEditor() {
   const { t } = useI18n();
+  const { confirm, ConfirmDialog } = useConfirm();
   const { settings } = useStoreState();
   const automations = settings.automations ?? [];
   const [editing, setEditing] = useState<Partial<(typeof automations)[0]> | null>(null);
@@ -3048,14 +2726,15 @@ function AutomationsEditor() {
     setEditing(null);
   };
 
-  const remove = (id: string) => {
-    if (confirm("Delete this automation rule?")) {
+  const remove = async (id: string) => {
+    if (await confirm({ message: "Delete this automation rule?" })) {
       actions.deleteAutomation(id);
     }
   };
 
   return (
     <section>
+      <ConfirmDialog />
       <div className="mb-5 flex items-center justify-between border-b border-border pb-4">
         <div>
           <h2 className="font-display text-lg font-bold text-foreground">{t("automations")}</h2>

@@ -136,7 +136,12 @@ function ProjectDetailsPage() {
   const projectHistory = history.filter(
     (h) => h.target.includes(projectId) || h.target === project.name,
   );
-  const relatedLeads = storeLeads.filter((l: any) => l.company === project.client);
+  const relatedLeads = storeLeads.filter(
+    (l: any) =>
+      l.projectId === projectId ||
+      l.project_id === projectId ||
+      (project.client && l.company === project.client)
+  );
   const clientLead = relatedLeads[0];
   const memberNames = (project as any).teamMembers as string[] | undefined;
   const members =
@@ -363,27 +368,41 @@ function ProjectDetailsPage() {
                   {relatedLeads.length}
                 </span>
               </div>
-              <div className="divide-y divide-border">
-                {relatedLeads.map((l: any) => (
-                  <Link
-                    key={l.id}
-                    to="/admin/leads/$leadId"
-                    params={{ leadId: l.id }}
-                    className="flex items-center gap-4 px-5 py-3 hover:bg-primary/5 transition-colors group"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-foreground">{l.contact}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {l.industry} · {l.owner}
-                      </div>
-                    </div>
-                    <StatusBadge status={l.status} label={t(l.status as any)} />
-                    <span className="ml-2 font-mono text-sm font-bold text-foreground">
-                      {fmtMoney(l.value)}
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </Link>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-secondary/30 text-xs uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-5 py-3 font-semibold">Contact</th>
+                      <th className="px-5 py-3 font-semibold">Industry</th>
+                      <th className="px-5 py-3 font-semibold">Owner</th>
+                      <th className="px-5 py-3 font-semibold">Status</th>
+                      <th className="px-5 py-3 text-right font-semibold">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {relatedLeads.map((l: any) => (
+                      <tr key={l.id} className="group hover:bg-primary/5 transition-colors">
+                        <td className="px-5 py-3">
+                          <Link
+                            to="/admin/leads/$leadId"
+                            params={{ leadId: l.id }}
+                            className="font-semibold text-foreground hover:text-primary transition-colors inline-flex items-center gap-1"
+                          >
+                            {l.contact} <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </Link>
+                        </td>
+                        <td className="px-5 py-3 text-muted-foreground">{l.industry || "—"}</td>
+                        <td className="px-5 py-3 text-muted-foreground">{l.owner}</td>
+                        <td className="px-5 py-3">
+                          <StatusBadge status={l.status} label={t(l.status as any)} />
+                        </td>
+                        <td className="px-5 py-3 text-right font-mono font-bold text-foreground">
+                          {fmtMoney(l.value)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
