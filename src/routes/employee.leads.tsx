@@ -310,7 +310,7 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
           return (
             <div className="mt-2 flex items-center gap-2">
               <div className="h-1 flex-1 overflow-hidden rounded-full bg-secondary">
-                <div className={`h-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+                <div className={`h-full transition-all duration-500 ease-out ${barColor}`} style={{ width: `${pct}%` }} />
               </div>
               <span className={`text-[10px] font-semibold ${textColor}`}>{pct}%</span>
             </div>
