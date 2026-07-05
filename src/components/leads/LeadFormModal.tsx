@@ -42,12 +42,16 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
   ];
   const [projectId, setProjectId] = useState(() => {
     if (!initial) return "";
-    if (initial.projectId) return initial.projectId;
+    if (initial.projectId && projects.some((p) => p.id === initial.projectId)) return initial.projectId;
     const latest = activities
       .filter((a) => a.leadId === initial.id && a.projectId)
       .sort((a, b) => new Date(b.createdAt || b.dueDate).getTime() - new Date(a.createdAt || a.dueDate).getTime())[0];
-    if (latest?.projectId) return latest.projectId;
-    return projects.find((p) => p.name === initial.company)?.id ?? "";
+    if (latest?.projectId && projects.some((p) => p.id === latest.projectId)) return latest.projectId;
+    const co = (initial.company || "").trim().toLowerCase();
+    const byName = projects.find((p) => (p.name || "").trim().toLowerCase() === co);
+    if (byName) return byName.id;
+    const byClient = projects.find((p) => (p.client || "").trim().toLowerCase() === (initial.contact || "").trim().toLowerCase());
+    return byClient?.id ?? "";
   });
   const [company, setCompany] = useState(initial?.company ?? "");
   const [contact, setContact] = useState(initial?.contact ?? "");
@@ -129,7 +133,7 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
             </select>
           </Field>
           <Field label={t("client")}>
-            <input value={contact} readOnly={!!selectedProject} onChange={(e) => setContact(e.target.value)} placeholder={selectedProject ? "" : t("autoFilledFromProject")} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm read-only:bg-muted/40 read-only:text-muted-foreground" />
+            <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder={t("autoFilledFromProject")} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
           <Field label={t("companyEmail")}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@company.com" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" /></Field>
           <div className="hidden">
