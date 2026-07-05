@@ -133,7 +133,7 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
             </select>
           </Field>
           <Field label={t("client")}>
-            <input value={contact} readOnly={!!selectedProject} onChange={(e) => setContact(e.target.value)} placeholder={selectedProject ? "" : t("autoFilledFromProject")} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm read-only:bg-muted/40 read-only:text-muted-foreground" />
+            <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder={t("autoFilledFromProject")} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
           <Field label={t("companyEmail")}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@company.com" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" /></Field>
           <div className="hidden">
