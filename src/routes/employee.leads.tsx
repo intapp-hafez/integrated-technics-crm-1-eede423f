@@ -299,19 +299,23 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
           </span>
         </Link>
 
-        {l.probability !== undefined && (
-          <div className="mt-2 flex items-center gap-2">
-            <div className="h-1 flex-1 overflow-hidden rounded-full bg-secondary">
-              <div
-                className={`h-full ${l.probability >= 70 ? "bg-emerald-500" : l.probability >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
-                style={{ width: `${l.probability}%` }}
-              />
+        {(() => {
+          const flow = settings.stages.filter((s) => !["won", "lost", "archived"].includes(s.key)).map((s) => s.key);
+          const isWon = l.status === "won";
+          const isLost = l.status === "lost";
+          const idx = flow.indexOf(l.status);
+          const pct = isWon || isLost ? 100 : idx >= 0 ? Math.round(((idx + 1) / flow.length) * 100) : 0;
+          const barColor = isWon ? "bg-emerald-500" : isLost ? "bg-rose-500" : pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-sky-500";
+          const textColor = isWon ? "text-emerald-600" : isLost ? "text-rose-600" : "text-muted-foreground";
+          return (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="h-1 flex-1 overflow-hidden rounded-full bg-secondary">
+                <div className={`h-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+              </div>
+              <span className={`text-[10px] font-semibold ${textColor}`}>{pct}%</span>
             </div>
-            <span className="text-[10px] font-semibold text-muted-foreground">
-              {l.probability}%
-            </span>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
