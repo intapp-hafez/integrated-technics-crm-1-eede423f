@@ -397,6 +397,7 @@ function UsersEditor() {
   const [busy, setBusy] = useState(false);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "admin" | "manager" | "employee" | "deactivated">("all");
   const upd = (patch: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...patch }));
   const departments = settings.departments ?? [];
   const positions = settings.positions ?? [];
@@ -413,12 +414,30 @@ function UsersEditor() {
   const selectedPosId = positions.find((p) => p.nameEn === draft.titleEn)?.id ?? "";
   const managers = users.filter((u) => u.role === "manager");
 
-  const filteredUsers = users.filter(
-    (u) =>
-      (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (u.nameAr && u.nameAr.includes(searchQuery)),
-  );
+  const tabCounts = {
+    all: users.filter((u) => u.active !== false).length,
+    admin: users.filter((u) => u.role === "admin" && u.active !== false).length,
+    manager: users.filter((u) => u.role === "manager" && u.active !== false).length,
+    employee: users.filter((u) => u.role === "employee" && u.active !== false).length,
+    deactivated: users.filter((u) => u.active === false).length,
+  };
+
+  const filteredUsers = users
+    .filter((u) => {
+      if (activeTab === "deactivated") return u.active === false;
+      if (u.active === false) return false;
+      if (activeTab === "admin") return u.role === "admin";
+      if (activeTab === "manager") return u.role === "manager";
+      if (activeTab === "employee") return u.role === "employee";
+      return true;
+    })
+    .filter(
+      (u) =>
+        !searchQuery ||
+        (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (u.nameAr && u.nameAr.includes(searchQuery)),
+    );
 
   const submit = async () => {
     if (!draft.name.trim() || !draft.email.trim() || password.length < 6) {
@@ -718,21 +737,57 @@ function UsersEditor() {
         )}
       </div>
 
-      <div className="mt-6 mb-3 flex items-center justify-between">
-        <h3 className="font-display text-base font-bold text-foreground">Users Directory</h3>
-        <div className="relative w-64">
-          <Search
-            className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            style={{ insetInlineStart: "0.75rem" }}
-          />
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 w-full rounded-lg border border-border bg-background text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            style={{ paddingInlineStart: "2.25rem" }}
-          />
+      <div className="mt-6 mb-3">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="font-display text-base font-bold text-foreground">Users Directory</h3>
+          <div className="relative w-64">
+            <Search
+              className="absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              style={{ insetInlineStart: "0.75rem" }}
+            />
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 w-full rounded-lg border border-border bg-background text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              style={{ paddingInlineStart: "2.25rem" }}
+            />
+          </div>
+        </div>
+
+        {/* Role tabs */}
+        <div className="flex flex-wrap gap-1.5 border-b border-border pb-3">
+          {([
+            { key: "all", label: "All Active" },
+            { key: "admin", label: "Admins" },
+            { key: "manager", label: "Managers" },
+            { key: "employee", label: "Employees" },
+            { key: "deactivated", label: "Deactivated" },
+          ] as const).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                activeTab === key
+                  ? key === "deactivated"
+                    ? "border-rose-500 bg-rose-500 text-white"
+                    : "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+              }`}
+            >
+              {label}
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                activeTab === key
+                  ? "bg-white/20 text-inherit"
+                  : key === "deactivated"
+                    ? "bg-rose-100 text-rose-600"
+                    : "bg-secondary text-muted-foreground"
+              }`}>
+                {tabCounts[key]}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -754,7 +809,7 @@ function UsersEditor() {
             {filteredUsers.length === 0 && (
               <tr>
                 <td colSpan={5} className="p-6 text-center text-muted-foreground">
-                  No users found
+                  {activeTab === "deactivated" ? "No deactivated users" : "No users found"}
                 </td>
               </tr>
             )}

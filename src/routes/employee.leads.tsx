@@ -154,7 +154,6 @@ function LeadsPage() {
         />
       )}
       {showImport && <ExcelImportModal type="leads" onClose={() => setShowImport(false)} />}
-      <ConfirmDialog />
     </AppShell>
   );
 }
