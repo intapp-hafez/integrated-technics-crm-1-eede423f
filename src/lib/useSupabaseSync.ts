@@ -233,6 +233,7 @@ export function useSupabaseSync() {
         : "Unassigned";
       return {
         id: l.id,
+        code: l.code ?? undefined,
         company: pick(l.company_en, l.company_ar),
         contact: pick(l.contact_name_en, l.contact_name_ar),
         source: pick(l.source_en, l.source_ar) || "—",

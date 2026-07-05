@@ -36,6 +36,7 @@ export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
   if (!currentUserId) return;
   const { error } = await supabase.from("leads").insert({
     id,
+    code: (l as any).code ?? null,
     company_en: l.company,
     contact_name_en: l.contact,
     email: l.email ?? null,
@@ -60,6 +61,7 @@ export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
 export async function sbUpdateLead(id: string, patch: Partial<Lead>) {
   if (!isUuid(id)) return;
   const row: Record<string, any> = {};
+  if ((patch as any).code !== undefined) row.code = (patch as any).code ?? null;
   if (patch.company !== undefined) row.company_en = patch.company;
   if (patch.contact !== undefined) row.contact_name_en = patch.contact;
   if (patch.email !== undefined) row.email = patch.email;

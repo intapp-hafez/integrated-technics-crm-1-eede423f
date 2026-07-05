@@ -34,6 +34,7 @@ export type LeadStatus = string;
 
 export interface Lead {
   id: string;
+  code?: string;
   company: string;
   contact: string;
   source: string;

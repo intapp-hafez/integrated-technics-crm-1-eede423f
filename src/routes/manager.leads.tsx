@@ -30,12 +30,12 @@ const leadSchema = z.object({
     .max(255, "Email too long")
     .or(z.literal("")),
   industry: z.string().trim().max(80, "Industry too long").optional(),
-  value: z.number().min(0, "Value must be â‰¥ 0").max(1_000_000_000, "Value too high"),
+  value: z.number().min(0, "Value must be ≥ 0").max(1_000_000_000, "Value too high"),
 });
 
 export const Route = createFileRoute("/manager/leads")({
   component: ManagerLeadsPage,
-  head: () => ({ meta: [{ title: "Our Leads Â· INT-CRM" }] }),
+  head: () => ({ meta: [{ title: "Our Leads · INT-CRM" }] }),
 });
 
 function ManagerLeadsPage() {
@@ -48,7 +48,7 @@ function ManagerLeadsPage() {
 
 function ManagerLeadsListPage() {
   const { t, lang } = useI18n();
-  const { leads, settings } = useStoreState();
+  const { leads, settings, projects } = useStoreState();
   const { includesLead, teamEmployees } = useMyTeam();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
@@ -69,6 +69,21 @@ function ManagerLeadsListPage() {
   const teamLeads = useMemo(
     () => leads.filter((l) => includesLead(l)),
     [leads, includesLead],
+  );
+
+  // Projects where at least one team member is a member
+  const teamProjects = useMemo(
+    () =>
+      projects.filter((p) =>
+        teamEmployees.some((e) =>
+          isProjectMemberOf(p, {
+            profileId: (e as any).profileId,
+            userId: (e as any).userId ?? (e as any).id,
+            name: e.name,
+          }),
+        ),
+      ),
+    [projects, teamEmployees],
   );
 
   const filtered = useMemo(() => {
@@ -115,12 +130,12 @@ function ManagerLeadsListPage() {
   };
 
   return (
-    <AppShell panel="manager" user={user} pageTitle={isAr ? "ÙØ±Øµ ÙØ±ÙŠÙ‚Ù†Ø§" : "Our Leads"}>
+    <AppShell panel="manager" user={user} pageTitle={isAr ? "فرص فريقنا" : "Our Leads"}>
       {/* KPI strip */}
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {isAr ? "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„ÙØ±Øµ" : "Total Leads"}
+            {isAr ? "إجمالي الفرص" : "Total Leads"}
           </div>
           <div className="mt-1 font-mono text-2xl font-extrabold text-foreground">
             {filtered.length}
@@ -128,7 +143,7 @@ function ManagerLeadsListPage() {
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {isAr ? "Ø§Ù„Ù‚ÙŠÙ…Ø© Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠØ©" : "Pipeline Value"}
+            {isAr ? "القيمة الإجمالية" : "Pipeline Value"}
           </div>
           <div className="mt-1 font-mono text-2xl font-extrabold text-primary">
             {fmtMoney(totalValue)}
@@ -136,7 +151,7 @@ function ManagerLeadsListPage() {
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {isAr ? "ØªÙ… Ø§Ù„ÙÙˆØ²" : "Won"}
+            {isAr ? "تم الفوز" : "Won"}
           </div>
           <div className="mt-1 font-mono text-2xl font-extrabold text-emerald-600">{wonCount}</div>
         </div>
@@ -150,7 +165,7 @@ function ManagerLeadsListPage() {
             onChange={(e) => setStatus(e.target.value)}
             className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs"
           >
-            <option value="all">{isAr ? "ÙƒÙ„ Ø§Ù„Ø­Ø§Ù„Ø§Øª" : "All statuses"}</option>
+            <option value="all">{isAr ? "كل الحالات" : "All statuses"}</option>
             {settings.stages.map((s) => (
               <option key={s.key} value={s.key}>
                 {s.label}
@@ -162,7 +177,7 @@ function ManagerLeadsListPage() {
             onChange={(e) => setOwner(e.target.value)}
             className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs"
           >
-            <option value="all">{isAr ? "ÙƒÙ„ Ø§Ù„ÙØ±ÙŠÙ‚" : "All team"}</option>
+            <option value="all">{isAr ? "كل الفريق" : "All team"}</option>
             {teamEmployees.map((e) => (
               <option key={e.id} value={e.name}>
                 {e.name}
@@ -173,8 +188,8 @@ function ManagerLeadsListPage() {
             disabled
             title={
               isAr
-                ? "Ù†Ø¹ØªØ°Ø± â€” Ù‡Ø°Ø§ Ø§Ù„Ø®ÙŠØ§Ø± ØºÙŠØ± Ù…ØªØ§Ø­ Ø­Ø§Ù„ÙŠØ§Ù‹. Ø´ÙƒØ±Ø§Ù‹ Ù„ØªÙÙ‡Ù…ÙƒÙ…."
-                : "We apologise â€” this option is currently not working. Thanks for your understanding."
+                ? "نعتذر – هذا الخيار غير متاح حالياً. شكراً لتفهمكم."
+                : "We apologise – this option is currently not working. Thanks for your understanding."
             }
             className="shrink-0 inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium opacity-40"
           >
@@ -196,7 +211,7 @@ function ManagerLeadsListPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={isAr ? "Ø§Ø¨Ø­Ø« Ø¨Ø§Ù„Ø´Ø±ÙƒØ© Ø£Ùˆ Ø§Ù„Ø¬Ù‡Ø©..." : "Search company, contact, city..."}
+            placeholder={isAr ? "ابحث بالشركة أو الجهة..." : "Search company, contact, city..."}
             className="h-9 w-full rounded-lg border border-border bg-card ps-9 pe-3 text-xs outline-none focus:border-primary"
           />
         </div>
@@ -224,7 +239,7 @@ function ManagerLeadsListPage() {
                   {t("value")}
                 </th>
                 <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {isAr ? "Ø§Ù„Ù…Ø¯ÙŠÙ†Ø©" : "City"}
+                  {isAr ? "المدينة" : "City"}
                 </th>
               </tr>
             </thead>
@@ -239,7 +254,7 @@ function ManagerLeadsListPage() {
                           params={{ leadId: l.id }}
                           className="font-semibold text-foreground hover:text-primary"
                         >
-                          {l.company}
+                          {l.code || l.company}
                         </Link>
                         <div className="font-mono text-[10px] text-muted-foreground">
                           {shortId(l.id)}
@@ -255,20 +270,20 @@ function ManagerLeadsListPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{l.contact}</td>
-                  <td className="px-4 py-3 text-foreground">{l.owner || "â€”"}</td>
+                  <td className="px-4 py-3 text-foreground">{l.owner || "—"}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={l.status} label={stageLabel(l.status)} />
                   </td>
                   <td className="px-4 py-3 text-end font-mono font-semibold text-foreground">
                     {fmtMoney(l.value || 0)}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{l.city || "â€”"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{l.city || "—"}</td>
                 </tr>
               ))}
               {paginated.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">
-                    {isAr ? "Ù„Ø§ ØªÙˆØ¬Ø¯ ÙØ±Øµ Ù„Ø¹Ø±Ø¶Ù‡Ø§" : "No leads to show for your team."}
+                    {isAr ? "لا توجد فرص لعرضها" : "No leads to show for your team."}
                   </td>
                 </tr>
               )}
@@ -310,6 +325,7 @@ function ManagerLeadsListPage() {
         <LeadFormModal
           initial={editing === "new" ? null : editing}
           locations={settings.locations}
+          filteredProjects={teamProjects}
           onClose={() => setEditing(null)}
         />
       )}
@@ -317,7 +333,3 @@ function ManagerLeadsListPage() {
     </AppShell>
   );
 }
-
-
-
-

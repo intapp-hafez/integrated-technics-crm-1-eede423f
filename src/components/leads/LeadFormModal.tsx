@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { actions, useStoreState } from "@/lib/store";
+import { actions, useStoreState, getProbabilityForStatus } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
 import type { LocationCity } from "@/lib/store";
 import type { Lead, LeadStatus } from "@/lib/mock-data";
@@ -12,12 +12,14 @@ interface Props {
   onClose: () => void;
   allowOwnerChange?: boolean;
   defaultOwner?: string;
+  filteredProjects?: import("@/lib/store").Project[];
 }
 
-export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = true, defaultOwner = "" }: Props) {
+export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = true, defaultOwner = "", filteredProjects }: Props) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
-  const { leadDistricts, projects, employees, settings, activities } = useStoreState();
+  const { leadDistricts, projects: allProjects, employees, settings, activities } = useStoreState();
+  const projects = filteredProjects ?? allProjects;
   const { teamEmployees } = useMyTeam();
   const STATUSES = settings.statuses;
   const stageLabel = (k: string) => settings.stages.find((s) => s.key === k)?.label ?? k;
@@ -53,6 +55,7 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
     const byClient = projects.find((p) => (p.client || "").trim().toLowerCase() === (initial.contact || "").trim().toLowerCase());
     return byClient?.id ?? "";
   });
+  const [code, setCode] = useState<string>((initial as any)?.code ?? "");
   const [company, setCompany] = useState(initial?.company ?? "");
   const [contact, setContact] = useState(initial?.contact ?? "");
   const [email, setEmail] = useState(initial?.email ?? "");
@@ -106,10 +109,10 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
     let leadId: string;
     const coords = CITY_COORDS[city] || [30.0444, 31.2357];
     if (initial) {
-      actions.updateLead(initial.id, { company, contact, email, industry, source, status, value, probability, city, street, owner, country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, lat: coords[0], lng: coords[1] } as any);
+      actions.updateLead(initial.id, { code: code || undefined, company, contact, email, industry, source, status, value, probability, city, street, owner, country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, lat: coords[0], lng: coords[1] } as any);
       leadId = initial.id;
     } else {
-      actions.addLead({ company, contact, email, industry, source, status, value, probability, city, street, owner: owner || "", lat: coords[0], lng: coords[1], country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined } as any);
+      actions.addLead({ code: code || undefined, company, contact, email, industry, source, status, value, probability, city, street, owner: owner || "", lat: coords[0], lng: coords[1], country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined } as any);
       const latest = (typeof window !== "undefined" ? JSON.parse(localStorage.getItem("int-crm:leads") || "[]") : []) as Lead[];
       leadId = latest[0]?.id ?? "";
     }
@@ -120,12 +123,24 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-3xl rounded-2xl border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-lg font-bold text-foreground">{initial ? `${t("edit")} ${t("leads")}` : t("addLead")}</h2>
           <button onClick={onClose} className="rounded-lg p-1 text-muted-foreground hover:bg-accent"><X className="h-4 w-4" /></button>
         </div>
-        <div className="grid max-h-[70vh] grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-2">
+        <div className="grid max-h-[75vh] grid-cols-3 gap-3 overflow-y-auto">
+          {/* Full-width: Lead Name (code) */}
+          <label className="col-span-3 block">
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Lead Name</span>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="e.g. Cairo Office Renovation"
+              className="h-9 w-full rounded-lg border border-primary/40 bg-background px-3 text-sm font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </label>
+
+          {/* Row 1: Account | Client | Email */}
           <Field label={t("project")}>
             <select value={projectId} onChange={(e) => onProjectChange(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
               <option value="">{t("selectProjectPlaceholder")}</option>
@@ -136,6 +151,8 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
             <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder={t("autoFilledFromProject")} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
           <Field label={t("companyEmail")}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@company.com" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" /></Field>
+
+          {/* Hidden fields */}
           <div className="hidden">
             <Field label={t("industry")}><input value={industry} readOnly={!!selectedProject} onChange={(e) => setIndustry(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm read-only:bg-muted/40 read-only:text-muted-foreground" /></Field>
             <Field label={t("source")}>
@@ -144,8 +161,19 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
               </select>
             </Field>
           </div>
+
+          {/* Row 2: Status | Value | Probability */}
           <Field label={t("status")}>
-            <select value={status} onChange={(e) => setStatus(e.target.value as LeadStatus)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
+            <select
+              value={status}
+              onChange={(e) => {
+                const newStatus = e.target.value as LeadStatus;
+                setStatus(newStatus);
+                const prob = getProbabilityForStatus(newStatus);
+                if (prob !== undefined) setProbability(prob);
+              }}
+              className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
+            >
               {STATUSES.map((s) => <option key={s} value={s}>{stageLabel(s)}</option>)}
             </select>
           </Field>
@@ -153,20 +181,24 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
           <Field label="Probability %">
             <input type="number" min={0} max={100} value={probability} onChange={(e) => setProbability(Number(e.target.value))} placeholder="0" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
+
+          {/* Row 3: Expected Close Date | Industry | Assign to */}
           <Field label="Expected Close Date">
             <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
           <Field label={t("industry")}>
             <input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. Construction" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
-          {allowOwnerChange && (
+          {allowOwnerChange ? (
             <Field label="Assign to">
               <select value={owner} onChange={(e) => setOwner(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
                 <option value="">—</option>
                 {teamEmployees.map((e: any) => <option key={e.id} value={e.name}>{e.name}</option>)}
               </select>
             </Field>
-          )}
+          ) : <div />}
+
+          {/* Row 4: Country | City | District */}
           <Field label="Country">
             <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Egypt" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
@@ -181,11 +213,14 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
               {districts.map((d) => <option key={d} value={d}>{districtLabel(city, d)}</option>)}
             </select>
           </Field>
-          <label className="sm:col-span-2 block">
+
+          {/* Full-width: Street */}
+          <label className="col-span-3 block">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("street")}</span>
             <input value={street} onChange={(e) => setStreet(e.target.value)} placeholder="e.g. 10 Abbas El-Akkad St." className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </label>
-          <label className="sm:col-span-2 block">
+          {/* Full-width: Description */}
+          <label className="col-span-3 block">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Description</span>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Brief notes about this lead..." className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </label>

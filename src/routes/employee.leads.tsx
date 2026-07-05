@@ -4,7 +4,8 @@ import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney, type Lead, type LeadStatus } from "@/lib/mock-data";
-import { actions, useStoreState, type Project, type LocationCity } from "@/lib/store";
+import { actions, useStoreState, getProbabilityForStatus, type Project, type LocationCity } from "@/lib/store";
+import { filterMyProjects } from "@/lib/employeeProjects";
 import { useRef, useState } from "react";
 import {
   Plus,
@@ -22,7 +23,6 @@ import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { z } from "zod";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
 import { Download } from "lucide-react";
-import { filterMyProjects, isProjectMemberOf } from "@/lib/employeeProjects";
 import { useConfirm } from "@/components/ConfirmDialog";
 
 const leadSchema = z.object({
@@ -52,6 +52,7 @@ function LeadsPage() {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const { leads, settings } = useStoreState();
+  const stageLabel = (k: string) => settings.stages.find((s) => s.key === k)?.label ?? (t(k as any) ?? k);
   const isDetailRoute = useRouterState({
     select: (state) =>
       state.location.pathname.startsWith("/employee/leads/") &&
@@ -65,6 +66,12 @@ function LeadsPage() {
 
   const { profile } = useAuth();
   const ME = profile?.full_name_en || profile?.full_name_ar || "hafez Rahim";
+  const { projects } = useStoreState();
+  const myProjects = filterMyProjects(projects, {
+    profileId: (profile as any)?.profileId,
+    userId: (profile as any)?.id,
+    name: ME,
+  });
   const safeCurrentName = ME.toLowerCase();
 
   const myLeads = leads.filter((l) => (l.owner || "").toLowerCase() === safeCurrentName);
@@ -147,7 +154,10 @@ function LeadsPage() {
       </div>
 
       {editing && (
-        <LeadFormModal allowOwnerChange={false} defaultOwner={ME}
+      <LeadFormModal
+          allowOwnerChange={false}
+          defaultOwner={ME}
+          filteredProjects={myProjects}
           initial={editing === "new" ? null : editing}
           locations={settings.locations}
           onClose={() => setEditing(null)}
@@ -162,6 +172,7 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
   const { confirm, ConfirmDialog } = useConfirm();
   const { t } = useI18n();
   const { settings } = useStoreState();
+  const stageLabel = (k: string) => settings.stages.find((s) => s.key === k)?.label ?? (t(k as any) ?? k);
   const [offset, setOffset] = useState(0);
   const startX = useRef<number | null>(null);
   const startOffset = useRef(0);
@@ -236,13 +247,13 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
         <div className="flex items-start justify-between gap-2">
           <Link to="/employee/leads/$leadId" params={{ leadId: l.id }} className="min-w-0 flex-1">
             <div className="truncate font-display text-base font-bold text-foreground">
-              {l.company}
+              {l.code || l.company}
             </div>
             <div className="truncate text-xs text-muted-foreground">
               {l.contact} · {l.industry || "—"}
             </div>
           </Link>
-          <StatusBadge status={l.status} label={t(l.status as any)} />
+          <StatusBadge status={l.status} label={stageLabel(l.status)} />
         </div>
 
         <div className="mt-3 grid grid-cols-3 gap-2">
@@ -300,11 +311,9 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
         </Link>
 
         {(() => {
-          const flow = settings.stages.filter((s) => !["won", "lost", "archived"].includes(s.key)).map((s) => s.key);
           const isWon = l.status === "won";
           const isLost = l.status === "lost";
-          const idx = flow.indexOf(l.status);
-          const pct = isWon || isLost ? 100 : idx >= 0 ? Math.round(((idx + 1) / flow.length) * 100) : 0;
+          const pct = getProbabilityForStatus(l.status) ?? 0;
           const barColor = isWon ? "bg-emerald-500" : isLost ? "bg-rose-500" : pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-sky-500";
           const textColor = isWon ? "text-emerald-600" : isLost ? "text-rose-600" : "text-muted-foreground";
           return (

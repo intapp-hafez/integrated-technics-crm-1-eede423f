@@ -411,7 +411,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
   };
 
   return (
-    <AppShell panel={panel} user={user} pageTitle={lead.company}>
+    <AppShell panel={panel} user={user} pageTitle={lead.code || lead.company}>
       <button
         onClick={() => router.history.back()}
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary"
@@ -428,7 +428,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3">
               <h2 className="font-display text-2xl font-extrabold text-foreground">
-                {lead.company}
+                {lead.code || lead.company}
               </h2>
               <StatusBadge status={lead.status} label={t(lead.status as any)} />
             </div>

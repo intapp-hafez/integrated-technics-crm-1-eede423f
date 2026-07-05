@@ -856,6 +856,20 @@ function pushNotificationInternal(
   set((s) => ({ ...s, notifications: [notif, ...s.notifications].slice(0, 100) }));
 }
 
+export function getProbabilityForStatus(status: string): number | undefined {
+  const s = status.toLowerCase();
+  if (s === "new") return 0;
+  if (s === "qualified") return 10;
+  if (s === "contacted") return 30;
+  if (s === "meeting_scheduled" || s === "meeting scheduled") return 50;
+  if (s === "proposal" || s === "proposal_sent" || s === "proposal sent") return 70;
+  if (s === "negotiation") return 85;
+  if (s === "won") return 100;
+  if (s === "lost") return 100;
+  if (s === "archived") return 0;
+  return undefined;
+}
+
 export const actions = {
   clearCelebration() {
     set((s) => ({ ...s, celebrationLead: null }));
@@ -867,9 +881,12 @@ export const actions = {
     set((s) => {
       from = s.leads.find((l) => l.id === leadId)?.status;
       company = s.leads.find((l) => l.id === leadId)?.company ?? "";
+      const prob = getProbabilityForStatus(to);
       const updatedLeads = s.leads.map((l) => {
         if (l.id === leadId) {
-          return { ...l, status: to, updatedAt: "just now" };
+          const updates: Partial<Lead> = { status: to, updatedAt: "just now" };
+          if (prob !== undefined) updates.probability = prob;
+          return { ...l, ...updates };
         }
         return l;
       });
@@ -889,7 +906,10 @@ export const actions = {
         action: `Moved to ${label(to)}`,
         details: `${label(from)} â†’ ${label(to)}`,
       });
-      sb.sbUpdateLead(leadId, { status: to });
+      const prob = getProbabilityForStatus(to);
+      const payload: any = { status: to };
+      if (prob !== undefined) payload.probability = prob;
+      sb.sbUpdateLead(leadId, payload);
       const lead = state.leads.find((l) => l.id === leadId);
       const ownerName = lead?.owner;
       pushNotificationInternal({
@@ -1549,10 +1569,12 @@ export const actions = {
   },
   // ---- Leads CRUD ----
   addLead(input: Omit<Lead, "id" | "updatedAt">, actor?: string) {
-    const lead: Lead = { ...input, id: id("L"), updatedAt: "just now" };
+    const defaultProb = getProbabilityForStatus(input.status);
+    const prob = input.probability !== undefined ? input.probability : defaultProb;
+    const lead: Lead = { ...input, probability: prob, id: id("L"), updatedAt: "just now" };
     set((s) => ({ ...s, leads: [lead, ...s.leads] }));
     logHistory({ module: "lead", actor, target: lead.company, action: "Lead created" });
-    sb.sbAddLead(lead.id, input);
+    sb.sbAddLead(lead.id, { ...input, probability: prob });
     if (lead.owner && lead.owner !== actor) {
       pushNotificationInternal({
         type: "lead",
@@ -1611,6 +1633,10 @@ export const actions = {
     });
   },
   updateLead(leadId: string, patch: Partial<Lead>, actor?: string) {
+    if (patch.status && patch.probability === undefined) {
+      const prob = getProbabilityForStatus(patch.status);
+      if (prob !== undefined) patch.probability = prob;
+    }
     let company = leadId;
     let prevStatus: LeadStatus | undefined;
     let updatedLead: Lead | undefined;

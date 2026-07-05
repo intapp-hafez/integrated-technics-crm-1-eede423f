@@ -4,6 +4,8 @@ const map: Record<string, string> = {
   contacted: "bg-blue-100 text-blue-700",
   qualified: "bg-violet-100 text-violet-700",
   proposal: "bg-amber-100 text-amber-700",
+  proposal_sent: "bg-amber-100 text-amber-700",
+  meeting_scheduled: "bg-fuchsia-100 text-fuchsia-700",
   negotiation: "bg-orange-100 text-orange-700",
   won: "bg-emerald-100 text-emerald-700",
   lost: "bg-rose-100 text-rose-700",

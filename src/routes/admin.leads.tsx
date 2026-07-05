@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
-import { actions, useStoreState, type LocationCity } from "@/lib/store";
+import { actions, useStoreState, getProbabilityForStatus, type LocationCity } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { useAuth } from "@/lib/auth";
 import { Plus, Filter, Download, Search, List, Map as MapIcon, Pencil, Trash2, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
@@ -510,7 +510,7 @@ function LeadsPage() {
                     >
                       <Link to="/admin/leads/$leadId" params={{ leadId: l.id }} className="font-mono text-xs text-muted-foreground hover:text-primary">{shortId(l.id)}</Link>
                       <Link to="/admin/leads/$leadId" params={{ leadId: l.id }} className="min-w-0">
-                        <span className="font-semibold text-foreground">{l.company}</span>
+                        <span className="font-semibold text-foreground">{l.code || l.company}</span>
                         <div className="text-xs text-muted-foreground">{l.industry}</div>
                       </Link>
                       <div className="min-w-0">
@@ -539,13 +539,11 @@ function LeadsPage() {
                       <div className="text-muted-foreground">{cityLabel(l.city)}</div>
                       <div className="text-muted-foreground">{l.source}</div>
                       <div>
-                        <StatusBadge status={l.status} label={t(l.status as any)} />
+                        <StatusBadge status={l.status} label={stageLabel(l.status)} />
                         {(() => {
-                          const flow = settings.stages.filter((s) => !["won", "lost", "archived"].includes(s.key)).map((s) => s.key);
                           const isWon = l.status === "won";
                           const isLost = l.status === "lost";
-                          const idx = flow.indexOf(l.status);
-                          const pct = isWon || isLost ? 100 : idx >= 0 ? Math.round(((idx + 1) / flow.length) * 100) : 0;
+                          const pct = getProbabilityForStatus(l.status) ?? 0;
                           const barColor = isWon ? "bg-emerald-500" : isLost ? "bg-rose-500" : pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-sky-500";
                           const textColor = isWon ? "text-emerald-600" : isLost ? "text-rose-600" : "text-muted-foreground";
                           return (

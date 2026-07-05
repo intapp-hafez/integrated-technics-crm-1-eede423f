@@ -56,6 +56,8 @@ export const en = {
   negotiation: "Negotiation",
   won: "Won",
   lost: "Lost",
+  proposal_sent: "Proposal Sent",
+  meeting_scheduled: "Meeting Scheduled",
   checkIn: "Check In",
   checkOut: "Check Out",
   workingHours: "Working Hours",

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
-import { useStoreState, type LeadStatus } from "@/lib/store";
+import { useStoreState, getProbabilityForStatus, type LeadStatus } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { MultiSelect } from "@/components/PipelineFilters";
 import { GripVertical, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
@@ -189,7 +189,7 @@ function PipelinePage() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="truncate font-semibold text-foreground">{l.company}</div>
+                        <div className="truncate font-semibold text-foreground">{l.code || l.company}</div>
                         <div className="truncate text-xs text-muted-foreground">{l.contact}</div>
                       </div>
                       <Link
@@ -213,19 +213,22 @@ function PipelinePage() {
                           .join("")}
                       </div>
                     </div>
-                    {l.probability !== undefined && (
-                      <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-[10px] text-muted-foreground">
-                        <span className="inline-flex items-center gap-1 font-semibold">
-                          <div
-                            className={`h-1.5 w-1.5 rounded-full ${l.probability >= 70 ? "bg-emerald-500" : l.probability >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
-                          />
-                          {l.probability}% {t("probability")}
-                        </span>
-                        {l.expectedCloseDate && (
-                          <span className="font-mono">{l.expectedCloseDate}</span>
-                        )}
-                      </div>
-                    )}
+                    {(() => {
+                      const prob = getProbabilityForStatus(l.status) ?? 0;
+                      return (
+                        <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-[10px] text-muted-foreground">
+                          <span className="inline-flex items-center gap-1 font-semibold">
+                            <div
+                              className={`h-1.5 w-1.5 rounded-full ${prob >= 70 ? "bg-emerald-500" : prob >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
+                            />
+                            {prob}% {t("probability")}
+                          </span>
+                          {l.expectedCloseDate && (
+                            <span className="font-mono">{l.expectedCloseDate}</span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 ))}
                 {stageLeads.length === 0 && (
