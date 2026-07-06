@@ -5,14 +5,46 @@ import { actions, useStoreState } from "@/lib/store";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
-export type ImportType = "projects" | "leads" | "activities";
+export type ImportType = "projects" | "accounts" | "leads" | "activities";
+
+function parseExcelDate(val: any): string | undefined {
+  if (!val) return undefined;
+  if (typeof val === "number") {
+    const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+    return d.toISOString().slice(0, 10);
+  }
+  return String(val);
+}
+
+function parseExcelTime(val: any): string | undefined {
+  if (val == null || val === "") return undefined;
+  if (typeof val === "number") {
+    const totalMins = Math.round(val * 24 * 60);
+    const h = Math.floor(totalMins / 60);
+    const m = totalMins % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  }
+  return String(val);
+}
+
+function parseEstMinutes(val: any): number {
+  if (val == null || val === "") return 30;
+  const num = Number(val);
+  if (isNaN(num)) return 30;
+  // If it's an Excel time fraction (e.g. 4:00 typed as time is 0.1666)
+  if (num > 0 && num <= 1) {
+    return Math.round(num * 24 * 60);
+  }
+  return num;
+}
 
 interface Props {
   type: ImportType;
   onClose: () => void;
+  ownerOverride?: string; // إذا مُرِّر، تُنسب السجلات لهذا الاسم بدلاً من المستخدم الحالي
 }
 
-export function ExcelImportModal({ type, onClose }: Props) {
+export function ExcelImportModal({ type, onClose, ownerOverride }: Props) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const [file, setFile] = useState<File | null>(null);
@@ -25,6 +57,7 @@ export function ExcelImportModal({ type, onClose }: Props) {
     let sampleRow: any = {};
 
     switch (type) {
+      case "accounts":
       case "projects":
         headers = [
           "Name",
@@ -127,9 +160,10 @@ export function ExcelImportModal({ type, onClose }: Props) {
       }
 
       let count = 0;
-      const myName = profile?.name && profile.name !== "—" ? profile.name : "Unassigned";
+      const myName = ownerOverride ?? (profile?.name && profile.name !== "—" ? profile.name : "Unassigned");
 
       switch (type) {
+        case "accounts":
         case "projects":
           for (const row of rows as any[]) {
             if (!row.Name || !row.Client) continue;
@@ -186,7 +220,7 @@ export function ExcelImportModal({ type, onClose }: Props) {
               city: row.City || "Cairo",
               street: row.Street,
               owner: myName,
-              expectedCloseDate: row.ExpectedCloseDate,
+              expectedCloseDate: parseExcelDate(row.ExpectedCloseDate),
             } as any);
             count++;
           }
@@ -197,9 +231,9 @@ export function ExcelImportModal({ type, onClose }: Props) {
             actions.addActivity({
               type: settings.activityTypes.includes(row.Type) ? row.Type : "Call",
               title: row.Title,
-              dueDate: row.DueDate || new Date().toISOString().slice(0, 10),
-              time: row.Time || "09:00",
-              estMinutes: Number(row.EstMinutes) || 30,
+              dueDate: parseExcelDate(row.DueDate) || new Date().toISOString().slice(0, 10),
+              time: parseExcelTime(row.Time) || "09:00",
+              estMinutes: parseEstMinutes(row.EstMinutes),
               notes: row.Notes,
               owner: myName,
             } as any);
@@ -231,7 +265,7 @@ export function ExcelImportModal({ type, onClose }: Props) {
           <div className="flex items-center gap-2 text-primary">
             <FileSpreadsheet className="h-5 w-5" />
             <h2 className="font-display text-lg font-bold text-foreground">
-              {t("importExcel")} - {t(type)}
+              {t("importExcel")} - {t(type === "accounts" ? "projects" : type as any)}
             </h2>
           </div>
           <button

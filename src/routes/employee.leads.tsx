@@ -102,13 +102,8 @@ function LeadsPage() {
           </span>
           <div className="flex gap-2">
             <button
-              disabled
-              title={
-                isAr
-                  ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم."
-                  : "We apologise — this option is currently not working. Thanks for your understanding."
-              }
-              className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-semibold opacity-40"
+              onClick={() => setShowImport(true)}
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-semibold hover:bg-accent transition-colors"
             >
               <Download className="h-3.5 w-3.5 rotate-180" /> {t("importExcel")}
             </button>

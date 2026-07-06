@@ -82,13 +82,8 @@ function ProjectsPage() {
         <p className="text-xs text-muted-foreground">{L.submitInfo}</p>
         <div className="flex gap-2">
           <button
-            disabled
-            title={
-              isAr
-                ? "نعتذر — هذا الخيار غير متاح حالياً. شكراً لتفهمكم."
-                : "We apologise — this option is currently not working. Thanks for your understanding."
-            }
-            className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground opacity-40"
+            onClick={() => setShowImport(true)}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
           >
             <Download className="h-3.5 w-3.5 rotate-180" /> {t("importExcel")}
           </button>

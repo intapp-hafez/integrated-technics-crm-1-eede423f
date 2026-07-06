@@ -23,7 +23,9 @@ import {
   ShieldCheck,
   ShieldOff,
   FolderGit2,
+  Download,
 } from "lucide-react";
+import { ExcelImportModal } from "@/components/ExcelImportModal";
 import { useEffect, useMemo, useState } from "react";
 import { TargetCountdown, TargetRefreshIndicator } from "@/components/TargetCountdown";
 import { computeTargetPeriod, fmtCairoDate, sumWonInPeriod } from "@/lib/targetPeriod";
@@ -97,9 +99,11 @@ function EmployeeDetailsPage() {
       .join("")
       .slice(0, 2) || "AD";
   const user = { name: meName, role: t("admin"), initials: meInitials, photo: mePhoto };
-  const [tab, setTab] = useState<"overview" | "attendance" | "leads" | "chat" | "accounts">(
+  const [tab, setTab] = useState<"overview" | "attendance" | "leads" | "activities" | "chat" | "accounts">(
     "overview",
   );
+  const [page, setPage] = useState(1);
+  const [showImport, setShowImport] = useState<"leads" | "activities" | "accounts" | null>(null);
   const [monthOffset, setMonthOffset] = useState(0);
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>({});
   useEffect(() => {
@@ -125,6 +129,33 @@ function EmployeeDetailsPage() {
     ? storeLeads.filter((l: any) => isLeadRelatedToEmployee(l, empIdentity))
     : [];
   const empProjects = emp ? filterMyProjects(projects as any, empIdentity as any) : [];
+
+  const ITEMS_PER_PAGE = 20;
+  const paginatedActivities = empActivities.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedLeads = empLeads.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedProjects = empProjects.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  const renderPagination = (total: number) => {
+    const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+    if (totalPages <= 1) return null;
+    return (
+      <div className="flex items-center justify-between border-t border-border mt-4 pt-4">
+        <div className="flex flex-1 items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing <span className="font-medium">{(page - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium">{Math.min(page * ITEMS_PER_PAGE, total)}</span> of <span className="font-medium">{total}</span> results
+          </p>
+          <div className="flex gap-2">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:pointer-events-none transition-colors">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:pointer-events-none transition-colors">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Real monthly attendance from Supabase, indexed per day for the visible month (Egypt / Africa/Cairo timezone)
   const monthlyAttendance = useMemo(() => {
@@ -219,7 +250,8 @@ function EmployeeDetailsPage() {
   const todayIso = cairoIsoDate();
   const todayMins = days.find((d) => d.date === todayIso)?.mins ?? 0;
   const weekMins = days.reduce((s, d) => s + d.mins, 0);
-  const fmtH = (mins: number) => {
+  const fmtH = (rawMins: number) => {
+    const mins = Math.round(rawMins);
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     return mins ? (h ? `${h}h ${m ? `${m}m` : ""}`.trim() : `${m}m`) : "0";
@@ -435,13 +467,17 @@ function EmployeeDetailsPage() {
             { k: "overview", label: t("overview"), Icon: ActivityIcon },
             { k: "attendance", label: t("attendance"), Icon: CalendarDays },
             { k: "leads", label: `${t("relatedLeads")} (${empLeads.length})`, Icon: Users2 },
-            { k: "accounts", label: `Related Accounts (${empProjects.length})`, Icon: FolderGit2 },
+            { k: "activities", label: `${t("activities")} (${empActivities.length})`, Icon: ActivityIcon },
+            { k: "accounts", label: `${t("relatedAccounts")} (${empProjects.length})`, Icon: FolderGit2 },
             { k: "chat", label: t("chat"), Icon: MessageCircle },
           ] as const
         ).map(({ k, label, Icon }) => (
           <button
             key={k}
-            onClick={() => setTab(k)}
+            onClick={() => {
+              setTab(k);
+              setPage(1);
+            }}
             className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${
               tab === k
                 ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]"
@@ -452,6 +488,78 @@ function EmployeeDetailsPage() {
           </button>
         ))}
       </div>
+
+      {tab === "activities" && (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ActivityIcon className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                {t("assignedActivities")}
+              </h3>
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                {empActivities.length}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowImport("activities")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
+            >
+              <Download className="h-3.5 w-3.5 rotate-180" />
+              {t("importExcel")}
+            </button>
+          </div>
+          {empActivities.length === 0 && (
+            <p className="text-sm text-muted-foreground">{t("noActivitiesOwned")}</p>
+          )}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-secondary/60">
+                <tr>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("type")}</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Title</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("dueDate")}</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Time & Est.</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("status")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {paginatedActivities.map((a) => (
+                  <tr key={a.id} className="hover:bg-primary/5">
+                    <td className="px-3 py-2">
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                        {a.type}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 font-semibold text-foreground">{a.title}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{a.dueDate}</td>
+                    <td className="px-3 py-2 text-muted-foreground">
+                      {a.time}
+                      {a.estMinutes ? ` · ${fmtH(a.estMinutes)}` : ""}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                          a.status === "done"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : a.status === "in_progress"
+                              ? "bg-sky-50 text-sky-700"
+                              : a.status === "cancelled"
+                                ? "bg-rose-50 text-rose-700"
+                                : "bg-secondary text-muted-foreground"
+                        }`}
+                      >
+                        {a.status.replace("_", " ")}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {renderPagination(empActivities.length)}
+        </div>
+      )}
 
       {tab === "chat" && (
         <RealChat
@@ -567,73 +675,131 @@ function EmployeeDetailsPage() {
 
       {tab === "leads" && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-          <div className="mb-4 flex items-center gap-2">
-            <Users2 className="h-4 w-4 text-primary" />
-            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-              {t("relatedLeads")}
-            </h3>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users2 className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                {t("relatedLeads")}
+              </h3>
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                {empLeads.length}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowImport("leads")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
+            >
+              <Download className="h-3.5 w-3.5 rotate-180" />
+              {t("importExcel")}
+            </button>
           </div>
           {empLeads.length === 0 && (
             <p className="text-sm text-muted-foreground">{t("noLeadsAssigned")}</p>
           )}
-          <div className="divide-y divide-border">
-            {empLeads.map((l) => (
-              <Link
-                key={l.id}
-                to="/admin/leads/$leadId"
-                params={{ leadId: l.id }}
-                className="flex items-center gap-3 py-3 hover:bg-primary/5"
-              >
-                <span className="font-mono text-xs text-muted-foreground w-20">
-                  {shortId(l.id)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-foreground">{l.company}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {l.contact} · {l.industry} · {l.city}
-                  </div>
-                </div>
-                <StatusBadge status={l.status} label={t(l.status as any)} />
-                <span className="ml-3 font-mono text-sm font-bold text-foreground">
-                  {fmtMoney(l.value)}
-                </span>
-              </Link>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-secondary/60">
+                <tr>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">ID</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("company")}</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("contact")}</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("status")}</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("value")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {paginatedLeads.map((l) => (
+                  <tr
+                    key={l.id}
+                    onClick={() => router.navigate({ to: "/admin/leads/$leadId", params: { leadId: l.id } })}
+                    className="hover:bg-primary/5 cursor-pointer transition-colors"
+                  >
+                    <td className="px-3 py-2 font-mono text-xs text-muted-foreground w-20">
+                      {shortId(l.id)}
+                    </td>
+                    <td className="px-3 py-2 font-semibold text-foreground">
+                      {l.company}
+                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">
+                      {l.contact} <span className="text-[10px] opacity-70">· {l.city}</span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <StatusBadge status={l.status} label={t(l.status as any)} />
+                    </td>
+                    <td className="px-3 py-2 font-mono text-sm font-bold text-foreground">
+                      {fmtMoney(l.value)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          {renderPagination(empLeads.length)}
         </div>
       )}
 
       {tab === "accounts" && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-          <div className="mb-4 flex items-center gap-2">
-            <FolderGit2 className="h-4 w-4 text-primary" />
-            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-              Related Accounts
-            </h3>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FolderGit2 className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                {t("relatedAccounts")}
+              </h3>
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                {empProjects.length}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowImport("accounts")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
+            >
+              <Download className="h-3.5 w-3.5 rotate-180" />
+              {t("importExcel")}
+            </button>
           </div>
           {empProjects.length === 0 && (
-            <p className="text-sm text-muted-foreground">No accounts assigned.</p>
+            <p className="text-sm text-muted-foreground">{t("noAccountsAssigned")}</p>
           )}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {empProjects.map((p: any) => (
-              <Link
-                key={p.id}
-                to="/admin/projects/$projectId"
-                params={{ projectId: p.id }}
-                className="block rounded-xl border border-border p-4 transition hover:border-primary hover:bg-primary/5"
-              >
-                <div className="flex justify-between items-start gap-2">
-                  <div className="font-semibold text-foreground">{p.name}</div>
-                  <StatusBadge status={p.status} label={p.status} />
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">{p.client}</div>
-                <div className="mt-3 flex justify-between items-center text-xs">
-                  <span className="font-mono text-muted-foreground">{shortId(p.id)}</span>
-                  <span className="font-mono font-bold text-foreground">{fmtMoney(p.budget)}</span>
-                </div>
-              </Link>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-secondary/60">
+                <tr>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">ID</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Name</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("client")}</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("status")}</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("budget")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {paginatedProjects.map((p: any) => (
+                  <tr
+                    key={p.id}
+                    onClick={() => router.navigate({ to: "/admin/projects/$projectId", params: { projectId: p.id } })}
+                    className="hover:bg-primary/5 cursor-pointer transition-colors"
+                  >
+                    <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+                      {shortId(p.id)}
+                    </td>
+                    <td className="px-3 py-2 font-semibold text-foreground">
+                      {p.name}
+                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">
+                      {p.client}
+                    </td>
+                    <td className="px-3 py-2">
+                      <StatusBadge status={p.status} label={p.status} />
+                    </td>
+                    <td className="px-3 py-2 font-mono text-sm font-bold text-foreground">
+                      {fmtMoney(p.budget)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          {renderPagination(empProjects.length)}
         </div>
       )}
 
@@ -938,6 +1104,13 @@ function EmployeeDetailsPage() {
             </ol>
           </div>
         </div>
+      )}
+      {showImport && (
+        <ExcelImportModal
+          type={showImport}
+          ownerOverride={emp.name}
+          onClose={() => setShowImport(null)}
+        />
       )}
     </AppShell>
   );

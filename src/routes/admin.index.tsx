@@ -655,7 +655,7 @@ function AdminDashboard() {
       </div>
 
       {/* Smart Insights */}
-      {insights.length > 0 && (
+      {false && insights.length > 0 && (
         <div className="mb-5 flex flex-col gap-2 animate-in slide-in-from-top-2 fade-in duration-500">
           {insights.map((insight: any) => {
             const Icon =
