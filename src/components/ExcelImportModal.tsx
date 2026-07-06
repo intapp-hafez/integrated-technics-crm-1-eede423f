@@ -41,10 +41,11 @@ function parseEstMinutes(val: any): number {
 interface Props {
   type: ImportType;
   onClose: () => void;
-  ownerOverride?: string; // إذا مُرِّر، تُنسب السجلات لهذا الاسم بدلاً من المستخدم الحالي
+  ownerOverride?: string; // display name override
+  ownerOverrideProfileId?: string; // profileId to attribute accounts/projects to
 }
 
-export function ExcelImportModal({ type, onClose, ownerOverride }: Props) {
+export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverrideProfileId }: Props) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const [file, setFile] = useState<File | null>(null);
@@ -193,13 +194,15 @@ export function ExcelImportModal({ type, onClose, ownerOverride }: Props) {
               street: row.Street,
               budget: 0,
               team: 1,
-              teamMembers: [],
+              teamMembers: myName && myName !== "Unassigned" ? [myName] : [],
+              memberProfileIds: ownerOverrideProfileId ? [ownerOverrideProfileId] : [],
               progress: 0,
               status: "On Track",
               offeredValue: 0,
               competitors: [],
               category: row.AccountType || "Other",
               lastUpdate: new Date().toISOString().slice(0, 10),
+              createdByName: myName !== "Unassigned" ? myName : undefined,
               ...(extraContacts.length > 0 ? { extraContacts } : {}),
             } as any);
             count++;

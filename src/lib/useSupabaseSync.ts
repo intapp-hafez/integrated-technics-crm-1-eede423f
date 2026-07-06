@@ -134,6 +134,7 @@ export function useSupabaseSync() {
       "leads",
       "activities",
       "projects",
+      "project_members",
       "history",
       "notifications",
     ];

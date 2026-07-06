@@ -1109,6 +1109,7 @@ function EmployeeDetailsPage() {
         <ExcelImportModal
           type={showImport}
           ownerOverride={emp.name}
+          ownerOverrideProfileId={emp.id}
           onClose={() => setShowImport(null)}
         />
       )}

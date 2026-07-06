@@ -215,13 +215,23 @@ export async function sbAddProject(id: string, p: Project) {
     client_phone: p.clientPhone || null,
   } as any);
   if (error) warn("Save project", error);
-  else if (p.teamMembers && p.teamMembers.length > 0) {
-    const inserts = p.teamMembers
-      .map((name) => profileByName.get(name))
-      .filter(Boolean)
-      .map((pid) => ({ project_id: id, profile_id: pid as string }));
-    if (inserts.length > 0) {
-      await supabase.from("project_members").insert(inserts);
+  else {
+    const insertsFromNames: { project_id: string; profile_id: string }[] = [];
+    if (p.teamMembers && p.teamMembers.length > 0) {
+      p.teamMembers
+        .map((name) => profileByName.get(name))
+        .filter(Boolean)
+        .forEach((pid) => insertsFromNames.push({ project_id: id, profile_id: pid as string }));
+    }
+    // Also insert explicitly provided profile IDs (e.g. from admin importing for a specific employee)
+    const extraIds = ((p as any).memberProfileIds as string[] | undefined) ?? [];
+    extraIds.filter(isUuid).forEach((pid) => {
+      if (!insertsFromNames.some((r) => r.profile_id === pid)) {
+        insertsFromNames.push({ project_id: id, profile_id: pid });
+      }
+    });
+    if (insertsFromNames.length > 0) {
+      await supabase.from("project_members").insert(insertsFromNames);
     }
   }
 }
