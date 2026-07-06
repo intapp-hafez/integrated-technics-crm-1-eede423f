@@ -187,26 +187,51 @@ export function ExcelImportModal({ type, onClose, ownerOverride }: Props) {
                 phone: String(row.Contact3Phone || ""),
                 email: String(row.Contact3Email || ""),
               });
-            actions.addProject({
-              name: row.Name,
-              client: row.Client,
-              clientEmail: row.ClientEmail,
-              clientPhone: String(row.ClientPhone || ""),
-              city: row.City,
-              district: row.District,
-              street: row.Street,
-              budget: 0,
-              team: 1,
-              teamMembers: [],
-              progress: 0,
-              status: "On Track",
-              offeredValue: 0,
-              competitors: [],
-              category: row.AccountType || "Other",
-              lastUpdate: new Date().toISOString().slice(0, 10),
-              ...(extraContacts.length > 0 ? { extraContacts } : {}),
-            } as any);
-            count++;
+            if (canWriteProjects) {
+              actions.addProject({
+                name: row.Name,
+                client: row.Client,
+                clientEmail: row.ClientEmail,
+                clientPhone: String(row.ClientPhone || ""),
+                city: row.City,
+                district: row.District,
+                street: row.Street,
+                budget: 0,
+                team: 1,
+                teamMembers: [],
+                progress: 0,
+                status: "On Track",
+                offeredValue: 0,
+                competitors: [],
+                category: row.AccountType || "Other",
+                lastUpdate: new Date().toISOString().slice(0, 10),
+                ...(extraContacts.length > 0 ? { extraContacts } : {}),
+              } as any);
+              count++;
+            } else {
+              // Employees: submit as project_requests for manager/admin approval
+              if (!profile?.profileId) continue;
+              const { error } = await supabase.from("project_requests").insert({
+                requested_by: profile.profileId,
+                name_en: row.Name,
+                client_name_en: row.Client,
+                contact_name_en: row.Client,
+                email: row.ClientEmail || null,
+                phone: String(row.ClientPhone || "") || null,
+                city_en: row.City || null,
+                district_en: row.District || null,
+                street_en: row.Street || null,
+                budget: 0,
+                competitors: [],
+                account_type: row.AccountType || null,
+                extra_contacts: extraContacts.length > 0 ? JSON.stringify(extraContacts) : null,
+              } as any);
+              if (error) {
+                toast.error(error.message);
+                continue;
+              }
+              count++;
+            }
           }
           break;
         case "leads":
