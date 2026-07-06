@@ -53,6 +53,8 @@ export function ExcelImportModal({ type, onClose, ownerOverride }: Props) {
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { settings, profile } = useStoreState();
+  const { isAdmin, isManager } = useAuth();
+  const canWriteProjects = isAdmin || isManager;
 
   const handleDownloadTemplate = () => {
     let headers: string[] = [];
