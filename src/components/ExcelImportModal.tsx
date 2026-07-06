@@ -2,6 +2,8 @@ import { useState, useRef } from "react";
 import { X, Upload, Download, FileSpreadsheet, CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
@@ -52,6 +54,8 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { settings, profile } = useStoreState();
+  const { isAdmin, isManager } = useAuth();
+  const canWriteProjects = isAdmin || isManager;
 
   const handleDownloadTemplate = () => {
     let headers: string[] = [];
@@ -184,28 +188,58 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
                 phone: String(row.Contact3Phone || ""),
                 email: String(row.Contact3Email || ""),
               });
-            actions.addProject({
-              name: row.Name,
-              client: row.Client,
-              clientEmail: row.ClientEmail,
-              clientPhone: String(row.ClientPhone || ""),
-              city: row.City,
-              district: row.District,
-              street: row.Street,
-              budget: 0,
-              team: 1,
-              teamMembers: myName && myName !== "Unassigned" ? [myName] : [],
-              memberProfileIds: ownerOverrideProfileId ? [ownerOverrideProfileId] : [],
-              progress: 0,
-              status: "On Track",
-              offeredValue: 0,
-              competitors: [],
-              category: row.AccountType || "Other",
-              lastUpdate: new Date().toISOString().slice(0, 10),
-              createdByName: myName !== "Unassigned" ? myName : undefined,
-              ...(extraContacts.length > 0 ? { extraContacts } : {}),
-            } as any);
-            count++;
+            if (canWriteProjects) {
+              actions.addProject({
+                name: row.Name,
+                client: row.Client,
+                clientEmail: row.ClientEmail,
+                clientPhone: String(row.ClientPhone || ""),
+                city: row.City,
+                district: row.District,
+                street: row.Street,
+                budget: 0,
+                team: 1,
+                teamMembers: myName && myName !== "Unassigned" ? [myName] : [],
+                memberProfileIds: ownerOverrideProfileId ? [ownerOverrideProfileId] : [],
+                progress: 0,
+                status: "On Track",
+                offeredValue: 0,
+                competitors: [],
+                category: row.AccountType || "Other",
+                lastUpdate: new Date().toISOString().slice(0, 10),
+                createdByName: myName !== "Unassigned" ? myName : undefined,
+                ...(extraContacts.length > 0 ? { extraContacts } : {}),
+              } as any);
+              count++;
+            } else {
+              const requesterProfileId = ownerOverrideProfileId || profile?.profileId;
+              if (!requesterProfileId) {
+                toast.error(isAr ? "لم يتم تحميل الملف الشخصي" : "Profile not loaded");
+                continue;
+              }
+              const { error } = await supabase.from("project_requests").insert({
+                requested_by: requesterProfileId,
+                name_en: String(row.Name),
+                client_name_en: String(row.Client),
+                contact_name_en: String(row.Contact || row.ContactName || row.Client),
+                email: String(row.ClientEmail || ""),
+                phone: String(row.ClientPhone || ""),
+                city_en: row.City ? String(row.City) : null,
+                district_en: row.District ? String(row.District) : null,
+                street_en: row.Street ? String(row.Street) : null,
+                account_type: row.AccountType ? String(row.AccountType) : null,
+                category_en: row.AccountType ? String(row.AccountType) : null,
+                budget: 0,
+                offered_value: 0,
+                competitors: [],
+                extra_contacts: extraContacts.length > 0 ? extraContacts : null,
+              } as any);
+              if (error) {
+                toast.error(error.message);
+                continue;
+              }
+              count++;
+            }
           }
           break;
         case "leads":
