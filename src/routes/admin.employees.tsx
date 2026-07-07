@@ -455,13 +455,19 @@ function EmployeesPage() {
                 </div>
 
                 {/* Stats row */}
-                <div className="grid grid-cols-3 divide-x divide-border border-t border-border text-center">
+                <div className="grid grid-cols-4 divide-x divide-border border-t border-border text-center">
                   <div className="py-3">
                     <div className="font-mono text-lg font-bold text-foreground">
                       {myLeads.length}
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       {t("leads")}
+                    </div>
+                  </div>
+                  <div className="py-3">
+                    <div className="font-mono text-lg font-bold text-sky-600">{accounts}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {dir === "rtl" ? "حسابات" : "Accounts"}
                     </div>
                   </div>
                   <div className="py-3">
