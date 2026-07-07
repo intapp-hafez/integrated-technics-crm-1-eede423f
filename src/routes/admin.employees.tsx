@@ -414,6 +414,9 @@ function EmployeesPage() {
           {sorted.map((e) => {
             const myLeads = leads.filter((l) => l.owner === e.name);
             const won = myLeads.filter((l) => l.status === "won").length;
+            const accounts = new Set(
+              myLeads.map((l) => (l.company || "").trim().toLowerCase()).filter(Boolean),
+            ).size;
             return (
               <Link
                 key={e.id}
