@@ -80,6 +80,7 @@ import { Route as AdminNotificationsSettingsRouteImport } from './routes/admin.n
 import { Route as AdminManagersManagerIdRouteImport } from './routes/admin.managers.$managerId'
 import { Route as AdminLeadsLeadIdRouteImport } from './routes/admin.leads.$leadId'
 import { Route as AdminEmployeesEmployeeIdRouteImport } from './routes/admin.employees.$employeeId'
+import { Route as AdminEmployeeAccountsEmployeeIdRouteImport } from './routes/admin.employee-accounts.$employeeId'
 import { Route as AdminActivitiesActivityIdRouteImport } from './routes/admin.activities.$activityId'
 
 const ManagerRoute = ManagerRouteImport.update({
@@ -448,6 +449,12 @@ const AdminEmployeesEmployeeIdRoute =
     path: '/$employeeId',
     getParentRoute: () => AdminEmployeesRoute,
   } as any)
+const AdminEmployeeAccountsEmployeeIdRoute =
+  AdminEmployeeAccountsEmployeeIdRouteImport.update({
+    id: '/employee-accounts/$employeeId',
+    path: '/employee-accounts/$employeeId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminActivitiesActivityIdRoute =
   AdminActivitiesActivityIdRouteImport.update({
     id: '/$activityId',
@@ -509,6 +516,7 @@ export interface FileRoutesByFullPath {
   '/finance/': typeof FinanceIndexRoute
   '/manager/': typeof ManagerIndexRoute
   '/admin/activities/$activityId': typeof AdminActivitiesActivityIdRoute
+  '/admin/employee-accounts/$employeeId': typeof AdminEmployeeAccountsEmployeeIdRoute
   '/admin/employees/$employeeId': typeof AdminEmployeesEmployeeIdRoute
   '/admin/leads/$leadId': typeof AdminLeadsLeadIdRoute
   '/admin/managers/$managerId': typeof AdminManagersManagerIdRoute
@@ -579,6 +587,7 @@ export interface FileRoutesByTo {
   '/finance': typeof FinanceIndexRoute
   '/manager': typeof ManagerIndexRoute
   '/admin/activities/$activityId': typeof AdminActivitiesActivityIdRoute
+  '/admin/employee-accounts/$employeeId': typeof AdminEmployeeAccountsEmployeeIdRoute
   '/admin/employees/$employeeId': typeof AdminEmployeesEmployeeIdRoute
   '/admin/leads/$leadId': typeof AdminLeadsLeadIdRoute
   '/admin/managers/$managerId': typeof AdminManagersManagerIdRoute
@@ -654,6 +663,7 @@ export interface FileRoutesById {
   '/finance/': typeof FinanceIndexRoute
   '/manager/': typeof ManagerIndexRoute
   '/admin/activities/$activityId': typeof AdminActivitiesActivityIdRoute
+  '/admin/employee-accounts/$employeeId': typeof AdminEmployeeAccountsEmployeeIdRoute
   '/admin/employees/$employeeId': typeof AdminEmployeesEmployeeIdRoute
   '/admin/leads/$leadId': typeof AdminLeadsLeadIdRoute
   '/admin/managers/$managerId': typeof AdminManagersManagerIdRoute
@@ -730,6 +740,7 @@ export interface FileRouteTypes {
     | '/finance/'
     | '/manager/'
     | '/admin/activities/$activityId'
+    | '/admin/employee-accounts/$employeeId'
     | '/admin/employees/$employeeId'
     | '/admin/leads/$leadId'
     | '/admin/managers/$managerId'
@@ -800,6 +811,7 @@ export interface FileRouteTypes {
     | '/finance'
     | '/manager'
     | '/admin/activities/$activityId'
+    | '/admin/employee-accounts/$employeeId'
     | '/admin/employees/$employeeId'
     | '/admin/leads/$leadId'
     | '/admin/managers/$managerId'
@@ -874,6 +886,7 @@ export interface FileRouteTypes {
     | '/finance/'
     | '/manager/'
     | '/admin/activities/$activityId'
+    | '/admin/employee-accounts/$employeeId'
     | '/admin/employees/$employeeId'
     | '/admin/leads/$leadId'
     | '/admin/managers/$managerId'
@@ -1402,6 +1415,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEmployeesEmployeeIdRouteImport
       parentRoute: typeof AdminEmployeesRoute
     }
+    '/admin/employee-accounts/$employeeId': {
+      id: '/admin/employee-accounts/$employeeId'
+      path: '/employee-accounts/$employeeId'
+      fullPath: '/admin/employee-accounts/$employeeId'
+      preLoaderRoute: typeof AdminEmployeeAccountsEmployeeIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/activities/$activityId': {
       id: '/admin/activities/$activityId'
       path: '/$activityId'
@@ -1515,6 +1535,7 @@ interface AdminRouteChildren {
   AdminTodoRoute: typeof AdminTodoRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminEmployeeAccountsEmployeeIdRoute: typeof AdminEmployeeAccountsEmployeeIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1537,6 +1558,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminTodoRoute: AdminTodoRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminEmployeeAccountsEmployeeIdRoute: AdminEmployeeAccountsEmployeeIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
