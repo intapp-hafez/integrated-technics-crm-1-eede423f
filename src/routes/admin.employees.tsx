@@ -82,6 +82,7 @@ function AvatarSm({ initials, photo, name }: { initials: string; photo?: string;
 
 function EmployeesPage() {
   const { t, dir } = useI18n();
+  const navigate = useNavigate();
   const { activities, leads, employees } = useStoreState();
   const isDetailRoute = useRouterState({
     select: (state) => state.location.pathname.startsWith("/admin/employees/"),
@@ -100,6 +101,45 @@ function EmployeesPage() {
 
   const depts = ["all", ...Array.from(new Set(employees.map((e) => e.department)))];
   const roles = Array.from(new Set(employees.map((e) => e.role).filter(Boolean)));
+
+  // Precompute per-owner stats in a single O(leads) pass to avoid the
+  // per-card N+1 filter/Set scans that ran on every render.
+  const leadStatsByOwner = useMemo(() => {
+    const map = new Map<
+      string,
+      { leads: number; won: number; accounts: Set<string>; wonAccounts: Set<string> }
+    >();
+    for (const l of leads) {
+      const owner = (l.owner || "").toLowerCase();
+      if (!owner) continue;
+      let s = map.get(owner);
+      if (!s) {
+        s = { leads: 0, won: 0, accounts: new Set(), wonAccounts: new Set() };
+        map.set(owner, s);
+      }
+      s.leads += 1;
+      const acct = (l.company || "").trim().toLowerCase();
+      if (acct) s.accounts.add(acct);
+      if (l.status === "won") {
+        s.won += 1;
+        if (acct) s.wonAccounts.add(acct);
+      }
+    }
+    return map;
+  }, [leads]);
+
+  const getStats = (name: string) => {
+    const s = leadStatsByOwner.get((name || "").toLowerCase());
+    const accounts = s?.accounts.size ?? 0;
+    const wonAccounts = s?.wonAccounts.size ?? 0;
+    return {
+      leads: s?.leads ?? 0,
+      won: s?.won ?? 0,
+      accounts,
+      wonAccounts,
+      accountWinRate: accounts ? Math.round((wonAccounts / accounts) * 100) : 0,
+    };
+  };
 
   const hoursToday = (name: string) => {
     const mins = activities
