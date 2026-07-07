@@ -84,7 +84,7 @@ function fmtTime(iso: string) {
 }
 
 export function LeadDetailsPage({ leadId }: { leadId: string }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const { role } = useRole();
   const panel = role;
@@ -418,6 +418,27 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
       >
         <ArrowLeft className="h-4 w-4" /> {t("backToLeads")}
       </button>
+
+      {/* Admin Review Banner */}
+      {lead.status === "won" && (leadActivities.length === 0 || leadNotes.length === 0 || stageHistory.length === 0 || leadFiles.length === 0) && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-red-800">
+                {lang === "ar" ? "مطلوب مراجعة إدارية" : "Administration Review Required"}
+              </h3>
+              <p className="mt-1 text-sm text-red-700">
+                {lang === "ar" 
+                  ? "تم تحديد هذه الفرصة كـ \"فائزة\"، ولكن المستندات الداعمة المطلوبة غير مكتملة. واحد أو أكثر من السجلات الإلزامية (الأنشطة، الملاحظات، سجل مراحل مسار المبيعات، أو المرفقات) مفقودة. لذا يرجى المراجعة قبل أن يتم اعتبارها متوافقة بالكامل مع الإجراء الرسمي."
+                  : "This lead has been marked as Won, but the required supporting documentation is incomplete. One or more mandatory records (Activities, Notes, Pipeline Stage History, or Attachments) are missing. So kindly review before it can be considered fully compliant with the official process."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Header card */}
       <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">

@@ -22,8 +22,10 @@ import {
   MessageCircle,
   ShieldCheck,
   ShieldOff,
+  FolderGit2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { isProjectMemberOf } from "@/lib/employeeProjects";
 import { TargetCountdown, TargetRefreshIndicator } from "@/components/TargetCountdown";
 import { computeTargetPeriod, fmtCairoDate, sumWonInPeriod } from "@/lib/targetPeriod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -81,6 +83,7 @@ function ManagerDetailsPage() {
     leads: storeLeads,
     attendance: storeAttendance,
     settings,
+    projects,
   } = useStoreState();
   const workdayHours = settings.workdayHours ?? 8;
   // Managers live in `users` (auth role), not always in `employees` (which filters by role).
@@ -126,7 +129,8 @@ function ManagerDetailsPage() {
       .join("")
       .slice(0, 2) || "AD";
   const user = { name: meName, role: t("admin"), initials: meInitials, photo: mePhoto };
-  const [tab, setTab] = useState<"overview" | "attendance" | "leads" | "chat" | "team">("overview");
+  const [tab, setTab] = useState<"overview" | "attendance" | "leads" | "chat" | "team" | "accounts">("overview");
+  const [accountOwnerFilter, setAccountOwnerFilter] = useState("all");
   const [monthOffset, setMonthOffset] = useState(0);
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>({});
   useEffect(() => {
@@ -152,11 +156,58 @@ function ManagerDetailsPage() {
     ? storeLeads.filter((l: any) => isLeadRelatedToEmployee(l, empIdentity))
     : [];
 
-  const teamMembers = emp
-    ? (employees as any[]).filter(
-        (e) => e.managerId === emp.id || e.managerId === (emp as any)?.profileId,
-      )
+  const empUserId = (emp as any)?.userId as string | undefined;
+  const empProfileId = (emp as any)?.profileId as string | undefined;
+  
+  const teamMembersRaw = emp
+    ? (users as any[]).filter((u) => {
+        if (!u.managerId) return false;
+        return (
+          u.managerId === emp.id ||
+          (empProfileId && u.managerId === empProfileId) ||
+          (empUserId && u.managerId === empUserId)
+        );
+      })
     : [];
+
+  const teamMembers = teamMembersRaw.map((u) => {
+    const existingEmp = employees.find((e) => e.id === u.profileId || e.id === u.id);
+    if (existingEmp) return existingEmp;
+    return {
+      id: u.profileId || u.id,
+      name: u.name,
+      role: u.titleEn || u.role,
+      department: u.departmentEn || "",
+      perf: 0,
+      photo: u.avatarUrl,
+      avatar: (u.name || "?").split(" ").map((w: string)=>w[0]).join("").slice(0,2).toUpperCase(),
+    };
+  });
+
+  const empProjects = emp
+    ? (projects as any[]).filter((p) => {
+        // Direct assignment match
+        if (isProjectMemberOf(p, empIdentity)) return true;
+        if (p.managerId === emp.id || p.managerId === empProfileId || p.managerId === empUserId) return true;
+        
+        // Team member matches
+        for (const tm of teamMembersRaw) {
+          if (isProjectMemberOf(p, { profileId: tm.profileId || tm.id, userId: tm.id, name: tm.name })) return true;
+          if (p.managerId === tm.id || (tm.profileId && p.managerId === tm.profileId)) return true;
+        }
+        return false;
+      })
+    : [];
+
+  const uniqueAccountOwners = useMemo(() => {
+    const set = new Set(empProjects.map(p => p.createdByName || "Unknown"));
+    return Array.from(set).sort();
+  }, [empProjects]);
+
+  const displayedAccounts = useMemo(() => {
+    if (accountOwnerFilter === "all") return empProjects;
+    return empProjects.filter(p => (p.createdByName || "Unknown") === accountOwnerFilter);
+  }, [empProjects, accountOwnerFilter]);
 
   // Real monthly attendance from Supabase, indexed per day for the visible month (Egypt / Africa/Cairo timezone)
   const monthlyAttendance = useMemo(() => {
@@ -269,7 +320,6 @@ function ManagerDetailsPage() {
   const activityScore = totalActs > 0 ? (completedActs / totalActs) * 100 : 80;
 
   // ---- Real-time target & period-aware achievement (unified with employee panel) ----
-  const empUserId = (emp as any)?.userId as string | undefined;
   const targetQuery = useQuery({
     enabled: !!empUserId,
     queryKey: ["admin-emp-target", empUserId],
@@ -467,6 +517,7 @@ function ManagerDetailsPage() {
             { k: "overview", label: t("overview"), Icon: ActivityIcon },
             { k: "attendance", label: t("attendance"), Icon: CalendarDays },
             { k: "leads", label: `${t("relatedLeads")} (${empLeads.length})`, Icon: Users2 },
+            { k: "accounts", label: `Accounts (${empProjects.length})`, Icon: FolderGit2 },
             {
               k: "team",
               label: `${t("teamMembers") ?? "Team"} (${teamMembers.length})`,
@@ -632,6 +683,76 @@ function ManagerDetailsPage() {
                 <StatusBadge status={l.status} label={t(l.status as any)} />
                 <span className="ml-3 font-mono text-sm font-bold text-foreground">
                   {fmtMoney(l.value)}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === "accounts" && (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <FolderGit2 className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                Accounts ({displayedAccounts.length})
+              </h3>
+            </div>
+            {uniqueAccountOwners.length > 0 && (
+              <select
+                className="h-8 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={accountOwnerFilter}
+                onChange={(e) => setAccountOwnerFilter(e.target.value)}
+              >
+                <option value="all">All Owners</option>
+                {uniqueAccountOwners.map((owner) => (
+                  <option key={owner} value={owner}>
+                    {owner}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+          {displayedAccounts.length === 0 && (
+            <p className="text-sm text-muted-foreground">No related accounts found for this filter.</p>
+          )}
+          <div className="divide-y divide-border">
+            {displayedAccounts.map((p) => (
+              <Link
+                key={p.id}
+                to="/admin/projects/$projectId"
+                params={{ projectId: p.id }}
+                className="flex items-center gap-3 py-3 hover:bg-primary/5"
+              >
+                <span className="font-mono text-xs text-muted-foreground w-20">
+                  {shortId(p.id)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold text-foreground">{p.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {p.client} {p.category ? `· ${p.category}` : ""}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">
+                    Owner: <span className="font-medium text-foreground">{p.createdByName || "Unknown"}</span>
+                  </div>
+                </div>
+                <div className="text-[11px] text-right mr-4 text-muted-foreground space-y-0.5 hidden sm:block">
+                  {p.clientPhone && (
+                    <div className="flex items-center justify-end gap-1 hover:text-foreground">
+                      <span className="font-mono">{p.clientPhone}</span>
+                      <Phone className="h-3 w-3" />
+                    </div>
+                  )}
+                  {p.clientEmail && (
+                    <div className="flex items-center justify-end gap-1 hover:text-foreground">
+                      <span className="font-mono">{p.clientEmail}</span>
+                      <Mail className="h-3 w-3" />
+                    </div>
+                  )}
+                </div>
+                <span className="ml-3 font-mono text-sm font-bold text-foreground">
+                  {fmtMoney(p.budget || p.offeredValue || 0)}
                 </span>
               </Link>
             ))}

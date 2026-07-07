@@ -13,6 +13,11 @@ export function isProjectMemberOf(
   const pid = me.profileId;
   const uid = me.userId;
   const name = (me.name ?? "").trim().toLowerCase();
+  
+  if (pid && p.managerId === pid) return true;
+  if (uid && p.managerId === uid) return true;
+  if (name && p.createdByName?.trim().toLowerCase() === name) return true;
+  
   if (pid && (p.memberProfileIds ?? []).includes(pid)) return true;
   if (uid && (p.memberUserIds ?? []).includes(uid)) return true;
   if (name && (p.teamMembers ?? []).some((n) => n.trim().toLowerCase() === name)) return true;

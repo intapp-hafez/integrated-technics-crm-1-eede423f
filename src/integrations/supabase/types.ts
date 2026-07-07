@@ -1220,6 +1220,7 @@ export type Database = {
           street_ar: string | null
           street_en: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           account_type?: string | null
@@ -1260,6 +1261,7 @@ export type Database = {
           street_ar?: string | null
           street_en?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           account_type?: string | null
@@ -1300,6 +1302,7 @@ export type Database = {
           street_ar?: string | null
           street_en?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: [
           {
@@ -1381,6 +1384,7 @@ export type Database = {
           street_ar: string | null
           street_en: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           account_type?: string | null
@@ -1416,6 +1420,7 @@ export type Database = {
           street_ar?: string | null
           street_en?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           account_type?: string | null
@@ -1451,6 +1456,7 @@ export type Database = {
           street_ar?: string | null
           street_en?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: [
           {

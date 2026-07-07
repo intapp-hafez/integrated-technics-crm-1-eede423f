@@ -24,6 +24,8 @@ import {
   Pencil,
   Trash2,
   Download,
+  Table as TableIcon,
+  LayoutGrid,
 } from "lucide-react";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -54,10 +56,12 @@ function MyActivitiesPage() {
   const OWNER = profile?.name && profile.name !== "—" ? profile.name : (me?.name ?? "");
   const PROFILE_ID = me?.profileId;
   const [bucket, setBucket] = useState<Bucket>("today");
-  const [view, setView] = useState<"list" | "calendar">("list");
+  const [view, setView] = useState<"table" | "grid" | "calendar">("table");
   const [editId, setEditId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const [page, setPage] = useState(1);
   const { confirm, ConfirmDialog } = useConfirm();
+  const ITEMS_PER_PAGE = 20;
 
   const BUCKET_LABELS: Record<Bucket, string> = {
     past: t("today") === "اليوم" ? "الماضي" : "past",
@@ -94,6 +98,17 @@ function MyActivitiesPage() {
       })
       .sort((a, b) => (a.dueDate + a.time).localeCompare(b.dueDate + b.time));
   }, [mine, bucket, today]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [bucket, view]);
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(start, start + ITEMS_PER_PAGE);
+  }, [filtered, page]);
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
 
   const todayMins = mine
     .filter((a) => a.dueDate === today)
@@ -140,11 +155,18 @@ function MyActivitiesPage() {
         <div className="mt-5 flex items-center gap-1.5 overflow-x-auto pb-1">
           <div className="flex items-center gap-1 rounded-full bg-card p-0.5 ring-1 ring-border">
             <button
-              onClick={() => setView("list")}
-              aria-label="List view"
-              className={`flex h-7 w-7 items-center justify-center rounded-full ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+              onClick={() => setView("table")}
+              aria-label="Table view"
+              className={`flex h-7 w-7 items-center justify-center rounded-full transition ${view === "table" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
             >
-              <List className="h-3.5 w-3.5" />
+              <TableIcon className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setView("grid")}
+              aria-label="Grid view"
+              className={`flex h-7 w-7 items-center justify-center rounded-full transition ${view === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => setView("calendar")}
@@ -160,11 +182,10 @@ function MyActivitiesPage() {
               <button
                 key={b}
                 onClick={() => setBucket(b)}
-                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold capitalize ring-1 transition ${
-                  active
+                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold capitalize ring-1 transition ${active
                     ? "bg-primary text-primary-foreground ring-primary shadow-[var(--shadow-brand)]"
                     : "bg-card text-foreground ring-border hover:bg-accent"
-                }`}
+                  }`}
               >
                 {BUCKET_LABELS[b]}
               </button>
@@ -180,7 +201,7 @@ function MyActivitiesPage() {
           </div>
         </div>
 
-        {view === "list" && <NewQuickActivity owner={OWNER} />}
+        {(view === "table" || view === "grid") && <NewQuickActivity owner={OWNER} />}
 
         {view === "calendar" && (
           <CalendarView
@@ -191,10 +212,109 @@ function MyActivitiesPage() {
           />
         )}
 
-        {/* Task list */}
-        {view === "list" && (
+        {/* Table View */}
+        {view === "table" && (
+          <div className="mt-3 overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[800px] text-sm">
+                <thead className="bg-secondary/60">
+                  <tr className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <th className="px-4 py-3 text-start">{t("title")}</th>
+                    <th className="px-4 py-3 text-start">Lead / Account</th>
+                    <th className="px-4 py-3 text-start">{t("type")}</th>
+                    <th className="px-4 py-3 text-start">{t("date")} / {t("time")}</th>
+                    <th className="px-4 py-3 text-start">Duration</th>
+                    <th className="px-4 py-3 text-start">{t("status")}</th>
+                    <th className="px-4 py-3 text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {paginated.map((a) => {
+                    const Icon = ICONS[a.type] ?? Bookmark;
+                    const done = a.status === "done";
+                    const lead = leads.find((l) => l.id === a.leadId);
+                    if (editId === a.id) {
+                      return (
+                        <tr key={a.id}>
+                          <td colSpan={7} className="p-0">
+                            <EditActivityCard activity={a} onClose={() => setEditId(null)} />
+                          </td>
+                        </tr>
+                      );
+                    }
+                    return (
+                      <tr key={a.id} className="hover:bg-primary/5 transition-colors group cursor-pointer" onClick={() => navigate({ to: "/employee/activities/$activityId", params: { activityId: a.id } })}>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${done ? "bg-emerald-50 text-emerald-600" : "bg-primary/10 text-primary"}`}>
+                              <Icon className="h-3.5 w-3.5" />
+                            </div>
+                            <span className={`font-semibold ${done ? "text-foreground" : "text-foreground"}`}>{a.title}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {lead ? lead.company : a.projectId ? `Project: ${a.projectId.slice(0, 8)}` : "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            {a.type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-xs font-medium text-foreground">
+                            {a.dueDate === today ? <span className="text-primary font-bold">{t("today").toUpperCase()}</span> : a.dueDate}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground">{a.time}</div>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground">
+                          {a.estMinutes ? fmtH(a.estMinutes) : "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          {done ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                              Attended <Check className="h-3 w-3" />
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600">
+                              Pending
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-end">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {!done && (
+                              <button onClick={(e) => { e.stopPropagation(); actions.setActivityStatus(a.id, "done"); }} className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:border-primary hover:text-primary transition" title="Mark Done">
+                                <Check className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                            <button onClick={(e) => { e.stopPropagation(); setEditId(a.id); }} className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-primary transition">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={async (e) => { e.stopPropagation(); if (await confirm({ message: `${t("confirmDelete")} "${a.title}"` })) actions.removeActivity(a.id); }} className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-rose-50 hover:text-rose-600 transition">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {paginated.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                        {t("nothingHere")}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Task grid */}
+        {view === "grid" && (
           <div className="mt-3 space-y-2.5 md:grid md:grid-cols-2 md:gap-2.5 md:space-y-0 xl:grid-cols-3">
-            {filtered.map((a) => {
+            {paginated.map((a) => {
               const Icon = ICONS[a.type] ?? Bookmark;
               const lead = leads.find((l) => l.id === a.leadId);
               const done = a.status === "done";
@@ -210,9 +330,8 @@ function MyActivitiesPage() {
                       params: { activityId: a.id },
                     })
                   }
-                  className={`group flex items-center gap-3 rounded-2xl border bg-card p-3.5 shadow-[var(--shadow-soft)] transition cursor-pointer ${
-                    done ? "border-emerald-200" : "border-border hover:border-primary/40"
-                  }`}
+                  className={`group flex items-center gap-3 rounded-2xl border bg-card p-3.5 shadow-[var(--shadow-soft)] transition cursor-pointer ${done ? "border-emerald-200" : "border-border hover:border-primary/40"
+                    }`}
                 >
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-xl ${done ? "bg-emerald-50 text-emerald-600" : "bg-primary/10 text-primary"}`}
@@ -303,11 +422,48 @@ function MyActivitiesPage() {
                 </div>
               );
             })}
-            {filtered.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
+            {paginated.length === 0 && (
+              <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground col-span-full">
                 {t("nothingHere")}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {(view === "table" || view === "grid") && totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+            <p className="text-sm text-muted-foreground">
+              Showing {(page - 1) * ITEMS_PER_PAGE + 1} to {Math.min(page * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} entries
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50 transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`flex h-8 w-8 items-center justify-center rounded-md border text-xs font-medium transition-colors ${p === page
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card text-foreground hover:bg-accent"
+                    }`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50 transition-colors"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -487,13 +643,12 @@ function CalendarView({
             <button
               key={i}
               onClick={() => setSelected(c.date)}
-              className={`relative mx-auto w-full max-w-[44px] aspect-square rounded-lg text-sm font-semibold transition ${
-                isSelected
+              className={`relative mx-auto w-full max-w-[44px] aspect-square rounded-lg text-sm font-semibold transition ${isSelected
                   ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]"
                   : isToday
                     ? "bg-primary/10 text-primary ring-1 ring-primary/30"
                     : "text-foreground hover:bg-accent"
-              }`}
+                }`}
             >
               <span className={count > 0 ? "relative -top-2" : ""}>{c.day}</span>
               {count > 0 && (

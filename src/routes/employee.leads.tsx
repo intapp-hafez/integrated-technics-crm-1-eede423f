@@ -237,7 +237,9 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         style={{ transform: `translateX(${offset}px)`, touchAction: "pan-y" }}
-        className="relative bg-card p-4 transition-transform duration-200 ease-out"
+        className={`relative p-4 transition-transform duration-200 ease-out ${
+          (l.value || 0) === 0 ? "bg-rose-50/50" : "bg-card"
+        }`}
       >
         <div className="flex items-start justify-between gap-2">
           <Link to="/employee/leads/$leadId" params={{ leadId: l.id }} className="min-w-0 flex-1">
@@ -300,7 +302,18 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
             )}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="font-mono text-sm font-bold text-foreground">{fmtMoney(l.value)}</span>
+            <span className="flex flex-col items-end gap-0.5">
+              {(l.value || 0) === 0 ? (
+                <>
+                  <span className="font-mono text-sm font-bold text-rose-600">{fmtMoney(0)}</span>
+                  <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-wider text-rose-500 font-sans">
+                    <span aria-hidden>⚠</span> {t("noValue" as any) || "No Value"}
+                  </span>
+                </>
+              ) : (
+                <span className="font-mono text-sm font-bold text-foreground">{fmtMoney(l.value)}</span>
+              )}
+            </span>
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
           </span>
         </Link>
@@ -312,11 +325,14 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
           const barColor = isWon ? "bg-emerald-500" : isLost ? "bg-rose-500" : pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-sky-500";
           const textColor = isWon ? "text-emerald-600" : isLost ? "text-rose-600" : "text-muted-foreground";
           return (
-            <div className="mt-2 flex items-center gap-2">
-              <div className="h-1 flex-1 overflow-hidden rounded-full bg-secondary">
-                <div className={`h-full transition-all duration-500 ease-out ${barColor}`} style={{ width: `${pct}%` }} />
+            <div className="mt-2">
+              <div className="flex items-center gap-2">
+                <div className="h-1 flex-1 overflow-hidden rounded-full bg-secondary">
+                  <div className={`h-full transition-all duration-500 ease-out ${barColor}`} style={{ width: `${pct}%` }} />
+                </div>
+                <span className={`text-[10px] font-semibold ${textColor}`}>{pct}%</span>
               </div>
-              <span className={`text-[10px] font-semibold ${textColor}`}>{pct}%</span>
+              <div className="mt-1 text-[9px] text-muted-foreground">{l.updatedAt}</div>
             </div>
           );
         })()}

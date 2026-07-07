@@ -505,7 +505,9 @@ function LeadsPage() {
                   {paginated.map((l) => (
                     <div
                       key={l.id}
-                      className="grid items-center gap-2 px-4 py-3 transition-colors hover:bg-primary/5"
+                      className={`grid items-center gap-2 px-4 py-3 transition-colors ${
+                        (l.value || 0) === 0 ? "bg-rose-50/50 hover:bg-rose-50" : "hover:bg-primary/5"
+                      }`}
                       style={{ gridTemplateColumns: "80px 1.4fr 1fr 1fr 1fr 0.8fr 0.9fr 1fr 110px 90px" }}
                     >
                       <Link to="/admin/leads/$leadId" params={{ leadId: l.id }} className="font-mono text-xs text-muted-foreground hover:text-primary">{shortId(l.id)}</Link>
@@ -547,11 +549,14 @@ function LeadsPage() {
                           const barColor = isWon ? "bg-emerald-500" : isLost ? "bg-rose-500" : pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-sky-500";
                           const textColor = isWon ? "text-emerald-600" : isLost ? "text-rose-600" : "text-muted-foreground";
                           return (
-                            <div className="mt-1.5 flex items-center gap-1.5">
-                              <div className="h-1 flex-1 overflow-hidden rounded-full bg-secondary">
-                                <div className={`h-full transition-all duration-500 ease-out ${barColor}`} style={{ width: `${pct}%` }} />
+                            <div className="mt-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <div className="h-1 flex-1 overflow-hidden rounded-full bg-secondary">
+                                  <div className={`h-full transition-all duration-500 ease-out ${barColor}`} style={{ width: `${pct}%` }} />
+                                </div>
+                                <span className={`text-[10px] font-semibold ${textColor}`}>{pct}%</span>
                               </div>
-                              <span className={`text-[10px] font-semibold ${textColor}`}>{pct}%</span>
+                              <div className="mt-1 text-[9px] text-muted-foreground">{l.updatedAt}</div>
                             </div>
                           );
                         })()}
@@ -566,7 +571,18 @@ function LeadsPage() {
                         )}
                         <span className="text-foreground">{l.owner}</span>
                       </div>
-                      <div className="text-end font-mono font-semibold text-foreground">{fmtMoney(l.value)}</div>
+                      <div className="text-end font-mono font-semibold">
+                        {(l.value || 0) === 0 ? (
+                          <div className="flex flex-col items-end">
+                            <span className="text-rose-600">{fmtMoney(0)}</span>
+                            <span className="mt-0.5 inline-flex items-center gap-1 text-[9px] uppercase tracking-wider text-rose-500 font-sans">
+                              <span aria-hidden>⚠</span> {t("noValue" as any) || "No Value"}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-foreground">{fmtMoney(l.value)}</span>
+                        )}
+                      </div>
                       <div className="flex items-center justify-end gap-1">
                         {l.status === "won" ? (
                           <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200" title={t("won") as string}>

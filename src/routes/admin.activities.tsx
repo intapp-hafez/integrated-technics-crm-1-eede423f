@@ -370,37 +370,36 @@ function ActivitiesPage() {
 
         {/* KPI strip */}
         <div className="grid grid-cols-2 gap-3 border-t border-border bg-card p-5 md:grid-cols-5">
-          <Kpi
-            icon={ActivityIcon}
-            label={t("kpiTotal")}
-            value={String(kpis.total)}
-            tone="text-foreground"
-          />
-          <Kpi
-            icon={CheckCircle2}
-            label={t("kpiDone")}
-            value={String(kpis.done)}
-            tone="text-emerald-600"
-          />
-          <Kpi
-            icon={PlayCircle}
-            label={t("kpiInProgress")}
-            value={String(kpis.inprog)}
-            tone="text-amber-600"
-          />
-          <Kpi
-            icon={Circle}
-            label={t("kpiPending")}
-            value={String(kpis.pending)}
-            tone="text-muted-foreground"
-          />
-          <Kpi
-            icon={TrendingUp}
-            label={t("kpiCompletion")}
-            value={`${kpis.completion}%`}
-            tone="text-primary"
-            sub={fmtH(kpis.mins)}
-          />
+          <button
+            onClick={() => setStatusFilter("all")}
+            className={`text-start transition rounded-xl p-1 -m-1 ring-2 ${statusFilter === "all" ? "ring-primary/40" : "ring-transparent hover:ring-border"}`}
+          >
+            <Kpi icon={ActivityIcon} label={t("kpiTotal")} value={String(kpis.total)} tone="text-foreground" />
+          </button>
+          <button
+            onClick={() => setStatusFilter(statusFilter === "done" ? "all" : "done")}
+            className={`text-start transition rounded-xl p-1 -m-1 ring-2 ${statusFilter === "done" ? "ring-emerald-400/50" : "ring-transparent hover:ring-border"}`}
+          >
+            <Kpi icon={CheckCircle2} label={t("kpiDone")} value={String(kpis.done)} tone="text-emerald-600" />
+          </button>
+          <button
+            onClick={() => setStatusFilter(statusFilter === "in_progress" ? "all" : "in_progress")}
+            className={`text-start transition rounded-xl p-1 -m-1 ring-2 ${statusFilter === "in_progress" ? "ring-amber-400/50" : "ring-transparent hover:ring-border"}`}
+          >
+            <Kpi icon={PlayCircle} label={t("kpiInProgress")} value={String(kpis.inprog)} tone="text-amber-600" />
+          </button>
+          <button
+            onClick={() => setStatusFilter(statusFilter === "pending" ? "all" : "pending")}
+            className={`text-start transition rounded-xl p-1 -m-1 ring-2 ${statusFilter === "pending" ? "ring-muted-foreground/30" : "ring-transparent hover:ring-border"}`}
+          >
+            <Kpi icon={Circle} label={t("kpiPending")} value={String(kpis.pending)} tone="text-muted-foreground" />
+          </button>
+          <button
+            onClick={() => setStatusFilter("all")}
+            className="text-start transition rounded-xl p-1 -m-1 ring-2 ring-transparent hover:ring-border"
+          >
+            <Kpi icon={TrendingUp} label={t("kpiCompletion")} value={`${kpis.completion}%`} tone="text-primary" sub={fmtH(kpis.mins)} />
+          </button>
         </div>
       </div>
 

@@ -42,8 +42,15 @@ export const Route = createFileRoute("/admin/reports")({
 function AdminReportsPage() {
   const { t, dir } = useI18n();
   const ar = dir === "rtl";
-  const { activities, leads, projects, quotations, employees, attendance, settings } =
+  const { activities, leads, projects, quotations, employees, attendance, settings, users } =
     useStoreState();
+
+  const activeEmployees = useMemo(() => {
+    return employees.filter(e => {
+      const u = users.find(user => user.profileId === e.id || user.id === (e as any).userId);
+      return u?.role !== "admin";
+    });
+  }, [employees, users]);
   const today = new Date().toISOString().slice(0, 10);
 
   // ===== Interactive filters =====
@@ -52,18 +59,18 @@ function AdminReportsPage() {
   const [employeeFilter, setEmployeeFilter] = useState<string>("all");
 
   const departmentsList = useMemo(
-    () => Array.from(new Set(employees.map((e) => e.department))).filter(Boolean),
-    [employees],
+    () => Array.from(new Set(activeEmployees.map((e) => e.department))).filter(Boolean),
+    [activeEmployees],
   );
 
   const filteredEmployees = useMemo(
     () =>
-      employees.filter(
+      activeEmployees.filter(
         (e) =>
           (deptFilter === "all" || e.department === deptFilter) &&
           (employeeFilter === "all" || e.id === employeeFilter),
       ),
-    [employees, deptFilter, employeeFilter],
+    [activeEmployees, deptFilter, employeeFilter],
   );
   const filteredEmpNames = useMemo(
     () => new Set(filteredEmployees.map((e) => e.name)),
@@ -79,15 +86,15 @@ function AdminReportsPage() {
   const filteredLeads = useMemo(
     () =>
       leads.filter(
-        (l) => filteredEmpNames.has(l.owner) || filteredEmployees.length === employees.length,
+        (l) => filteredEmpNames.has(l.owner) || filteredEmployees.length === activeEmployees.length,
       ),
-    [leads, filteredEmpNames, filteredEmployees.length, employees.length],
+    [leads, filteredEmpNames, filteredEmployees.length, activeEmployees.length],
   );
 
   // Real pipeline stages computed from leads
   const pipelineStages = useMemo(() => {
     return settings.stages.map((st) => {
-      const stageLeads = leads.filter((l) => l.status === st.key);
+      const stageLeads = filteredLeads.filter((l) => l.status === st.key);
       return {
         key: st.key,
         label: st.label,
@@ -98,20 +105,19 @@ function AdminReportsPage() {
     });
   }, [leads, settings.stages]);
 
-  // Real today's attendance computed from records
   const attendanceToday = useMemo(() => {
-    const todays = attendance.filter((r) => r.date === today);
+    const todays = attendance.filter((r) => r.date === today && (filteredEmpNames.size === 0 || filteredEmpNames.has(r.owner) || filteredEmployees.length === activeEmployees.length));
     const present = todays.filter((r) => r.checkIn && r.checkIn <= "08:15").length;
     const late = todays.filter((r) => r.checkIn && r.checkIn > "08:15").length;
     const checkedIn = todays.filter((r) => r.checkIn).length;
-    const total = employees.length || todays.length;
+    const total = filteredEmployees.length || todays.length;
     const absent = Math.max(0, total - checkedIn);
     return { present, late, absent, total };
-  }, [attendance, employees, today]);
+  }, [attendance, activeEmployees, today]);
 
   const teamReport = useMemo(
     () =>
-      employees.map((e) => {
+      filteredEmployees.map((e) => {
         const myLeads = leads.filter((l) => l.owner === e.name);
         const myActs = activities.filter((a) => a.owner === e.name);
         const wonLeads = myLeads.filter((l) => l.status === "won");
@@ -142,8 +148,8 @@ function AdminReportsPage() {
     won: teamReport.reduce((s, r) => s + r.wonLeads, 0),
     revenue: teamReport.reduce((s, r) => s + r.revenue, 0),
     pipeline: teamReport.reduce((s, r) => s + r.pipelineValue, 0),
-    annualTarget: employees.reduce((s, e) => s + (e.annualTarget ?? 0), 0),
-    achievedTarget: employees.reduce((s, e) => s + (e.achievedTarget ?? 0), 0),
+    annualTarget: filteredEmployees.reduce((s, e) => s + (e.annualTarget ?? 0), 0),
+    achievedTarget: filteredEmployees.reduce((s, e) => s + (e.achievedTarget ?? 0), 0),
   };
   const orgTargetPerc = totals.annualTarget
     ? Math.round((totals.achievedTarget / totals.annualTarget) * 100)
@@ -175,15 +181,37 @@ function AdminReportsPage() {
     avgPerf: Math.round(v.perfSum / v.headcount),
   }));
 
+  const filteredProjects = useMemo(
+    () =>
+      projects.filter(
+        (p) =>
+          filteredEmployees.length === activeEmployees.length ||
+          filteredEmpNames.has(p.createdByName ?? "") ||
+          p.memberProfileIds?.some((id) => filteredEmployees.find((e) => e.id === id)),
+      ),
+    [projects, filteredEmployees, activeEmployees.length, filteredEmpNames],
+  );
+
   // Projects status summary
-  const projectStatus = projects.reduce<Record<string, number>>((acc, p) => {
+  const projectStatus = filteredProjects.reduce<Record<string, number>>((acc, p) => {
     acc[p.status] = (acc[p.status] ?? 0) + 1;
     return acc;
   }, {});
-  const projectsBudget = projects.reduce((s, p) => s + (p.budget ?? 0), 0);
+  const projectsBudget = filteredProjects.reduce((s, p) => s + (p.budget ?? 0), 0);
+
+  const filteredQuotes = useMemo(
+    () =>
+      quotations.filter(
+        (q) =>
+          filteredEmployees.length === activeEmployees.length ||
+          filteredEmpNames.has((q as any).owner ?? "") ||
+          filteredEmpNames.has((q as any).createdByName ?? ""),
+      ),
+    [quotations, filteredEmployees, activeEmployees.length, filteredEmpNames],
+  );
 
   // Quotations summary
-  const quotesSummary = quotations.reduce<Record<string, { count: number; value: number }>>(
+  const quotesSummary = filteredQuotes.reduce<Record<string, { count: number; value: number }>>(
     (acc, q) => {
       const k = q.status;
       acc[k] = acc[k] ?? { count: 0, value: 0 };
@@ -377,7 +405,7 @@ function AdminReportsPage() {
         attendance={attendance}
         rangeStart={rangeStart}
         stages={settings.stages}
-        employees={employees}
+        employees={activeEmployees}
       />
 
       {/* Two-column: Departments + Pipeline */}
@@ -785,6 +813,7 @@ function FiltersAndCharts(p: FiltersAndChartsProps) {
             onChange={(e) => setRangeDays(Number(e.target.value))}
             className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground"
           >
+            <option value={1}>{ar ? "اليوم" : "Today"}</option>
             <option value={7}>{ar ? "آخر 7 أيام" : "Last 7 days"}</option>
             <option value={30}>{ar ? "آخر 30 يوماً" : "Last 30 days"}</option>
             <option value={90}>{ar ? "آخر 90 يوماً" : "Last 90 days"}</option>

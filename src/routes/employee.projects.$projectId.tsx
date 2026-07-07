@@ -5,35 +5,28 @@ import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
-import { useStoreState, actions } from "@/lib/store";
+import { useStoreState } from "@/lib/store";
 import { LocationPicker } from "@/components/LocationPicker";
+import { actions } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import {
   ArrowLeft,
   Briefcase,
   Users2,
-  DollarSign,
   Activity as ActivityIcon,
   History as HistoryIcon,
-  Mail,
   Phone,
   Building2,
-  MapPin,
   Calendar,
   TrendingUp,
-  UserPlus,
   CheckCircle2,
   Clock,
   Tag,
-  Check,
   ChevronRight,
-  Plus,
-  Trash2,
 } from "lucide-react";
-import { useState } from "react";
 
-export const Route = createFileRoute("/admin/projects/$projectId")({
-  component: ProjectDetailsPage,
+export const Route = createFileRoute("/employee/projects/$projectId")({
+  component: EmployeeProjectDetailsPage,
   head: ({ params }) => ({ meta: [{ title: `${params.projectId} · INT-CRM` }] }),
 });
 
@@ -53,35 +46,6 @@ const STATUS_COLORS: Record<string, string> = {
   Completed: "from-blue-500 to-cyan-400",
 };
 
-function StatCard({
-  icon,
-  label,
-  value,
-  sub,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  sub?: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card/60 p-4">
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          {label}
-        </div>
-        <div className="mt-0.5 truncate font-display text-base font-extrabold text-foreground">
-          {value}
-        </div>
-        {sub && <div className="text-[11px] text-muted-foreground">{sub}</div>}
-      </div>
-    </div>
-  );
-}
-
 function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3 py-2.5 border-b border-border/60 last:border-0">
@@ -93,7 +57,7 @@ function InfoRow({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-function ProjectDetailsPage() {
+function EmployeeProjectDetailsPage() {
   const { projectId } = Route.useParams();
   const { t } = useI18n();
   const router = useRouter();
@@ -106,7 +70,6 @@ function ProjectDetailsPage() {
     settings,
     projectLocations,
   } = useStoreState();
-  const project = projects.find((p) => p.id === projectId);
   const { role } = useRole();
   const panel = role;
   const user = {
@@ -115,6 +78,8 @@ function ProjectDetailsPage() {
     initials: "HR",
     photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
   };
+
+  const project = projects.find((p) => p.id === projectId);
 
   if (!project) {
     return (
@@ -125,7 +90,7 @@ function ProjectDetailsPage() {
             Account <span className="font-mono">{projectId}</span> not found.
           </p>
           <Link
-            to="/admin/projects"
+            to="/employee/projects"
             className="mt-3 inline-block text-sm font-semibold text-primary"
           >
             Back to accounts
@@ -143,7 +108,7 @@ function ProjectDetailsPage() {
     (l: any) =>
       l.projectId === projectId ||
       l.project_id === projectId ||
-      (project.client && l.company === project.client)
+      (project.client && l.company === project.client),
   );
   const clientLead = relatedLeads[0];
   const memberNames = (project as any).teamMembers as string[] | undefined;
@@ -157,10 +122,9 @@ function ProjectDetailsPage() {
   const clientCity = projectLoc?.city || clientLead?.city || (project as any).city || "";
   const clientDistrict = projectLoc?.district || (project as any).district || "";
   const street = (project as any).street || "";
-  const extraContacts: Array<{ name: string; title: string; phone: string; email: string }> =
+  const extraContacts: Array<{ name: string; title: string; phone: string }> =
     (project as any).extraContacts ?? [];
   const gradientClass = STATUS_COLORS[project.status] ?? "from-primary to-orange-500";
-
   const progressColor =
     project.progress >= 75
       ? "bg-emerald-500"
@@ -170,7 +134,6 @@ function ProjectDetailsPage() {
 
   return (
     <AppShell panel={panel} user={user} pageTitle={project.name}>
-      {/* Back nav */}
       <button
         onClick={() => router.history.back()}
         className="mb-5 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors"
@@ -178,7 +141,7 @@ function ProjectDetailsPage() {
         <ArrowLeft className="h-4 w-4" /> Back to Accounts
       </button>
 
-      {/* ── Hero Banner ── */}
+      {/* Hero */}
       <div className={`mb-6 rounded-2xl bg-gradient-to-r ${gradientClass} p-px shadow-lg`}>
         <div className="rounded-2xl bg-card/95 p-6 backdrop-blur-sm">
           <div className="flex flex-wrap items-start gap-5">
@@ -226,8 +189,6 @@ function ProjectDetailsPage() {
               </div>
             </div>
           </div>
-
-          {/* Progress bar */}
           <div className="mt-5">
             <div className="mb-1.5 flex items-center justify-between text-xs">
               <span className="font-semibold text-muted-foreground">Overall Progress</span>
@@ -247,25 +208,38 @@ function ProjectDetailsPage() {
         </div>
       </div>
 
-      {/* ── Stat Cards ── */}
+      {/* Stat Cards */}
       <div className="mb-6 grid grid-cols-2 gap-3">
-        <StatCard
-          icon={<Users2 className="h-5 w-5" />}
-          label="Team"
-          value={`${members.length} member${members.length !== 1 ? "s" : ""}`}
-        />
-        <StatCard
-          icon={<ActivityIcon className="h-5 w-5" />}
-          label="Activities"
-          value={`${projectActivities.length}`}
-          sub={`${projectActivities.filter((a) => a.status === "done").length} done`}
-        />
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-card/60 p-4">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Users2 className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Team</div>
+            <div className="mt-0.5 font-display text-base font-extrabold text-foreground">
+              {members.length} member{members.length !== 1 ? "s" : ""}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-card/60 p-4">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <ActivityIcon className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Activities</div>
+            <div className="mt-0.5 font-display text-base font-extrabold text-foreground">
+              {projectActivities.length}
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {projectActivities.filter((a) => a.status === "done").length} done
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* ── Left Column ── */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Client Contact Info */}
+          {/* Client Contact */}
           <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] overflow-hidden">
             <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30">
               <Building2 className="h-4 w-4 text-primary" />
@@ -280,10 +254,7 @@ function ProjectDetailsPage() {
               {clientLead?.contact && <InfoRow label="Contact">{clientLead.contact}</InfoRow>}
               <InfoRow label="Email">
                 {clientEmail ? (
-                  <a
-                    href={`mailto:${clientEmail}`}
-                    className="text-primary hover:underline font-mono"
-                  >
+                  <a href={`mailto:${clientEmail}`} className="text-primary hover:underline font-mono">
                     {clientEmail}
                   </a>
                 ) : (
@@ -292,10 +263,7 @@ function ProjectDetailsPage() {
               </InfoRow>
               <InfoRow label="Phone">
                 {clientPhone ? (
-                  <a
-                    href={`tel:${clientPhone.replace(/\s+/g, "")}`}
-                    className="text-primary hover:underline font-mono"
-                  >
+                  <a href={`tel:${clientPhone.replace(/\s+/g, "")}`} className="text-primary hover:underline font-mono">
                     {clientPhone}
                   </a>
                 ) : (
@@ -323,18 +291,41 @@ function ProjectDetailsPage() {
             </div>
           </div>
 
-          {/* Extra Contacts — always visible */}
-          <ExtraContactsCard
-            contacts={extraContacts}
-            onAdd={(c) =>
-              actions.updateProject(projectId, { extraContacts: [...extraContacts, c] } as any)
-            }
-            onRemove={(i) =>
-              actions.updateProject(projectId, {
-                extraContacts: extraContacts.filter((_, idx) => idx !== i),
-              } as any)
-            }
-          />
+          {/* Extra Contacts */}
+          {extraContacts.length > 0 && (
+            <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] overflow-hidden">
+              <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30">
+                <Phone className="h-4 w-4 text-primary" />
+                <h2 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                  Extra Contacts
+                </h2>
+                <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                  {extraContacts.length}
+                </span>
+              </div>
+              <div className="divide-y divide-border">
+                {extraContacts.map((c, i) => (
+                  <div key={i} className="flex items-center gap-4 px-5 py-3.5">
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-orange-500/20 text-xs font-extrabold text-primary">
+                      {c.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase() || "?"}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-foreground">{c.name}</div>
+                      {c.title && <div className="text-xs text-muted-foreground">{c.title}</div>}
+                    </div>
+                    {c.phone && (
+                      <a
+                        href={`tel:${c.phone.replace(/\s+/g, "")}`}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors"
+                      >
+                        <Phone className="h-3 w-3" /> {c.phone}
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Related Leads */}
           {relatedLeads.length > 0 && (
@@ -354,25 +345,15 @@ function ProjectDetailsPage() {
                     <tr>
                       <th className="px-5 py-3 font-semibold">Contact</th>
                       <th className="px-5 py-3 font-semibold">Industry</th>
-                      <th className="px-5 py-3 font-semibold">Owner</th>
                       <th className="px-5 py-3 font-semibold">Status</th>
                       <th className="px-5 py-3 text-right font-semibold">Value</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {relatedLeads.map((l) => (
-                      <tr key={l.id} className="group hover:bg-primary/5 transition-colors">
-                        <td className="px-5 py-3">
-                          <Link
-                            to="/admin/leads/$leadId"
-                            params={{ leadId: l.id }}
-                            className="font-semibold text-foreground hover:text-primary transition-colors inline-flex items-center gap-1"
-                          >
-                            {l.contact} <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </Link>
-                        </td>
+                    {relatedLeads.map((l: any) => (
+                      <tr key={l.id} className="hover:bg-primary/5 transition-colors">
+                        <td className="px-5 py-3 font-semibold text-foreground">{l.contact}</td>
                         <td className="px-5 py-3 text-muted-foreground">{l.industry || "—"}</td>
-                        <td className="px-5 py-3 text-muted-foreground">{l.owner}</td>
                         <td className="px-5 py-3">
                           <StatusBadge status={l.status} label={t(l.status as any)} />
                         </td>
@@ -407,7 +388,7 @@ function ProjectDetailsPage() {
                 {projectActivities.map((a) => (
                   <div key={a.id} className="flex items-center gap-4 px-5 py-3">
                     <div
-                      className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-bold uppercase ${a.status === "done" ? "bg-emerald-500/10 text-emerald-600" : "bg-secondary text-muted-foreground"}`}
+                      className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${a.status === "done" ? "bg-emerald-500/10 text-emerald-600" : "bg-secondary text-muted-foreground"}`}
                     >
                       {a.status === "done" ? (
                         <CheckCircle2 className="h-4 w-4" />
@@ -431,9 +412,9 @@ function ProjectDetailsPage() {
           </div>
         </div>
 
-        {/* ── Right Column ── */}
+        {/* Right Column */}
         <div className="space-y-6">
-          {/* Team Members */}
+          {/* Team Members — read-only for employees */}
           <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
             <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30 rounded-t-2xl">
               <Users2 className="h-4 w-4 text-primary" />
@@ -443,56 +424,6 @@ function ProjectDetailsPage() {
               <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
                 {members.length}
               </span>
-              {/* Assign dropdown */}
-              {role !== "employee" && (
-                <div className="relative ml-1">
-                  <button
-                    onClick={(e) => e.currentTarget.nextElementSibling?.classList.toggle("hidden")}
-                    className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
-                  >
-                    <UserPlus className="h-3 w-3" /> Assign
-                  </button>
-                  <div className="absolute right-0 top-full z-20 mt-1 hidden w-64 max-h-72 overflow-y-auto rounded-xl border border-border bg-card p-1.5 shadow-2xl [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
-                    {employees.map((emp) => {
-                      const checked = memberNames?.includes(emp.name) ?? false;
-                      return (
-                        <label
-                          key={emp.id}
-                          className={`group flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-all duration-200 ${checked ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-accent"}`}
-                        >
-                          <div
-                            className={`relative flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${checked ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 bg-transparent group-hover:border-primary/50"}`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={(e) => {
-                                const newMembers = e.target.checked
-                                  ? [...(memberNames || []), emp.name]
-                                  : (memberNames || []).filter((n) => n !== emp.name);
-                                actions.updateProject(projectId, {
-                                  teamMembers: newMembers,
-                                  team: newMembers.length,
-                                });
-                              }}
-                              className="absolute opacity-0 cursor-pointer w-full h-full m-0"
-                            />
-                            {checked && <Check className="h-3 w-3" />}
-                          </div>
-                          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-500 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20">
-                            {emp.avatar}
-                          </div>
-                          <span
-                            className={`flex-1 font-medium truncate ${checked ? "text-primary" : "text-foreground"}`}
-                          >
-                            {emp.name}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
             <div className="rounded-b-2xl overflow-hidden">
               {members.length === 0 ? (
@@ -501,51 +432,26 @@ function ProjectDetailsPage() {
                 </p>
               ) : (
                 <div className="divide-y divide-border">
-                  {members.map((m) => {
-                    const isEmployee = role === "employee";
-                    const inner = (
-                      <>
-                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 text-xs font-bold text-white shadow-sm">
-                          {m.avatar}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <div className="truncate text-sm font-semibold text-foreground">
-                              {m.name}
-                            </div>
-                            {project.createdByName === m.name && (
-                              <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 uppercase tracking-wider">
-                                Owner
-                              </span>
-                            )}
+                  {members.map((m) => (
+                    <div key={m.id} className="flex items-center gap-3 px-4 py-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-orange-600 text-xs font-bold text-white shadow-sm">
+                        {m.avatar}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <div className="truncate text-sm font-semibold text-foreground">
+                            {m.name}
                           </div>
-                          <div className="truncate text-xs text-muted-foreground">{m.role}</div>
+                          {project.createdByName === m.name && (
+                            <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 uppercase tracking-wider">
+                              Owner
+                            </span>
+                          )}
                         </div>
-                        {!isEmployee && (
-                          <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
-                        )}
-                      </>
-                    );
-
-                    if (isEmployee) {
-                      return (
-                        <div key={m.id} className="flex items-center gap-3 px-4 py-3">
-                          {inner}
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <Link
-                        key={m.id}
-                        to="/admin/employees/$employeeId"
-                        params={{ employeeId: m.id }}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-primary/5 transition-colors group"
-                      >
-                        {inner}
-                      </Link>
-                    );
-                  })}
+                        <div className="truncate text-xs text-muted-foreground">{m.role}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -584,159 +490,5 @@ function ProjectDetailsPage() {
         </div>
       </div>
     </AppShell>
-  );
-}
-
-type ExtraContact = { name: string; title: string; phone: string; email: string };
-
-function ExtraContactsCard({
-  contacts,
-  onAdd,
-  onRemove,
-}: {
-  contacts: ExtraContact[];
-  onAdd: (c: ExtraContact) => void;
-  onRemove: (i: number) => void;
-}) {
-  const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState("");
-  const [title, setTitle] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-
-  const submit = () => {
-    if (!name.trim()) return;
-    onAdd({ name: name.trim(), title: title.trim(), phone: phone.trim(), email: email.trim() });
-    setName("");
-    setTitle("");
-    setPhone("");
-    setEmail("");
-    setShowForm(false);
-  };
-
-  return (
-    <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-      <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30">
-        <Phone className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-          Extra Contacts
-        </h2>
-        {contacts.length > 0 && (
-          <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
-            {contacts.length}
-          </span>
-        )}
-        <button
-          onClick={() => setShowForm((v) => !v)}
-          className="ml-auto inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="h-3 w-3" /> Add
-        </button>
-      </div>
-
-      {/* Inline Add Form */}
-      {showForm && (
-        <div className="border-b border-border bg-secondary/20 px-5 py-4">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Full name *"
-              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Title / Role"
-              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email address"
-              type="email"
-              dir="ltr"
-              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Phone number"
-              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-          <div className="mt-3 flex justify-end gap-2">
-            <button
-              onClick={() => setShowForm(false)}
-              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-accent"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={submit}
-              disabled={!name.trim()}
-              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-            >
-              Save contact
-            </button>
-          </div>
-        </div>
-      )}
-
-      {contacts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 px-5 py-8 text-center">
-          <Phone className="h-8 w-8 text-muted-foreground/30" />
-          <p className="text-sm text-muted-foreground">No extra contacts yet.</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="mt-1 text-xs font-semibold text-primary hover:underline"
-          >
-            + Add a contact
-          </button>
-        </div>
-      ) : (
-        <div className="divide-y divide-border">
-          {contacts.map((c, i) => (
-            <div key={i} className="group flex items-center gap-4 px-5 py-3.5">
-              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-orange-500/20 text-xs font-extrabold text-primary">
-                {c.name
-                  .split(" ")
-                  .map((w) => w[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase() || "?"}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-semibold text-foreground">{c.name}</div>
-                {c.title && <div className="text-xs text-muted-foreground">{c.title}</div>}
-              </div>
-              {c.phone && (
-                <a
-                  href={`tel:${c.phone.replace(/\s+/g, "")}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors"
-                >
-                  <Phone className="h-3 w-3" /> {c.phone}
-                </a>
-              )}
-              {c.email && (
-                <a
-                  href={`mailto:${c.email}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors"
-                >
-                  <Mail className="h-3 w-3" /> {c.email}
-                </a>
-              )}
-              <button
-                onClick={() => onRemove(i)}
-                className="ml-1 hidden rounded-md p-1 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 group-hover:flex transition-colors"
-                title="Remove contact"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }

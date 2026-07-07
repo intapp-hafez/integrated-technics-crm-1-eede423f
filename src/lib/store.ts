@@ -217,6 +217,7 @@ export interface Project {
   endDate?: string; // YYYY-MM-DD
   accountType?: string;
   otherAccountType?: string;
+  website?: string;
   extraContacts?: Array<{ name: string; title: string; phone: string; email: string }>;
   createdBy?: string;
   createdByName?: string;
@@ -847,6 +848,16 @@ export function useStoreState(): State {
 function logHistory(entry: Omit<HistoryEntry, "id" | "ts"> & { actor?: string }) {
   const normalizedEntry = { ...entry, actor: entry.actor ?? "System" };
   set((s) => ({ ...s, history: [{ id: id("H"), ts: now(), ...normalizedEntry }, ...s.history] }));
+  
+  // Call Supabase to persist the history entry
+  void sb.sbAddHistory({
+    module: entry.module as any,
+    actionEn: entry.action,
+    targetEn: entry.target,
+    targetTable: entry.targetTable,
+    targetId: entry.targetId,
+    detailsEn: entry.details,
+  });
 }
 
 function pushNotificationInternal(

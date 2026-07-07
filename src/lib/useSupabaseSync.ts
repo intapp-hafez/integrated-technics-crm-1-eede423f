@@ -85,7 +85,7 @@ export function useSupabaseSync() {
         supabase.from("role_permissions").select("*"),
         supabase
           .from("project_requests")
-          .select("id, status, created_project_id, requested_by, name_en"),
+          .select("id, status, created_project_id, requested_by, name_en, website"),
         supabase.from("admin_tasks" as any).select("*").order("date", { ascending: false }),
         supabase.from("admin_task_activities" as any).select("*").order("ts", { ascending: false }),
       ]);
@@ -322,6 +322,7 @@ export function useSupabaseSync() {
         endDate: p.end_date ?? undefined,
         accountType: p.account_type ?? undefined,
         otherAccountType: p.other_account_type ?? undefined,
+        website: p.website ?? undefined,
         extraContacts: (() => {
           let raw: any = p.extra_contacts;
           if (!raw) return undefined;

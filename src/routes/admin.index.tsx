@@ -31,6 +31,7 @@ import {
   DollarSign,
   Sparkles,
   Trophy,
+  ChevronDown,
 } from "lucide-react";
 import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState } from "@/lib/store";
@@ -112,13 +113,13 @@ function useDashboardData(range: RangeKey) {
       const in7 = new Date();
       in7.setDate(in7.getDate() + 7);
 
-      const [leadsRes, projectsRes, quotationsRes, activitiesRes, profilesRes] = await Promise.all([
+      const [leadsRes, projectsRes, quotationsRes, activitiesRes, profilesRes, attendanceRes] = await Promise.all([
         supabase
           .from("leads")
           .select(
-            "id,company_en,status,value,owner_id,source_en,created_at,updated_at,expected_close_date",
+            "id,company_en,status,value,owner_id,source_en,created_at,updated_at,expected_close_date,project_id",
           ),
-        supabase.from("projects").select("id,status"),
+        supabase.from("projects").select("id,status,name_en,created_at,project_members(profile_id)"),
         supabase.from("quotations").select("id,value,status,created_at"),
         supabase
           .from("activities")
@@ -131,6 +132,10 @@ function useDashboardData(range: RangeKey) {
             "id,full_name_en,full_name_ar,title_en,title_ar,target_value,annual_target,avatar_url",
           )
           .eq("active", true),
+        supabase
+          .from("attendance")
+          .select("profile_id,check_in,check_out,status")
+          .eq("date", new Date().toISOString().slice(0, 10)),
       ]);
 
       const allLeads = leadsRes.data ?? [];
@@ -138,6 +143,7 @@ function useDashboardData(range: RangeKey) {
       const quotations = quotationsRes.data ?? [];
       const activities = activitiesRes.data ?? [];
       const profiles = profilesRes.data ?? [];
+      const attendance = attendanceRes.data ?? [];
 
       // Range-filtered leads (by created_at)
       const leads = startIso ? allLeads.filter((l) => l.created_at >= startIso) : allLeads;
@@ -234,19 +240,20 @@ function useDashboardData(range: RangeKey) {
         pct: number;
       }>;
 
-      // Quick status
-      const countBy = (s: string) => leads.filter((l) => l.status === s).length;
+      // Quick status — always uses allLeads so the counts reflect the real
+      // current pipeline state, not what was created in the selected date range.
+      const countBy = (s: string) => allLeads.filter((l) => l.status === s).length;
       const today = new Date().toISOString().slice(0, 10);
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       const quick = {
-        newToday: leads.filter((l) => l.status === "new" && l.created_at.slice(0, 10) === today)
+        newToday: allLeads.filter((l) => l.status === "new" && l.created_at.slice(0, 10) === today)
           .length,
         awaitingProposal: countBy("proposal"),
         inNegotiation: countBy("negotiation"),
-        wonWeek: leads.filter((l) => l.status === "won" && l.created_at >= weekAgo.toISOString())
+        wonWeek: allLeads.filter((l) => l.status === "won" && l.updated_at >= weekAgo.toISOString())
           .length,
-        lostWeek: leads.filter((l) => l.status === "lost" && l.created_at >= weekAgo.toISOString())
+        lostWeek: allLeads.filter((l) => l.status === "lost" && l.updated_at >= weekAgo.toISOString())
           .length,
       };
 
@@ -341,7 +348,7 @@ function useDashboardData(range: RangeKey) {
         .filter((l) => l.status !== "won" && l.status !== "lost")
         .map((l) => {
           const last = lastTouch.get(l.id) ?? l.updated_at ?? l.created_at;
-          return { ...l, lastTouch: last };
+          return { ...l, lastTouch: last, ownerDetails: getOwner(l.owner_id) };
         })
         .filter((l) => l.lastTouch < fourteenAgo.toISOString())
         .sort((a, b) => Number(b.value ?? 0) - Number(a.value ?? 0))
@@ -382,39 +389,78 @@ function useDashboardData(range: RangeKey) {
       });
 
       // Smart Insights
+      // Smart Insights
+      // Smart Insights
       const insights = [];
-      const pendingQuotes = quotations.filter((q) => q.status === "pending_approval").length;
-      if (pendingQuotes > 0) {
+      
+      const fifteenDaysAgo = new Date();
+      fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+      const accountsWithoutLeads = projects.filter((p) => {
+        if (!p.created_at || new Date(p.created_at) > fifteenDaysAgo) return false;
+        return !allLeads.some((l) => l.project_id === p.id);
+      });
+      if (accountsWithoutLeads.length > 0) {
         insights.push({
-          id: "quotes",
+          id: "accounts-no-leads",
           type: "warning",
-          textEn: `${pendingQuotes} quotation${pendingQuotes > 1 ? "s" : ""} waiting for approval`,
-          textAr: `${pendingQuotes} عروض أسعار بانتظار الموافقة`,
-          link: "/admin/offers",
+          textEn: `${accountsWithoutLeads.length} account${accountsWithoutLeads.length > 1 ? "s" : ""} have no leads in 15 days`,
+          textAr: `${accountsWithoutLeads.length} حسابات بدون عملاء محتملين لأكثر من 15 يومًا`,
+          link: "/admin/projects",
+          items: accountsWithoutLeads.map(p => {
+            const memberProfileId = p.project_members?.[0]?.profile_id;
+            const owner = memberProfileId ? profiles.find(pr => pr.id === memberProfileId) : null;
+            return { id: p.id, name: p.name_en || "Unknown Account", badgeText: owner ? (owner.full_name_en || "Unknown") : null, badgeEmoji: "👤", link: `/admin/projects/${p.id}` };
+          }),
         });
       }
-      const stuckNegotiation = leads.filter(
-        (l) =>
-          l.status === "negotiation" &&
-          new Date(l.updated_at).getTime() < Date.now() - 14 * 86400000,
-      ).length;
-      if (stuckNegotiation > 0) {
+
+      if (idleLeads.length > 0) {
         insights.push({
-          id: "stuck",
-          type: "error",
-          textEn: `${stuckNegotiation} lead${stuckNegotiation > 1 ? "s" : ""} stuck in negotiation > 14 days`,
-          textAr: `${stuckNegotiation} عملاء محتملين عالقين في التفاوض لأكثر من أسبوعين`,
+          id: "leads-no-activities",
+          type: "warning",
+          textEn: `${idleLeads.length} lead${idleLeads.length > 1 ? "s" : ""} have no activity in 7 days`,
+          textAr: `${idleLeads.length} عملاء محتملين بدون نشاط منذ 7 أيام`,
           link: "/admin/leads",
+          items: idleLeads.map(l => {
+            const owner = profiles.find(p => p.id === l.owner_id);
+            return { id: l.id, name: l.company_en, badgeText: owner ? (owner.full_name_en || "Unknown") : null, badgeEmoji: "👤", link: `/admin/leads/${l.id}` };
+          }),
         });
       }
-      const unassignedLeads = leads.filter((l) => !l.owner_id).length;
-      if (unassignedLeads > 0) {
+
+      const employeesWithoutCheckin = profiles.filter((p) => {
+        const att = attendance.find((a) => a.profile_id === p.id);
+        return !att || (!att.check_in && !att.check_out);
+      });
+      if (employeesWithoutCheckin.length > 0) {
         insights.push({
-          id: "unassigned",
+          id: "missing-checkins",
+          type: "error",
+          textEn: `${employeesWithoutCheckin.length} employee${employeesWithoutCheckin.length > 1 ? "s" : ""} haven't checked in today`,
+          textAr: `${employeesWithoutCheckin.length} موظفين لم يسجلوا حضور اليوم`,
+          link: "/admin/attendance",
+          items: employeesWithoutCheckin.map(p => ({ id: p.id, name: p.full_name_en || "Unknown", badgeText: p.title_en || "Employee", badgeEmoji: "👔", link: `/admin/employees/${p.id}` })),
+        });
+      }
+
+      const in7Days = new Date();
+      in7Days.setDate(in7Days.getDate() + 7);
+      const leadsClosingSoon = allLeads.filter((l) => {
+        if (l.status === "won" || l.status === "lost" || !l.expected_close_date) return false;
+        const closeDate = new Date(l.expected_close_date);
+        return closeDate >= new Date() && closeDate <= in7Days;
+      });
+      if (leadsClosingSoon.length > 0) {
+        insights.push({
+          id: "leads-closing-soon",
           type: "info",
-          textEn: `${unassignedLeads} new lead${unassignedLeads > 1 ? "s" : ""} need to be assigned`,
-          textAr: `${unassignedLeads} عملاء جدد بحاجة للتعيين`,
-          link: "/admin/leads?owner=Unassigned",
+          textEn: `${leadsClosingSoon.length} lead${leadsClosingSoon.length > 1 ? "s" : ""} closing in the next 7 days`,
+          textAr: `${leadsClosingSoon.length} عملاء محتملين من المتوقع إغلاقهم قريباً`,
+          link: "/admin/leads",
+          items: leadsClosingSoon.map(l => {
+            const owner = profiles.find(p => p.id === l.owner_id);
+            return { id: l.id, name: l.company_en, badgeText: owner ? (owner.full_name_en || "Unknown") : null, badgeEmoji: "👤", link: `/admin/leads/${l.id}` };
+          }),
         });
       }
 
@@ -653,45 +699,6 @@ function AdminDashboard() {
           </button>
         </div>
       </div>
-
-      {/* Smart Insights */}
-      {false && insights.length > 0 && (
-        <div className="mb-5 flex flex-col gap-2 animate-in slide-in-from-top-2 fade-in duration-500">
-          {insights.map((insight: any) => {
-            const Icon =
-              insight.type === "error"
-                ? AlertTriangle
-                : insight.type === "warning"
-                  ? Clock
-                  : Sparkles;
-            const bg =
-              insight.type === "error"
-                ? "bg-rose-50 border-rose-200 text-rose-700"
-                : insight.type === "warning"
-                  ? "bg-amber-50 border-amber-200 text-amber-700"
-                  : "bg-blue-50 border-blue-200 text-blue-700";
-            const iconColor =
-              insight.type === "error"
-                ? "text-rose-600"
-                : insight.type === "warning"
-                  ? "text-amber-600"
-                  : "text-blue-600";
-            return (
-              <Link
-                key={insight.id}
-                to={insight.link}
-                className={`flex items-center gap-3 rounded-xl border p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${bg}`}
-              >
-                <Icon className={`h-5 w-5 ${iconColor}`} />
-                <span className="text-sm font-semibold">
-                  {lang === "ar" ? insight.textAr : insight.textEn}
-                </span>
-                <ArrowUpRight className="ms-auto h-4 w-4 opacity-50" />
-              </Link>
-            );
-          })}
-        </div>
-      )}
 
       {/* Quick actions */}
       <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -1254,14 +1261,30 @@ function AdminDashboard() {
                     <div className="truncate text-sm font-semibold text-foreground">
                       {lang === "ar" && l.company_ar ? l.company_ar : l.company_en}
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {days} {t("daysInactive")} ·{" "}
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span>{days} {t("daysInactive")}</span>
+                      <span>·</span>
                       <StatusBadge
                         status={l.status}
                         label={t(
                           ("stage" + l.status.charAt(0).toUpperCase() + l.status.slice(1)) as any,
                         )}
                       />
+                      {l.ownerDetails && (
+                        <>
+                          <span>·</span>
+                          <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
+                            {l.ownerDetails.avatar ? (
+                              <img src={l.ownerDetails.avatar} className="h-4 w-4 rounded-full object-cover" />
+                            ) : (
+                              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
+                                {l.ownerDetails.initials}
+                              </span>
+                            )}
+                            {lang === "ar" && l.ownerDetails.nameAr ? l.ownerDetails.nameAr : l.ownerDetails.name}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="text-end">
@@ -1382,6 +1405,85 @@ function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Smart Insights Grid */}
+      {insights.length > 0 && (
+        <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2 animate-in slide-in-from-bottom-4 fade-in duration-500">
+          {insights.map((insight: any) => {
+            const Icon =
+              insight.type === "error"
+                ? AlertTriangle
+                : insight.type === "warning"
+                  ? Clock
+                  : Sparkles;
+            const bg =
+              insight.type === "error"
+                ? "bg-rose-50/50 border-rose-200 text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/50"
+                : insight.type === "warning"
+                  ? "bg-amber-50/50 border-amber-200 text-amber-700 dark:bg-amber-950/20 dark:border-amber-900/50"
+                  : "bg-blue-50/50 border-blue-200 text-blue-700 dark:bg-blue-950/20 dark:border-blue-900/50";
+            const iconColor =
+              insight.type === "error"
+                ? "text-rose-600"
+                : insight.type === "warning"
+                  ? "text-amber-600"
+                  : "text-blue-600";
+            return (
+              <div
+                key={insight.id}
+                className={`flex flex-col rounded-xl border shadow-[var(--shadow-soft)] bg-card overflow-hidden`}
+              >
+                {/* Header Section */}
+                <div className={`flex items-center gap-3 p-4 border-b ${bg}`}>
+                  <Icon className={`h-5 w-5 ${iconColor}`} />
+                  <span className="font-display text-sm font-bold text-foreground">
+                    {lang === "ar" ? insight.textAr : insight.textEn}
+                  </span>
+                  <Link to={insight.link} className="ms-auto text-xs font-semibold hover:underline opacity-70">
+                    {t("viewAll")}
+                  </Link>
+                </div>
+
+                {/* Items List */}
+                <div className="flex-1 p-4 bg-card max-h-[300px] overflow-y-auto">
+                  {(!insight.items || insight.items.length === 0) ? (
+                    <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                      No specific items to list.
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {insight.items.map((item: any) => {
+                        return (
+                          <Link
+                            key={item.id}
+                            to={item.link}
+                            className="group/item flex items-center justify-between rounded-lg border border-border/50 bg-secondary/30 p-3 shadow-sm transition hover:bg-accent hover:border-primary/50"
+                          >
+                            <span className="font-semibold text-sm text-foreground truncate max-w-[60%]">{item.name}</span>
+                            <div className="flex items-center gap-2 text-muted-foreground shrink-0">
+                              {item.badgeText && (
+                                <span className="text-[10px] uppercase tracking-wider font-semibold bg-background px-2 py-1 rounded-md border shadow-sm">
+                                  {item.badgeEmoji} {item.badgeText}
+                                </span>
+                              )}
+                              {item.ownerName && !item.badgeText && (
+                                <span className="text-[10px] uppercase tracking-wider font-semibold bg-background px-2 py-1 rounded-md border shadow-sm">
+                                  👤 {item.ownerName}
+                                </span>
+                              )}
+                              <ArrowUpRight className="h-4 w-4 opacity-50 transition group-hover/item:text-primary group-hover/item:opacity-100" />
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Recent Wins Feed */}
       <div className="mt-6 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-700 fill-mode-both">

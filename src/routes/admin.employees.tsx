@@ -3,6 +3,7 @@ import { shortId } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
+import { filterMyProjects } from "@/lib/employeeProjects";
 import {
   Clock4,
   Download,
@@ -83,7 +84,7 @@ function AvatarSm({ initials, photo, name }: { initials: string; photo?: string;
 function EmployeesPage() {
   const { t, dir } = useI18n();
   const navigate = useNavigate();
-  const { activities, leads, employees } = useStoreState();
+  const { activities, leads, employees, projects, users } = useStoreState();
   const isDetailRoute = useRouterState({
     select: (state) => state.location.pathname.startsWith("/admin/employees/"),
   });
@@ -99,38 +100,46 @@ function EmployeesPage() {
   const [minPerf, setMinPerf] = useState<string>("");
   const [maxPerf, setMaxPerf] = useState<string>("");
 
-  const depts = ["all", ...Array.from(new Set(employees.map((e) => e.department)))];
-  const roles = Array.from(new Set(employees.map((e) => e.role).filter(Boolean)));
+  const activeEmployees = useMemo(() => {
+    return employees.filter(e => {
+      const u = users.find(user => user.profileId === e.id || user.id === (e as any).userId);
+      return u?.role !== "admin";
+    });
+  }, [employees, users]);
+  const depts = ["all", ...Array.from(new Set(activeEmployees.map((e) => e.department)))];
+  const roles = Array.from(new Set(activeEmployees.map((e) => e.role).filter(Boolean)));
 
-  // Precompute per-owner stats in a single O(leads) pass to avoid the
-  // per-card N+1 filter/Set scans that ran on every render.
+  // Precompute per-owner stats using the same logic as the employee details page.
+  // Accounts are counted via filterMyProjects (memberProfileIds / memberUserIds / teamMembers),
+  // not by counting unique company names from leads.
   const leadStatsByOwner = useMemo(() => {
     const map = new Map<
       string,
-      { leads: number; won: number; accounts: Set<string>; wonAccounts: Set<string> }
+      { leads: number; won: number; wonAccounts: Set<string> }
     >();
     for (const l of leads) {
       const owner = (l.owner || "").toLowerCase();
       if (!owner) continue;
       let s = map.get(owner);
       if (!s) {
-        s = { leads: 0, won: 0, accounts: new Set(), wonAccounts: new Set() };
+        s = { leads: 0, won: 0, wonAccounts: new Set() };
         map.set(owner, s);
       }
       s.leads += 1;
       const acct = (l.company || "").trim().toLowerCase();
-      if (acct) s.accounts.add(acct);
-      if (l.status === "won") {
+      if (l.status === "won" && acct) {
         s.won += 1;
-        if (acct) s.wonAccounts.add(acct);
+        s.wonAccounts.add(acct);
       }
     }
     return map;
   }, [leads]);
 
-  const getStats = (name: string) => {
-    const s = leadStatsByOwner.get((name || "").toLowerCase());
-    const accounts = s?.accounts.size ?? 0;
+  const getStats = (e: (typeof employees)[number]) => {
+    // Mirror the detail page: use filterMyProjects for account count
+    const empIdentity = { profileId: e.id, userId: (e as any).userId, name: e.name };
+    const accounts = filterMyProjects(projects as any, empIdentity as any).length;
+    const s = leadStatsByOwner.get((e.name || "").toLowerCase());
     const wonAccounts = s?.wonAccounts.size ?? 0;
     return {
       leads: s?.leads ?? 0,
@@ -155,7 +164,7 @@ function EmployeesPage() {
 
   const filtered = useMemo(
     () =>
-      employees.filter((e) => {
+      activeEmployees.filter((e) => {
         if (dept !== "all" && e.department !== dept) return false;
         if (roleFilter !== "all" && e.role !== roleFilter) return false;
         if (minP !== null && e.perf < minP) return false;
@@ -171,7 +180,7 @@ function EmployeesPage() {
         }
         return true;
       }),
-    [dept, roleFilter, minP, maxP, query, employees],
+    [dept, roleFilter, minP, maxP, query, activeEmployees],
   );
 
   const [sortKey, setSortKey] = useState<string>("");
@@ -452,7 +461,7 @@ function EmployeesPage() {
       {view === "card" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((e) => {
-            const stats = getStats(e.name);
+            const stats = getStats(e);
             const goToAccounts = (ev: React.MouseEvent) => {
               ev.preventDefault();
               ev.stopPropagation();
@@ -724,7 +733,7 @@ function EmployeesPage() {
 
 function ExportHoursDialog({ onClose }: { onClose: () => void }) {
   const { t } = useI18n();
-  const { activities, employees } = useStoreState();
+  const { activities, employees, users } = useStoreState();
   const today = new Date().toISOString().slice(0, 10);
   const sevenAgo = new Date();
   sevenAgo.setDate(sevenAgo.getDate() - 6);
@@ -732,7 +741,11 @@ function ExportHoursDialog({ onClose }: { onClose: () => void }) {
   const [to, setTo] = useState(today);
 
   const rows = useMemo(() => {
-    const owners = Array.from(new Set(employees.map((e) => e.name)));
+    const activeEmployees = employees.filter(e => {
+      const u = users.find(user => user.profileId === e.id || user.id === (e as any).userId);
+      return u?.role !== "admin";
+    });
+    const owners = Array.from(new Set(activeEmployees.map((e) => e.name)));
     const dates: string[] = [];
     const d = new Date(from);
     const end = new Date(to);

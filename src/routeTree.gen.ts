@@ -70,6 +70,7 @@ import { Route as ManagerEmployeesEmployeeIdRouteImport } from './routes/manager
 import { Route as FinanceQuotationsQuotationIdRouteImport } from './routes/finance.quotations.$quotationId'
 import { Route as FinanceNotificationsSettingsRouteImport } from './routes/finance.notifications.settings'
 import { Route as FinanceLeadsLeadIdRouteImport } from './routes/finance.leads.$leadId'
+import { Route as EmployeeProjectsProjectIdRouteImport } from './routes/employee.projects.$projectId'
 import { Route as EmployeeOffersQuotationIdRouteImport } from './routes/employee.offers.$quotationId'
 import { Route as EmployeeNotificationsSettingsRouteImport } from './routes/employee.notifications.settings'
 import { Route as EmployeeLeadsLeadIdRouteImport } from './routes/employee.leads.$leadId'
@@ -394,6 +395,12 @@ const FinanceLeadsLeadIdRoute = FinanceLeadsLeadIdRouteImport.update({
   path: '/leads/$leadId',
   getParentRoute: () => FinanceRoute,
 } as any)
+const EmployeeProjectsProjectIdRoute =
+  EmployeeProjectsProjectIdRouteImport.update({
+    id: '/$projectId',
+    path: '/$projectId',
+    getParentRoute: () => EmployeeProjectsRoute,
+  } as any)
 const EmployeeOffersQuotationIdRoute =
   EmployeeOffersQuotationIdRouteImport.update({
     id: '/$quotationId',
@@ -495,7 +502,7 @@ export interface FileRoutesByFullPath {
   '/employee/offers': typeof EmployeeOffersRouteWithChildren
   '/employee/pipeline': typeof EmployeePipelineRoute
   '/employee/profile': typeof EmployeeProfileRoute
-  '/employee/projects': typeof EmployeeProjectsRoute
+  '/employee/projects': typeof EmployeeProjectsRouteWithChildren
   '/employee/send-email': typeof EmployeeSendEmailRoute
   '/finance/email-inbox': typeof FinanceEmailInboxRoute
   '/finance/notifications': typeof FinanceNotificationsRouteWithChildren
@@ -527,6 +534,7 @@ export interface FileRoutesByFullPath {
   '/employee/leads/$leadId': typeof EmployeeLeadsLeadIdRoute
   '/employee/notifications/settings': typeof EmployeeNotificationsSettingsRoute
   '/employee/offers/$quotationId': typeof EmployeeOffersQuotationIdRoute
+  '/employee/projects/$projectId': typeof EmployeeProjectsProjectIdRoute
   '/finance/leads/$leadId': typeof FinanceLeadsLeadIdRoute
   '/finance/notifications/settings': typeof FinanceNotificationsSettingsRoute
   '/finance/quotations/$quotationId': typeof FinanceQuotationsQuotationIdRoute
@@ -566,7 +574,7 @@ export interface FileRoutesByTo {
   '/employee/offers': typeof EmployeeOffersRouteWithChildren
   '/employee/pipeline': typeof EmployeePipelineRoute
   '/employee/profile': typeof EmployeeProfileRoute
-  '/employee/projects': typeof EmployeeProjectsRoute
+  '/employee/projects': typeof EmployeeProjectsRouteWithChildren
   '/employee/send-email': typeof EmployeeSendEmailRoute
   '/finance/email-inbox': typeof FinanceEmailInboxRoute
   '/finance/notifications': typeof FinanceNotificationsRouteWithChildren
@@ -598,6 +606,7 @@ export interface FileRoutesByTo {
   '/employee/leads/$leadId': typeof EmployeeLeadsLeadIdRoute
   '/employee/notifications/settings': typeof EmployeeNotificationsSettingsRoute
   '/employee/offers/$quotationId': typeof EmployeeOffersQuotationIdRoute
+  '/employee/projects/$projectId': typeof EmployeeProjectsProjectIdRoute
   '/finance/leads/$leadId': typeof FinanceLeadsLeadIdRoute
   '/finance/notifications/settings': typeof FinanceNotificationsSettingsRoute
   '/finance/quotations/$quotationId': typeof FinanceQuotationsQuotationIdRoute
@@ -642,7 +651,7 @@ export interface FileRoutesById {
   '/employee/offers': typeof EmployeeOffersRouteWithChildren
   '/employee/pipeline': typeof EmployeePipelineRoute
   '/employee/profile': typeof EmployeeProfileRoute
-  '/employee/projects': typeof EmployeeProjectsRoute
+  '/employee/projects': typeof EmployeeProjectsRouteWithChildren
   '/employee/send-email': typeof EmployeeSendEmailRoute
   '/finance/email-inbox': typeof FinanceEmailInboxRoute
   '/finance/notifications': typeof FinanceNotificationsRouteWithChildren
@@ -674,6 +683,7 @@ export interface FileRoutesById {
   '/employee/leads/$leadId': typeof EmployeeLeadsLeadIdRoute
   '/employee/notifications/settings': typeof EmployeeNotificationsSettingsRoute
   '/employee/offers/$quotationId': typeof EmployeeOffersQuotationIdRoute
+  '/employee/projects/$projectId': typeof EmployeeProjectsProjectIdRoute
   '/finance/leads/$leadId': typeof FinanceLeadsLeadIdRoute
   '/finance/notifications/settings': typeof FinanceNotificationsSettingsRoute
   '/finance/quotations/$quotationId': typeof FinanceQuotationsQuotationIdRoute
@@ -751,6 +761,7 @@ export interface FileRouteTypes {
     | '/employee/leads/$leadId'
     | '/employee/notifications/settings'
     | '/employee/offers/$quotationId'
+    | '/employee/projects/$projectId'
     | '/finance/leads/$leadId'
     | '/finance/notifications/settings'
     | '/finance/quotations/$quotationId'
@@ -822,6 +833,7 @@ export interface FileRouteTypes {
     | '/employee/leads/$leadId'
     | '/employee/notifications/settings'
     | '/employee/offers/$quotationId'
+    | '/employee/projects/$projectId'
     | '/finance/leads/$leadId'
     | '/finance/notifications/settings'
     | '/finance/quotations/$quotationId'
@@ -897,6 +909,7 @@ export interface FileRouteTypes {
     | '/employee/leads/$leadId'
     | '/employee/notifications/settings'
     | '/employee/offers/$quotationId'
+    | '/employee/projects/$projectId'
     | '/finance/leads/$leadId'
     | '/finance/notifications/settings'
     | '/finance/quotations/$quotationId'
@@ -1345,6 +1358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceLeadsLeadIdRouteImport
       parentRoute: typeof FinanceRoute
     }
+    '/employee/projects/$projectId': {
+      id: '/employee/projects/$projectId'
+      path: '/$projectId'
+      fullPath: '/employee/projects/$projectId'
+      preLoaderRoute: typeof EmployeeProjectsProjectIdRouteImport
+      parentRoute: typeof EmployeeProjectsRoute
+    }
     '/employee/offers/$quotationId': {
       id: '/employee/offers/$quotationId'
       path: '/$quotationId'
@@ -1611,6 +1631,17 @@ const EmployeeOffersRouteWithChildren = EmployeeOffersRoute._addFileChildren(
   EmployeeOffersRouteChildren,
 )
 
+interface EmployeeProjectsRouteChildren {
+  EmployeeProjectsProjectIdRoute: typeof EmployeeProjectsProjectIdRoute
+}
+
+const EmployeeProjectsRouteChildren: EmployeeProjectsRouteChildren = {
+  EmployeeProjectsProjectIdRoute: EmployeeProjectsProjectIdRoute,
+}
+
+const EmployeeProjectsRouteWithChildren =
+  EmployeeProjectsRoute._addFileChildren(EmployeeProjectsRouteChildren)
+
 interface EmployeeRouteChildren {
   EmployeeActivitiesRoute: typeof EmployeeActivitiesRouteWithChildren
   EmployeeAttendanceRoute: typeof EmployeeAttendanceRoute
@@ -1621,7 +1652,7 @@ interface EmployeeRouteChildren {
   EmployeeOffersRoute: typeof EmployeeOffersRouteWithChildren
   EmployeePipelineRoute: typeof EmployeePipelineRoute
   EmployeeProfileRoute: typeof EmployeeProfileRoute
-  EmployeeProjectsRoute: typeof EmployeeProjectsRoute
+  EmployeeProjectsRoute: typeof EmployeeProjectsRouteWithChildren
   EmployeeSendEmailRoute: typeof EmployeeSendEmailRoute
   EmployeeIndexRoute: typeof EmployeeIndexRoute
 }
@@ -1636,7 +1667,7 @@ const EmployeeRouteChildren: EmployeeRouteChildren = {
   EmployeeOffersRoute: EmployeeOffersRouteWithChildren,
   EmployeePipelineRoute: EmployeePipelineRoute,
   EmployeeProfileRoute: EmployeeProfileRoute,
-  EmployeeProjectsRoute: EmployeeProjectsRoute,
+  EmployeeProjectsRoute: EmployeeProjectsRouteWithChildren,
   EmployeeSendEmailRoute: EmployeeSendEmailRoute,
   EmployeeIndexRoute: EmployeeIndexRoute,
 }

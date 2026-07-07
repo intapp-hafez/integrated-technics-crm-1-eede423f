@@ -32,6 +32,7 @@ const schema = z.object({
     .regex(/^[0-9 +()\-]{6,25}$/, "Invalid phone"),
   account_type: z.string().max(80).optional().or(z.literal("")),
   other_account_type: z.string().max(120).optional().or(z.literal("")),
+  website: z.string().trim().max(255).optional().or(z.literal("")),
 });
 
 type LocRow = {
@@ -126,7 +127,7 @@ export function ProjectRequestDialog({
     startDate: isAr ? "تاريخ البدء" : "Start Date",
     endDate: isAr ? "تاريخ الانتهاء" : "End Date",
     description: isAr ? "الوصف" : "Description",
-    descriptionPh: isAr ? "وصف موجز للمشروع…" : "Brief project description…",
+    descriptionPh: isAr ? "وصف موجز للمشروع…" : "Brief description about account…",
     competitors: isAr ? "المنافسين (مفصولين بفاصلة)" : "Competitors (comma-separated)",
     competitorsPh: isAr ? "المنافس أ، المنافس ب…" : "Competitor A, Competitor B…",
     location: isAr ? "الموقع" : "Location",
@@ -142,6 +143,8 @@ export function ProjectRequestDialog({
     fullNamePh: isAr ? "اسم مسؤول الاتصال" : "Contact person name",
     company: isAr ? "الشركة / العميل *" : "Company / Client *",
     companyPh: isAr ? "الشركة أو اسم العميل" : "Company or client name",
+    website: isAr ? "الموقع الإلكتروني" : "Website",
+    websitePh: "https://example.com",
     email: isAr ? "البريد الإلكتروني *" : "Email *",
     phoneLabel: isAr ? "رقم الهاتف *" : "Phone *",
     extraContacts: isAr ? "جهات اتصال إضافية" : "Extra Contacts",
@@ -196,6 +199,7 @@ export function ProjectRequestDialog({
         email: existingRequest.email || "",
         account_type: existingRequest.account_type || "",
         other_account_type: existingRequest.other_account_type || "",
+        website: existingRequest.website || "",
       });
       setPhone(existingRequest.phone || "+20");
       if (existingRequest.extra_contacts) {
@@ -326,6 +330,7 @@ export function ProjectRequestDialog({
       contact_name_en: d.contact_name_en,
       email: d.email,
       phone: d.phone,
+      website: d.website || null,
       account_type: d.account_type || null,
       other_account_type: d.account_type === "Other" ? d.other_account_type || null : null,
       extra_contacts:
@@ -572,6 +577,17 @@ export function ProjectRequestDialog({
               onChange={set("client_name_en")}
               className={inputCls}
               placeholder={L.companyPh}
+            />
+          </label>
+          <label className="block">
+            <span className={labelCls}>{L.website}</span>
+            <input
+              type="url"
+              value={v.website ?? ""}
+              onChange={set("website")}
+              className={inputCls}
+              placeholder={L.websitePh}
+              dir="ltr"
             />
           </label>
           <label className="block">

@@ -245,7 +245,9 @@ function ManagerLeadsListPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {paginated.map((l) => (
-                <tr key={l.id} className="transition hover:bg-primary/5">
+                <tr key={l.id} className={`transition ${
+                  (l.value || 0) === 0 ? "bg-rose-50/50 hover:bg-rose-50" : "hover:bg-primary/5"
+                }`}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div>
@@ -274,8 +276,17 @@ function ManagerLeadsListPage() {
                   <td className="px-4 py-3">
                     <StatusBadge status={l.status} label={stageLabel(l.status)} />
                   </td>
-                  <td className="px-4 py-3 text-end font-mono font-semibold text-foreground">
-                    {fmtMoney(l.value || 0)}
+                  <td className="px-4 py-3 text-end font-mono font-semibold">
+                    {(l.value || 0) === 0 ? (
+                      <div className="flex flex-col items-end">
+                        <span className="text-rose-600">{fmtMoney(0)}</span>
+                        <span className="mt-0.5 inline-flex items-center gap-1 text-[9px] uppercase tracking-wider text-rose-500 font-sans">
+                          <span aria-hidden>⚠</span> {t("noValue" as any) || "No Value"}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-foreground">{fmtMoney(l.value)}</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{l.city || "—"}</td>
                 </tr>

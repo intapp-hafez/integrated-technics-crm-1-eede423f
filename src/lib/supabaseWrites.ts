@@ -209,6 +209,7 @@ export async function sbAddProject(id: string, p: Project) {
     end_date: (p as any).endDate || null,
     account_type: (p as any).accountType || null,
     other_account_type: (p as any).otherAccountType || null,
+    website: p.website || null,
     extra_contacts: (p as any).extraContacts?.length ? (p as any).extraContacts : null,
     client_name: p.client || null,
     client_email: p.clientEmail || null,
@@ -250,6 +251,7 @@ export async function sbUpdateProject(id: string, patch: Partial<Project>) {
   if ((patch as any).endDate !== undefined) row.end_date = (patch as any).endDate || null;
   if (patch.accountType !== undefined) row.account_type = patch.accountType;
   if (patch.otherAccountType !== undefined) row.other_account_type = patch.otherAccountType;
+  if (patch.website !== undefined) row.website = patch.website;
   if (patch.extraContacts !== undefined)
     row.extra_contacts = patch.extraContacts?.length ? patch.extraContacts : null;
   if (patch.client !== undefined) row.client_name = patch.client;
