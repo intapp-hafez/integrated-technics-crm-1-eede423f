@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { shortId } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
