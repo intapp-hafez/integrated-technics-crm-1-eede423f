@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { shortId } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
@@ -82,6 +82,7 @@ function AvatarSm({ initials, photo, name }: { initials: string; photo?: string;
 
 function EmployeesPage() {
   const { t, dir } = useI18n();
+  const navigate = useNavigate();
   const { activities, leads, employees } = useStoreState();
   const isDetailRoute = useRouterState({
     select: (state) => state.location.pathname.startsWith("/admin/employees/"),
@@ -100,6 +101,45 @@ function EmployeesPage() {
 
   const depts = ["all", ...Array.from(new Set(employees.map((e) => e.department)))];
   const roles = Array.from(new Set(employees.map((e) => e.role).filter(Boolean)));
+
+  // Precompute per-owner stats in a single O(leads) pass to avoid the
+  // per-card N+1 filter/Set scans that ran on every render.
+  const leadStatsByOwner = useMemo(() => {
+    const map = new Map<
+      string,
+      { leads: number; won: number; accounts: Set<string>; wonAccounts: Set<string> }
+    >();
+    for (const l of leads) {
+      const owner = (l.owner || "").toLowerCase();
+      if (!owner) continue;
+      let s = map.get(owner);
+      if (!s) {
+        s = { leads: 0, won: 0, accounts: new Set(), wonAccounts: new Set() };
+        map.set(owner, s);
+      }
+      s.leads += 1;
+      const acct = (l.company || "").trim().toLowerCase();
+      if (acct) s.accounts.add(acct);
+      if (l.status === "won") {
+        s.won += 1;
+        if (acct) s.wonAccounts.add(acct);
+      }
+    }
+    return map;
+  }, [leads]);
+
+  const getStats = (name: string) => {
+    const s = leadStatsByOwner.get((name || "").toLowerCase());
+    const accounts = s?.accounts.size ?? 0;
+    const wonAccounts = s?.wonAccounts.size ?? 0;
+    return {
+      leads: s?.leads ?? 0,
+      won: s?.won ?? 0,
+      accounts,
+      wonAccounts,
+      accountWinRate: accounts ? Math.round((wonAccounts / accounts) * 100) : 0,
+    };
+  };
 
   const hoursToday = (name: string) => {
     const mins = activities
@@ -412,11 +452,15 @@ function EmployeesPage() {
       {view === "card" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((e) => {
-            const myLeads = leads.filter((l) => l.owner === e.name);
-            const won = myLeads.filter((l) => l.status === "won").length;
-            const accounts = new Set(
-              myLeads.map((l) => (l.company || "").trim().toLowerCase()).filter(Boolean),
-            ).size;
+            const stats = getStats(e.name);
+            const goToAccounts = (ev: React.MouseEvent) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              navigate({
+                to: "/admin/employee-accounts/$employeeId",
+                params: { employeeId: e.id },
+              });
+            };
             return (
               <Link
                 key={e.id}
@@ -454,24 +498,49 @@ function EmployeesPage() {
                   <PerfBar value={e.perf} />
                 </div>
 
+                {/* Account win rate row */}
+                <div className="flex items-center justify-between gap-3 border-t border-border px-5 py-2.5">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {dir === "rtl" ? "معدل كسب الحسابات" : "Account Won Rate"}
+                  </div>
+                  <div className="flex flex-1 items-center gap-2">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-500 ease-out"
+                        style={{ width: `${stats.accountWinRate}%` }}
+                      />
+                    </div>
+                    <span className="font-mono text-xs font-bold text-emerald-600">
+                      {stats.accountWinRate}%
+                    </span>
+                  </div>
+                </div>
+
                 {/* Stats row */}
                 <div className="grid grid-cols-4 divide-x divide-border border-t border-border text-center">
                   <div className="py-3">
                     <div className="font-mono text-lg font-bold text-foreground">
-                      {myLeads.length}
+                      {stats.leads}
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       {t("leads")}
                     </div>
                   </div>
-                  <div className="py-3">
-                    <div className="font-mono text-lg font-bold text-sky-600">{accounts}</div>
+                  <button
+                    type="button"
+                    onClick={goToAccounts}
+                    className="py-3 transition hover:bg-sky-50 focus:bg-sky-50 focus:outline-none"
+                    aria-label={dir === "rtl" ? "عرض الحسابات" : "View accounts"}
+                  >
+                    <div className="font-mono text-lg font-bold text-sky-600 underline decoration-sky-300 decoration-dotted underline-offset-4">
+                      {stats.accounts}
+                    </div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       {dir === "rtl" ? "حسابات" : "Accounts"}
                     </div>
-                  </div>
+                  </button>
                   <div className="py-3">
-                    <div className="font-mono text-lg font-bold text-emerald-600">{won}</div>
+                    <div className="font-mono text-lg font-bold text-emerald-600">{stats.won}</div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       {t("won")}
                     </div>
