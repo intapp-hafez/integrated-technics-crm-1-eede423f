@@ -133,12 +133,17 @@ function PipelinePage() {
                 setDragId(null);
                 setOverStage(null);
               }}
-              className={`min-w-[240px] shrink-0 rounded-xl p-3 transition ${isOver ? "bg-primary/10 ring-2 ring-primary" : isActive ? "bg-primary/5 ring-2 ring-primary/60" : "bg-secondary/40"}`}
+              className={`min-w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
+              style={{ 
+                borderTopColor: stage.color,
+                backgroundColor: isOver ? `${stage.color}20` : isActive ? `${stage.color}15` : `${stage.color}05`
+              }}
             >
               <button
                 type="button"
                 onClick={() => setActiveStage((s) => (s === stage.key ? null : stage.key))}
-                className={`sticky top-0 z-10 -mx-3 -mt-3 mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between rounded-t-xl px-4 py-2 text-left backdrop-blur transition ${isActive ? "bg-primary/15" : "bg-secondary/80"}`}
+                className={`sticky top-0 z-10 -mx-3 -mt-3 mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between rounded-t-xl px-4 py-2 text-left backdrop-blur transition`}
+                style={{ backgroundColor: isActive ? `${stage.color}25` : `${stage.color}15` }}
                 aria-pressed={isActive}
               >
                 <div className="flex items-center gap-2">
@@ -199,11 +204,8 @@ function PipelinePage() {
                       <span className="font-mono text-xs font-bold text-primary">
                         {fmtMoney(l.value)}
                       </span>
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
-                        {l.owner
-                          .split(" ")
-                          .map((w: string) => w[0])
-                          .join("")}
+                      <div className="text-[10px] font-medium text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full truncate max-w-[120px]" title={l.owner}>
+                        {l.owner}
                       </div>
                     </div>
                     {(() => {

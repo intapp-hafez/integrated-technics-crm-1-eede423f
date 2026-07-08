@@ -1,0 +1,5285 @@
+{
+  "info": {
+    "name": "INT CRM API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "supabase_url",
+      "value": "https://<your-project-id>.supabase.co",
+      "type": "string"
+    },
+    {
+      "key": "supabase_key",
+      "value": "<your-anon-or-service-role-key>",
+      "type": "string"
+    },
+    {
+      "key": "bearer_token",
+      "value": "<your-auth-token>",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearer_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.add({key: 'apikey', value: pm.collectionVariables.get('supabase_key')});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign Up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/auth/v1/signup",
+              "host": [
+                "{{supabase_url}}"
+              ],
+              "path": [
+                "auth",
+                "v1",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Sign In",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/auth/v1/token?grant_type=password",
+              "host": [
+                "{{supabase_url}}"
+              ],
+              "path": [
+                "auth",
+                "v1",
+                "token"
+              ],
+              "query": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Edge Functions",
+      "item": [
+        {
+          "name": "Call admin-users",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/functions/v1/admin-users",
+              "host": [
+                "{{supabase_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "admin-users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"value\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Call email-dispatch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/functions/v1/email-dispatch",
+              "host": [
+                "{{supabase_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "email-dispatch"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"value\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tables (REST API)",
+      "item": [
+        {
+          "name": "activities",
+          "item": [
+            {
+              "name": "Get all activities",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/activities?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "activities"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one activities",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/activities?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "activities"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create activities",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/activities",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "activities"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update activities",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/activities?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "activities"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete activities",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/activities?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "activities"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "activity_types_config",
+          "item": [
+            {
+              "name": "Get all activity_types_config",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/activity_types_config?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "activity_types_config"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one activity_types_config",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/activity_types_config?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "activity_types_config"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create activity_types_config",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/activity_types_config",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "activity_types_config"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update activity_types_config",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/activity_types_config?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "activity_types_config"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete activity_types_config",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/activity_types_config?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "activity_types_config"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "admin_task_activities",
+          "item": [
+            {
+              "name": "Get all admin_task_activities",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/admin_task_activities?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "admin_task_activities"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one admin_task_activities",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/admin_task_activities?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "admin_task_activities"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create admin_task_activities",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/admin_task_activities",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "admin_task_activities"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update admin_task_activities",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/admin_task_activities?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "admin_task_activities"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete admin_task_activities",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/admin_task_activities?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "admin_task_activities"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "admin_tasks",
+          "item": [
+            {
+              "name": "Get all admin_tasks",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/admin_tasks?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "admin_tasks"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one admin_tasks",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/admin_tasks?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "admin_tasks"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create admin_tasks",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/admin_tasks",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "admin_tasks"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update admin_tasks",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/admin_tasks?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "admin_tasks"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete admin_tasks",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/admin_tasks?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "admin_tasks"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "attachments",
+          "item": [
+            {
+              "name": "Get all attachments",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/attachments?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "attachments"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one attachments",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/attachments?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "attachments"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create attachments",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/attachments",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "attachments"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update attachments",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/attachments?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "attachments"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete attachments",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/attachments?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "attachments"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "attendance",
+          "item": [
+            {
+              "name": "Get all attendance",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/attendance?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "attendance"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one attendance",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/attendance?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "attendance"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create attendance",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/attendance",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "attendance"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update attendance",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/attendance?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "attendance"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete attendance",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/attendance?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "attendance"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "automation_rules",
+          "item": [
+            {
+              "name": "Get all automation_rules",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/automation_rules?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "automation_rules"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one automation_rules",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/automation_rules?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "automation_rules"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create automation_rules",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/automation_rules",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "automation_rules"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update automation_rules",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/automation_rules?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "automation_rules"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete automation_rules",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/automation_rules?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "automation_rules"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "clients",
+          "item": [
+            {
+              "name": "Get all clients",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/clients?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "clients"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one clients",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/clients?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "clients"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create clients",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/clients",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "clients"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update clients",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/clients?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "clients"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete clients",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/clients?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "clients"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "departments",
+          "item": [
+            {
+              "name": "Get all departments",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/departments?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "departments"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one departments",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/departments?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "departments"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create departments",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/departments",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "departments"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update departments",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/departments?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "departments"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete departments",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/departments?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "departments"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "email_delivery_logs",
+          "item": [
+            {
+              "name": "Get all email_delivery_logs",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/email_delivery_logs?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "email_delivery_logs"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one email_delivery_logs",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/email_delivery_logs?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "email_delivery_logs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create email_delivery_logs",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/email_delivery_logs",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "email_delivery_logs"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update email_delivery_logs",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/email_delivery_logs?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "email_delivery_logs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete email_delivery_logs",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/email_delivery_logs?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "email_delivery_logs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "email_jobs",
+          "item": [
+            {
+              "name": "Get all email_jobs",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/email_jobs?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "email_jobs"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one email_jobs",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/email_jobs?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "email_jobs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create email_jobs",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/email_jobs",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "email_jobs"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update email_jobs",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/email_jobs?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "email_jobs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete email_jobs",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/email_jobs?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "email_jobs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "history",
+          "item": [
+            {
+              "name": "Get all history",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/history?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "history"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one history",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/history?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "history"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create history",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/history",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "history"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update history",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/history?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "history"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete history",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/history?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "history"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "ip_blocklist",
+          "item": [
+            {
+              "name": "Get all ip_blocklist",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/ip_blocklist?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "ip_blocklist"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one ip_blocklist",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/ip_blocklist?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "ip_blocklist"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create ip_blocklist",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/ip_blocklist",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "ip_blocklist"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update ip_blocklist",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/ip_blocklist?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "ip_blocklist"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete ip_blocklist",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/ip_blocklist?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "ip_blocklist"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "ip_whitelist",
+          "item": [
+            {
+              "name": "Get all ip_whitelist",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/ip_whitelist?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "ip_whitelist"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one ip_whitelist",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/ip_whitelist?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "ip_whitelist"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create ip_whitelist",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/ip_whitelist",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "ip_whitelist"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update ip_whitelist",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/ip_whitelist?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "ip_whitelist"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete ip_whitelist",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/ip_whitelist?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "ip_whitelist"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "lead_notes",
+          "item": [
+            {
+              "name": "Get all lead_notes",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/lead_notes?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "lead_notes"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one lead_notes",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/lead_notes?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "lead_notes"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create lead_notes",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/lead_notes",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "lead_notes"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update lead_notes",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/lead_notes?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "lead_notes"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete lead_notes",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/lead_notes?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "lead_notes"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "leads",
+          "item": [
+            {
+              "name": "Get all leads",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/leads?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "leads"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one leads",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/leads?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "leads"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create leads",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/leads",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "leads"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update leads",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/leads?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "leads"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete leads",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/leads?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "leads"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "locations",
+          "item": [
+            {
+              "name": "Get all locations",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/locations?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "locations"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one locations",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/locations?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "locations"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create locations",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/locations",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "locations"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update locations",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/locations?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "locations"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete locations",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/locations?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "locations"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "messages",
+          "item": [
+            {
+              "name": "Get all messages",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/messages?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "messages"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one messages",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/messages?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "messages"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create messages",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/messages",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "messages"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update messages",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/messages?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "messages"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete messages",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/messages?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "messages"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "notification_templates",
+          "item": [
+            {
+              "name": "Get all notification_templates",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/notification_templates?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "notification_templates"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one notification_templates",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/notification_templates?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "notification_templates"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create notification_templates",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/notification_templates",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "notification_templates"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update notification_templates",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/notification_templates?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "notification_templates"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete notification_templates",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/notification_templates?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "notification_templates"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "notifications",
+          "item": [
+            {
+              "name": "Get all notifications",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/notifications?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "notifications"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one notifications",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/notifications?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "notifications"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create notifications",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/notifications",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "notifications"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update notifications",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/notifications?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "notifications"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete notifications",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/notifications?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "notifications"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "pipeline_stages",
+          "item": [
+            {
+              "name": "Get all pipeline_stages",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/pipeline_stages?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "pipeline_stages"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one pipeline_stages",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/pipeline_stages?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "pipeline_stages"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create pipeline_stages",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/pipeline_stages",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "pipeline_stages"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update pipeline_stages",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/pipeline_stages?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "pipeline_stages"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete pipeline_stages",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/pipeline_stages?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "pipeline_stages"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "positions",
+          "item": [
+            {
+              "name": "Get all positions",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/positions?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "positions"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one positions",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/positions?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "positions"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create positions",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/positions",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "positions"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update positions",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/positions?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "positions"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete positions",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/positions?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "positions"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "profiles",
+          "item": [
+            {
+              "name": "Get all profiles",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/profiles?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "profiles"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one profiles",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/profiles?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "profiles"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create profiles",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/profiles",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "profiles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update profiles",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/profiles?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "profiles"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete profiles",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/profiles?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "profiles"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "project_members",
+          "item": [
+            {
+              "name": "Get all project_members",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/project_members?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "project_members"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one project_members",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/project_members?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "project_members"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create project_members",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/project_members",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "project_members"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update project_members",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/project_members?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "project_members"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete project_members",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/project_members?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "project_members"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "project_requests",
+          "item": [
+            {
+              "name": "Get all project_requests",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/project_requests?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "project_requests"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one project_requests",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/project_requests?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "project_requests"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create project_requests",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/project_requests",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "project_requests"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update project_requests",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/project_requests?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "project_requests"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete project_requests",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/project_requests?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "project_requests"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "projects",
+          "item": [
+            {
+              "name": "Get all projects",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/projects?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "projects"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one projects",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/projects?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "projects"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create projects",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/projects",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "projects"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update projects",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/projects?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "projects"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete projects",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/projects?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "projects"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "quotation_items",
+          "item": [
+            {
+              "name": "Get all quotation_items",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/quotation_items?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "quotation_items"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one quotation_items",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/quotation_items?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "quotation_items"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create quotation_items",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/quotation_items",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "quotation_items"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update quotation_items",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/quotation_items?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "quotation_items"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete quotation_items",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/quotation_items?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "quotation_items"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "quotations",
+          "item": [
+            {
+              "name": "Get all quotations",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/quotations?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "quotations"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one quotations",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/quotations?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "quotations"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create quotations",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/quotations",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "quotations"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update quotations",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/quotations?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "quotations"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete quotations",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/quotations?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "quotations"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "rate_limit_counters",
+          "item": [
+            {
+              "name": "Get all rate_limit_counters",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/rate_limit_counters?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "rate_limit_counters"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one rate_limit_counters",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/rate_limit_counters?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "rate_limit_counters"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create rate_limit_counters",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/rate_limit_counters",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "rate_limit_counters"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update rate_limit_counters",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/rate_limit_counters?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "rate_limit_counters"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete rate_limit_counters",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/rate_limit_counters?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "rate_limit_counters"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "role_permissions",
+          "item": [
+            {
+              "name": "Get all role_permissions",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/role_permissions?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "role_permissions"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one role_permissions",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/role_permissions?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "role_permissions"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create role_permissions",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/role_permissions",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "role_permissions"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update role_permissions",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/role_permissions?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "role_permissions"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete role_permissions",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/role_permissions?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "role_permissions"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "security_audit_logs",
+          "item": [
+            {
+              "name": "Get all security_audit_logs",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_audit_logs?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_audit_logs"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one security_audit_logs",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_audit_logs?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_audit_logs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create security_audit_logs",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_audit_logs",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_audit_logs"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update security_audit_logs",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_audit_logs?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_audit_logs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete security_audit_logs",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_audit_logs?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_audit_logs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "security_events",
+          "item": [
+            {
+              "name": "Get all security_events",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_events?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_events"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one security_events",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_events?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_events"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create security_events",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_events",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_events"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update security_events",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_events?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_events"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete security_events",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_events?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_events"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "security_scan_runs",
+          "item": [
+            {
+              "name": "Get all security_scan_runs",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_scan_runs?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_scan_runs"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one security_scan_runs",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_scan_runs?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_scan_runs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create security_scan_runs",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_scan_runs",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_scan_runs"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update security_scan_runs",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_scan_runs?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_scan_runs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete security_scan_runs",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/security_scan_runs?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "security_scan_runs"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "smtp_settings",
+          "item": [
+            {
+              "name": "Get all smtp_settings",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/smtp_settings?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "smtp_settings"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one smtp_settings",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/smtp_settings?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "smtp_settings"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create smtp_settings",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/smtp_settings",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "smtp_settings"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update smtp_settings",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/smtp_settings?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "smtp_settings"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete smtp_settings",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/smtp_settings?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "smtp_settings"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "user_roles",
+          "item": [
+            {
+              "name": "Get all user_roles",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/user_roles?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "user_roles"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one user_roles",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/user_roles?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "user_roles"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create user_roles",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/user_roles",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "user_roles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update user_roles",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/user_roles?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "user_roles"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete user_roles",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/user_roles?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "user_roles"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
