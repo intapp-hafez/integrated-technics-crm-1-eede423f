@@ -1,6 +1,6 @@
 import { LeadFormModal } from '@/components/leads/LeadFormModal';
 import { createFileRoute, Link, Outlet, useRouterState, useSearch } from "@tanstack/react-router";
-import { shortId } from "@/lib/utils";
+import { shortId, formatDate } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";
@@ -105,6 +105,10 @@ function LeadsPage() {
   const [minProb, setMinProb] = useState<string>("");
   const [closeFrom, setCloseFrom] = useState<string>("");
   const [closeTo, setCloseTo] = useState<string>("");
+  const [noActivitiesFilter, setNoActivitiesFilter] = useState(false);
+  const [closingThisMonthFilter, setClosingThisMonthFilter] = useState(false);
+  const [next7DaysFilter, setNext7DaysFilter] = useState(false);
+  const [next15DaysFilter, setNext15DaysFilter] = useState(false);
   const [editing, setEditing] = useState<Lead | "new" | null>(null);
   const [sortKey, setSortKey] = useState<string>("");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -168,6 +172,37 @@ function LeadsPage() {
       const d = l.expectedCloseDate ? new Date(l.expectedCloseDate).getTime() : null;
       if (d === null || d > closeToTs) return false;
     }
+    let dateFilterPass = true;
+    if (closingThisMonthFilter || next7DaysFilter || next15DaysFilter) {
+      if (!l.expectedCloseDate) {
+        dateFilterPass = false;
+      } else {
+        const d = new Date(l.expectedCloseDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // start of today
+        const tTime = today.getTime();
+        const dTime = d.getTime();
+        let pass = false;
+        if (closingThisMonthFilter) {
+          if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()) pass = true;
+        }
+        if (next7DaysFilter && !pass) {
+          const diffDays = (dTime - tTime) / (1000 * 60 * 60 * 24);
+          if (diffDays >= 0 && diffDays <= 7) pass = true;
+        }
+        if (next15DaysFilter && !pass) {
+          const diffDays = (dTime - tTime) / (1000 * 60 * 60 * 24);
+          if (diffDays >= 0 && diffDays <= 15) pass = true;
+        }
+        dateFilterPass = pass;
+      }
+    }
+    if (!dateFilterPass) return false;
+
+    if (noActivitiesFilter) {
+      const leadActivityCount = activities.filter((a) => a.leadId === l.id).length;
+      if (leadActivityCount > 0) return false;
+    }
     if (query.trim()) {
       const q = query.toLowerCase();
       const proj = (leadProjectName[l.id] ?? "").toLowerCase();
@@ -182,20 +217,22 @@ function LeadsPage() {
     (ownerFilter !== "all" ? 1 : 0) +
     (projectFilter !== "all" ? 1 : 0) +
     (minValue ? 1 : 0) + (maxValue ? 1 : 0) + (minProb ? 1 : 0) +
-    (closeFrom ? 1 : 0) + (closeTo ? 1 : 0) +
+    (closeFrom ? 1 : 0) + (closeTo ? 1 : 0) + (noActivitiesFilter ? 1 : 0) +
+    (closingThisMonthFilter ? 1 : 0) + (next7DaysFilter ? 1 : 0) + (next15DaysFilter ? 1 : 0) +
     (query.trim() ? 1 : 0);
 
   const clearFilters = () => {
     setStatusFilter("all"); setCityFilter("all"); setOwnerFilter("all"); setProjectFilter("all");
     setMinValue(""); setMaxValue(""); setMinProb("");
-    setCloseFrom(""); setCloseTo(""); setQuery("");
+    setCloseFrom(""); setCloseTo(""); setNoActivitiesFilter(false);
+    setClosingThisMonthFilter(false); setNext7DaysFilter(false); setNext15DaysFilter(false);
+    setQuery("");
     setPage(1);
   };
 
-  // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, cityFilter, ownerFilter, projectFilter, minValue, maxValue, minProb, closeFrom, closeTo, query]);
+  }, [statusFilter, cityFilter, ownerFilter, projectFilter, minValue, maxValue, minProb, closeFrom, closeTo, noActivitiesFilter, closingThisMonthFilter, next7DaysFilter, next15DaysFilter, query]);
 
   const handleExport = () => {
     if (filtered.length === 0) { toast.error(t("noLeadsMatch") as string); return; }
@@ -245,7 +282,7 @@ function LeadsPage() {
         case "contact": return l.contact;
         case "city": return l.city;
         case "district": return leadDistricts[l.id] ?? "";
-        case "source": return l.source ?? "";
+        case "expectedCloseDate": return l.expectedCloseDate ?? "";
         case "status": return l.status;
         case "owner": return l.owner;
         case "value": return l.value || 0;
@@ -335,21 +372,49 @@ function LeadsPage() {
       })()}
 
 
-      <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-1 shadow-[var(--shadow-soft)]">
-        <button
-          onClick={() => setTab("list")}
-          className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${tab === "list" ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" : "text-muted-foreground hover:text-foreground"
-            }`}
-        >
-          <List className="h-4 w-4" /> {t("listView")}
-        </button>
-        <button
-          onClick={() => setTab("map")}
-          className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${tab === "map" ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" : "text-muted-foreground hover:text-foreground"
-            }`}
-        >
-          <MapIcon className="h-4 w-4" /> {t("map")}
-        </button>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-6">
+          <div className="inline-flex rounded-lg border border-border bg-card p-1 shadow-[var(--shadow-soft)]">
+            <button
+              onClick={() => setTab("list")}
+              className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${tab === "list" ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" : "text-muted-foreground hover:text-foreground"
+                }`}
+            >
+              <List className="h-4 w-4" /> {t("listView")}
+            </button>
+            <button
+              onClick={() => setTab("map")}
+              className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${tab === "map" ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" : "text-muted-foreground hover:text-foreground"
+                }`}
+            >
+              <MapIcon className="h-4 w-4" /> {t("map")}
+            </button>
+          </div>
+          <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer">
+            <input
+              type="checkbox"
+              checked={noActivitiesFilter}
+              onChange={(e) => setNoActivitiesFilter(e.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+            />
+            {isAr ? "بدون نشاطات" : "No Activities"}
+          </label>
+          <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer">
+            <input type="checkbox" checked={closingThisMonthFilter} onChange={(e) => setClosingThisMonthFilter(e.target.checked)} className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20" />
+            {isAr ? "يغلق هذا الشهر" : "Closing This Month"}
+          </label>
+          <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer">
+            <input type="checkbox" checked={next7DaysFilter} onChange={(e) => setNext7DaysFilter(e.target.checked)} className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20" />
+            {isAr ? "خلال 7 أيام" : "Next 7 Days"}
+          </label>
+          <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer">
+            <input type="checkbox" checked={next15DaysFilter} onChange={(e) => setNext15DaysFilter(e.target.checked)} className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20" />
+            {isAr ? "خلال 15 يوم" : "Next 15 Days"}
+          </label>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {filtered.length} {t("leads")}
+        </div>
       </div>
 
       {tab === "map" ? (
@@ -489,7 +554,7 @@ function LeadsPage() {
                     ["project", t("project") ?? "Account", ""],
                     ["contact", t("contact"), ""],
                     ["city", t("city"), ""],
-                    ["source", t("source"), ""],
+                    ["expectedCloseDate", isAr ? "تاريخ الإغلاق" : "Close Date", ""],
                     ["status", `${t("status")} / %`, ""],
                     ["owner", t("owner"), ""],
                     ["value", t("value"), "justify-end"],
@@ -539,7 +604,7 @@ function LeadsPage() {
                       </div>
                       <div className="text-foreground">{l.contact}</div>
                       <div className="text-muted-foreground">{cityLabel(l.city)}</div>
-                      <div className="text-muted-foreground">{l.source}</div>
+                      <div className="text-muted-foreground font-mono text-xs">{formatDate(l.expectedCloseDate)}</div>
                       <div>
                         <StatusBadge status={l.status} label={stageLabel(l.status)} />
                         {(() => {

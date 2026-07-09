@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
@@ -226,7 +227,7 @@ function PipelinePage() {
                             {prob}% {t("probability")}
                           </span>
                           {l.expectedCloseDate && (
-                            <span className="font-mono">{l.expectedCloseDate}</span>
+                            <span className="font-mono">{formatDate(l.expectedCloseDate)}</span>
                           )}
                         </div>
                       );

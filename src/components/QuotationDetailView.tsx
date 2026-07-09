@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState } from "@/lib/store";
-import { shortId } from "@/lib/utils";
+import { shortId, formatDate } from "@/lib/utils";
 import { CopyIdButton } from "@/components/CopyIdButton";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { fmtMoney } from "@/lib/mock-data";
@@ -542,7 +542,7 @@ function QuotationActivities({
 }) {
   const related = (activities ?? [])
     .filter((a) => leadId && a.leadId === leadId)
-    .sort((a, b) => `${b.dueDate} ${b.time ?? ""}`.localeCompare(`${a.dueDate} ${a.time ?? ""}`));
+    .sort((a, b) => `${formatDate(b.dueDate)} ${b.time ?? ""}`.localeCompare(`${formatDate(a.dueDate)} ${a.time ?? ""}`));
 
   const iconFor = (t: string) => {
     const k = String(t || "").toLowerCase();
@@ -586,7 +586,7 @@ function QuotationActivities({
                     <StatusBadge status={a.status} label={a.status} />
                   </div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">
-                    {a.type} · {a.dueDate}
+                    {a.type} · {formatDate(a.dueDate)}
                     {a.time ? ` ${a.time}` : ""} · {a.owner}
                   </div>
                   {a.notes && (

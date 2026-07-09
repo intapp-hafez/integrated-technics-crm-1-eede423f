@@ -1,57 +1,35 @@
-import { formatDate } from "@/lib/utils";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@/lib/auth";
-import { AppShell } from "@/components/AppShell";
+import { useState, useRef } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
-import { useStoreState, getProbabilityForStatus, type LeadStatus } from "@/lib/store";
-import { useRole } from "@/lib/role";
-import { MultiSelect } from "@/components/PipelineFilters";
+import { getProbabilityForStatus, type LeadStatus, useStoreState } from "@/lib/store";
 import { GripVertical, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { MultiSelect } from "@/components/PipelineFilters";
+import { formatDate } from "@/lib/utils";
 import {
   StageTransitionDialog,
   type StageTransitionPayload,
 } from "@/components/StageTransitionDialog";
 
-export const Route = createFileRoute("/employee/pipeline")({
-  component: PipelinePage,
-  head: () => ({ meta: [{ title: "Pipeline · INT-CRM" }] }),
-});
-
-const ME = "";
-
-function PipelinePage() {
+export function PipelineBoard({
+  leads,
+  role,
+}: {
+  leads: any[];
+  role: "admin" | "employee" | "manager";
+}) {
   const { t } = useI18n();
-  const { leads, settings } = useStoreState();
   const navigate = useNavigate();
-  const { role } = useRole();
-  const { profile } = useAuth();
+  const { settings } = useStoreState();
 
-  const currentName = profile?.full_name_en || profile?.full_name_ar || ME;
-  const initials =
-    currentName
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase() || "HR";
-
-  const user = {
-    name: currentName,
-    role: t(role as any),
-    initials,
-    photo:
-      profile?.avatar_url ||
-      "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
-  };
   const [dragId, setDragId] = useState<string | null>(null);
   const [overStage, setOverStage] = useState<LeadStatus | null>(null);
   const [activeStage, setActiveStage] = useState<string | null>(null);
   const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [pending, setPending] = useState<StageTransitionPayload | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
   const scrollBy = (dir: 1 | -1) =>
     scrollRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
 
@@ -59,16 +37,13 @@ function PipelinePage() {
   const stages =
     stageFilter.length === 0 ? allStages : allStages.filter((s) => stageFilter.includes(s.key));
 
-  const safeCurrentName = (currentName || "").toLowerCase();
-  const myLeads = leads.filter((l) => (l.owner || "").toLowerCase() === safeCurrentName);
-
   const stageOptions = allStages.map((s) => ({
     value: s.key,
     label: (t(s.key as any) as string) ?? s.label,
   }));
 
   return (
-    <AppShell panel="employee" user={user} pageTitle={t("pipeline")}>
+    <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <GripVertical className="h-3.5 w-3.5" />
@@ -76,7 +51,7 @@ function PipelinePage() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <MultiSelect
-            label="Stage"
+            label={(t("stage") as string) ?? "Stage"}
             options={stageOptions}
             selected={stageFilter}
             onChange={setStageFilter}
@@ -104,7 +79,7 @@ function PipelinePage() {
 
       <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-2 scroll-smooth">
         {stages.map((stage) => {
-          const stageLeads = myLeads.filter((l) => l.status === stage.key);
+          const stageLeads = leads.filter((l) => l.status === stage.key);
           const totalValue = stageLeads.reduce((sum, l) => sum + l.value, 0);
           const isOver = overStage === stage.key;
           const isActive = activeStage === stage.key;
@@ -120,7 +95,7 @@ function PipelinePage() {
                 e.preventDefault();
                 const lid = e.dataTransfer.getData("text/lead-id") || dragId;
                 if (lid) {
-                  const lead = myLeads.find((l) => l.id === lid);
+                  const lead = leads.find((l) => l.id === lid);
                   if (lead && lead.status !== stage.key) {
                     setPending({
                       lead,
@@ -132,10 +107,16 @@ function PipelinePage() {
                 setDragId(null);
                 setOverStage(null);
               }}
-              className={`min-w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
-              style={{ 
+              className={`min-w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${
+                isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""
+              }`}
+              style={{
                 borderTopColor: stage.color,
-                backgroundColor: isOver ? `${stage.color}20` : isActive ? `${stage.color}15` : `${stage.color}05`
+                backgroundColor: isOver
+                  ? `${stage.color}20`
+                  : isActive
+                    ? `${stage.color}15`
+                    : `${stage.color}05`,
               }}
             >
               <button
@@ -155,12 +136,16 @@ function PipelinePage() {
                   </span>
                 </div>
                 {isActive && (
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden />
+                  <span
+                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"
+                    aria-hidden
+                  />
                 )}
               </button>
               <div className="mb-2 px-1 font-mono text-[10px] text-muted-foreground">
                 {fmtMoney(totalValue)}
               </div>
+
               <div className="min-h-[80px] space-y-2">
                 {stageLeads.map((l) => (
                   <div
@@ -176,17 +161,35 @@ function PipelinePage() {
                       setOverStage(null);
                     }}
                     onClick={() => {
-                      navigate({ to: "/employee/leads/$leadId", params: { leadId: l.id } });
+                      const targetRoute =
+                        role === "admin"
+                          ? "/admin/leads/$leadId"
+                          : role === "manager"
+                            ? "/manager/leads/$leadId"
+                            : "/employee/leads/$leadId";
+                      navigate({ to: targetRoute, params: { leadId: l.id } });
                     }}
-                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${dragId === l.id ? "opacity-50 border-primary" : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"}`}
+                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${
+                      dragId === l.id
+                        ? "opacity-50 border-primary"
+                        : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="truncate font-semibold text-foreground">{l.code || l.company}</div>
+                        <div className="truncate font-semibold text-foreground">
+                          {l.code || l.company}
+                        </div>
                         <div className="truncate text-xs text-muted-foreground">{l.contact}</div>
                       </div>
                       <Link
-                        to="/employee/leads/$leadId"
+                        to={
+                          role === "admin"
+                            ? "/admin/leads/$leadId"
+                            : role === "manager"
+                              ? "/manager/leads/$leadId"
+                              : "/employee/leads/$leadId"
+                        }
                         params={{ leadId: l.id }}
                         onClick={(e) => e.stopPropagation()}
                         className="text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-primary"
@@ -199,7 +202,10 @@ function PipelinePage() {
                       <span className="font-mono text-xs font-bold text-primary">
                         {fmtMoney(l.value)}
                       </span>
-                      <div className="text-[10px] font-medium text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full truncate max-w-[120px]" title={l.owner}>
+                      <div
+                        className="text-[10px] font-medium text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full truncate max-w-[120px]"
+                        title={l.owner}
+                      >
                         {l.owner}
                       </div>
                     </div>
@@ -209,7 +215,13 @@ function PipelinePage() {
                         <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-[10px] text-muted-foreground">
                           <span className="inline-flex items-center gap-1 font-semibold">
                             <div
-                              className={`h-1.5 w-1.5 rounded-full ${prob >= 70 ? "bg-emerald-500" : prob >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
+                              className={`h-1.5 w-1.5 rounded-full ${
+                                prob >= 70
+                                  ? "bg-emerald-500"
+                                  : prob >= 40
+                                    ? "bg-amber-500"
+                                    : "bg-rose-500"
+                              }`}
                             />
                             {prob}% {t("probability")}
                           </span>
@@ -232,6 +244,6 @@ function PipelinePage() {
         })}
       </div>
       <StageTransitionDialog open={!!pending} payload={pending} onClose={() => setPending(null)} />
-    </AppShell>
+    </>
   );
 }

@@ -16,7 +16,7 @@ import { employees as employeesData } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useRole } from "@/lib/role";
 import { useMyTeam } from "@/lib/useMyTeam";
-import { shortId } from "@/lib/utils";
+import { shortId, formatDate } from "@/lib/utils";
 
 const ACT_I18N: Record<string, any> = {
   Call: "actCall",
@@ -475,7 +475,7 @@ export function NewActivityDialog({ onClose }: Props) {
                 <Field label={dir === "rtl" ? "التاريخ" : "Due date"} icon={Calendar}>
                   <input
                     type="date"
-                    value={form.dueDate}
+                    value={formatDate(form.dueDate)}
                     onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
                     className="input"
                   />

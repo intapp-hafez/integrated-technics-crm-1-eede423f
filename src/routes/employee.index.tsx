@@ -16,18 +16,31 @@ import {
   FileBadge,
   Loader2,
   Check,
+  ChevronLeft,
+  ChevronRight,
+  Navigation,
+  AlertTriangle,
+  Wifi,
 } from "lucide-react";
 import { employees, fmtMoney } from "@/lib/mock-data";
 import { actions, useStoreState } from "@/lib/store";
 import { TargetCountdown, TargetRefreshIndicator } from "@/components/TargetCountdown";
-import { computeTargetPeriod, fmtCairoDate, sumWonInPeriod } from "@/lib/targetPeriod";
+import { computeTargetPeriod, fmtCairoDate, sumWonInPeriod, getKpiPeriodDates } from "@/lib/targetPeriod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { isLeadRelatedToEmployee } from "@/lib/employeeTargets";
 import { filterMyProjects } from "@/lib/employeeProjects";
 import { EmployeeTargetsCard } from "@/components/EmployeeTargetsCard";
+import {
+  getCurrentPosition,
+  getIpPosition,
+  reverseGeocode,
+  withDevice,
+  type GpsPosition,
+  type GeoAddress,
+} from "@/lib/geoLocation";
 
 export const Route = createFileRoute("/employee/")({
   component: EmployeeDashboard,
@@ -179,80 +192,59 @@ function EmployeeDashboard() {
   })();
 
   const [attLoading, setAttLoading] = useState(false);
-  async function getPos(): Promise<{ lat: number; lng: number } | null> {
-    return new Promise((resolve) => {
-      if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
-      navigator.geolocation.getCurrentPosition(
-        (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
-        () => resolve(null),
-        { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 },
-      );
-    });
-  }
+  const [leadsPage, setLeadsPage] = useState(1);
 
-  async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
-    try {
-      const r = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`,
-        {
-          headers: { Accept: "application/json" },
-        },
-      );
-      if (!r.ok) return null;
-      const j = await r.json();
-      const a = j.address ?? {};
-      return (
-        [a.suburb || a.neighbourhood || a.village, a.city || a.town || a.county, a.country]
-          .filter(Boolean)
-          .join(", ") ||
-        j.display_name ||
-        null
-      );
-    } catch {
-      return null;
+  // ── GPS state ──────────────────────────────────────────────────
+  type GpsState =
+    | { status: "idle" }
+    | { status: "locating" }
+    | { status: "ready"; pos: GpsPosition; addr: GeoAddress | null }
+    | { status: "ip-fallback"; pos: GpsPosition; addr: GeoAddress | null }
+    | { status: "denied" };
+  const [gps, setGps] = useState<GpsState>({ status: "idle" });
+  const hasFetched = useRef(false);
+
+  useEffect(() => {
+    if (hasFetched.current || todayRec?.lat != null) return;
+    hasFetched.current = true;
+    void fetchGps();
+  }, []);
+
+  async function fetchGps() {
+    setGps({ status: "locating" });
+    const pos = await getCurrentPosition();
+    if (pos) {
+      const addr = await reverseGeocode(pos.lat, pos.lng);
+      setGps({ status: "ready", pos, addr });
+      return;
     }
-  }
-
-  function deviceSummary(): string {
-    if (typeof navigator === "undefined") return "Unknown device";
-    const ua = navigator.userAgent;
-    const browser = /Edg\/|OPR\//.test(ua)
-      ? /Edg\//.test(ua)
-        ? "Edge"
-        : "Opera"
-      : /Firefox\//.test(ua)
-        ? "Firefox"
-        : /Chrome\//.test(ua)
-          ? "Chrome"
-          : /Safari\//.test(ua)
-            ? "Safari"
-            : "Browser";
-    const os = /iPhone|iPad/.test(ua)
-      ? "iOS"
-      : /Android/.test(ua)
-        ? "Android"
-        : /Mac OS X/.test(ua)
-          ? "macOS"
-          : /Windows/.test(ua)
-            ? "Windows"
-            : /Linux/.test(ua)
-              ? "Linux"
-              : "Device";
-    return `${browser} · ${os}`;
-  }
-
-  function withDevice(loc: string): string {
-    const dev = deviceSummary();
-    if (!loc) return `📱 ${dev}`;
-    return loc.includes("📱") ? loc : `${loc} · 📱 ${dev}`;
+    // GPS denied — try IP fallback automatically
+    const ipPos = await getIpPosition();
+    if (ipPos) {
+      const addr = await reverseGeocode(ipPos.lat, ipPos.lng);
+      setGps({ status: "ip-fallback", pos: ipPos, addr });
+      return;
+    }
+    setGps({ status: "denied" });
   }
   const handleCheckIn = async () => {
     setAttLoading(true);
     const now = new Date().toTimeString().slice(0, 5);
-    const pos = await getPos();
-    const baseLoc = pos
-      ? (await reverseGeocode(pos.lat, pos.lng)) || `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`
-      : profile.location;
+
+    let pos: GpsPosition | null = null;
+    let addr: GeoAddress | null = null;
+    if (gps.status === "ready" || gps.status === "ip-fallback") {
+      pos = gps.pos;
+      addr = gps.addr;
+    } else {
+      const fresh = await getCurrentPosition();
+      if (fresh) { pos = fresh; addr = await reverseGeocode(fresh.lat, fresh.lng); }
+      else {
+        const ipPos = await getIpPosition();
+        if (ipPos) { pos = ipPos; addr = await reverseGeocode(ipPos.lat, ipPos.lng); }
+      }
+    }
+    const baseLoc = addr?.label || (pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}` : profile.location);
     const locName = withDevice(baseLoc || "");
 
     actions.addAttendance({
@@ -271,22 +263,24 @@ function EmployeeDashboard() {
     if (!todayRec) return;
     setAttLoading(true);
     const now = new Date().toTimeString().slice(0, 5);
-    const pos = await getPos();
     const [ih, im] = todayRec.checkIn.split(":").map(Number);
     const [oh, om] = now.split(":").map(Number);
     const mins = Math.max(0, oh * 60 + om - (ih * 60 + im));
 
-    const patch: any = {
-      checkOut: now,
-      hours: `${(mins / 60).toFixed(1)}h`,
-    };
+    const patch: any = { checkOut: now, hours: `${(mins / 60).toFixed(1)}h` };
+
+    let pos: GpsPosition | null = null;
+    let addr: GeoAddress | null = null;
+    if (gps.status === "ready") { pos = gps.pos; addr = gps.addr; }
+    else {
+      const fresh = await getCurrentPosition();
+      if (fresh) { pos = fresh; addr = await reverseGeocode(fresh.lat, fresh.lng); }
+    }
 
     if (pos) {
-      const baseLoc =
-        (await reverseGeocode(pos.lat, pos.lng)) || `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
       patch.lat = pos.lat;
       patch.lng = pos.lng;
-      patch.location = withDevice(baseLoc);
+      patch.location = withDevice(addr?.label || `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`);
     } else {
       patch.location = withDevice(todayRec.location || "");
     }
@@ -296,29 +290,67 @@ function EmployeeDashboard() {
   };
 
   // -------- KPI Calculations --------
-  // Present days this month (real)
+  const [kpiPeriodOffset, setKpiPeriodOffset] = useState(0);
+
   const nowLocal = new Date();
   const curYear = nowLocal.getFullYear();
   const curMonth = nowLocal.getMonth();
-  const monthStart = new Date(curYear, curMonth, 1);
-  const presentDays = myAttendance.filter((r) => new Date(r.date) >= monthStart).length;
-  // working days = weekdays so far this month (Sun-Thu work week — Cairo default)
-  const todayDay = nowLocal.getDate();
+
+  const tP = getKpiPeriodDates(profile.kpiTargetPeriod || "monthly", curYear, curMonth, kpiPeriodOffset);
+  const acP = getKpiPeriodDates(profile.kpiActivitiesPeriod || "monthly", curYear, curMonth, kpiPeriodOffset);
+  const atP = getKpiPeriodDates(profile.kpiAttendancePeriod || "monthly", curYear, curMonth, kpiPeriodOffset);
+
+  // We use Target Period's label as the primary pagination label
+  const kpiPeriodLabel = tP.label;
+
+  // Present days this period
+  const presentDays = myAttendance.filter((r) => {
+    const d = new Date(r.date);
+    return d >= atP.start && d <= atP.end;
+  }).length;
+  
+  // working days in selected period
+  const targetDay = kpiPeriodOffset === 0 && atP.start.getTime() <= nowLocal.getTime() && nowLocal.getTime() <= atP.end.getTime() 
+    ? nowLocal 
+    : atP.end;
+    
   let workingDays = 0;
-  for (let d = 1; d <= todayDay; d++) {
-    const wd = new Date(curYear, curMonth, d).getDay(); // 0=Sun..6=Sat
+  for (let d = new Date(atP.start); d <= targetDay; d.setDate(d.getDate() + 1)) {
+    const wd = d.getDay(); // 0=Sun..6=Sat
     if (wd !== 5 && wd !== 6) workingDays++; // exclude Fri/Sat
   }
   const attendanceRate = workingDays > 0 ? Math.min(100, (presentDays / workingDays) * 100) : 0;
 
-  const totalActs = myActivities.length;
-  const completedActs = myActivities.filter((a) => a.status === "done").length;
-  const activityScore = totalActs > 0 ? (completedActs / totalActs) * 100 : 0;
+  // Activities in selected period
+  const actsInMonth = myActivities.filter(a => {
+    if (!(a as any).dueDate) return kpiPeriodOffset === 0;
+    const d = new Date((a as any).dueDate).getTime();
+    return d >= acP.start.getTime() && d <= acP.end.getTime();
+  });
+  const totalActs = actsInMonth.length;
+  const completedActs = actsInMonth.filter((a) => a.status === "done").length;
+  const activityScore = totalActs > 0 ? (completedActs / totalActs) * 100 : (kpiPeriodOffset <= 0 && totalActs === 0 ? 100 : 0);
 
-  const achieveRate = annualTarget > 0 ? (achievedTarget / annualTarget) * 100 : 0;
+  // Target for selected period
+  const kpiMonthlyTarget = annualTarget / tP.divisor;
+  const kpiMonthlyAchieved = sumWonInPeriod(myLeads as any, {
+    periodStartMs: tP.start.getTime(),
+    periodEndMs: tP.end.getTime(),
+  });
+  const achieveRate = kpiMonthlyTarget > 0 ? (kpiMonthlyAchieved / kpiMonthlyTarget) * 100 : 0;
   const targetScore = Math.min(100, achieveRate);
+  
+  const periodAchieveRate = annualTarget > 0 ? (achievedTarget / annualTarget) * 100 : 0;
 
-  const overallKpi = Math.round(targetScore * 0.5 + activityScore * 0.5);
+  const tW = profile.kpiTargetWeight ?? 33.33;
+  const acW = profile.kpiActivitiesWeight ?? 33.33;
+  const atW = profile.kpiAttendanceWeight ?? 33.34;
+
+  const overallKpi = Math.round(
+    targetScore * (tW / 100) + 
+    activityScore * (acW / 100) + 
+    attendanceRate * (atW / 100)
+  );
 
   return (
     <AppShell
@@ -402,8 +434,21 @@ function EmployeeDashboard() {
           {/* Actions */}
           <div className="relative z-10 flex flex-col gap-2 md:items-end">
             <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur md:self-end">
-              <MapPin className="h-3 w-3" />
-              {todayRec?.lat != null ? "GPS Verified" : "GPS Pending"}
+              {todayRec?.lat != null ? (
+                <><Check className="h-3 w-3 text-emerald-600" /> GPS Verified</>
+              ) : gps.status === "locating" ? (
+                <><Loader2 className="h-3 w-3 animate-spin text-primary" /> Locating…</>
+              ) : gps.status === "ready" ? (
+                <><Navigation className="h-3 w-3 text-emerald-600" /> GPS Ready</>
+              ) : gps.status === "ip-fallback" ? (
+                <><Wifi className="h-3 w-3 text-amber-500" /> Approx. Location</>
+              ) : gps.status === "denied" ? (
+                <button onClick={fetchGps} className="flex items-center gap-1 text-rose-600">
+                  <AlertTriangle className="h-3 w-3" /> Retry GPS
+                </button>
+              ) : (
+                <><MapPin className="h-3 w-3" /> GPS Pending</>
+              )}
             </div>
             {!todayRec ? (
               <button
@@ -533,9 +578,36 @@ function EmployeeDashboard() {
 
       {/* Target & KPI Monitoring */}
       <div className="mt-6 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-        <h3 className="font-display text-base font-bold text-foreground mb-4">
-          🎯 Target & KPI Monitoring
-        </h3>
+        <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
+          <h3 className="font-display text-base font-bold text-foreground">
+            🎯 Target & KPI Monitoring
+          </h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setKpiPeriodOffset((m) => m - 1)}
+              className="rounded-lg border border-border p-1.5 hover:bg-accent"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="font-display text-sm font-bold text-foreground min-w-[120px] text-center">
+              {kpiPeriodLabel}
+            </div>
+            <button
+              onClick={() => setKpiPeriodOffset((m) => m + 1)}
+              className="rounded-lg border border-border p-1.5 hover:bg-accent"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            {kpiPeriodOffset !== 0 && (
+              <button
+                onClick={() => setKpiPeriodOffset(0)}
+                className="ml-2 text-xs font-semibold text-primary hover:underline"
+              >
+                Current
+              </button>
+            )}
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Target Card */}
           <div className="rounded-lg bg-secondary/30 p-4">
@@ -572,14 +644,14 @@ function EmployeeDashboard() {
                 <span className="text-muted-foreground">Achievement %:</span>
                 <span
                   className={`font-bold ${
-                    achieveRate >= 100
+                    periodAchieveRate >= 100
                       ? "text-emerald-600"
-                      : achieveRate >= 75
+                      : periodAchieveRate >= 75
                         ? "text-amber-600"
                         : "text-rose-600"
                   }`}
                 >
-                  {achieveRate.toFixed(1)}%
+                  {periodAchieveRate.toFixed(1)}%
                 </span>
               </div>
             </div>
@@ -588,13 +660,13 @@ function EmployeeDashboard() {
               <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                 <div
                   className={`h-full ${
-                    achieveRate >= 100
+                    periodAchieveRate >= 100
                       ? "bg-emerald-500"
-                      : achieveRate >= 75
+                      : periodAchieveRate >= 75
                         ? "bg-amber-500"
                         : "bg-rose-500"
                   }`}
-                  style={{ width: `${Math.min(100, achieveRate)}%` }}
+                  style={{ width: `${Math.min(100, periodAchieveRate)}%` }}
                 />
               </div>
             </div>
@@ -624,7 +696,7 @@ function EmployeeDashboard() {
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
                     <span className="text-muted-foreground">
-                      Target Achievement KPI (Weight: 50%)
+                      Target Achievement KPI (Weight: {tW}%)
                     </span>
                     <span className="text-foreground">
                       {Math.min(100, achieveRate).toFixed(0)}%
@@ -641,12 +713,24 @@ function EmployeeDashboard() {
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
                     <span className="text-muted-foreground">
-                      Activity Performance (Weight: 50%)
+                      Activity Performance (Weight: {acW}%)
                     </span>
                     <span className="text-foreground">{activityScore.toFixed(0)}%</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-secondary">
                     <div className="h-full bg-sky-500" style={{ width: `${activityScore}%` }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-muted-foreground">
+                      Attendance Rate (Weight: {atW}%)
+                    </span>
+                    <span className="text-foreground">{attendanceRate.toFixed(0)}%</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-secondary">
+                    <div className="h-full bg-emerald-500" style={{ width: `${attendanceRate}%` }} />
                   </div>
                 </div>
               </div>
@@ -664,29 +748,80 @@ function EmployeeDashboard() {
               {t("viewAll")}
             </button>
           </div>
+          {(() => {
+            const PAGE_SIZE = 10;
+            const totalPages = Math.ceil(myLeads.length / PAGE_SIZE);
+            const page = Math.min(leadsPage, Math.max(1, totalPages));
+            const paginated = myLeads.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+            return (
+              <>
           <div className="mt-4 divide-y divide-border">
-            {myLeads.map((l) => (
-              <div key={l.id} className="flex items-center gap-3 py-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
-                  {l.company
-                    .split(" ")
-                    .slice(0, 2)
-                    .map((w: string) => w[0])
-                    .join("")}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold text-foreground">{l.company}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {l.contact} · {l.updatedAt}
+                {paginated.map((l) => (
+                  <div key={l.id} className="flex items-center gap-3 py-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                      {l.company
+                        .split(" ")
+                        .slice(0, 2)
+                        .map((w: string) => w[0])
+                        .join("")}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold text-foreground">{l.company}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {l.contact} · {l.updatedAt}
+                      </div>
+                    </div>
+                    <span className="hidden font-mono text-sm font-bold text-foreground sm:inline">
+                      {fmtMoney(l.value)}
+                    </span>
+                    <StatusBadge status={l.status} label={t(l.status as any)} />
+                  </div>
+                ))}
+                {myLeads.length === 0 && (
+                  <div className="py-8 text-center text-sm text-muted-foreground">
+                    No leads yet
+                  </div>
+                )}
+              </div>
+              {totalPages > 1 && (
+                <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+                  <span className="text-[11px] text-muted-foreground">
+                    {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, myLeads.length)} of {myLeads.length}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setLeadsPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card text-xs hover:bg-accent disabled:opacity-40"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => setLeadsPage(n)}
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-xs font-semibold transition ${
+                          n === page
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "border border-border bg-card hover:bg-accent"
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setLeadsPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card text-xs hover:bg-accent disabled:opacity-40"
+                    >
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
-                <span className="hidden font-mono text-sm font-bold text-foreground sm:inline">
-                  {fmtMoney(l.value)}
-                </span>
-                <StatusBadge status={l.status} label={t(l.status as any)} />
-              </div>
-            ))}
-          </div>
+              )}
+            </>
+            );
+          })()}
         </div>
 
         {/* Upcoming tasks — real personal data */}

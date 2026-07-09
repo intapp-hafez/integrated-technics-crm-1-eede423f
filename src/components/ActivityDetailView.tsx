@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
-import { shortId } from "@/lib/utils";
+import { shortId, formatDate } from "@/lib/utils";
 import { CopyIdButton } from "@/components/CopyIdButton";
 import { actions, useStoreState, type ActivityStatus } from "@/lib/store";
 import {
@@ -138,7 +138,7 @@ export function ActivityDetailView({
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <Stat icon={Calendar} label="Due date" value={a.dueDate} />
+              <Stat icon={Calendar} label="Due date" value={formatDate(a.dueDate)} />
               <Stat
                 icon={Timer}
                 label="Time"

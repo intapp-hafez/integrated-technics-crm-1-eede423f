@@ -557,6 +557,12 @@ export function useSupabaseSync() {
         annualTarget: Number(p.target_value ?? 0),
         targetType: (p.target_type ?? "yearly") as "yearly" | "quarterly" | "monthly",
         achievedTarget: achieved,
+        kpiTargetWeight: Number(p.kpi_target_weight ?? 33.33),
+        kpiActivitiesWeight: Number(p.kpi_activities_weight ?? 33.33),
+        kpiAttendanceWeight: Number(p.kpi_attendance_weight ?? 33.34),
+        kpiTargetPeriod: p.kpi_target_period ?? "",
+        kpiActivitiesPeriod: p.kpi_activities_period ?? "",
+        kpiAttendancePeriod: p.kpi_attendance_period ?? "",
       } as any;
     });
 
@@ -619,6 +625,12 @@ export function useSupabaseSync() {
           avatarUrl: meProfile.avatar_url ?? undefined,
           targetValue: Number(meProfile.target_value ?? 0),
           targetType: (meProfile.target_type ?? "yearly") as any,
+          kpiTargetWeight: Number(meProfile.kpi_target_weight ?? 33.33),
+          kpiActivitiesWeight: Number(meProfile.kpi_activities_weight ?? 33.33),
+          kpiAttendanceWeight: Number(meProfile.kpi_attendance_weight ?? 33.34),
+          kpiTargetPeriod: meProfile.kpi_target_period ?? "",
+          kpiActivitiesPeriod: meProfile.kpi_activities_period ?? "",
+          kpiAttendancePeriod: meProfile.kpi_attendance_period ?? "",
         }
       : undefined;
 

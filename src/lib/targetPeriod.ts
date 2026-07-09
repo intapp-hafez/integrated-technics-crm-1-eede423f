@@ -125,3 +125,35 @@ export function sumWonInPeriod(
     })
     .reduce((s, l) => s + Number(l.value ?? 0), 0);
 }
+
+export function getKpiPeriodDates(periodVal: string, baseYear: number, baseMonth: number, offset: number) {
+  let start: Date, end: Date, label: string, divisor: number;
+  if (!periodVal || periodVal === "default" || periodVal === "yearly") {
+    start = new Date(baseYear + offset, 0, 1);
+    end = new Date(baseYear + offset, 11, 31, 23, 59, 59);
+    label = `${start.getFullYear()}`;
+    divisor = 1;
+  } else if (periodVal === "6month") {
+    const half = Math.floor(baseMonth / 6) + offset;
+    const y = baseYear + Math.floor(half / 2);
+    const h = ((half % 2) + 2) % 2;
+    start = new Date(y, h * 6, 1);
+    end = new Date(y, h * 6 + 6, 0, 23, 59, 59);
+    label = `H${h + 1} ${y}`;
+    divisor = 2;
+  } else if (periodVal === "quarterly") {
+    const q = Math.floor(baseMonth / 3) + offset;
+    const y = baseYear + Math.floor(q / 4);
+    const qt = ((q % 4) + 4) % 4;
+    start = new Date(y, qt * 3, 1);
+    end = new Date(y, qt * 3 + 3, 0, 23, 59, 59);
+    label = `Q${qt + 1} ${y}`;
+    divisor = 4;
+  } else {
+    start = new Date(baseYear, baseMonth + offset, 1);
+    end = new Date(baseYear, baseMonth + offset + 1, 0, 23, 59, 59);
+    label = start.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    divisor = 12;
+  }
+  return { start, end, label, divisor };
+}

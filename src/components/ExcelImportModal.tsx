@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
-export type ImportType = "projects" | "accounts" | "leads" | "activities";
+export type ImportType = "projects" | "accounts" | "leads" | "activities" | "extraContacts";
 
 function parseExcelDate(val: any): string | undefined {
   if (!val) return undefined;
@@ -45,9 +45,11 @@ interface Props {
   onClose: () => void;
   ownerOverride?: string; // display name override
   ownerOverrideProfileId?: string; // profileId to attribute accounts/projects to
+  targetProjectId?: string; // specific project to append to
+  existingContacts?: { name: string; title: string; phone: string; email: string }[];
 }
 
-export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverrideProfileId }: Props) {
+export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverrideProfileId, targetProjectId, existingContacts }: Props) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const [file, setFile] = useState<File | null>(null);
@@ -84,7 +86,7 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
           Name: "Sample Project",
           Client: "Sample Client",
           ClientEmail: "info@example.com",
-          ClientPhone: "+201000000000",
+          ClientPhone: "+201007419344",
           City: "Cairo",
           District: "Nasr City",
           Street: "10 Abbas St",
@@ -117,7 +119,7 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
           Company: "Sample Lead",
           Contact: "Hafez Rahim",
           Email: "Hafez@example.com",
-          Phone: "+201000000000",
+          Phone: "+201007419344",
           Industry: "Technology",
           City: "Cairo",
           District: "Maadi",
@@ -138,6 +140,15 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
           Time: "10:00",
           EstMinutes: 30,
           Notes: "Discuss requirements",
+        };
+        break;
+      case "extraContacts":
+        headers = ["Name", "Title", "Email", "Phone"];
+        sampleRow = {
+          Name: "Hafez Rahim",
+          Title: "Project Manager",
+          Email: "Hafez@example.com",
+          Phone: "+201007419344",
         };
         break;
     }
@@ -277,6 +288,29 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
             count++;
           }
           break;
+        case "extraContacts":
+          if (!targetProjectId) {
+            toast.error(isAr ? "المشروع غير محدد" : "Target project ID missing");
+            setLoading(false);
+            return;
+          }
+          const newContacts: any[] = [];
+          for (const row of rows as any[]) {
+            if (!row.Name) continue;
+            newContacts.push({
+              name: String(row.Name).trim(),
+              title: row.Title ? String(row.Title).trim() : "",
+              email: row.Email ? String(row.Email).trim() : "",
+              phone: row.Phone ? String(row.Phone).trim() : "",
+            });
+            count++;
+          }
+          if (newContacts.length > 0) {
+            actions.updateProject(targetProjectId, {
+              extraContacts: [...(existingContacts || []), ...newContacts],
+            } as any);
+          }
+          break;
       }
 
       toast.success(`${t("importSuccess")} (${count} records)`);
@@ -302,7 +336,7 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
           <div className="flex items-center gap-2 text-primary">
             <FileSpreadsheet className="h-5 w-5" />
             <h2 className="font-display text-lg font-bold text-foreground">
-              {t("importExcel")} - {t(type === "accounts" ? "projects" : type as any)}
+              {t("importExcel")} - {type === "extraContacts" ? (isAr ? "جهات اتصال إضافية" : "Extra Contacts") : t(type === "accounts" ? "projects" : type as any)}
             </h2>
           </div>
           <button
@@ -349,11 +383,10 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
 
             <div
               onClick={() => fileInputRef.current?.click()}
-              className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${
-                file
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50 hover:bg-accent"
-              }`}
+              className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${file
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50 hover:bg-accent"
+                }`}
             >
               {file ? (
                 <>

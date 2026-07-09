@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { shortId } from "@/lib/utils";
+import { shortId, formatDate } from "@/lib/utils";
 import { CopyIdButton } from "@/components/CopyIdButton";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -29,8 +29,10 @@ import {
   ChevronRight,
   Plus,
   Trash2,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useState } from "react";
+import { ExcelImportModal } from "@/components/ExcelImportModal";
 
 export const Route = createFileRoute("/admin/projects/$projectId")({
   component: ProjectDetailsPage,
@@ -325,6 +327,7 @@ function ProjectDetailsPage() {
 
           {/* Extra Contacts — always visible */}
           <ExtraContactsCard
+            projectId={projectId}
             contacts={extraContacts}
             onAdd={(c) =>
               actions.updateProject(projectId, { extraContacts: [...extraContacts, c] } as any)
@@ -418,7 +421,7 @@ function ProjectDetailsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="font-semibold text-foreground">{a.title}</div>
                       <div className="text-xs text-muted-foreground">
-                        {a.dueDate} {a.time !== "—" ? `· ${a.time}` : ""} · {a.owner}
+                        {formatDate(a.dueDate)} {a.time !== "—" ? `· ${a.time}` : ""} · {a.owner}
                       </div>
                     </div>
                     <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -590,15 +593,18 @@ function ProjectDetailsPage() {
 type ExtraContact = { name: string; title: string; phone: string; email: string };
 
 function ExtraContactsCard({
+  projectId,
   contacts,
   onAdd,
   onRemove,
 }: {
+  projectId: string;
   contacts: ExtraContact[];
   onAdd: (c: ExtraContact) => void;
   onRemove: (i: number) => void;
 }) {
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [phone, setPhone] = useState("");
@@ -626,13 +632,31 @@ function ExtraContactsCard({
             {contacts.length}
           </span>
         )}
-        <button
-          onClick={() => setShowForm((v) => !v)}
-          className="ml-auto inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="h-3 w-3" /> Add
-        </button>
+        <div className="ml-auto flex items-center gap-1.5">
+          <button
+            onClick={() => setShowImport(true)}
+            className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-[11px] font-bold text-muted-foreground hover:bg-secondary/80 transition-colors"
+            title="Bulk Import from Excel"
+          >
+            <FileSpreadsheet className="h-3 w-3" />
+          </button>
+          <button
+            onClick={() => setShowForm((v) => !v)}
+            className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="h-3 w-3" /> Add
+          </button>
+        </div>
       </div>
+
+      {showImport && (
+        <ExcelImportModal
+          type="extraContacts"
+          targetProjectId={projectId}
+          existingContacts={contacts}
+          onClose={() => setShowImport(false)}
+        />
+      )}
 
       {/* Inline Add Form */}
       {showForm && (

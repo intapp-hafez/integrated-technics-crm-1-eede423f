@@ -21,6 +21,7 @@ import {
   Inbox,
   Building2,
   ListTodo,
+  StickyNote,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { LangToggle, useI18n } from "@/lib/i18n";
@@ -53,6 +54,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/email-inbox", icon: Inbox, key: "emailInbox" as any },
   { to: "/admin/security", icon: ShieldCheck, key: "securityCenter" as any },
   { to: "/admin/settings", icon: Settings, key: "settings" },
+  { to: "/admin/kpis", icon: Settings, key: "kpisSetup" as any },
   { to: "/admin/todo", icon: ListTodo, key: "toDoList" as any },
 ];
 
@@ -67,6 +69,7 @@ const employeeNav: NavItem[] = [
   { to: "/employee/chat", icon: MessageSquare, key: "chat" as any },
   { to: "/employee/send-email", icon: Mail, key: "sendEmail" as any },
   { to: "/employee/email-inbox", icon: Inbox, key: "emailInbox" as any },
+  { to: "/employee/notes", icon: StickyNote, key: "stickyNotes" as any },
   { to: "/employee/profile", icon: UserCircle2, key: "profile" },
 ];
 

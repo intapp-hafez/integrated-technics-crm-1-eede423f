@@ -7,8 +7,9 @@ import { LocationPicker } from "@/components/LocationPicker";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { fmtMoney } from "@/lib/mock-data";
-import { shortId } from "@/lib/utils";
+import { shortId, formatDate } from "@/lib/utils";
 import { CopyIdButton } from "@/components/CopyIdButton";
+import { StageTransitionDialog, type StageTransitionPayload } from "@/components/StageTransitionDialog";
 import { actions, useStoreState } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { useRef, useState } from "react";
@@ -94,11 +95,14 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
     role: t(role as any), 
     initials: (profile?.full_name_en || profile?.full_name_ar || "U").split(" ").map((s: string) => s[0]).join("").substring(0, 2).toUpperCase() 
   };
-  const { leads, activities, history, settings, leadDistricts } = useStoreState();
+  const { leads, projects, activities, history, settings, leadDistricts } = useStoreState();
   const lead = leads.find((l) => l.id === leadId);
+  const relatedProject = projects.find((p) => p.id === (lead as any)?.projectId);
+  const displayPhone = (lead as any)?.phone || relatedProject?.clientPhone;
   const [noteText, setNoteText] = useState("");
   const [savingNote, setSavingNote] = useState(false);
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [transitionPayload, setTransitionPayload] = useState<StageTransitionPayload | null>(null);
   const [changingStatus, setChangingStatus] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -216,9 +220,9 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
       ['Source',         (lead as any).source || '—'],
       ['Value',          fmtMoney(lead.value)],
       ['Probability',    lead.probability != null ? `${lead.probability}%` : '—'],
-      ['Expected Close', (lead as any).expectedCloseDate || '—'],
+      ['Expected Close', formatDate((lead as any).expectedCloseDate)],
       ['Location',       [lead.city, leadDistricts[lead.id]].filter(Boolean).join(', ') || '—'],
-      ['Phone',          (lead as any).phone || '—'],
+      ['Phone',          displayPhone || '—'],
     ];
 
     const colW = (W - 28) / 2;
@@ -538,7 +542,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold text-foreground">{a.title}</div>
                     <div className="text-xs text-muted-foreground">
-                      {a.dueDate} {a.time} · {a.owner}
+                      {formatDate(a.dueDate)} {a.time} · {a.owner}
                     </div>
                   </div>
                   {a.estMinutes != null && (
@@ -815,18 +819,15 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                   <select
                     value={lead.status}
                     disabled={changingStatus}
-                    onChange={async (e) => {
+                    onChange={(e) => {
                       const next = e.target.value as any;
                       if (next === lead.status) return;
-                      setChangingStatus(true);
-                      try {
-                        actions.moveLead(lead.id, next, user.name);
-                        toast.success(
-                          `Stage → ${settings.stages.find((s) => s.key === next)?.label ?? next}`
-                        );
-                      } finally {
-                        setChangingStatus(false);
-                      }
+                      setTransitionPayload({
+                        lead,
+                        toStage: next,
+                        toLabel: settings.stages.find((s) => s.key === next)?.label ?? next,
+                        actor: user.name,
+                      });
                     }}
                     className="h-8 w-full appearance-none rounded-lg border bg-card pe-7 ps-3 text-xs font-semibold shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-primary/50 disabled:opacity-60"
                     style={{
@@ -861,8 +862,14 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                   "—"
                 )}
               </InfoRow>
-              <InfoRow label="Source" icon={Globe}>
-                {(lead as any).source || "—"}
+              <InfoRow label="Phone" icon={Phone}>
+                {displayPhone ? (
+                  <a href={`tel:${displayPhone}`} className="text-primary hover:underline font-mono text-xs">
+                    {displayPhone}
+                  </a>
+                ) : (
+                  "—"
+                )}
               </InfoRow>
               <InfoRow label="Value" icon={DollarSign}>
                 <span className="font-mono font-bold text-primary">{fmtMoney(lead.value)}</span>
@@ -873,7 +880,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                 )}
               </InfoRow>
               <InfoRow label="Expected Close" icon={CalendarCheck}>
-                {(lead as any).expectedCloseDate || "—"}
+                {formatDate((lead as any).expectedCloseDate)}
               </InfoRow>
               <InfoRow label="Location" icon={MapPin}>
                 {[lead.city, leadDistricts[lead.id], (lead as any).street]
@@ -895,6 +902,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
 
         </div>
       </div>
+      <StageTransitionDialog open={!!transitionPayload} payload={transitionPayload} onClose={() => setTransitionPayload(null)} />
     </AppShell>
   );
 }

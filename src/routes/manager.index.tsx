@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/utils";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
@@ -279,7 +280,7 @@ function ManagerDashboard() {
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-semibold text-foreground">{a.title}</div>
                 <div className="text-[11px] text-muted-foreground">
-                  {a.owner} · {a.dueDate} {a.time}
+                  {a.owner} · {formatDate(a.dueDate)} {a.time}
                 </div>
               </div>
               <span

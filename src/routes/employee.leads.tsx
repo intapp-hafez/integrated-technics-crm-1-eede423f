@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/utils";
 import { LeadFormModal } from '@/components/leads/LeadFormModal';
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
@@ -61,12 +62,13 @@ function LeadsPage() {
   const [editing, setEditing] = useState<Lead | "new" | null>(null);
   const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">("all");
   const [showImport, setShowImport] = useState(false);
+  // All hooks MUST be declared before any early return
+  const { profile } = useAuth();
+  const { projects } = useStoreState();
 
   if (isDetailRoute) return <Outlet />;
 
-  const { profile } = useAuth();
   const ME = profile?.full_name_en || profile?.full_name_ar || "hafez Rahim";
-  const { projects } = useStoreState();
   const myProjects = filterMyProjects(projects, {
     profileId: (profile as any)?.profileId,
     userId: (profile as any)?.id,
@@ -139,7 +141,7 @@ function LeadsPage() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filtered.map((l) => (
-          <SwipeableLeadCard key={l.id} lead={l} onEdit={() => setEditing(l)} />
+          <LeadCard key={l.id} lead={l} onEdit={() => setEditing(l)} />
         ))}
         {filtered.length === 0 && (
           <div className="col-span-full rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
@@ -163,80 +165,14 @@ function LeadsPage() {
   );
 }
 
-function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
-  const { confirm, ConfirmDialog } = useConfirm();
+function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
   const { t } = useI18n();
   const { settings } = useStoreState();
   const stageLabel = (k: string) => settings.stages.find((s) => s.key === k)?.label ?? (t(k as any) ?? k);
-  const [offset, setOffset] = useState(0);
-  const startX = useRef<number | null>(null);
-  const startOffset = useRef(0);
-  const dragging = useRef(false);
-  const REVEAL = 160;
-
-  const orderKeys = settings.statuses.filter(
-    (k) => k !== "won" && k !== "lost" && k !== "archived",
-  );
-  const idx = orderKeys.indexOf(l.status);
-  const next = idx >= 0 && idx < orderKeys.length - 1 ? orderKeys[idx + 1] : undefined;
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    startX.current = e.clientX;
-    startOffset.current = offset;
-    dragging.current = true;
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragging.current || startX.current == null) return;
-    const dx = e.clientX - startX.current;
-    setOffset(Math.max(-REVEAL, Math.min(0, startOffset.current + dx)));
-  };
-  const onPointerUp = () => {
-    dragging.current = false;
-    setOffset((cur) => (cur < -REVEAL / 2 ? -REVEAL : 0));
-  };
-
-  const advance = () => {
-    if (next) actions.moveLead(l.id, next);
-    setOffset(0);
-  };
-  const remove = async () => {
-    if (await confirm({ message: `${t("confirmDelete") || "Delete?"} (${l.company})` })) actions.removeLead(l.id);
-    setOffset(0);
-  };
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
-      <ConfirmDialog />
-      <div className="absolute inset-y-0 end-0 flex w-[160px] items-stretch">
-        {next && (
-          <button
-            onClick={advance}
-            className="flex flex-1 flex-col items-center justify-center gap-1 bg-emerald-500 text-[11px] font-bold text-white"
-            aria-label={`Advance to ${next}`}
-          >
-            <ArrowRight className="h-4 w-4" />
-            <span className="px-1 text-center leading-tight capitalize">
-              {t(next as any) || next}
-            </span>
-          </button>
-        )}
-        <button
-          onClick={remove}
-          className="flex w-16 flex-col items-center justify-center gap-1 bg-rose-500 text-[11px] font-bold text-white"
-          aria-label="Delete"
-        >
-          <Trash2 className="h-4 w-4" />
-          <span>{t("delete")}</span>
-        </button>
-      </div>
-
       <div
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        style={{ transform: `translateX(${offset}px)`, touchAction: "pan-y" }}
         className={`relative p-4 transition-transform duration-200 ease-out ${
           (l.value || 0) === 0 ? "bg-rose-50/50" : "bg-card"
         }`}
@@ -291,7 +227,7 @@ function SwipeableLeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void
                 <Calendar className="h-3.5 w-3.5 text-primary" />
                 <span className="truncate">
                   Follow-up ·{" "}
-                  <span className="font-semibold text-foreground">{l.expectedCloseDate}</span>
+                  <span className="font-semibold text-foreground">{formatDate(l.expectedCloseDate)}</span>
                 </span>
               </>
             ) : (

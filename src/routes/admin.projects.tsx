@@ -90,6 +90,7 @@ function ProjectsPage() {
   const [maxBudget, setMaxBudget] = useState<string>("");
   const [minProgress, setMinProgress] = useState<string>("");
   const [maxProgress, setMaxProgress] = useState<string>("");
+  const [noLeadsFilter, setNoLeadsFilter] = useState(false);
 
   const clients = Array.from(new Set(projects.map((p) => p.client).filter(Boolean)));
   const owners = Array.from(new Set(projects.map(getOwner).filter((o) => o !== "—" && Boolean(o))));
@@ -107,6 +108,10 @@ function ProjectsPage() {
     if (maxB !== null && p.budget > maxB) return false;
     if (minP !== null && p.progress < minP) return false;
     if (maxP !== null && p.progress > maxP) return false;
+    if (noLeadsFilter) {
+      const projectLeads = leads?.filter((l) => l.projectId === p.id).length || 0;
+      if (projectLeads > 0) return false;
+    }
     if (query.trim()) {
       const q = query.toLowerCase();
       if (
@@ -173,6 +178,7 @@ function ProjectsPage() {
     (maxBudget ? 1 : 0) +
     (minProgress ? 1 : 0) +
     (maxProgress ? 1 : 0) +
+    (noLeadsFilter ? 1 : 0) +
     (query.trim() ? 1 : 0);
 
   const clearFilters = () => {
@@ -183,6 +189,7 @@ function ProjectsPage() {
     setMaxBudget("");
     setMinProgress("");
     setMaxProgress("");
+    setNoLeadsFilter(false);
     setQuery("");
     setPage(1);
   };
@@ -197,6 +204,7 @@ function ProjectsPage() {
     maxBudget,
     minProgress,
     maxProgress,
+    noLeadsFilter,
     query,
   ]);
 
@@ -435,19 +443,30 @@ function ProjectsPage() {
 
           {/* View toggle */}
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <div className="inline-flex rounded-lg border border-border bg-card p-1 shadow-[var(--shadow-soft)]">
-              <button
-                onClick={() => setView("table")}
-                className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${view === "table" ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                <TableIcon className="h-4 w-4" /> {t("tableView")}
-              </button>
-              <button
-                onClick={() => setView("grid")}
-                className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${view === "grid" ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                <LayoutGrid className="h-4 w-4" /> {t("gridView")}
-              </button>
+            <div className="flex items-center gap-6">
+              <div className="inline-flex rounded-lg border border-border bg-card p-1 shadow-[var(--shadow-soft)]">
+                <button
+                  onClick={() => setView("table")}
+                  className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${view === "table" ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  <TableIcon className="h-4 w-4" /> {t("tableView")}
+                </button>
+                <button
+                  onClick={() => setView("grid")}
+                  className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${view === "grid" ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  <LayoutGrid className="h-4 w-4" /> {t("gridView")}
+                </button>
+              </div>
+              <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={noLeadsFilter}
+                  onChange={(e) => setNoLeadsFilter(e.target.checked)}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+                />
+                {isAr ? "بدون ليدز" : "No Leads"}
+              </label>
             </div>
             <div className="text-sm text-muted-foreground">
               {filtered.length} {t("projects")}

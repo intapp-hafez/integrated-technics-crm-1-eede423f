@@ -2,9 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState } from "@/lib/store";
-import { useEffect, useMemo, useState, type ComponentType } from "react";
-import { LogIn, LogOut, MapPin, Clock, Check, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import {
+  LogIn, LogOut, MapPin, Clock, Check, Loader2,
+  Navigation, Building2, Home, AlertTriangle, Wifi,
+} from "lucide-react";
 import { cairoIsoDate, cairoTime } from "@/lib/cairoTime";
+import {
+  getCurrentPosition,
+  getIpPosition,
+  reverseGeocode,
+  withDevice,
+  type GpsPosition,
+  type GeoAddress,
+} from "@/lib/geoLocation";
 
 export const Route = createFileRoute("/employee/attendance")({
   component: AttendancePage,
@@ -24,9 +35,7 @@ function useAttendanceMap() {
     import("@/components/AttendanceMap").then((m) => {
       if (mounted) setComp(() => m.AttendanceMap);
     });
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
   return Comp;
 }
@@ -40,74 +49,12 @@ function computeHours(checkIn: string, checkOut: string): string {
   return `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, "0")}m`;
 }
 
-function getCurrentPosition(): Promise<{ lat: number; lng: number; accuracy: number } | null> {
-  return new Promise((resolve) => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
-    navigator.geolocation.getCurrentPosition(
-      (p) =>
-        resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }),
-      () => resolve(null),
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 },
-    );
-  });
-}
-
-async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
-  try {
-    const r = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`,
-      {
-        headers: { Accept: "application/json" },
-      },
-    );
-    if (!r.ok) return null;
-    const j = await r.json();
-    const a = j.address ?? {};
-    return (
-      [a.suburb || a.neighbourhood || a.village, a.city || a.town || a.county, a.country]
-        .filter(Boolean)
-        .join(", ") ||
-      j.display_name ||
-      null
-    );
-  } catch {
-    return null;
-  }
-}
-
-function deviceSummary(): string {
-  if (typeof navigator === "undefined") return "Unknown device";
-  const ua = navigator.userAgent;
-  const browser = /Edg\/|OPR\//.test(ua)
-    ? /Edg\//.test(ua)
-      ? "Edge"
-      : "Opera"
-    : /Firefox\//.test(ua)
-      ? "Firefox"
-      : /Chrome\//.test(ua)
-        ? "Chrome"
-        : /Safari\//.test(ua)
-          ? "Safari"
-          : "Browser";
-  const os = /iPhone|iPad/.test(ua)
-    ? "iOS"
-    : /Android/.test(ua)
-      ? "Android"
-      : /Mac OS X/.test(ua)
-        ? "macOS"
-        : /Windows/.test(ua)
-          ? "Windows"
-          : /Linux/.test(ua)
-            ? "Linux"
-            : "Device";
-  return `${browser} · ${os}`;
-}
-
-function withDevice(loc: string): string {
-  const dev = deviceSummary();
-  if (!loc) return `📱 ${dev}`;
-  return loc.includes("📱") ? loc : `${loc} · 📱 ${dev}`;
-}
+type GpsState =
+  | { status: "idle" }
+  | { status: "locating" }
+  | { status: "ready"; pos: GpsPosition; addr: GeoAddress | null }
+  | { status: "ip-fallback"; pos: GpsPosition; addr: GeoAddress | null }
+  | { status: "denied" };
 
 function AttendancePage() {
   const { t } = useI18n();
@@ -122,16 +69,61 @@ function AttendancePage() {
   );
   const todayRec = mine.find((a) => a.date === today);
 
+  // ── GPS state machine ──────────────────────────────────────────
+  const [gps, setGps] = useState<GpsState>({ status: "idle" });
   const [locating, setLocating] = useState(false);
+  const hasFetched = useRef(false);
 
+  // Auto-fetch location when page loads and not yet checked in today
+  useEffect(() => {
+    if (hasFetched.current || todayRec?.lat != null) return;
+    hasFetched.current = true;
+    fetchGps();
+  }, []);
+
+  async function fetchGps() {
+    setGps({ status: "locating" });
+    const pos = await getCurrentPosition();
+    if (pos) {
+      const addr = await reverseGeocode(pos.lat, pos.lng);
+      setGps({ status: "ready", pos, addr });
+      return;
+    }
+    // GPS denied or unavailable — try IP-based fallback automatically
+    const ipPos = await getIpPosition();
+    if (ipPos) {
+      const addr = await reverseGeocode(ipPos.lat, ipPos.lng);
+      setGps({ status: "ip-fallback", pos: ipPos, addr });
+      return;
+    }
+    setGps({ status: "denied" });
+  }
+
+  // ── Check-in / out ─────────────────────────────────────────────
   const handleCheckIn = async () => {
     setLocating(true);
     const now = cairoTime();
-    const pos = await getCurrentPosition();
-    const baseLoc = pos
-      ? (await reverseGeocode(pos.lat, pos.lng)) || `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`
-      : profile.location;
-    const locName = withDevice(baseLoc);
+
+    let pos: GpsPosition | null = null;
+    let addr: GeoAddress | null = null;
+
+    if (gps.status === "ready" || gps.status === "ip-fallback") {
+      pos = gps.pos;
+      addr = gps.addr;
+    } else {
+      const fresh = await getCurrentPosition();
+      if (fresh) {
+        pos = fresh;
+        addr = await reverseGeocode(fresh.lat, fresh.lng);
+      } else {
+        const ipPos = await getIpPosition();
+        if (ipPos) { pos = ipPos; addr = await reverseGeocode(ipPos.lat, ipPos.lng); }
+      }
+    }
+
+    const baseLoc = addr?.label || (pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}` : profile.location);
+    const locName = withDevice(baseLoc || "");
+
     actions.addAttendance({
       date: today,
       checkIn: now,
@@ -150,29 +142,107 @@ function AttendancePage() {
     if (!todayRec) return;
     setLocating(true);
     const now = cairoTime();
-    const pos = await getCurrentPosition();
+
+    let pos: GpsPosition | null = null;
+    let addr: GeoAddress | null = null;
+
+    if (gps.status === "ready" || gps.status === "ip-fallback") {
+      pos = gps.pos;
+      addr = gps.addr;
+    } else {
+      const fresh = await getCurrentPosition();
+      if (fresh) {
+        pos = fresh;
+        addr = await reverseGeocode(fresh.lat, fresh.lng);
+      } else {
+        const ipPos = await getIpPosition();
+        if (ipPos) { pos = ipPos; addr = await reverseGeocode(ipPos.lat, ipPos.lng); }
+      }
+    }
+
     const patch: Record<string, any> = {
       checkOut: now,
       hours: computeHours(todayRec.checkIn, now),
     };
+
     if (pos) {
-      const baseLoc =
-        (await reverseGeocode(pos.lat, pos.lng)) || `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
       patch.lat = pos.lat;
       patch.lng = pos.lng;
       patch.accuracy = pos.accuracy;
-      patch.location = withDevice(baseLoc);
+      patch.location = withDevice(addr?.label || `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`);
     } else {
       patch.location = withDevice(todayRec.location || "");
     }
+
     actions.updateAttendance(todayRec.id, patch);
     setLocating(false);
   };
 
-  const mapCenter: [number, number] | null =
-    todayRec?.lat != null && todayRec?.lng != null ? [todayRec.lat, todayRec.lng] : null;
+  // ── Map center: prefer current GPS → fall back to stored ──────
+  const liveCenter: [number, number] | null =
+    gps.status === "ready" ? [gps.pos.lat, gps.pos.lng] : null;
+
+  const storedCenter: [number, number] | null =
+    todayRec?.lat != null && todayRec?.lng != null
+      ? [todayRec.lat, todayRec.lng]
+      : null;
+
+  const mapCenter = liveCenter ?? storedCenter;
 
   const AttendanceMap = useAttendanceMap();
+
+  // ── GPS badge UI ───────────────────────────────────────────────
+  const gpsBadge = () => {
+    if (todayRec?.lat != null) {
+      const isApprox = !!(todayRec as any).isApproximate;
+      return (
+        <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white ${isApprox ? "bg-amber-500/20" : "bg-emerald-500/20"}`}>
+          <Check className="h-3.5 w-3.5" /> GPS Verified
+        </span>
+      );
+    }
+    switch (gps.status) {
+      case "locating":
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/20 px-3 py-2 text-xs font-semibold text-white">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Locating…
+          </span>
+        );
+      case "ready":
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/20 px-3 py-2 text-xs font-semibold text-white">
+            <Navigation className="h-3.5 w-3.5" /> GPS Ready
+          </span>
+        );
+      case "ip-fallback":
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/20 px-3 py-2 text-xs font-semibold text-white">
+            <Wifi className="h-3.5 w-3.5" /> Approximate Location
+          </span>
+        );
+      case "denied":
+        return (
+          <button
+            onClick={fetchGps}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-rose-500/20 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-500/30"
+          >
+            <AlertTriangle className="h-3.5 w-3.5" /> No Location — Retry
+          </button>
+        );
+      default:
+        return (
+          <button
+            onClick={fetchGps}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white/20 px-3 py-2 text-xs font-semibold text-white hover:bg-white/30"
+          >
+            <MapPin className="h-3.5 w-3.5" /> Get Location
+          </button>
+        );
+    }
+  };
+
+  // ── Address breakdown card ─────────────────────────────────────
+  const addr = gps.status === "ready" ? gps.addr : null;
 
   return (
     <AppShell
@@ -180,14 +250,11 @@ function AttendancePage() {
       user={{
         name: profile.name,
         role: t("employee"),
-        initials: profile.name
-          .split(" ")
-          .map((s) => s[0])
-          .join("")
-          .slice(0, 2),
+        initials: profile.name.split(" ").map((s) => s[0]).join("").slice(0, 2),
       }}
       pageTitle={t("attendance")}
     >
+      {/* ── Hero check-in card ── */}
       <div
         className="rounded-2xl border border-border p-6 shadow-[var(--shadow-soft)]"
         style={{ background: "var(--gradient-brand)" }}
@@ -210,21 +277,17 @@ function AttendancePage() {
                 : "—"}
             </div>
           </div>
+
           <div className="flex flex-wrap justify-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-lg bg-white/20 px-3 py-2 text-xs font-semibold text-white">
-              <MapPin className="h-4 w-4" /> {mapCenter ? "GPS Verified" : "GPS Pending"}
-            </span>
+            {gpsBadge()}
+
             {!todayRec ? (
               <button
-                disabled={locating}
+                disabled={locating || gps.status === "locating"}
                 onClick={handleCheckIn}
                 className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-foreground hover:bg-white/90 disabled:opacity-60"
               >
-                {locating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <LogIn className="h-4 w-4" />
-                )}{" "}
+                {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                 {t("checkIn")}
               </button>
             ) : !todayRec.checkOut ? (
@@ -233,11 +296,7 @@ function AttendancePage() {
                 onClick={handleCheckOut}
                 className="inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-foreground/90 disabled:opacity-60"
               >
-                {locating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <LogOut className="h-4 w-4" />
-                )}{" "}
+                {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
                 {t("checkOut")}
               </button>
             ) : (
@@ -249,11 +308,61 @@ function AttendancePage() {
         </div>
       </div>
 
+      {/* ── Live address breakdown (shown when GPS is ready) ── */}
+      {addr && !todayRec && (
+        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
+          <div className="flex items-center gap-2 border-b border-border px-5 py-3">
+            <Navigation className="h-4 w-4 text-primary" />
+            <h3 className="font-display text-sm font-bold text-foreground">Current Location</h3>
+            {gps.status === "ip-fallback" ? (
+              <span className="ms-auto rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                ⚠ Approximate (IP-based)
+              </span>
+            ) : (
+              <span className="ms-auto rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                Live GPS
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            <div className="flex items-start gap-3 p-4">
+              <Home className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Street</div>
+                <div className="mt-0.5 text-sm font-semibold text-foreground">{addr.street || "—"}</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-4">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">District</div>
+                <div className="mt-0.5 text-sm font-semibold text-foreground">{addr.district || "—"}</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-4">
+              <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">City</div>
+                <div className="mt-0.5 text-sm font-semibold text-foreground">{addr.city || "—"}</div>
+              </div>
+            </div>
+          </div>
+          {gps.status === "ready" && (
+            <div className="border-t border-border bg-secondary/30 px-4 py-2 font-mono text-[10px] text-muted-foreground">
+              {gps.pos.lat.toFixed(6)}, {gps.pos.lng.toFixed(6)} · ±{Math.round(gps.pos.accuracy)}m accuracy
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Live map preview (before check-in) or stored map (after) ── */}
       {mapCenter && (
-        <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
+        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
           <div className="flex items-center gap-2 border-b border-border px-5 py-3">
             <MapPin className="h-4 w-4 text-primary" />
-            <h3 className="font-display text-sm font-bold text-foreground">Today's location</h3>
+            <h3 className="font-display text-sm font-bold text-foreground">
+              {todayRec?.lat != null ? "Today's location" : "Live preview"}
+            </h3>
             <span className="ms-auto font-mono text-xs text-muted-foreground">
               {mapCenter[0].toFixed(5)}, {mapCenter[1].toFixed(5)}
             </span>
@@ -262,12 +371,17 @@ function AttendancePage() {
             {AttendanceMap ? (
               <AttendanceMap
                 center={mapCenter}
-                title={todayRec?.location}
-                subtitle={`${todayRec?.checkIn || "—"} → ${todayRec?.checkOut || "—"}`}
+                title={addr?.label || todayRec?.location}
+                subtitle={
+                  todayRec
+                    ? `${todayRec.checkIn || "—"} → ${todayRec.checkOut || "—"}`
+                    : "Current position"
+                }
+                accuracy={gps.status === "ready" ? gps.pos.accuracy : (todayRec?.accuracy ?? null)}
               />
             ) : (
               <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                Loading map…
+                <Loader2 className="me-2 h-4 w-4 animate-spin" /> Loading map…
               </div>
             )}
           </div>
@@ -301,27 +415,16 @@ function AttendanceHistory({
   MapComponent: ComponentType<AttendanceMapProps> | null;
 }) {
   const AttendanceMap = MapComponent;
-
   const { t } = useI18n();
   const [filter, setFilter] = useState<"all" | "week" | "month">("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const toggle = (id: string) => setExpanded((s) => ({ ...s, [id]: !s[id] }));
+
   const accLabel = (a?: number | null) => {
     if (a == null) return null;
-    if (a <= 20)
-      return {
-        txt: `±${Math.round(a)}m · High`,
-        cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-      };
-    if (a <= 50)
-      return {
-        txt: `±${Math.round(a)}m · Medium`,
-        cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-      };
-    return {
-      txt: `±${Math.round(a)}m · Low`,
-      cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400",
-    };
+    if (a <= 20) return { txt: `±${Math.round(a)}m · High`, cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" };
+    if (a <= 50) return { txt: `±${Math.round(a)}m · Medium`, cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400" };
+    return { txt: `±${Math.round(a)}m · Low`, cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400" };
   };
 
   const now = new Date();
@@ -336,7 +439,6 @@ function AttendanceHistory({
     return true;
   });
 
-  // Group by month label, e.g. "May 2026"
   const groups = filtered.reduce<Record<string, AttRecord[]>>((acc, r) => {
     const d = new Date(r.date);
     const key = d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
@@ -362,9 +464,7 @@ function AttendanceHistory({
               key={f}
               onClick={() => setFilter(f)}
               className={`rounded-full px-3 py-1.5 text-[11px] font-semibold capitalize transition ${
-                filter === f
-                  ? "bg-foreground text-background"
-                  : "bg-secondary text-muted-foreground hover:text-foreground"
+                filter === f ? "bg-foreground text-background" : "bg-secondary text-muted-foreground hover:text-foreground"
               }`}
             >
               {f === "all" ? "All" : f === "week" ? "This week" : "This month"}
@@ -373,14 +473,10 @@ function AttendanceHistory({
         </div>
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="space-y-3 p-4">
           {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="flex animate-pulse items-center gap-3 rounded-lg bg-secondary/50 p-3"
-            >
+            <div key={i} className="flex animate-pulse items-center gap-3 rounded-lg bg-secondary/50 p-3">
               <div className="h-12 w-12 rounded-lg bg-secondary" />
               <div className="flex-1 space-y-2">
                 <div className="h-3 w-1/3 rounded bg-secondary" />
@@ -391,7 +487,6 @@ function AttendanceHistory({
         </div>
       )}
 
-      {/* Empty */}
       {!loading && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary/70">
@@ -404,16 +499,13 @@ function AttendanceHistory({
         </div>
       )}
 
-      {/* Mobile: grouped cards | Desktop: keep table feel via list */}
       {!loading && filtered.length > 0 && (
         <div className="divide-y divide-border">
           {Object.entries(groups).map(([month, rows]) => (
             <section key={month}>
               <div className="sticky top-16 z-[1] flex items-center justify-between bg-secondary/70 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground backdrop-blur md:px-5">
                 <span>{month}</span>
-                <span>
-                  {rows.length} {rows.length === 1 ? "day" : "days"}
-                </span>
+                <span>{rows.length} {rows.length === 1 ? "day" : "days"}</span>
               </div>
               <ul>
                 {rows.map((w) => {
@@ -426,48 +518,30 @@ function AttendanceHistory({
                     <li key={w.id} className="px-4 py-3 md:px-5">
                       <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          <span className="font-display text-base font-bold leading-none">
-                            {day}
-                          </span>
-                          <span className="mt-0.5 text-[10px] font-semibold uppercase">
-                            {weekday}
-                          </span>
+                          <span className="font-display text-base font-bold leading-none">{day}</span>
+                          <span className="mt-0.5 text-[10px] font-semibold uppercase">{weekday}</span>
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm font-semibold text-foreground">
-                              {w.checkIn || "—"}
-                            </span>
+                            <span className="font-mono text-sm font-semibold text-foreground">{w.checkIn || "—"}</span>
                             <span className="text-muted-foreground">→</span>
-                            <span
-                              className={`font-mono text-sm ${complete ? "font-semibold text-foreground" : "text-muted-foreground"}`}
-                            >
+                            <span className={`font-mono text-sm ${complete ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
                               {w.checkOut || "—"}
                             </span>
-                            <span
-                              className={`ms-auto rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                                complete
-                                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                                  : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                              }`}
-                            >
+                            <span className={`ms-auto rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                              complete ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                            }`}>
                               {complete ? "Done" : "Open"}
                             </span>
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
                             <MapPin className="h-3 w-3 shrink-0 text-primary" />
-                            <span className="truncate max-w-[14rem] md:max-w-sm">
-                              {w.location || "—"}
-                            </span>
+                            <span className="truncate max-w-[14rem] md:max-w-sm">{w.location || "—"}</span>
                             <span aria-hidden>·</span>
-                            <span className="font-mono font-semibold text-foreground">
-                              {w.hours}
-                            </span>
+                            <span className="font-mono font-semibold text-foreground">{w.hours}</span>
                             {hasGps ? (
                               acc ? (
-                                <span
-                                  className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${acc.cls}`}
-                                >
+                                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${acc.cls}`}>
                                   {acc.txt}
                                 </span>
                               ) : (
@@ -507,11 +581,8 @@ function AttendanceHistory({
                               </div>
                             )}
                           </div>
-
                           <div className="flex items-center justify-between bg-secondary/40 px-3 py-1.5 font-mono text-[10px] text-muted-foreground">
-                            <span>
-                              {(w.lat as number).toFixed(5)}, {(w.lng as number).toFixed(5)}
-                            </span>
+                            <span>{(w.lat as number).toFixed(5)}, {(w.lng as number).toFixed(5)}</span>
                             <a
                               href={`https://www.openstreetmap.org/?mlat=${w.lat}&mlon=${w.lng}#map=17/${w.lat}/${w.lng}`}
                               target="_blank"

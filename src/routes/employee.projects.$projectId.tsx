@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { shortId } from "@/lib/utils";
+import { shortId, formatDate } from "@/lib/utils";
 import { CopyIdButton } from "@/components/CopyIdButton";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -23,7 +23,13 @@ import {
   Clock,
   Tag,
   ChevronRight,
+  Plus,
+  Trash2,
+  Mail,
+  FileSpreadsheet,
 } from "lucide-react";
+import { useState } from "react";
+import { ExcelImportModal } from "@/components/ExcelImportModal";
 
 export const Route = createFileRoute("/employee/projects/$projectId")({
   component: EmployeeProjectDetailsPage,
@@ -122,7 +128,7 @@ function EmployeeProjectDetailsPage() {
   const clientCity = projectLoc?.city || clientLead?.city || (project as any).city || "";
   const clientDistrict = projectLoc?.district || (project as any).district || "";
   const street = (project as any).street || "";
-  const extraContacts: Array<{ name: string; title: string; phone: string }> =
+  const extraContacts: Array<{ name: string; title: string; phone: string; email: string }> =
     (project as any).extraContacts ?? [];
   const gradientClass = STATUS_COLORS[project.status] ?? "from-primary to-orange-500";
   const progressColor =
@@ -292,40 +298,18 @@ function EmployeeProjectDetailsPage() {
           </div>
 
           {/* Extra Contacts */}
-          {extraContacts.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-              <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30">
-                <Phone className="h-4 w-4 text-primary" />
-                <h2 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-                  Extra Contacts
-                </h2>
-                <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
-                  {extraContacts.length}
-                </span>
-              </div>
-              <div className="divide-y divide-border">
-                {extraContacts.map((c, i) => (
-                  <div key={i} className="flex items-center gap-4 px-5 py-3.5">
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-orange-500/20 text-xs font-extrabold text-primary">
-                      {c.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase() || "?"}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-foreground">{c.name}</div>
-                      {c.title && <div className="text-xs text-muted-foreground">{c.title}</div>}
-                    </div>
-                    {c.phone && (
-                      <a
-                        href={`tel:${c.phone.replace(/\s+/g, "")}`}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors"
-                      >
-                        <Phone className="h-3 w-3" /> {c.phone}
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <ExtraContactsCard
+            projectId={projectId}
+            contacts={extraContacts}
+            onAdd={(c) =>
+              actions.updateProject(projectId, { extraContacts: [...extraContacts, c] } as any)
+            }
+            onRemove={(i) =>
+              actions.updateProject(projectId, {
+                extraContacts: extraContacts.filter((_, idx) => idx !== i),
+              } as any)
+            }
+          />
 
           {/* Related Leads */}
           {relatedLeads.length > 0 && (
@@ -399,7 +383,7 @@ function EmployeeProjectDetailsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="font-semibold text-foreground">{a.title}</div>
                       <div className="text-xs text-muted-foreground">
-                        {a.dueDate} {a.time !== "—" ? `· ${a.time}` : ""} · {a.owner}
+                        {formatDate(a.dueDate)} {a.time !== "—" ? `· ${a.time}` : ""} · {a.owner}
                       </div>
                     </div>
                     <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -490,5 +474,180 @@ function EmployeeProjectDetailsPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+type ExtraContact = { name: string; title: string; phone: string; email: string };
+
+function ExtraContactsCard({
+  projectId,
+  contacts,
+  onAdd,
+  onRemove,
+}: {
+  projectId: string;
+  contacts: ExtraContact[];
+  onAdd: (c: ExtraContact) => void;
+  onRemove: (i: number) => void;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+
+  const submit = () => {
+    if (!name.trim()) return;
+    onAdd({ name: name.trim(), title: title.trim(), phone: phone.trim(), email: email.trim() });
+    setName("");
+    setTitle("");
+    setPhone("");
+    setEmail("");
+    setShowForm(false);
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 bg-secondary/30">
+        <Phone className="h-4 w-4 text-primary" />
+        <h2 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+          Extra Contacts
+        </h2>
+        {contacts.length > 0 && (
+          <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+            {contacts.length}
+          </span>
+        )}
+        <div className="ml-auto flex items-center gap-1.5">
+          <button
+            onClick={() => setShowImport(true)}
+            className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-[11px] font-bold text-muted-foreground hover:bg-secondary/80 transition-colors"
+            title="Bulk Import from Excel"
+          >
+            <FileSpreadsheet className="h-3 w-3" />
+          </button>
+          <button
+            onClick={() => setShowForm((v) => !v)}
+            className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="h-3 w-3" /> Add
+          </button>
+        </div>
+      </div>
+
+      {showImport && (
+        <ExcelImportModal
+          type="extraContacts"
+          targetProjectId={projectId}
+          existingContacts={contacts}
+          onClose={() => setShowImport(false)}
+        />
+      )}
+
+      {/* Inline Add Form */}
+      {showForm && (
+        <div className="border-b border-border bg-secondary/20 px-5 py-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Full name *"
+              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title / Role"
+              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email address"
+              type="email"
+              dir="ltr"
+              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Phone number"
+              className="h-9 rounded-lg border border-border bg-card px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              onClick={() => setShowForm(false)}
+              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-accent"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={submit}
+              disabled={!name.trim()}
+              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              Save contact
+            </button>
+          </div>
+        </div>
+      )}
+
+      {contacts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-2 px-5 py-8 text-center">
+          <Phone className="h-8 w-8 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground">No extra contacts yet.</p>
+          <button
+            onClick={() => setShowForm(true)}
+            className="mt-1 text-xs font-semibold text-primary hover:underline"
+          >
+            + Add a contact
+          </button>
+        </div>
+      ) : (
+        <div className="divide-y divide-border">
+          {contacts.map((c, i) => (
+            <div key={i} className="group flex items-center gap-4 px-5 py-3.5">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-orange-500/20 text-xs font-extrabold text-primary">
+                {c.name
+                  .split(" ")
+                  .map((w) => w[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase() || "?"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-foreground">{c.name}</div>
+                {c.title && <div className="text-xs text-muted-foreground">{c.title}</div>}
+              </div>
+              {c.phone && (
+                <a
+                  href={`tel:${c.phone.replace(/\s+/g, "")}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors"
+                >
+                  <Phone className="h-3 w-3" /> {c.phone}
+                </a>
+              )}
+              {c.email && (
+                <a
+                  href={`mailto:${c.email}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors"
+                >
+                  <Mail className="h-3 w-3" /> {c.email}
+                </a>
+              )}
+              <button
+                onClick={() => onRemove(i)}
+                className="ml-1 hidden rounded-md p-1 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 group-hover:flex transition-colors"
+                title="Remove contact"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

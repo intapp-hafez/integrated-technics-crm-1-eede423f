@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { shortId } from "@/lib/utils";
+import { shortId, formatDate } from "@/lib/utils";
 import { CopyIdButton } from "@/components/CopyIdButton";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -517,7 +517,7 @@ function ManagerEmployeeDetailsPage() {
                   <div className="font-semibold text-foreground">{a.title}</div>
                   <div className="text-xs text-muted-foreground">
                     <Clock4 className="me-1 inline h-3 w-3" />
-                    {a.dueDate} {a.time}
+                    {formatDate(a.dueDate)} {a.time}
                   </div>
                 </div>
                 {a.estMinutes != null && (

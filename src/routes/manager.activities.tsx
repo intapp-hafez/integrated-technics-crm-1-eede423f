@@ -1,4 +1,5 @@
-﻿import React from "react";
+import { formatDate } from "@/lib/utils";
+import React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
@@ -329,7 +330,7 @@ function ManagerActivitiesPage() {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{a.dueDate}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{formatDate(a.dueDate)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{a.time}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {lead?.company ?? "â€”"}
@@ -349,8 +350,8 @@ function ManagerActivitiesPage() {
                             >
                               <option value="pending">Postponed</option>
                               <option value="in_progress">In progress</option>
-                              <option value="done">Attended</option>
-                              <option value="cancelled">Not Attended</option>
+                              <option value="done">Done</option>
+                              <option value="cancelled">Not Done</option>
                               <option value="delayed">Delayed</option>
                             </select>
                           </div>
@@ -489,8 +490,8 @@ function ManagerActivitiesPage() {
                           >
                             <option value="pending">Postponed</option>
                             <option value="in_progress">In progress</option>
-                            <option value="done">Attended</option>
-                            <option value="cancelled">Not Attended</option>
+                            <option value="done">Done</option>
+                            <option value="cancelled">Not Done</option>
                             <option value="delayed">Delayed</option>
                           </select>
                         </div>

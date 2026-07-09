@@ -25,6 +25,7 @@ export interface StageTransitionPayload {
   lead: Lead;
   toStage: LeadStatus;
   toLabel: string;
+  actor?: string;
 }
 
 interface Props {
@@ -169,6 +170,8 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
       const init: Record<string, string> = {};
       for (const f of fieldsFor(payload.toStage)) {
         if (f.type === "date") init[f.name] = today();
+        else if (f.name === "budget" && payload.lead.value) init[f.name] = payload.lead.value.toString();
+        else if (f.name === "amount" && payload.lead.value) init[f.name] = payload.lead.value.toString();
         else init[f.name] = "";
       }
       setValues(init);
@@ -235,9 +238,9 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
     }
 
     if (details) {
-      actions.addNote(lead.id, `[${toLabel}] ${details}`);
+      actions.addNote(lead.id, `[${toLabel}] ${details}`, payload.actor);
     }
-    actions.moveLead(lead.id, toStage);
+    actions.moveLead(lead.id, toStage, payload.actor);
     onClose();
   };
 

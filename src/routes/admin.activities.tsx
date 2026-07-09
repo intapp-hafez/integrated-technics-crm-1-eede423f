@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/utils";
 import React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
@@ -655,7 +656,7 @@ function ActivitiesPage() {
                           <span className="text-sm text-muted-foreground">{displayName}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{a.dueDate}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{formatDate(a.dueDate)}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{a.time}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {lead?.company ?? a.projectId ?? "—"}
@@ -1053,7 +1054,7 @@ function ReminderDialog({ activityId, onClose }: { activityId: string; onClose: 
         <div className="mb-3 rounded-lg bg-secondary/50 p-3 text-xs">
           <div className="font-semibold text-foreground">{activity.title}</div>
           <div className="text-muted-foreground">
-            {activity.dueDate} {activity.time} ·{" "}
+            {formatDate(activity.dueDate)} {activity.time} ·{" "}
             {activity.owner && activity.owner !== "Unassigned"
               ? activity.owner
               : ((activity as any).createdByName ?? "Unassigned")}

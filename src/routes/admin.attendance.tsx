@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/utils";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -216,7 +217,7 @@ function AttendancePage() {
                         <span className="font-semibold text-foreground">{r.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 font-mono text-muted-foreground">{r.date}</td>
+                    <td className="px-4 py-3 font-mono text-muted-foreground">{formatDate(r.date)}</td>
                     <td className="px-4 py-3 font-mono text-foreground">{r.in}</td>
                     <td className="px-4 py-3 font-mono text-muted-foreground">{r.out}</td>
                     <td className="px-4 py-3 text-end font-mono font-semibold text-foreground">

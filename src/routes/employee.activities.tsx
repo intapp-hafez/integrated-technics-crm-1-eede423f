@@ -60,6 +60,8 @@ function MyActivitiesPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [page, setPage] = useState(1);
+  const [markDoneId, setMarkDoneId] = useState<string | null>(null);
+  const [doneNote, setDoneNote] = useState("");
   const { confirm, ConfirmDialog } = useConfirm();
   const ITEMS_PER_PAGE = 20;
 
@@ -272,7 +274,7 @@ function MyActivitiesPage() {
                         <td className="px-4 py-3">
                           {done ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
-                              Attended <Check className="h-3 w-3" />
+                              Done <Check className="h-3 w-3" />
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600">
@@ -283,7 +285,7 @@ function MyActivitiesPage() {
                         <td className="px-4 py-3 text-end">
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             {!done && (
-                              <button onClick={(e) => { e.stopPropagation(); actions.setActivityStatus(a.id, "done"); }} className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:border-primary hover:text-primary transition" title="Mark Done">
+                              <button onClick={(e) => { e.stopPropagation(); setDoneNote(""); setMarkDoneId(a.id); }} className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 transition" title="Mark Done">
                                 <Check className="h-3.5 w-3.5" />
                               </button>
                             )}
@@ -405,13 +407,14 @@ function MyActivitiesPage() {
                   </button>
                   {done ? (
                     <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500 px-3 py-2 text-xs font-bold text-white shadow">
-                      Attended <Check className="h-3.5 w-3.5" />
+                      Done <Check className="h-3.5 w-3.5" />
                     </span>
                   ) : (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        actions.setActivityStatus(a.id, "done");
+                        setDoneNote("");
+                        setMarkDoneId(a.id);
                       }}
                       className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground hover:border-primary hover:text-primary"
                       aria-label="Mark done"
@@ -468,6 +471,43 @@ function MyActivitiesPage() {
         )}
       </div>
       {showImport && <ExcelImportModal type="activities" onClose={() => setShowImport(false)} />}
+
+      {markDoneId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in">
+          <div className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold text-foreground">Mark as Done</h3>
+            <div className="mb-4 space-y-1.5">
+              <label className="text-sm font-semibold text-muted-foreground">{t("addNote")} (Min 10 chars)</label>
+              <textarea
+                autoFocus
+                value={doneNote}
+                onChange={(e) => setDoneNote(e.target.value)}
+                placeholder="What happened during this activity?"
+                className="h-24 w-full rounded-lg border border-border bg-background p-3 text-sm focus:border-primary focus:outline-none resize-none"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setMarkDoneId(null)}
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={doneNote.trim().length < 10}
+                onClick={() => {
+                  actions.updateActivity(markDoneId, { status: "done", notes: doneNote });
+                  setMarkDoneId(null);
+                }}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ConfirmDialog />
     </AppShell>
   );
@@ -708,19 +748,22 @@ function NewQuickActivity({ owner }: { owner: string }) {
   const [type, setType] = useState(settings.activityTypes[0]);
   const [mins, setMins] = useState(30);
   const [leadId, setLeadId] = useState(leads[0]?.id ?? "");
+  const [dueDate, setDueDate] = useState(() => new Date().toISOString().slice(0, 10));
+
   const submit = () => {
-    if (!title.trim()) return;
+    if (!title.trim() || !dueDate) return;
     actions.addActivity({
       type,
       title,
       leadId: leadId || undefined,
-      dueDate: new Date().toISOString().slice(0, 10),
+      dueDate,
       time: new Date().toTimeString().slice(0, 5),
       owner,
       estMinutes: mins,
     });
     setTitle("");
     setMins(30);
+    setDueDate(new Date().toISOString().slice(0, 10));
     setOpen(false);
   };
   if (!open) {
@@ -742,7 +785,7 @@ function NewQuickActivity({ owner }: { owner: string }) {
         placeholder={t("workingOn")}
         className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
       />
-      <div className="mt-2 grid grid-cols-3 gap-2">
+      <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
         <select
           value={type}
           onChange={(e) => setType(e.target.value as any)}
@@ -766,6 +809,13 @@ function NewQuickActivity({ owner }: { owner: string }) {
             </option>
           ))}
         </select>
+        <input
+          type="date"
+          required
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="h-9 rounded-lg border border-border bg-background px-2 text-xs focus:border-primary focus:outline-none"
+        />
         <div className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 text-xs">
           <Clock4 className="h-3.5 w-3.5 text-muted-foreground" />
           <input
@@ -788,7 +838,8 @@ function NewQuickActivity({ owner }: { owner: string }) {
         </button>
         <button
           onClick={submit}
-          className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+          disabled={!title.trim() || !dueDate}
+          className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
           {t("add")}
         </button>

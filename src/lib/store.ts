@@ -9,7 +9,14 @@ import {
 } from "./mock-data";
 import type { Lead, LeadStatus, Quotation } from "./mock-data";
 
-export type Employee = (typeof mockEmployees)[number];
+export type Employee = (typeof mockEmployees)[number] & {
+  kpiTargetWeight?: number;
+  kpiActivitiesWeight?: number;
+  kpiAttendanceWeight?: number;
+  kpiTargetPeriod?: string;
+  kpiActivitiesPeriod?: string;
+  kpiAttendancePeriod?: string;
+};
 
 export interface AppNotification {
   id: string;
@@ -252,6 +259,12 @@ export interface Profile {
   avatarUrl?: string;
   targetValue?: number;
   targetType?: "yearly" | "quarterly" | "monthly";
+  kpiTargetWeight?: number;
+  kpiActivitiesWeight?: number;
+  kpiAttendanceWeight?: number;
+  kpiTargetPeriod?: string;
+  kpiActivitiesPeriod?: string;
+  kpiAttendancePeriod?: string;
 }
 
 export interface DepartmentItem {

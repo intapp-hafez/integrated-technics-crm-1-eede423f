@@ -38,6 +38,7 @@ import { Route as EmployeeProfileRouteImport } from './routes/employee.profile'
 import { Route as EmployeePipelineRouteImport } from './routes/employee.pipeline'
 import { Route as EmployeeOffersRouteImport } from './routes/employee.offers'
 import { Route as EmployeeNotificationsRouteImport } from './routes/employee.notifications'
+import { Route as EmployeeNotesRouteImport } from './routes/employee.notes'
 import { Route as EmployeeLeadsRouteImport } from './routes/employee.leads'
 import { Route as EmployeeEmailInboxRouteImport } from './routes/employee.email-inbox'
 import { Route as EmployeeChatRouteImport } from './routes/employee.chat'
@@ -54,6 +55,7 @@ import { Route as AdminOffersRouteImport } from './routes/admin.offers'
 import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
 import { Route as AdminManagersRouteImport } from './routes/admin.managers'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
+import { Route as AdminKpisRouteImport } from './routes/admin.kpis'
 import { Route as AdminHistoryRouteImport } from './routes/admin.history'
 import { Route as AdminEmployeesRouteImport } from './routes/admin.employees'
 import { Route as AdminEmailInboxRouteImport } from './routes/admin.email-inbox'
@@ -229,6 +231,11 @@ const EmployeeNotificationsRoute = EmployeeNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => EmployeeRoute,
 } as any)
+const EmployeeNotesRoute = EmployeeNotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => EmployeeRoute,
+} as any)
 const EmployeeLeadsRoute = EmployeeLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -307,6 +314,11 @@ const AdminManagersRoute = AdminManagersRouteImport.update({
 const AdminLeadsRoute = AdminLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminKpisRoute = AdminKpisRouteImport.update({
+  id: '/kpis',
+  path: '/kpis',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminHistoryRoute = AdminHistoryRouteImport.update({
@@ -482,6 +494,7 @@ export interface FileRoutesByFullPath {
   '/admin/email-inbox': typeof AdminEmailInboxRoute
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/kpis': typeof AdminKpisRoute
   '/admin/leads': typeof AdminLeadsRouteWithChildren
   '/admin/managers': typeof AdminManagersRouteWithChildren
   '/admin/notifications': typeof AdminNotificationsRouteWithChildren
@@ -498,6 +511,7 @@ export interface FileRoutesByFullPath {
   '/employee/chat': typeof EmployeeChatRoute
   '/employee/email-inbox': typeof EmployeeEmailInboxRoute
   '/employee/leads': typeof EmployeeLeadsRouteWithChildren
+  '/employee/notes': typeof EmployeeNotesRoute
   '/employee/notifications': typeof EmployeeNotificationsRouteWithChildren
   '/employee/offers': typeof EmployeeOffersRouteWithChildren
   '/employee/pipeline': typeof EmployeePipelineRoute
@@ -554,6 +568,7 @@ export interface FileRoutesByTo {
   '/admin/email-inbox': typeof AdminEmailInboxRoute
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/kpis': typeof AdminKpisRoute
   '/admin/leads': typeof AdminLeadsRouteWithChildren
   '/admin/managers': typeof AdminManagersRouteWithChildren
   '/admin/notifications': typeof AdminNotificationsRouteWithChildren
@@ -570,6 +585,7 @@ export interface FileRoutesByTo {
   '/employee/chat': typeof EmployeeChatRoute
   '/employee/email-inbox': typeof EmployeeEmailInboxRoute
   '/employee/leads': typeof EmployeeLeadsRouteWithChildren
+  '/employee/notes': typeof EmployeeNotesRoute
   '/employee/notifications': typeof EmployeeNotificationsRouteWithChildren
   '/employee/offers': typeof EmployeeOffersRouteWithChildren
   '/employee/pipeline': typeof EmployeePipelineRoute
@@ -631,6 +647,7 @@ export interface FileRoutesById {
   '/admin/email-inbox': typeof AdminEmailInboxRoute
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/kpis': typeof AdminKpisRoute
   '/admin/leads': typeof AdminLeadsRouteWithChildren
   '/admin/managers': typeof AdminManagersRouteWithChildren
   '/admin/notifications': typeof AdminNotificationsRouteWithChildren
@@ -647,6 +664,7 @@ export interface FileRoutesById {
   '/employee/chat': typeof EmployeeChatRoute
   '/employee/email-inbox': typeof EmployeeEmailInboxRoute
   '/employee/leads': typeof EmployeeLeadsRouteWithChildren
+  '/employee/notes': typeof EmployeeNotesRoute
   '/employee/notifications': typeof EmployeeNotificationsRouteWithChildren
   '/employee/offers': typeof EmployeeOffersRouteWithChildren
   '/employee/pipeline': typeof EmployeePipelineRoute
@@ -709,6 +727,7 @@ export interface FileRouteTypes {
     | '/admin/email-inbox'
     | '/admin/employees'
     | '/admin/history'
+    | '/admin/kpis'
     | '/admin/leads'
     | '/admin/managers'
     | '/admin/notifications'
@@ -725,6 +744,7 @@ export interface FileRouteTypes {
     | '/employee/chat'
     | '/employee/email-inbox'
     | '/employee/leads'
+    | '/employee/notes'
     | '/employee/notifications'
     | '/employee/offers'
     | '/employee/pipeline'
@@ -781,6 +801,7 @@ export interface FileRouteTypes {
     | '/admin/email-inbox'
     | '/admin/employees'
     | '/admin/history'
+    | '/admin/kpis'
     | '/admin/leads'
     | '/admin/managers'
     | '/admin/notifications'
@@ -797,6 +818,7 @@ export interface FileRouteTypes {
     | '/employee/chat'
     | '/employee/email-inbox'
     | '/employee/leads'
+    | '/employee/notes'
     | '/employee/notifications'
     | '/employee/offers'
     | '/employee/pipeline'
@@ -857,6 +879,7 @@ export interface FileRouteTypes {
     | '/admin/email-inbox'
     | '/admin/employees'
     | '/admin/history'
+    | '/admin/kpis'
     | '/admin/leads'
     | '/admin/managers'
     | '/admin/notifications'
@@ -873,6 +896,7 @@ export interface FileRouteTypes {
     | '/employee/chat'
     | '/employee/email-inbox'
     | '/employee/leads'
+    | '/employee/notes'
     | '/employee/notifications'
     | '/employee/offers'
     | '/employee/pipeline'
@@ -1134,6 +1158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployeeNotificationsRouteImport
       parentRoute: typeof EmployeeRoute
     }
+    '/employee/notes': {
+      id: '/employee/notes'
+      path: '/notes'
+      fullPath: '/employee/notes'
+      preLoaderRoute: typeof EmployeeNotesRouteImport
+      parentRoute: typeof EmployeeRoute
+    }
     '/employee/leads': {
       id: '/employee/leads'
       path: '/leads'
@@ -1244,6 +1275,13 @@ declare module '@tanstack/react-router' {
       path: '/leads'
       fullPath: '/admin/leads'
       preLoaderRoute: typeof AdminLeadsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/kpis': {
+      id: '/admin/kpis'
+      path: '/kpis'
+      fullPath: '/admin/kpis'
+      preLoaderRoute: typeof AdminKpisRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/history': {
@@ -1543,6 +1581,7 @@ interface AdminRouteChildren {
   AdminEmailInboxRoute: typeof AdminEmailInboxRoute
   AdminEmployeesRoute: typeof AdminEmployeesRouteWithChildren
   AdminHistoryRoute: typeof AdminHistoryRoute
+  AdminKpisRoute: typeof AdminKpisRoute
   AdminLeadsRoute: typeof AdminLeadsRouteWithChildren
   AdminManagersRoute: typeof AdminManagersRouteWithChildren
   AdminNotificationsRoute: typeof AdminNotificationsRouteWithChildren
@@ -1566,6 +1605,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminEmailInboxRoute: AdminEmailInboxRoute,
   AdminEmployeesRoute: AdminEmployeesRouteWithChildren,
   AdminHistoryRoute: AdminHistoryRoute,
+  AdminKpisRoute: AdminKpisRoute,
   AdminLeadsRoute: AdminLeadsRouteWithChildren,
   AdminManagersRoute: AdminManagersRouteWithChildren,
   AdminNotificationsRoute: AdminNotificationsRouteWithChildren,
@@ -1648,6 +1688,7 @@ interface EmployeeRouteChildren {
   EmployeeChatRoute: typeof EmployeeChatRoute
   EmployeeEmailInboxRoute: typeof EmployeeEmailInboxRoute
   EmployeeLeadsRoute: typeof EmployeeLeadsRouteWithChildren
+  EmployeeNotesRoute: typeof EmployeeNotesRoute
   EmployeeNotificationsRoute: typeof EmployeeNotificationsRouteWithChildren
   EmployeeOffersRoute: typeof EmployeeOffersRouteWithChildren
   EmployeePipelineRoute: typeof EmployeePipelineRoute
@@ -1663,6 +1704,7 @@ const EmployeeRouteChildren: EmployeeRouteChildren = {
   EmployeeChatRoute: EmployeeChatRoute,
   EmployeeEmailInboxRoute: EmployeeEmailInboxRoute,
   EmployeeLeadsRoute: EmployeeLeadsRouteWithChildren,
+  EmployeeNotesRoute: EmployeeNotesRoute,
   EmployeeNotificationsRoute: EmployeeNotificationsRouteWithChildren,
   EmployeeOffersRoute: EmployeeOffersRouteWithChildren,
   EmployeePipelineRoute: EmployeePipelineRoute,

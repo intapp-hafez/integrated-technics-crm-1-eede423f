@@ -1,0 +1,1 @@
+create policy "projects: employee update" on public.projects for update to authenticated using (public.has_role(auth.uid(),'employee') and public.is_project_member(id)) with check (public.has_role(auth.uid(),'employee') and public.is_project_member(id));

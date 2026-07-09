@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { useState, useMemo } from "react";
 import { Plus, X, ListTodo, MessageSquare, Clock4, CheckCircle2, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
-import { shortId } from "@/lib/utils";
+import { shortId, formatDate } from "@/lib/utils";
 
 type DateFilter = "today" | "week" | "month" | "all";
 const DATE_FILTERS: { key: DateFilter; label: string }[] = [
@@ -129,7 +129,7 @@ function AdminTodoPage() {
                   <div className="mt-3 flex items-center justify-between text-xs font-medium text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock4 className="h-3 w-3" />
-                      {task.date}
+                      {formatDate(task.date)}
                     </span>
                     <span className="font-mono text-[10px] text-muted-foreground/60">{shortId(task.id)}</span>
                   </div>
@@ -277,7 +277,7 @@ function TaskDetailsModal({ task, onClose }: { task: AdminTask; onClose: () => v
             <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Clock4 className="h-3.5 w-3.5" />
-                {latestTask.date}
+                {formatDate(latestTask.date)}
               </span>
               <span className="font-mono text-[10px] uppercase">{shortId(latestTask.id)}</span>
             </div>

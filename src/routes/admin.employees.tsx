@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { shortId } from "@/lib/utils";
+import { shortId, formatDate } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
@@ -834,7 +834,7 @@ function ExportHoursDialog({ onClose }: { onClose: () => void }) {
                 {rows.map((r, i) => (
                   <tr key={i}>
                     <td className="px-2 py-1">{r.emp}</td>
-                    <td className="px-2 py-1">{r.date}</td>
+                    <td className="px-2 py-1">{formatDate(r.date)}</td>
                     <td className="px-2 py-1 text-end">{r.hours}</td>
                   </tr>
                 ))}
