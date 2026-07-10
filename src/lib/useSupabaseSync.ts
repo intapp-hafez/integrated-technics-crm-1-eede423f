@@ -385,7 +385,7 @@ export function useSupabaseSync() {
         descriptionAr: q.description_ar ?? undefined,
         submissionDate: q.submission_date ?? q.created_at?.slice(0, 10),
         validUntil: q.valid_until ?? undefined,
-        currency: q.currency ?? "SAR",
+        currency: q.currency === "SAR" ? "USD" : (q.currency ?? "USD"),
         value: Number(q.value ?? 0),
         status: q.status,
         revisions: 0,
