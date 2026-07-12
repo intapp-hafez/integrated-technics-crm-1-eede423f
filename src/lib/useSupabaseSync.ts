@@ -37,6 +37,9 @@ export function useSupabaseSync() {
         projectRequestsRes,
         adminTasksRes,
         adminTaskActivitiesRes,
+        catalogItemsRes,
+        catalogCategoriesRes,
+        leadCatalogItemsRes,
       ] = await Promise.all([
         supabase.from("leads").select("*").order("created_at", { ascending: false }),
         supabase.from("projects").select("*").order("created_at", { ascending: false }),
@@ -88,6 +91,9 @@ export function useSupabaseSync() {
           .select("id, status, created_project_id, requested_by, name_en, website"),
         supabase.from("admin_tasks" as any).select("*").order("date", { ascending: false }),
         supabase.from("admin_task_activities" as any).select("*").order("ts", { ascending: false }),
+        supabase.from("catalog_items" as any).select("*").order("created_at", { ascending: false }),
+        supabase.from("catalog_categories" as any).select("*").order("name", { ascending: true }),
+        supabase.from("lead_catalog_items" as any).select("*").order("created_at", { ascending: false }),
       ]);
       return {
         leads: leadsRes.data ?? [],
@@ -110,6 +116,9 @@ export function useSupabaseSync() {
         projectRequests: projectRequestsRes?.data ?? [],
         adminTasks: adminTasksRes?.data ?? [],
         adminTaskActivities: adminTaskActivitiesRes?.data ?? [],
+        catalogItems: (catalogItemsRes as any)?.data ?? [],
+        catalogCategories: (catalogCategoriesRes as any)?.data ?? [],
+        leadCatalogItems: (leadCatalogItemsRes as any)?.data ?? [],
       };
     },
   });
@@ -137,6 +146,9 @@ export function useSupabaseSync() {
       "project_members",
       "history",
       "notifications",
+      "catalog_items",
+      "catalog_categories",
+      "lead_catalog_items",
     ];
     const channel = supabase.channel("app-sync");
     for (const table of tables) {
@@ -246,6 +258,7 @@ export function useSupabaseSync() {
         industry: pick(l.industry_en, l.industry_ar) || "—",
         updatedAt: new Date(l.updated_at).toLocaleString(),
         updatedAtIso: l.updated_at ?? undefined,
+        createdAt: l.created_at ?? undefined,
         createdBy: l.created_by ?? undefined,
         createdByName: creatorProfile
           ? pick(creatorProfile.full_name_en, creatorProfile.full_name_ar)
@@ -676,6 +689,27 @@ export function useSupabaseSync() {
         ts: a.ts,
         actor: a.actor,
         details: a.details,
+      })),
+      catalogItems: ((data as any).catalogItems ?? []).map((i: any) => ({
+        id: i.id,
+        name: i.name,
+        type: i.type,
+        category: i.category,
+        description: i.description,
+        costPrice: i.cost_price ? Number(i.cost_price) : undefined,
+        createdAt: i.created_at,
+      })),
+      catalogCategories: ((data as any).catalogCategories ?? []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        createdAt: c.created_at,
+      })),
+      leadCatalogItems: ((data as any).leadCatalogItems ?? []).map((l: any) => ({
+        id: l.id,
+        leadId: l.lead_id,
+        catalogItemId: l.catalog_item_id,
+        quantity: l.quantity,
+        createdAt: l.created_at,
       })),
     });
   }, [data, lang, user?.id]);

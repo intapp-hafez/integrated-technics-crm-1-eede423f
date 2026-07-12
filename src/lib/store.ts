@@ -150,6 +150,28 @@ export const APP_PAGES = [
 ] as const;
 export type AppPage = (typeof APP_PAGES)[number];
 export type CrudOp = "create" | "read" | "update" | "delete";
+export interface CatalogCategory {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
+export interface CatalogItem {
+  id: string;
+  name: string;
+  type: "item" | "service";
+  category: string;
+  description: string;
+  costPrice?: number;
+  createdAt: string;
+}
+export interface LeadCatalogItem {
+  id: string;
+  leadId: string;
+  catalogItemId: string;
+  quantity: number;
+  createdAt: string;
+}
 export interface RolePermission {
   pages: AppPage[];
   crud: Record<AppPage, CrudOp[]>;
@@ -317,6 +339,9 @@ interface State {
   celebrationLead?: Lead | null;
   adminTasks: AdminTask[];
   adminTaskActivities: AdminTaskActivity[];
+  catalogItems: CatalogItem[];
+  catalogCategories: CatalogCategory[];
+  leadCatalogItems: LeadCatalogItem[];
 }
 
 import * as sb from "./supabaseWrites";
@@ -762,6 +787,9 @@ const initialState: State = {
   celebrationLead: null,
   adminTasks: [],
   adminTaskActivities: [],
+  catalogItems: [],
+  catalogCategories: [],
+  leadCatalogItems: [],
 };
 
 let state: State = initialState;

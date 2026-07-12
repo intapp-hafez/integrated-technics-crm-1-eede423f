@@ -52,7 +52,11 @@ import {
   Phone,
   Globe,
   ChevronDown,
+  Box,
 } from "lucide-react";
+
+import { sbDeleteLeadCatalogItem } from "@/lib/supabaseWrites";
+import { LeadCatalogModal } from "./LeadCatalogModal";
 
 const isUuid = (v: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
@@ -86,6 +90,7 @@ function fmtTime(iso: string) {
 
 export function LeadDetailsPage({ leadId }: { leadId: string }) {
   const { t, lang } = useI18n();
+  const isAr = lang === "ar";
   const router = useRouter();
   const { role } = useRole();
   const panel = role;
@@ -95,7 +100,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
     role: t(role as any), 
     initials: (profile?.full_name_en || profile?.full_name_ar || "U").split(" ").map((s: string) => s[0]).join("").substring(0, 2).toUpperCase() 
   };
-  const { leads, projects, activities, history, settings, leadDistricts } = useStoreState();
+  const { leads, projects, activities, history, settings, leadDistricts, leadCatalogItems, catalogItems } = useStoreState();
   const lead = leads.find((l) => l.id === leadId);
   const relatedProject = projects.find((p) => p.id === (lead as any)?.projectId);
   const displayPhone = (lead as any)?.phone || relatedProject?.clientPhone;
@@ -106,6 +111,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
   const [changingStatus, setChangingStatus] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showCatalogModal, setShowCatalogModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
   const persistable = isUuid(leadId);
@@ -318,6 +324,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
 
   const leadFiles = filesQuery.data ?? [];
   const leadActivities = activities.filter((a) => a.leadId === leadId);
+  const leadItems = leadCatalogItems.filter((l) => l.leadId === leadId);
   const leadHistory = history.filter((h) => h.target === lead.company);
   const stageHistory = leadHistory.filter((h) => h.module === "pipeline");
 
@@ -618,6 +625,71 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
               </ol>
             )}
           </Section>
+
+          <Section title={isAr ? "??????? ?????????" : "Services & Items"} icon={Box} action={
+            <button
+              onClick={() => setShowCatalogModal(true)}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+            >
+              <Plus className="h-3.5 w-3.5" /> {isAr ? "????? ????? / ??????" : "Add Services & Items"}
+            </button>
+          }>
+            {leadItems.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-4">
+                {isAr ? "?? ??? ????? ????? ?? ??????." : "No services or items added yet."}
+              </p>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="w-full text-sm">
+                  <thead className="bg-secondary/50 text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-3 text-start font-semibold uppercase tracking-wider text-[11px]">{isAr ? "?????" : "Name"}</th>
+                      <th className="px-4 py-3 text-start font-semibold uppercase tracking-wider text-[11px]">{isAr ? "???????" : "Category"}</th>
+                      <th className="px-4 py-3 text-end font-semibold uppercase tracking-wider text-[11px]">{isAr ? "??????" : "Quantity"}</th>
+                      <th className="px-4 py-3 text-end font-semibold uppercase tracking-wider text-[11px]">{isAr ? "?????" : "Price"}</th>
+                      <th className="px-4 py-3 text-end font-semibold uppercase tracking-wider text-[11px]">{isAr ? "????????" : "Total"}</th>
+                      <th className="px-4 py-3 w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {leadItems.map((item: any) => {
+                      const catalogItem = catalogItems.find(c => c.id === item.catalogItemId);
+                      if (!catalogItem) return null;
+                      const price = catalogItem.costPrice || 0;
+                      const total = price * item.quantity;
+                      return (
+                        <tr key={item.id} className="transition hover:bg-secondary/20">
+                          <td className="px-4 py-3 font-medium text-foreground">{catalogItem.name}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{catalogItem.category}</td>
+                          <td className="px-4 py-3 text-end font-mono text-foreground">{item.quantity}</td>
+                          <td className="px-4 py-3 text-end font-mono text-muted-foreground">{price ? `$${price.toFixed(2)}` : "-"}</td>
+                          <td className="px-4 py-3 text-end font-mono font-medium text-primary">{total ? `$${total.toFixed(2)}` : "-"}</td>
+                          <td className="px-4 py-3 text-end">
+                            <button
+                              onClick={async () => {
+                                if (confirm(isAr ? "??? ???????" : "Delete item?")) {
+                                  try {
+                                    await sbDeleteLeadCatalogItem(item.id);
+                                    toast.success(isAr ? "?? ????? ?????" : "Item removed");
+                                  } catch (e: any) {
+                                    toast.error(e.message || "Error removing item");
+                                  }
+                                }
+                              }}
+                              className="text-muted-foreground hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Section>
+
           <Section title={t("notes")} icon={FileText} action={
             <button
               onClick={handleDownloadNotesPdf}
@@ -887,6 +959,12 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                   .filter(Boolean)
                   .join(", ") || "—"}
               </InfoRow>
+              <InfoRow label="Created At" icon={Clock4}>
+                {(lead as any).createdAt ? new Date((lead as any).createdAt).toLocaleString() : "—"}
+              </InfoRow>
+              <InfoRow label="Last Updated" icon={HistoryIcon}>
+                {lead.updatedAt ? new Date(lead.updatedAt).toLocaleString() : "—"}
+              </InfoRow>
               {(lead as any).description && (
                 <div className="mt-3 border-t border-border pt-3">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
@@ -903,6 +981,15 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
         </div>
       </div>
       <StageTransitionDialog open={!!transitionPayload} payload={transitionPayload} onClose={() => setTransitionPayload(null)} />
+      
+      {showCatalogModal && (
+        <LeadCatalogModal 
+          leadId={leadId} 
+          catalogItems={catalogItems} 
+          isAr={lang === "ar"}
+          onClose={() => setShowCatalogModal(false)}
+        />
+      )}
     </AppShell>
   );
 }

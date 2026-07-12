@@ -22,6 +22,7 @@ import {
   Building2,
   ListTodo,
   StickyNote,
+  Box,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { LangToggle, useI18n } from "@/lib/i18n";
@@ -43,6 +44,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/pipeline", icon: Workflow, key: "pipeline" },
   { to: "/admin/activities", icon: CalendarCheck, key: "activities" },
   { to: "/admin/projects", icon: Briefcase, key: "projects" },
+  { to: "/admin/services-items", icon: Box, key: "servicesItems" as any },
   { to: "/admin/offers", icon: FileBadge, key: "offers" },
   { to: "/admin/managers", icon: Users, key: "managers" },
   { to: "/admin/employees", icon: UserCircle2, key: "employees" },
@@ -80,12 +82,14 @@ const managerNav: NavItem[] = [
   { to: "/manager/pipeline", icon: Workflow, key: "pipeline" },
   { to: "/manager/activities", icon: CalendarCheck, key: "activities" },
   { to: "/manager/projects", icon: Briefcase, key: "projects" },
+  { to: "/manager/services-items", icon: Box, key: "servicesItems" as any },
   { to: "/manager/offers", icon: FileBadge, key: "offers" },
   { to: "/manager/attendance", icon: Clock4, key: "attendance" },
   { to: "/manager/reports", icon: History, key: "reports" },
   { to: "/manager/chat", icon: MessageSquare, key: "chat" as any },
   { to: "/manager/send-email", icon: Mail, key: "sendEmail" as any },
   { to: "/manager/email-inbox", icon: Inbox, key: "emailInbox" as any },
+  { to: "/manager/notes", icon: StickyNote, key: "stickyNotes" as any },
 ];
 
 const financeNav: NavItem[] = [

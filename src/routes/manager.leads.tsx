@@ -48,7 +48,7 @@ function ManagerLeadsPage() {
 
 function ManagerLeadsListPage() {
   const { t, lang } = useI18n();
-  const { leads, settings, projects } = useStoreState();
+  const { leads, settings, projects, activities } = useStoreState();
   const { includesLead, teamEmployees } = useMyTeam();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
@@ -58,9 +58,14 @@ function ManagerLeadsListPage() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
+  const [closingThisMonthFilter, setClosingThisMonthFilter] = useState(false);
+  const [next7DaysFilter, setNext7DaysFilter] = useState(false);
+  const [next15DaysFilter, setNext15DaysFilter] = useState(false);
+  const [noActivitiesFilter, setNoActivitiesFilter] = useState(false);
+
   useEffect(() => {
     setPage(1);
-  }, [q, status, owner]);
+  }, [q, status, owner, closingThisMonthFilter, next7DaysFilter, next15DaysFilter, noActivitiesFilter]);
 
   const isAr = lang === "ar";
   const stageLabel = (k: string) =>
@@ -90,6 +95,39 @@ function ManagerLeadsListPage() {
     return teamLeads.filter((l) => {
       if (status !== "all" && l.status !== status) return false;
       if (owner !== "all" && l.owner !== owner) return false;
+
+      let dateFilterPass = true;
+      if (closingThisMonthFilter || next7DaysFilter || next15DaysFilter) {
+        if (!l.expectedCloseDate) {
+          dateFilterPass = false;
+        } else {
+          const d = new Date(l.expectedCloseDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const tTime = today.getTime();
+          const dTime = d.getTime();
+          let pass = false;
+          if (closingThisMonthFilter) {
+            if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()) pass = true;
+          }
+          if (next7DaysFilter && !pass) {
+            const diffDays = (dTime - tTime) / (1000 * 60 * 60 * 24);
+            if (diffDays >= 0 && diffDays <= 7) pass = true;
+          }
+          if (next15DaysFilter && !pass) {
+            const diffDays = (dTime - tTime) / (1000 * 60 * 60 * 24);
+            if (diffDays >= 0 && diffDays <= 15) pass = true;
+          }
+          dateFilterPass = pass;
+        }
+      }
+      if (!dateFilterPass) return false;
+
+      if (noActivitiesFilter) {
+        const leadActivityCount = activities.filter((a) => a.leadId === l.id).length;
+        if (leadActivityCount > 0) return false;
+      }
+
       if (q) {
         const s = q.toLowerCase();
         if (
@@ -104,7 +142,7 @@ function ManagerLeadsListPage() {
       }
       return true;
     });
-  }, [teamLeads, q, status, owner]);
+  }, [teamLeads, q, status, owner, closingThisMonthFilter, next7DaysFilter, next15DaysFilter, noActivitiesFilter, activities]);
 
   const totalValue = filtered.reduce((s, l) => s + (l.value || 0), 0);
   const wonCount = filtered.filter((l) => l.status === "won").length;
@@ -215,6 +253,44 @@ function ManagerLeadsListPage() {
             className="h-9 w-full rounded-lg border border-border bg-card ps-9 pe-3 text-xs outline-none focus:border-primary"
           />
         </div>
+        <div className="flex flex-wrap items-center gap-4 py-2 mt-2 border-t border-border">
+          <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer">
+            <input
+              type="checkbox"
+              checked={closingThisMonthFilter}
+              onChange={(e) => setClosingThisMonthFilter(e.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+            />
+            {isAr ? "يغلق هذا الشهر" : "Closing This Month"}
+          </label>
+          <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer">
+            <input
+              type="checkbox"
+              checked={next7DaysFilter}
+              onChange={(e) => setNext7DaysFilter(e.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+            />
+            {isAr ? "خلال 7 أيام" : "Next 7 Days"}
+          </label>
+          <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer">
+            <input
+              type="checkbox"
+              checked={next15DaysFilter}
+              onChange={(e) => setNext15DaysFilter(e.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+            />
+            {isAr ? "خلال 15 يوم" : "Next 15 Days"}
+          </label>
+          <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer">
+            <input
+              type="checkbox"
+              checked={noActivitiesFilter}
+              onChange={(e) => setNoActivitiesFilter(e.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+            />
+            {isAr ? "بدون نشاطات" : "No Activities"}
+          </label>
+        </div>
       </div>
 
       {/* Table */}
@@ -240,6 +316,9 @@ function ManagerLeadsListPage() {
                 </th>
                 <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {isAr ? "المدينة" : "City"}
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {isAr ? "تاريخ الإغلاق المتوقع" : "Expected Close"}
                 </th>
               </tr>
             </thead>
@@ -289,11 +368,14 @@ function ManagerLeadsListPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{l.city || "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
+                    {l.expectedCloseDate ? new Date(l.expectedCloseDate).toLocaleDateString() : "—"}
+                  </td>
                 </tr>
               ))}
               {paginated.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     {isAr ? "لا توجد فرص لعرضها" : "No leads to show for your team."}
                   </td>
                 </tr>

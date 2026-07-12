@@ -18,12 +18,14 @@ import { Route as ManagerIndexRouteImport } from './routes/manager.index'
 import { Route as FinanceIndexRouteImport } from './routes/finance.index'
 import { Route as EmployeeIndexRouteImport } from './routes/employee.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as ManagerServicesItemsRouteImport } from './routes/manager.services-items'
 import { Route as ManagerSendEmailRouteImport } from './routes/manager.send-email'
 import { Route as ManagerReportsRouteImport } from './routes/manager.reports'
 import { Route as ManagerProjectsRouteImport } from './routes/manager.projects'
 import { Route as ManagerPipelineRouteImport } from './routes/manager.pipeline'
 import { Route as ManagerOffersRouteImport } from './routes/manager.offers'
 import { Route as ManagerNotificationsRouteImport } from './routes/manager.notifications'
+import { Route as ManagerNotesRouteImport } from './routes/manager.notes'
 import { Route as ManagerLeadsRouteImport } from './routes/manager.leads'
 import { Route as ManagerEmailInboxRouteImport } from './routes/manager.email-inbox'
 import { Route as ManagerChatRouteImport } from './routes/manager.chat'
@@ -47,6 +49,7 @@ import { Route as EmployeeActivitiesRouteImport } from './routes/employee.activi
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTodoRouteImport } from './routes/admin.todo'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminServicesItemsRouteImport } from './routes/admin.services-items'
 import { Route as AdminSecurityRouteImport } from './routes/admin.security'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminProjectsRouteImport } from './routes/admin.projects'
@@ -131,6 +134,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const ManagerServicesItemsRoute = ManagerServicesItemsRouteImport.update({
+  id: '/services-items',
+  path: '/services-items',
+  getParentRoute: () => ManagerRoute,
+} as any)
 const ManagerSendEmailRoute = ManagerSendEmailRouteImport.update({
   id: '/send-email',
   path: '/send-email',
@@ -159,6 +167,11 @@ const ManagerOffersRoute = ManagerOffersRouteImport.update({
 const ManagerNotificationsRoute = ManagerNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => ManagerRoute,
+} as any)
+const ManagerNotesRoute = ManagerNotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
   getParentRoute: () => ManagerRoute,
 } as any)
 const ManagerLeadsRoute = ManagerLeadsRouteImport.update({
@@ -274,6 +287,11 @@ const AdminTodoRoute = AdminTodoRouteImport.update({
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminServicesItemsRoute = AdminServicesItemsRouteImport.update({
+  id: '/services-items',
+  path: '/services-items',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSecurityRoute = AdminSecurityRouteImport.update({
@@ -503,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/admin/projects': typeof AdminProjectsRouteWithChildren
   '/admin/reports': typeof AdminReportsRoute
   '/admin/security': typeof AdminSecurityRoute
+  '/admin/services-items': typeof AdminServicesItemsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/todo': typeof AdminTodoRoute
   '/admin/users': typeof AdminUsersRoute
@@ -526,12 +545,14 @@ export interface FileRoutesByFullPath {
   '/manager/chat': typeof ManagerChatRoute
   '/manager/email-inbox': typeof ManagerEmailInboxRoute
   '/manager/leads': typeof ManagerLeadsRouteWithChildren
+  '/manager/notes': typeof ManagerNotesRoute
   '/manager/notifications': typeof ManagerNotificationsRouteWithChildren
   '/manager/offers': typeof ManagerOffersRouteWithChildren
   '/manager/pipeline': typeof ManagerPipelineRoute
   '/manager/projects': typeof ManagerProjectsRouteWithChildren
   '/manager/reports': typeof ManagerReportsRoute
   '/manager/send-email': typeof ManagerSendEmailRoute
+  '/manager/services-items': typeof ManagerServicesItemsRoute
   '/admin/': typeof AdminIndexRoute
   '/employee/': typeof EmployeeIndexRoute
   '/finance/': typeof FinanceIndexRoute
@@ -577,6 +598,7 @@ export interface FileRoutesByTo {
   '/admin/projects': typeof AdminProjectsRouteWithChildren
   '/admin/reports': typeof AdminReportsRoute
   '/admin/security': typeof AdminSecurityRoute
+  '/admin/services-items': typeof AdminServicesItemsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/todo': typeof AdminTodoRoute
   '/admin/users': typeof AdminUsersRoute
@@ -600,12 +622,14 @@ export interface FileRoutesByTo {
   '/manager/chat': typeof ManagerChatRoute
   '/manager/email-inbox': typeof ManagerEmailInboxRoute
   '/manager/leads': typeof ManagerLeadsRouteWithChildren
+  '/manager/notes': typeof ManagerNotesRoute
   '/manager/notifications': typeof ManagerNotificationsRouteWithChildren
   '/manager/offers': typeof ManagerOffersRouteWithChildren
   '/manager/pipeline': typeof ManagerPipelineRoute
   '/manager/projects': typeof ManagerProjectsRouteWithChildren
   '/manager/reports': typeof ManagerReportsRoute
   '/manager/send-email': typeof ManagerSendEmailRoute
+  '/manager/services-items': typeof ManagerServicesItemsRoute
   '/admin': typeof AdminIndexRoute
   '/employee': typeof EmployeeIndexRoute
   '/finance': typeof FinanceIndexRoute
@@ -656,6 +680,7 @@ export interface FileRoutesById {
   '/admin/projects': typeof AdminProjectsRouteWithChildren
   '/admin/reports': typeof AdminReportsRoute
   '/admin/security': typeof AdminSecurityRoute
+  '/admin/services-items': typeof AdminServicesItemsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/todo': typeof AdminTodoRoute
   '/admin/users': typeof AdminUsersRoute
@@ -679,12 +704,14 @@ export interface FileRoutesById {
   '/manager/chat': typeof ManagerChatRoute
   '/manager/email-inbox': typeof ManagerEmailInboxRoute
   '/manager/leads': typeof ManagerLeadsRouteWithChildren
+  '/manager/notes': typeof ManagerNotesRoute
   '/manager/notifications': typeof ManagerNotificationsRouteWithChildren
   '/manager/offers': typeof ManagerOffersRouteWithChildren
   '/manager/pipeline': typeof ManagerPipelineRoute
   '/manager/projects': typeof ManagerProjectsRouteWithChildren
   '/manager/reports': typeof ManagerReportsRoute
   '/manager/send-email': typeof ManagerSendEmailRoute
+  '/manager/services-items': typeof ManagerServicesItemsRoute
   '/admin/': typeof AdminIndexRoute
   '/employee/': typeof EmployeeIndexRoute
   '/finance/': typeof FinanceIndexRoute
@@ -736,6 +763,7 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/admin/reports'
     | '/admin/security'
+    | '/admin/services-items'
     | '/admin/settings'
     | '/admin/todo'
     | '/admin/users'
@@ -759,12 +787,14 @@ export interface FileRouteTypes {
     | '/manager/chat'
     | '/manager/email-inbox'
     | '/manager/leads'
+    | '/manager/notes'
     | '/manager/notifications'
     | '/manager/offers'
     | '/manager/pipeline'
     | '/manager/projects'
     | '/manager/reports'
     | '/manager/send-email'
+    | '/manager/services-items'
     | '/admin/'
     | '/employee/'
     | '/finance/'
@@ -810,6 +840,7 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/admin/reports'
     | '/admin/security'
+    | '/admin/services-items'
     | '/admin/settings'
     | '/admin/todo'
     | '/admin/users'
@@ -833,12 +864,14 @@ export interface FileRouteTypes {
     | '/manager/chat'
     | '/manager/email-inbox'
     | '/manager/leads'
+    | '/manager/notes'
     | '/manager/notifications'
     | '/manager/offers'
     | '/manager/pipeline'
     | '/manager/projects'
     | '/manager/reports'
     | '/manager/send-email'
+    | '/manager/services-items'
     | '/admin'
     | '/employee'
     | '/finance'
@@ -888,6 +921,7 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/admin/reports'
     | '/admin/security'
+    | '/admin/services-items'
     | '/admin/settings'
     | '/admin/todo'
     | '/admin/users'
@@ -911,12 +945,14 @@ export interface FileRouteTypes {
     | '/manager/chat'
     | '/manager/email-inbox'
     | '/manager/leads'
+    | '/manager/notes'
     | '/manager/notifications'
     | '/manager/offers'
     | '/manager/pipeline'
     | '/manager/projects'
     | '/manager/reports'
     | '/manager/send-email'
+    | '/manager/services-items'
     | '/admin/'
     | '/employee/'
     | '/finance/'
@@ -1018,6 +1054,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/manager/services-items': {
+      id: '/manager/services-items'
+      path: '/services-items'
+      fullPath: '/manager/services-items'
+      preLoaderRoute: typeof ManagerServicesItemsRouteImport
+      parentRoute: typeof ManagerRoute
+    }
     '/manager/send-email': {
       id: '/manager/send-email'
       path: '/send-email'
@@ -1058,6 +1101,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/manager/notifications'
       preLoaderRoute: typeof ManagerNotificationsRouteImport
+      parentRoute: typeof ManagerRoute
+    }
+    '/manager/notes': {
+      id: '/manager/notes'
+      path: '/notes'
+      fullPath: '/manager/notes'
+      preLoaderRoute: typeof ManagerNotesRouteImport
       parentRoute: typeof ManagerRoute
     }
     '/manager/leads': {
@@ -1219,6 +1269,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/services-items': {
+      id: '/admin/services-items'
+      path: '/services-items'
+      fullPath: '/admin/services-items'
+      preLoaderRoute: typeof AdminServicesItemsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/security': {
@@ -1590,6 +1647,7 @@ interface AdminRouteChildren {
   AdminProjectsRoute: typeof AdminProjectsRouteWithChildren
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSecurityRoute: typeof AdminSecurityRoute
+  AdminServicesItemsRoute: typeof AdminServicesItemsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTodoRoute: typeof AdminTodoRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -1614,6 +1672,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProjectsRoute: AdminProjectsRouteWithChildren,
   AdminReportsRoute: AdminReportsRoute,
   AdminSecurityRoute: AdminSecurityRoute,
+  AdminServicesItemsRoute: AdminServicesItemsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTodoRoute: AdminTodoRoute,
   AdminUsersRoute: AdminUsersRoute,
@@ -1803,12 +1862,14 @@ interface ManagerRouteChildren {
   ManagerChatRoute: typeof ManagerChatRoute
   ManagerEmailInboxRoute: typeof ManagerEmailInboxRoute
   ManagerLeadsRoute: typeof ManagerLeadsRouteWithChildren
+  ManagerNotesRoute: typeof ManagerNotesRoute
   ManagerNotificationsRoute: typeof ManagerNotificationsRouteWithChildren
   ManagerOffersRoute: typeof ManagerOffersRouteWithChildren
   ManagerPipelineRoute: typeof ManagerPipelineRoute
   ManagerProjectsRoute: typeof ManagerProjectsRouteWithChildren
   ManagerReportsRoute: typeof ManagerReportsRoute
   ManagerSendEmailRoute: typeof ManagerSendEmailRoute
+  ManagerServicesItemsRoute: typeof ManagerServicesItemsRoute
   ManagerIndexRoute: typeof ManagerIndexRoute
   ManagerEmployeesEmployeeIdRoute: typeof ManagerEmployeesEmployeeIdRoute
   ManagerEmployeesIndexRoute: typeof ManagerEmployeesIndexRoute
@@ -1820,12 +1881,14 @@ const ManagerRouteChildren: ManagerRouteChildren = {
   ManagerChatRoute: ManagerChatRoute,
   ManagerEmailInboxRoute: ManagerEmailInboxRoute,
   ManagerLeadsRoute: ManagerLeadsRouteWithChildren,
+  ManagerNotesRoute: ManagerNotesRoute,
   ManagerNotificationsRoute: ManagerNotificationsRouteWithChildren,
   ManagerOffersRoute: ManagerOffersRouteWithChildren,
   ManagerPipelineRoute: ManagerPipelineRoute,
   ManagerProjectsRoute: ManagerProjectsRouteWithChildren,
   ManagerReportsRoute: ManagerReportsRoute,
   ManagerSendEmailRoute: ManagerSendEmailRoute,
+  ManagerServicesItemsRoute: ManagerServicesItemsRoute,
   ManagerIndexRoute: ManagerIndexRoute,
   ManagerEmployeesEmployeeIdRoute: ManagerEmployeesEmployeeIdRoute,
   ManagerEmployeesIndexRoute: ManagerEmployeesIndexRoute,

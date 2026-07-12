@@ -17,6 +17,7 @@ export const en = {
   pipeline: "Pipeline",
   activities: "Activities",
   projects: "Accounts",
+  servicesItems: "Services & Items",
   employees: "Employees",
   managers: "Managers",
   backToManagers: "Back to managers",

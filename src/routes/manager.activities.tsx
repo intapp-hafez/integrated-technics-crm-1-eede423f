@@ -286,7 +286,7 @@ function ManagerActivitiesPage() {
                   <TableHead>Time</TableHead>
                   <TableHead>Lead</TableHead>
                   <TableHead>{t("status")}</TableHead>
-                  <TableHead>Approval</TableHead>
+                  {/* <TableHead>Approval</TableHead> */}
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -356,29 +356,6 @@ function ManagerActivitiesPage() {
                             </select>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          {a.approvalStatus === "pending" && (
-                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
-                              Pending
-                            </span>
-                          )}
-                          {a.approvalStatus === "approved" && (
-                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-                              Approved
-                            </span>
-                          )}
-                          {a.approvalStatus === "rejected" && (
-                            <span
-                              className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700"
-                              title={a.rejectionReason}
-                            >
-                              Rejected
-                            </span>
-                          )}
-                          {!a.approvalStatus && (
-                            <span className="text-xs text-muted-foreground">â€”</span>
-                          )}
-                        </TableCell>
                         <TableCell className="text-right">
                           <button
                             onClick={() => toggle(a.id)}
@@ -399,7 +376,7 @@ function ManagerActivitiesPage() {
                       {isOpen && (
                         <TableRow>
                           <TableCell
-                            colSpan={9}
+                            colSpan={8}
                             className="border-t border-border bg-secondary/30 p-4"
                           >
                             <ActivityApprovalCard activity={a} canApprove={canApprove} />
@@ -412,7 +389,7 @@ function ManagerActivitiesPage() {
                 {filtered.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={8}
                       className="py-8 text-center text-sm text-muted-foreground"
                     >
                       {t("nothingHere")}
@@ -496,7 +473,7 @@ function ManagerActivitiesPage() {
                           </select>
                         </div>
 
-                        {a.approvalStatus === "pending" && (
+                        {/* {a.approvalStatus === "pending" && (
                           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
                             Pending
                           </span>
@@ -513,7 +490,7 @@ function ManagerActivitiesPage() {
                           >
                             Rejected
                           </span>
-                        )}
+                        )} */}
                         <button
                           onClick={() => toggle(a.id)}
                           className="inline-flex items-center gap-1 rounded-md bg-secondary px-2.5 py-1 text-[11px] font-semibold text-foreground ring-1 ring-border hover:bg-accent"
