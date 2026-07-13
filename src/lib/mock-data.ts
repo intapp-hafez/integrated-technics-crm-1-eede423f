@@ -53,6 +53,7 @@ export interface Lead {
   probability?: number;
   expectedCloseDate?: string;
   projectId?: string;
+  tag?: string;
 }
 
 export const leads: Lead[] = [

@@ -19,7 +19,7 @@ export const ar: Dict = {
   pipeline: "خط المبيعات",
   activities: "الأنشطة",
   projects: "الحسابات",
-  servicesItems: "الخدمات والمنتجات",
+  servicesItems: "الأنظمة",
   employees: "الموظفون",
   managers: "المديرون",
   backToManagers: "العودة إلى المديرين",

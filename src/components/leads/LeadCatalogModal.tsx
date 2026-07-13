@@ -70,7 +70,7 @@ export function LeadCatalogModal({
       <div className="w-full max-w-2xl rounded-xl border border-border bg-card shadow-2xl flex flex-col max-h-[85vh]">
         <div className="flex items-center justify-between border-b border-border p-4">
           <h3 className="font-semibold text-foreground">
-            {isAr ? "إضافة خدمات / منتجات" : "Add Services & Items"}
+            {isAr ? "إضافة خدمات / منتجات" : "Add Systems"}
           </h3>
           <button
             onClick={onClose}

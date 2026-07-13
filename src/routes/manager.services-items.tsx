@@ -14,7 +14,7 @@ import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/manager/services-items")({
   component: ManagerCatalogPage,
-  head: () => ({ meta: [{ title: "Services & Items · INT-CRM" }] }),
+  head: () => ({ meta: [{ title: "Systems · INT-CRM" }] }),
 });
 
 function ManagerCatalogPage() {
@@ -69,7 +69,7 @@ function ManagerCatalogPage() {
   };
 
   return (
-    <AppShell panel="manager" user={user} pageTitle={isAr ? "الخدمات والمنتجات" : "Services & Items"}>
+    <AppShell panel="manager" user={user} pageTitle={isAr ? "الخدمات والمنتجات" : "Systems"}>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative max-w-md flex-1">
           <Search className="pointer-events-none absolute start-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -113,7 +113,7 @@ function ManagerCatalogPage() {
             className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground transition-transform active:scale-[0.98] hover:bg-primary/90"
           >
             <Plus className="h-3.5 w-3.5" />
-            {isAr ? "إضافة عنصر" : "Add Item/Service"}
+            {isAr ? "إضافة عنصر" : "Add System"}
           </button>
         </div>
       </div>

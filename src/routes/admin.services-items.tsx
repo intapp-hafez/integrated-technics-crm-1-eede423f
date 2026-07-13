@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin/services-items")({
   component: AdminCatalogPage,
-  head: () => ({ meta: [{ title: "Services & Items · INT-CRM" }] }),
+  head: () => ({ meta: [{ title: "Systems · INT-CRM" }] }),
 });
 
 function AdminCatalogPage() {
@@ -68,7 +68,7 @@ function AdminCatalogPage() {
   };
 
   return (
-    <AppShell panel="admin" user={user} pageTitle={isAr ? "الخدمات والمنتجات" : "Services & Items"}>
+    <AppShell panel="admin" user={user} pageTitle={isAr ? "الخدمات والمنتجات" : "Systems"}>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative max-w-md flex-1">
           <Search className="pointer-events-none absolute start-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -112,7 +112,7 @@ function AdminCatalogPage() {
             className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground transition-transform active:scale-[0.98] hover:bg-primary/90"
           >
             <Plus className="h-3.5 w-3.5" />
-            {isAr ? "إضافة عنصر" : "Add Item/Service"}
+            {isAr ? "إضافة عنصر" : "Add System"}
           </button>
         </div>
       </div>
@@ -248,7 +248,7 @@ export function ItemModal({ item, onClose, isAr, categories }: { item: CatalogIt
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
         <h2 className="mb-4 text-lg font-bold text-foreground">
-          {item ? (isAr ? "تعديل العنصر" : "Edit Item") : isAr ? "إضافة عنصر" : "Add Item/Service"}
+          {item ? (isAr ? "تعديل العنصر" : "Edit System") : isAr ? "إضافة عنصر" : "Add System"}
         </h2>
         <form onSubmit={handleSave} className="flex flex-col gap-4">
           <div>

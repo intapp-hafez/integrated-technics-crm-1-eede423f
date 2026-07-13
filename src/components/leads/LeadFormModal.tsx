@@ -66,6 +66,7 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
   const [probability, setProbability] = useState(initial?.probability ?? 0);
   const [expectedCloseDate, setExpectedCloseDate] = useState<string>((initial as any)?.expectedCloseDate ?? "");
   const [description, setDescription] = useState<string>((initial as any)?.description ?? "");
+  const [tag, setTag] = useState<string>((initial as any)?.tag ?? "");
   const [country, setCountry] = useState<string>((initial as any)?.country ?? "Egypt");
   const [city, setCity] = useState(initial?.city ?? cities[0] ?? "Cairo");
   const [district, setDistrict] = useState(initial ? (leadDistricts[initial.id] ?? "") : "");
@@ -109,10 +110,10 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
     let leadId: string;
     const coords = CITY_COORDS[city] || [30.0444, 31.2357];
     if (initial) {
-      actions.updateLead(initial.id, { code: code || undefined, company, contact, email, industry, source, status, value, probability, city, street, owner, country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, lat: coords[0], lng: coords[1] } as any);
+      actions.updateLead(initial.id, { code: code || undefined, company, contact, email, industry, source, status, value, probability, city, street, owner, country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, lat: coords[0], lng: coords[1], tag: tag || undefined } as any);
       leadId = initial.id;
     } else {
-      actions.addLead({ code: code || undefined, company, contact, email, industry, source, status, value, probability, city, street, owner: owner || "", lat: coords[0], lng: coords[1], country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined } as any);
+      actions.addLead({ code: code || undefined, company, contact, email, industry, source, status, value, probability, city, street, owner: owner || "", lat: coords[0], lng: coords[1], country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, tag: tag || undefined } as any);
       const latest = (typeof window !== "undefined" ? JSON.parse(localStorage.getItem("int-crm:leads") || "[]") : []) as Lead[];
       leadId = latest[0]?.id ?? "";
     }
@@ -182,23 +183,31 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
             <input type="number" min={0} max={100} value={probability} onChange={(e) => setProbability(Number(e.target.value))} placeholder="0" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
 
-          {/* Row 3: Expected Close Date | Industry | Assign to */}
+          {/* Row 3: Expected Close Date | Industry | Tag */}
           <Field label="Expected Close Date">
             <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
           <Field label={t("industry")}>
             <input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. Construction" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
-          {allowOwnerChange ? (
+          <Field label="Tag">
+            <select value={tag} onChange={(e) => setTag(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
+              <option value="">Select Tag</option>
+              <option value="Tender">Tender</option>
+              <option value="OIH (Order in hand)">OIH (Order in hand)</option>
+              <option value="Design Build">Design Build</option>
+            </select>
+          </Field>
+
+          {/* Row 4: Assign to | Country | City */}
+          {allowOwnerChange && (
             <Field label="Assign to">
               <select value={owner} onChange={(e) => setOwner(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
                 <option value="">—</option>
                 {teamEmployees.map((e: any) => <option key={e.id} value={e.name}>{e.name}</option>)}
               </select>
             </Field>
-          ) : <div />}
-
-          {/* Row 4: Country | City | District */}
+          )}
           <Field label="Country">
             <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Egypt" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
@@ -207,12 +216,15 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
               {cities.map((c) => <option key={c} value={c}>{cityLabel(c)}</option>)}
             </select>
           </Field>
+
+          {/* Row 5: District */}
           <Field label={t("district")}>
             <select value={district} onChange={(e) => setDistrict(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
               <option value="">—</option>
               {districts.map((d) => <option key={d} value={d}>{districtLabel(city, d)}</option>)}
             </select>
           </Field>
+          {!allowOwnerChange && <div className="col-span-2" />}
 
           {/* Full-width: Street */}
           <label className="col-span-3 block">

@@ -462,6 +462,11 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
               <h2 className="font-display text-2xl font-extrabold text-foreground">
                 {lead.code || lead.company}
               </h2>
+              {lead.tag && (
+                <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                  {lead.tag}
+                </span>
+              )}
               <StatusBadge status={lead.status} label={t(lead.status as any)} />
             </div>
             <div className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
@@ -626,17 +631,17 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
             )}
           </Section>
 
-          <Section title={isAr ? "??????? ?????????" : "Services & Items"} icon={Box} action={
+          <Section title={isAr ? "???????" : "Systems"} icon={Box} action={
             <button
               onClick={() => setShowCatalogModal(true)}
               className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
             >
-              <Plus className="h-3.5 w-3.5" /> {isAr ? "????? ????? / ??????" : "Add Services & Items"}
+              <Plus className="h-3.5 w-3.5" /> {isAr ? "????? ?????" : "Add Systems"}
             </button>
           }>
             {leadItems.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-4">
-                {isAr ? "?? ??? ????? ????? ?? ??????." : "No services or items added yet."}
+                {isAr ? "?? ??? ????? ?????." : "No systems added yet."}
               </p>
             ) : (
               <div className="overflow-x-auto rounded-xl border border-border">

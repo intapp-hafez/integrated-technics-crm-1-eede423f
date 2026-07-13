@@ -273,6 +273,7 @@ export function useSupabaseSync() {
         probability: l.probability ?? undefined,
         expectedCloseDate: l.expected_close_date ?? undefined,
         projectId: l.project_id ?? undefined,
+        tag: l.tag ?? undefined,
       };
     });
 

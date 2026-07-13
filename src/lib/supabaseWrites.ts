@@ -35,6 +35,7 @@ function warn(label: string, error: unknown) {
 export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
   if (!currentUserId) return;
   const { error } = await supabase.from("leads").insert({
+    tag: l.tag ?? null,
     id,
     code: (l as any).code ?? null,
     company_en: l.company,
@@ -53,8 +54,9 @@ export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
     probability: l.probability ?? 0,
     expected_close_date: l.expectedCloseDate ?? null,
     project_id: (l as any).projectId ?? null,
+    
     created_by: currentUserId,
-  });
+  } as any);
   if (error) warn("Save lead", error);
 }
 
@@ -78,6 +80,7 @@ export async function sbUpdateLead(id: string, patch: Partial<Lead>) {
   if (patch.probability !== undefined) row.probability = patch.probability;
   if (patch.expectedCloseDate !== undefined) row.expected_close_date = patch.expectedCloseDate;
   if (patch.projectId !== undefined) row.project_id = patch.projectId ?? null;
+  if (patch.tag !== undefined) row.tag = patch.tag ?? null;
   if (Object.keys(row).length === 0) return;
   const { error } = await supabase
     .from("leads")
