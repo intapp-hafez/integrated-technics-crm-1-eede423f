@@ -138,7 +138,7 @@ function PipelinePage() {
                 setDragId(null);
                 setOverStage(null);
               }}
-              className={`min-w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
+              className={`w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
               style={{ 
                 borderTopColor: stage.color,
                 backgroundColor: isOver ? `${stage.color}20` : isActive ? `${stage.color}15` : `${stage.color}05`
@@ -194,8 +194,8 @@ function PipelinePage() {
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="truncate font-semibold text-foreground">{l.code || l.company}</div>
+                      <div className="min-w-0 flex-1 overflow-hidden">
+                        <div className="line-clamp-3 font-semibold text-foreground leading-snug break-words">{l.code || l.company}</div>
                         <div className="truncate text-xs text-muted-foreground">{l.contact}</div>
                       </div>
                       <Link

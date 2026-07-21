@@ -136,9 +136,6 @@ function ManagerCatalogPage() {
                   {isAr ? "الوصف" : "Description"}
                 </th>
                 <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {isAr ? "التكلفة / السعر" : "Cost / Price"}
-                </th>
-                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {isAr ? "الإجراءات" : "Actions"}
                 </th>
               </tr>
@@ -159,9 +156,6 @@ function ManagerCatalogPage() {
                   <td className="px-4 py-3 font-medium text-foreground">{item.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{item.category}</td>
                   <td className="px-4 py-3 text-muted-foreground">{item.description}</td>
-                  <td className="px-4 py-3 text-end font-mono font-medium text-primary">
-                    {item.costPrice != null ? `$${item.costPrice.toFixed(2)}` : "—"}
-                  </td>
                   <td className="px-4 py-3 text-end">
                     <div className="flex items-center justify-end gap-2">
                       <button

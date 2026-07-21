@@ -29,9 +29,11 @@ const ACT_I18N: Record<string, any> = {
 
 interface Props {
   onClose: () => void;
+  defaultProjectId?: string;
+  defaultStep?: 1 | 2 | 3 | 4;
 }
 
-export function NewActivityDialog({ onClose }: Props) {
+export function NewActivityDialog({ onClose, defaultProjectId, defaultStep }: Props) {
   const { t, dir } = useI18n();
   const { leads, projects, settings, profile } = useStoreState();
   const { teamEmployees } = useMyTeam();
@@ -39,8 +41,8 @@ export function NewActivityDialog({ onClose }: Props) {
   const canAssignOthers = isAdmin || isManager;
   const myName = profile?.name && profile.name !== "—" ? profile.name : "";
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
-  const [projectId, setProjectId] = useState<string>(projects[0]?.id ?? "");
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(defaultStep ?? 1);
+  const [projectId, setProjectId] = useState<string>(defaultProjectId ?? projects[0]?.id ?? "");
   const [leadId, setLeadId] = useState<string>("");
   const [owner, setOwner] = useState<string>(canAssignOthers ? "" : myName);
   const [form, setForm] = useState({

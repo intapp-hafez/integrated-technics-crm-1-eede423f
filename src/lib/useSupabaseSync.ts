@@ -40,6 +40,7 @@ export function useSupabaseSync() {
         catalogItemsRes,
         catalogCategoriesRes,
         leadCatalogItemsRes,
+        activityTypesRes,
       ] = await Promise.all([
         supabase.from("leads").select("*").order("created_at", { ascending: false }),
         supabase.from("projects").select("*").order("created_at", { ascending: false }),
@@ -94,6 +95,7 @@ export function useSupabaseSync() {
         supabase.from("catalog_items" as any).select("*").order("created_at", { ascending: false }),
         supabase.from("catalog_categories" as any).select("*").order("name", { ascending: true }),
         supabase.from("lead_catalog_items" as any).select("*").order("created_at", { ascending: false }),
+        supabase.from("activity_types_config").select("*").order("label_en"),
       ]);
       return {
         leads: leadsRes.data ?? [],
@@ -119,6 +121,7 @@ export function useSupabaseSync() {
         catalogItems: (catalogItemsRes as any)?.data ?? [],
         catalogCategories: (catalogCategoriesRes as any)?.data ?? [],
         leadCatalogItems: (leadCatalogItemsRes as any)?.data ?? [],
+        activityTypesConfig: (activityTypesRes as any)?.data ?? [],
       };
     },
   });
@@ -149,6 +152,7 @@ export function useSupabaseSync() {
       "catalog_items",
       "catalog_categories",
       "lead_catalog_items",
+      "activity_types_config",
     ];
     const channel = supabase.channel("app-sync");
     for (const table of tables) {
@@ -675,6 +679,9 @@ export function useSupabaseSync() {
           nameAr: p.name_ar ?? "",
         })),
         ...((data as any).rolePerms?.length ? { rolePermsRows: (data as any).rolePerms } : {}),
+        ...((data as any).activityTypesConfig?.length
+          ? { activityTypes: (data as any).activityTypesConfig.map((t: any) => t.label_en) }
+          : {}),
       } as any,
       projectRequests: (data as any).projectRequests ?? [],
       adminTasks: ((data as any).adminTasks ?? []).map((t: any) => ({
@@ -700,11 +707,22 @@ export function useSupabaseSync() {
         costPrice: i.cost_price ? Number(i.cost_price) : undefined,
         createdAt: i.created_at,
       })),
-      catalogCategories: ((data as any).catalogCategories ?? []).map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        createdAt: c.created_at,
-      })),
+      catalogCategories: ((data as any).catalogCategories ?? []).map((c: any) => {
+        let managers = [];
+        try {
+          if (c.managers) {
+            managers = typeof c.managers === "string" ? JSON.parse(c.managers) : c.managers;
+          }
+        } catch {
+          managers = [];
+        }
+        return {
+          id: c.id,
+          name: c.name,
+          createdAt: c.created_at,
+          managers: Array.isArray(managers) ? managers : [],
+        };
+      }),
       leadCatalogItems: ((data as any).leadCatalogItems ?? []).map((l: any) => ({
         id: l.id,
         leadId: l.lead_id,

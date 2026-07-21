@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
+import { NewActivityDialog } from "@/components/NewActivityDialog";
 
 export const Route = createFileRoute("/employee/projects/$projectId")({
   component: EmployeeProjectDetailsPage,
@@ -65,7 +66,9 @@ function InfoRow({ label, children }: { label: string; children: React.ReactNode
 
 function EmployeeProjectDetailsPage() {
   const { projectId } = Route.useParams();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const [showAddActivity, setShowAddActivity] = useState(false);
+  const [timelinePage, setTimelinePage] = useState(1);
   const router = useRouter();
   const {
     activities,
@@ -110,6 +113,9 @@ function EmployeeProjectDetailsPage() {
   const projectHistory = history.filter(
     (h) => h.target.includes(projectId) || h.target === project.name,
   );
+  const timelineLimit = 6;
+  const paginatedTimeline = projectHistory.slice((timelinePage - 1) * timelineLimit, timelinePage * timelineLimit);
+  const totalTimelinePages = Math.ceil(projectHistory.length / timelineLimit);
   const relatedLeads = storeLeads.filter(
     (l: any) =>
       l.projectId === projectId ||
@@ -192,23 +198,10 @@ function EmployeeProjectDetailsPage() {
                     <Calendar className="h-3.5 w-3.5" /> → {(project as any).endDate}
                   </span>
                 )}
+                <span className="inline-flex items-center gap-1">
+                  <ActivityIcon className="h-3.5 w-3.5" /> {relatedLeads.length} Lead{relatedLeads.length === 1 ? "" : "s"}
+                </span>
               </div>
-            </div>
-          </div>
-          <div className="mt-5">
-            <div className="mb-1.5 flex items-center justify-between text-xs">
-              <span className="font-semibold text-muted-foreground">Overall Progress</span>
-              <span
-                className={`font-mono font-extrabold ${project.progress >= 75 ? "text-emerald-500" : project.progress >= 40 ? "text-amber-500" : "text-primary"}`}
-              >
-                {project.progress}%
-              </span>
-            </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-secondary">
-              <div
-                className={`h-full rounded-full transition-all duration-700 ${progressColor}`}
-                style={{ width: `${project.progress}%` }}
-              />
             </div>
           </div>
         </div>
@@ -327,8 +320,8 @@ function EmployeeProjectDetailsPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="bg-secondary/30 text-xs uppercase tracking-wider text-muted-foreground">
                     <tr>
-                      <th className="px-5 py-3 font-semibold">Contact</th>
-                      <th className="px-5 py-3 font-semibold">Industry</th>
+                      <th className="px-5 py-3 font-semibold">Lead</th>
+                      <th className="px-5 py-3 font-semibold">Contact Info</th>
                       <th className="px-5 py-3 font-semibold">Status</th>
                       <th className="px-5 py-3 text-right font-semibold">Value</th>
                     </tr>
@@ -336,8 +329,25 @@ function EmployeeProjectDetailsPage() {
                   <tbody className="divide-y divide-border">
                     {relatedLeads.map((l: any) => (
                       <tr key={l.id} className="hover:bg-primary/5 transition-colors">
-                        <td className="px-5 py-3 font-semibold text-foreground">{l.contact}</td>
-                        <td className="px-5 py-3 text-muted-foreground">{l.industry || "—"}</td>
+                        <td className="px-5 py-3">
+                          <Link
+                            to="/employee/leads/$leadId"
+                            params={{ leadId: l.id }}
+                            className="font-semibold text-foreground hover:text-primary transition-colors inline-flex items-center gap-1 group"
+                          >
+                            {l.company} <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </Link>
+                        </td>
+                        <td className="px-5 py-3">
+                          <div className="font-medium text-foreground">{l.contact || "—"}</div>
+                          {(l.phone || (l as any).email) && (
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              {l.phone && <span>{l.phone}</span>}
+                              {l.phone && (l as any).email && <span> · </span>}
+                              {(l as any).email && <span className="break-all">{(l as any).email}</span>}
+                            </div>
+                          )}
+                        </td>
                         <td className="px-5 py-3">
                           <StatusBadge status={l.status} label={t(l.status as any)} />
                         </td>
@@ -359,13 +369,22 @@ function EmployeeProjectDetailsPage() {
               <h2 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
                 {t("relatedActivities")}
               </h2>
-              <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
                 {projectActivities.length}
               </span>
+              <div className="ml-auto flex items-center">
+                <button
+                  onClick={() => setShowAddActivity(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition-opacity"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {t("addActivity")}
+                </button>
+              </div>
             </div>
             {projectActivities.length === 0 ? (
               <p className="px-5 py-6 text-sm text-center text-muted-foreground">
-                No activities linked to this project.
+                No activities linked to this Account.
               </p>
             ) : (
               <div className="divide-y divide-border">
@@ -453,26 +472,57 @@ function EmployeeProjectDetailsPage() {
               {projectHistory.length === 0 ? (
                 <p className="text-sm text-center text-muted-foreground py-4">No history yet.</p>
               ) : (
-                <ol className="relative ms-3 border-s-2 border-border ps-5 space-y-5">
-                  {projectHistory.map((h) => (
-                    <li key={h.id} className="relative">
-                      <span className="absolute -start-[25px] top-1 flex h-3 w-3 items-center justify-center rounded-full bg-primary ring-4 ring-background" />
-                      <div className="text-[11px] text-muted-foreground">
-                        {fmtTime(h.ts)} ·{" "}
-                        <span className="font-semibold text-foreground">{h.actor}</span>
-                      </div>
-                      <div className="mt-0.5 text-sm font-semibold text-foreground">{h.action}</div>
-                      {h.details && (
-                        <div className="mt-0.5 text-xs text-muted-foreground">{h.details}</div>
-                      )}
-                    </li>
-                  ))}
-                </ol>
+                <>
+                  <ol className="relative ms-3 border-s-2 border-border ps-5 space-y-5">
+                    {paginatedTimeline.map((h) => (
+                      <li key={h.id} className="relative">
+                        <span className="absolute -start-[25px] top-1 flex h-3 w-3 items-center justify-center rounded-full bg-primary ring-4 ring-background" />
+                        <div className="text-[11px] text-muted-foreground">
+                          {fmtTime(h.ts)} ·{" "}
+                          <span className="font-semibold text-foreground">{h.actor}</span>
+                        </div>
+                        <div className="mt-0.5 text-sm font-semibold text-foreground">{h.action}</div>
+                        {h.details && (
+                          <div className="mt-0.5 text-xs text-muted-foreground">{h.details}</div>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                  {totalTimelinePages > 1 && (
+                    <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+                      <button
+                        onClick={() => setTimelinePage((p) => Math.max(1, p - 1))}
+                        disabled={timelinePage === 1}
+                        className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+                      >
+                        {lang === "ar" ? "السابق" : "Previous"}
+                      </button>
+                      <span className="text-xs text-muted-foreground">
+                        {lang === "ar" ? "صفحة" : "Page"} {timelinePage} {lang === "ar" ? "من" : "of"} {totalTimelinePages}
+                      </span>
+                      <button
+                        onClick={() => setTimelinePage((p) => Math.min(totalTimelinePages, p + 1))}
+                        disabled={timelinePage === totalTimelinePages}
+                        className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+                      >
+                        {lang === "ar" ? "التالي" : "Next"}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {showAddActivity && (
+        <NewActivityDialog 
+          onClose={() => setShowAddActivity(false)} 
+          defaultProjectId={project.id}
+          defaultStep={2}
+        />
+      )}
     </AppShell>
   );
 }

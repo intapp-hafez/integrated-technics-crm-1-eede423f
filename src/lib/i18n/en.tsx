@@ -269,6 +269,8 @@ export const en = {
   districts: "districts",
   viewProfile: "View Profile",
   view: "View",
+  sales: "Sales",
+  tasks: "Tasks",
   // Employee detail page
   backToEmployees: "Back to employees",
   chat: "Chat",

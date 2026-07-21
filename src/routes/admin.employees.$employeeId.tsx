@@ -560,6 +560,20 @@ function EmployeeDetailsPage() {
             style={{ width: `${overallKpi}%` }}
           />
         </div>
+        <div className="mt-3 flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-blue-500/80"></span>
+            {t("sales") ?? "Sales"}: <span className="text-foreground">{Math.round(targetScore)}%</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-purple-500/80"></span>
+            {t("tasks") ?? "Tasks"}: <span className="text-foreground">{Math.round(activityScore)}%</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-orange-500/80"></span>
+            {t("attendance") ?? "Attendance"}: <span className="text-foreground">{Math.round(attendanceRate)}%</span>
+          </div>
+        </div>
       </div>
 
       <div className="mb-5 inline-flex flex-wrap rounded-lg border border-border bg-card p-1 shadow-[var(--shadow-soft)]">

@@ -28,6 +28,7 @@ type ProjectLite = {
   name_en: string | null;
   name_ar: string | null;
   status: string | null;
+  client_name?: string | null;
 };
 type ClientRow = {
   id: string;
@@ -59,7 +60,7 @@ function AdminClientsPage() {
       setLoading(true);
       const [{ data: clients, error: cErr }, { data: projects, error: pErr }] = await Promise.all([
         supabase.from("clients").select("id, name_en, name_ar, email, phone").order("name_en"),
-        supabase.from("projects").select("id, name_en, name_ar, status, client_id"),
+        supabase.from("projects").select("id, name_en, name_ar, status, client_id, client_name"),
       ]);
       if (cErr || pErr) {
         console.error(cErr || pErr);
@@ -69,7 +70,7 @@ function AdminClientsPage() {
         (projects || []).forEach((p: any) => {
           if (!p.client_id) return;
           const list = byClient.get(p.client_id) || [];
-          list.push({ id: p.id, name_en: p.name_en, name_ar: p.name_ar, status: p.status });
+          list.push({ id: p.id, name_en: p.name_en, name_ar: p.name_ar, status: p.status, client_name: p.client_name });
           byClient.set(p.client_id, list);
         });
         setRows(
@@ -98,7 +99,8 @@ function AdminClientsPage() {
           (c.name_en || "").toLowerCase().includes(ql) ||
           (c.name_ar || "").toLowerCase().includes(ql) ||
           (c.email || "").toLowerCase().includes(ql) ||
-          (c.phone || "").toLowerCase().includes(ql)
+          (c.phone || "").toLowerCase().includes(ql) ||
+          c.projects.some(p => p.client_name?.toLowerCase().includes(ql))
         )
       )
         return false;
@@ -109,7 +111,8 @@ function AdminClientsPage() {
     const getVal = (c: ClientRow): string | number => {
       switch (sortKey) {
         case "name":
-          return ((isAr ? c.name_ar : c.name_en) || c.name_en || "").toLowerCase();
+          const pName = c.projects.find(p => p.client_name)?.client_name;
+          return (pName || (isAr ? c.name_ar : c.name_en) || c.name_en || "").toLowerCase();
         case "email":
           return (c.email || "").toLowerCase();
         case "phone":
@@ -161,7 +164,8 @@ function AdminClientsPage() {
 
   const handleExport = () => {
     const data = filtered.map((c) => {
-      const name = (isAr ? c.name_ar : c.name_en) || c.name_en || c.name_ar || "—";
+      const pName = c.projects.find(p => p.client_name)?.client_name;
+      const name = pName || (isAr ? c.name_ar : c.name_en) || c.name_en || c.name_ar || "—";
       const projectsList = c.projects
         .map((p) => (isAr ? p.name_ar : p.name_en) || p.name_en || "—")
         .join(", ");
@@ -259,7 +263,8 @@ function AdminClientsPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {pageRows.map((c) => {
-                    const name = (isAr ? c.name_ar : c.name_en) || c.name_en || c.name_ar || "—";
+                    const pName = c.projects.find(p => p.client_name)?.client_name;
+                    const name = pName || (isAr ? c.name_ar : c.name_en) || c.name_en || c.name_ar || "—";
                     return (
                       <tr key={c.id} className="hover:bg-accent/40">
                         <td className="px-4 py-3 font-semibold text-foreground">

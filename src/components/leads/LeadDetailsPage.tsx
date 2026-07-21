@@ -94,6 +94,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
   const router = useRouter();
   const { role } = useRole();
   const panel = role;
+  const isAdmin = role === "admin";
   const { profile } = useAuth();
   const user = { 
     name: profile?.full_name_en || profile?.full_name_ar || "", 
@@ -102,7 +103,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
   };
   const { leads, projects, activities, history, settings, leadDistricts, leadCatalogItems, catalogItems } = useStoreState();
   const lead = leads.find((l) => l.id === leadId);
-  const relatedProject = projects.find((p) => p.id === (lead as any)?.projectId);
+  const relatedProject = projects.find((p) => p.id === (lead as any)?.projectId || p.id === (lead as any)?.project_id);
   const displayPhone = (lead as any)?.phone || relatedProject?.clientPhone;
   const [noteText, setNoteText] = useState("");
   const [savingNote, setSavingNote] = useState(false);
@@ -112,6 +113,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showCatalogModal, setShowCatalogModal] = useState(false);
+  const [timelinePage, setTimelinePage] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
   const persistable = isUuid(leadId);
@@ -328,6 +330,10 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
   const leadHistory = history.filter((h) => h.target === lead.company);
   const stageHistory = leadHistory.filter((h) => h.module === "pipeline");
 
+  const timelineLimit = 6;
+  const paginatedTimeline = leadHistory.slice((timelinePage - 1) * timelineLimit, timelinePage * timelineLimit);
+  const totalTimelinePages = Math.ceil(leadHistory.length / timelineLimit);
+
   async function handleAddNote() {
     const text = noteText.trim();
     if (!text) return;
@@ -430,23 +436,31 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
         <ArrowLeft className="h-4 w-4" /> {t("backToLeads")}
       </button>
 
-      {/* Admin Review Banner */}
-      {lead.status === "won" && (leadActivities.length === 0 || leadNotes.length === 0 || stageHistory.length === 0 || leadFiles.length === 0) && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+      {/* Waiting for Admin Approval Banner */}
+      {lead.pendingWonApproval && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
               <AlertCircle className="h-5 w-5" />
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-red-800">
-                {lang === "ar" ? "مطلوب مراجعة إدارية" : "Administration Review Required"}
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-amber-800">
+                {lang === "ar" ? "بانتظار موافقة الإدارة" : "Waiting for Admin Approval"}
               </h3>
-              <p className="mt-1 text-sm text-red-700">
+              <p className="mt-1 text-sm text-amber-700">
                 {lang === "ar" 
-                  ? "تم تحديد هذه الفرصة كـ \"فائزة\"، ولكن المستندات الداعمة المطلوبة غير مكتملة. واحد أو أكثر من السجلات الإلزامية (الأنشطة، الملاحظات، سجل مراحل مسار المبيعات، أو المرفقات) مفقودة. لذا يرجى المراجعة قبل أن يتم اعتبارها متوافقة بالكامل مع الإجراء الرسمي."
-                  : "This lead has been marked as Won, but the required supporting documentation is incomplete. One or more mandatory records (Activities, Notes, Pipeline Stage History, or Attachments) are missing. So kindly review before it can be considered fully compliant with the official process."}
+                  ? "استوفت هذه الفرصة جميع الشروط، وطلب الموظف تحويلها إلى فائزة. في انتظار موافقة الإدارة."
+                  : "This lead has met all requirements, and an employee has requested to mark it as Won. Pending admin approval."}
               </p>
             </div>
+            {isAdmin && (
+              <button
+                onClick={() => actions.approveWon(lead.id, user.name)}
+                className="shrink-0 rounded-lg bg-amber-600 px-4 py-2 text-sm font-bold text-white hover:bg-amber-700 transition-colors shadow-sm"
+              >
+                Approve as won
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -471,10 +485,10 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
             </div>
             <div className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" /> {lead.contact}
+                <span className="font-semibold text-foreground">Account:</span> {relatedProject?.name || lead.company}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" /> {lead.industry}
+                <span className="font-semibold text-foreground">Contact Person:</span> {relatedProject?.client || lead.contact} {displayPhone ? `- ${displayPhone}` : ""}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <DollarSign className="h-3.5 w-3.5" /> {fmtMoney(lead.value)}
@@ -502,7 +516,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
               {leadHistory.length === 0 && (
                 <li className="text-sm text-muted-foreground">No history yet.</li>
               )}
-              {leadHistory.map((h) => (
+              {paginatedTimeline.map((h) => (
                 <li key={h.id} className="relative pb-5 last:pb-0">
                   <span className="absolute -start-[27px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
                   <div className="text-xs text-muted-foreground">
@@ -514,6 +528,27 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                 </li>
               ))}
             </ol>
+            {totalTimelinePages > 1 && (
+              <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+                <button
+                  onClick={() => setTimelinePage((p) => Math.max(1, p - 1))}
+                  disabled={timelinePage === 1}
+                  className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+                >
+                  {isAr ? "السابق" : "Previous"}
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  {isAr ? "صفحة" : "Page"} {timelinePage} {isAr ? "من" : "of"} {totalTimelinePages}
+                </span>
+                <button
+                  onClick={() => setTimelinePage((p) => Math.min(totalTimelinePages, p + 1))}
+                  disabled={timelinePage === totalTimelinePages}
+                  className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+                >
+                  {isAr ? "التالي" : "Next"}
+                </button>
+              </div>
+            )}
           </Section>
 
           <Section title={t("relatedActivities")} icon={CalendarCheck}>
@@ -931,7 +966,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                 {(lead as any).email ? (
                   <a
                     href={`mailto:${(lead as any).email}`}
-                    className="text-primary hover:underline font-mono text-xs"
+                    className="text-primary hover:underline font-mono text-xs break-all"
                   >
                     {(lead as any).email}
                   </a>
@@ -1041,7 +1076,7 @@ function InfoRow({
         {Icon && <Icon className="h-3.5 w-3.5" />}
         {label}
       </div>
-      <div className="flex-1 text-sm text-foreground">{children}</div>
+      <div className="flex-1 min-w-0 break-words text-sm text-foreground">{children}</div>
     </div>
   );
 }

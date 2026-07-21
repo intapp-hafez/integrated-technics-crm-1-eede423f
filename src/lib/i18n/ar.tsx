@@ -271,6 +271,8 @@ export const ar: Dict = {
   districts: "أحياء",
   viewProfile: "عرض الملف",
   view: "عرض",
+  sales: "المبيعات",
+  tasks: "المهام",
   // صفحة تفاصيل الموظف
   backToEmployees: "العودة إلى الموظفين",
   chat: "محادثة",

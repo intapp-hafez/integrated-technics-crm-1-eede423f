@@ -31,6 +31,23 @@ function warn(label: string, error: unknown) {
   toast.error(`${label}: ${msg}`);
 }
 
+// ---------------- Settings / Config ----------------
+export async function sbAddActivityType(t: string) {
+  if (!currentUserId) return;
+  const key = t.toLowerCase().replace(/\s+/g, "_");
+  const { error } = await supabase.from("activity_types_config").insert({
+    key,
+    label_en: t,
+  });
+  if (error) warn("add activity type", error);
+}
+
+export async function sbRemoveActivityType(t: string) {
+  if (!currentUserId) return;
+  const { error } = await supabase.from("activity_types_config").delete().eq("label_en", t);
+  if (error) warn("remove activity type", error);
+}
+
 // ---------------- Leads ----------------
 export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
   if (!currentUserId) return;
@@ -81,6 +98,7 @@ export async function sbUpdateLead(id: string, patch: Partial<Lead>) {
   if (patch.expectedCloseDate !== undefined) row.expected_close_date = patch.expectedCloseDate;
   if (patch.projectId !== undefined) row.project_id = patch.projectId ?? null;
   if (patch.tag !== undefined) row.tag = patch.tag ?? null;
+  if (patch.pendingWonApproval !== undefined) row.pending_won_approval = patch.pendingWonApproval;
   if (Object.keys(row).length === 0) return;
   const { error } = await supabase
     .from("leads")
@@ -283,6 +301,25 @@ export async function sbDeleteProject(id: string) {
   if (!isUuid(id)) return;
   const { error } = await supabase.from("projects").delete().eq("id", id);
   if (error) warn("Delete project", error);
+}
+
+export async function sbValidateLeadWon(
+  leadId: string,
+  hasCatalogItems: boolean,
+): Promise<string[]> {
+  const errors: string[] = [];
+  if (!hasCatalogItems) {
+    errors.push("Systems (Catalog Items) are missing.");
+  }
+  const attachments = await sbListLeadAttachments(leadId);
+  if (attachments.length === 0) {
+    errors.push("Attachments are missing.");
+  }
+  const notes = await sbListLeadNotes(leadId);
+  if (notes.length === 0) {
+    errors.push("Notes are missing.");
+  }
+  return errors;
 }
 
 // ---------------- Notes (lead_notes) ----------------
@@ -821,13 +858,17 @@ export async function sbAddCatalogCategory(cat: any) {
   const { error } = await supabase.from("catalog_categories" as any).insert({
     id: cat.id,
     name: cat.name,
+    managers: cat.managers ? JSON.stringify(cat.managers) : '[]',
   });
   if (error) warn("Save catalog category", error);
 }
 
-export async function sbUpdateCatalogCategory(id: string, name: string) {
+export async function sbUpdateCatalogCategory(id: string, updates: { name?: string; managers?: any[] }) {
   if (!isUuid(id)) return;
-  const { error } = await supabase.from("catalog_categories" as any).update({ name }).eq("id", id);
+  const payload: any = {};
+  if (updates.name !== undefined) payload.name = updates.name;
+  if (updates.managers !== undefined) payload.managers = JSON.stringify(updates.managers);
+  const { error } = await supabase.from("catalog_categories" as any).update(payload).eq("id", id);
   if (error) warn("Update catalog category", error);
 }
 

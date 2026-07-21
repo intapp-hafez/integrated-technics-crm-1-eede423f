@@ -54,6 +54,7 @@ export interface Lead {
   expectedCloseDate?: string;
   projectId?: string;
   tag?: string;
+  pendingWonApproval?: boolean;
 }
 
 export const leads: Lead[] = [

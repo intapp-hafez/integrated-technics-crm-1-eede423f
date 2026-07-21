@@ -49,8 +49,8 @@ function ProjectsPage() {
   const { teamEmployees, myProfileId } = useMyTeam({ forceTeam: true });
 
   const getOwner = (p: Project) => {
-    if (p.createdByName) return p.createdByName;
     if (p.teamMembers && p.teamMembers.length > 0) return p.teamMembers[0];
+    if (p.createdByName) return p.createdByName;
     return employees.slice(0, p.team || 1)[0]?.name || "—";
   };
   const { role, isAdmin, isManager } = useRole();

@@ -305,7 +305,7 @@ export function LeadsMap({ leads }: { leads: Lead[] }) {
             </>
           )}
         </div>
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-2 max-h-[500px] overflow-y-auto pr-2 pb-2">
           {cities.map((c) => {
             const pct = (c.count / maxCount) * 100;
             const isSelected = selectedCity === c.city;

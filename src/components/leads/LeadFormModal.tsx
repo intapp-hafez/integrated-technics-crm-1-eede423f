@@ -5,6 +5,9 @@ import { actions, useStoreState, getProbabilityForStatus } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
 import type { LocationCity } from "@/lib/store";
 import type { Lead, LeadStatus } from "@/lib/mock-data";
+import { useRole } from "@/lib/role";
+import { sbValidateLeadWon } from "@/lib/supabaseWrites";
+import { toast } from "sonner";
 
 interface Props {
   initial: Lead | null;
@@ -18,7 +21,9 @@ interface Props {
 export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = true, defaultOwner = "", filteredProjects }: Props) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
-  const { leadDistricts, projects: allProjects, employees, settings, activities } = useStoreState();
+  const { leadDistricts, projects: allProjects, settings, activities, leadCatalogItems } = useStoreState();
+  const { isAdmin } = useRole();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const projects = filteredProjects ?? allProjects;
   const { teamEmployees } = useMyTeam();
   const STATUSES = settings.statuses;
@@ -105,15 +110,35 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
     "Port Said": [31.2653, 32.3019]
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (!company.trim()) return;
-    let leadId: string;
+    setIsSubmitting(true);
+
+    let finalStatus = status;
+    let leadId: string = initial?.id || "";
+
+    if (status === "won") {
+      if (initial) {
+        const hasCatalogItems = leadCatalogItems.some((l) => l.leadId === initial.id);
+        const errs = await sbValidateLeadWon(initial.id, hasCatalogItems);
+        if (errs.length > 0) {
+          toast.error(`Cannot move to Won: ${errs.join(" ")}`);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      if (!isAdmin) {
+        finalStatus = "pending_approval";
+        toast.success("Lead submitted for Admin approval");
+      }
+    }
+
     const coords = CITY_COORDS[city] || [30.0444, 31.2357];
     if (initial) {
-      actions.updateLead(initial.id, { code: code || undefined, company, contact, email, industry, source, status, value, probability, city, street, owner, country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, lat: coords[0], lng: coords[1], tag: tag || undefined } as any);
+      actions.updateLead(initial.id, { code: code || undefined, company, contact, email, industry, source, status: finalStatus, value, probability, city, street, owner, country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, lat: coords[0], lng: coords[1], tag: tag || undefined } as any);
       leadId = initial.id;
     } else {
-      actions.addLead({ code: code || undefined, company, contact, email, industry, source, status, value, probability, city, street, owner: owner || "", lat: coords[0], lng: coords[1], country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, tag: tag || undefined } as any);
+      actions.addLead({ code: code || undefined, company, contact, email, industry, source, status: finalStatus, value, probability, city, street, owner: owner || "", lat: coords[0], lng: coords[1], country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, tag: tag || undefined } as any);
       const latest = (typeof window !== "undefined" ? JSON.parse(localStorage.getItem("int-crm:leads") || "[]") : []) as Lead[];
       leadId = latest[0]?.id ?? "";
     }
@@ -238,9 +263,9 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
           </label>
         </div>
 
-        <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent">{t("cancel")}</button>
-          <button onClick={submit} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">{initial ? t("save") : t("create")}</button>
+        <div className="mt-6 flex justify-end gap-3">
+          <button onClick={onClose} disabled={isSubmitting} className="rounded-lg px-5 py-2 text-sm font-bold text-muted-foreground transition hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring">{t("cancel")}</button>
+          <button onClick={submit} disabled={isSubmitting} className="rounded-lg bg-primary px-6 py-2 text-sm font-bold text-primary-foreground shadow-md transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">{isSubmitting ? "Saving..." : t("save")}</button>
         </div>
       </div>
     </div>

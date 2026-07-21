@@ -47,8 +47,8 @@ function ProjectsPage() {
   const { projects, employees, leads, activities } = useStoreState();
 
   const getOwner = (p: Project) => {
-    if (p.createdByName) return p.createdByName;
     if (p.teamMembers && p.teamMembers.length > 0) return p.teamMembers[0];
+    if (p.createdByName) return p.createdByName;
     return employees.slice(0, p.team || 1)[0]?.name || "—";
   };
   const { role, isAdmin, isManager } = useRole();
@@ -542,8 +542,8 @@ function ProjectsPage() {
                           )}
                         </td>
                         <td className="px-3 py-2.5">
-                          <div className="font-semibold tracking-wide text-foreground">{p.clientPhone || "—"}</div>
-                          <div className="text-xs text-muted-foreground">{p.client}</div>
+                          <div className="font-semibold tracking-wide text-foreground">{p.client || "—"}</div>
+                          <div className="text-xs text-muted-foreground">{p.clientPhone}</div>
                         </td>
                         <td className="px-3 py-2.5 text-muted-foreground">{getOwner(p)}</td>
                         <td className="px-3 py-2.5 text-muted-foreground text-xs">

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Loader2, X, Search, Check } from "lucide-react";
 import { toast } from "sonner";
 import { sbAddLeadCatalogItem } from "@/lib/supabaseWrites";
@@ -128,7 +128,7 @@ export function LeadCatalogModal({
                       <div>
                         <div className="font-medium text-foreground text-sm">{item.name}</div>
                         <div className="text-xs text-muted-foreground mt-0.5">
-                          {item.category} • {item.type} {item.costPrice ? `• $${item.costPrice}` : ""}
+                          {item.category} • {item.type}
                         </div>
                       </div>
                     </div>

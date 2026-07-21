@@ -135,9 +135,6 @@ function AdminCatalogPage() {
                   {isAr ? "الوصف" : "Description"}
                 </th>
                 <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {isAr ? "التكلفة / السعر" : "Cost / Price"}
-                </th>
-                <th className="px-4 py-3 text-end text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {isAr ? "الإجراءات" : "Actions"}
                 </th>
               </tr>
@@ -158,9 +155,6 @@ function AdminCatalogPage() {
                   <td className="px-4 py-3 font-medium text-foreground">{item.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{item.category}</td>
                   <td className="px-4 py-3 text-muted-foreground">{item.description}</td>
-                  <td className="px-4 py-3 text-end font-mono font-medium text-primary">
-                    {item.costPrice != null ? `$${item.costPrice.toFixed(2)}` : "—"}
-                  </td>
                   <td className="px-4 py-3 text-end">
                     <div className="flex items-center justify-end gap-2">
                       <button
@@ -322,19 +316,7 @@ export function ItemModal({ item, onClose, isAr, categories }: { item: CatalogIt
               className="w-full rounded-lg border border-border bg-transparent p-3 text-sm outline-none focus:border-primary"
             />
           </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {isAr ? "التكلفة / السعر (اختياري)" : "Cost / Price (Optional)"}
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={costPrice}
-              onChange={(e) => setCostPrice(e.target.value)}
-              className="h-10 w-full rounded-lg border border-border bg-transparent px-3 text-sm outline-none focus:border-primary"
-            />
-          </div>
+
           <div className="mt-2 flex justify-end gap-3">
             <button
               type="button"
@@ -358,18 +340,36 @@ export function ItemModal({ item, onClose, isAr, categories }: { item: CatalogIt
 
 export function CategoriesModal({ categories, onClose, isAr }: { categories: CatalogCategory[]; onClose: () => void; isAr: boolean }) {
   const [name, setName] = useState("");
+  const [managers, setManagers] = useState<{ name: string; email: string }[]>([]);
+  
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editManagers, setEditManagers] = useState<{ name: string; email: string }[]>([]);
+
   const { confirm, ConfirmDialog } = useConfirm();
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    const promise = sbAddCatalogCategory({ id: newUuid(), name: name.trim() });
+    const promise = sbAddCatalogCategory({ id: newUuid(), name: name.trim(), managers });
     toast.promise(promise, {
       loading: isAr ? "جاري الإضافة..." : "Adding...",
       success: isAr ? "تمت الإضافة بنجاح" : "Category added successfully",
       error: isAr ? "فشل الإضافة" : "Failed to add category",
     });
     setName("");
+    setManagers([]);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId || !editName.trim()) return;
+    const promise = sbUpdateCatalogCategory(editingId, { name: editName.trim(), managers: editManagers });
+    toast.promise(promise, {
+      loading: isAr ? "جاري الحفظ..." : "Saving...",
+      success: isAr ? "تم الحفظ بنجاح" : "Category saved successfully",
+      error: isAr ? "فشل الحفظ" : "Failed to save category",
+    });
+    setEditingId(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -382,9 +382,55 @@ export function CategoriesModal({ categories, onClose, isAr }: { categories: Cat
     }
   };
 
+  const renderManagerInputs = (
+    list: { name: string; email: string }[],
+    setList: (m: { name: string; email: string }[]) => void
+  ) => (
+    <div className="space-y-2 mt-2">
+      {list.map((m, idx) => (
+        <div key={idx} className="flex gap-2 items-center">
+          <input
+            value={m.name}
+            onChange={(e) => {
+              const cp = [...list];
+              cp[idx].name = e.target.value;
+              setList(cp);
+            }}
+            placeholder={isAr ? "اسم المدير" : "Manager Name"}
+            className="h-8 flex-1 rounded-md border border-border bg-transparent px-2 text-xs outline-none focus:border-primary"
+          />
+          <input
+            value={m.email}
+            onChange={(e) => {
+              const cp = [...list];
+              cp[idx].email = e.target.value;
+              setList(cp);
+            }}
+            placeholder={isAr ? "البريد الإلكتروني" : "Email"}
+            className="h-8 flex-1 rounded-md border border-border bg-transparent px-2 text-xs outline-none focus:border-primary"
+          />
+          <button
+            type="button"
+            onClick={() => setList(list.filter((_, i) => i !== idx))}
+            className="text-muted-foreground hover:text-rose-500"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => setList([...list, { name: "", email: "" }])}
+        className="text-xs text-primary hover:underline"
+      >
+        + {isAr ? "إضافة مدير" : "Add Manager"}
+      </button>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground">
             {isAr ? "إدارة التصنيفات" : "Manage Categories"}
@@ -394,36 +440,94 @@ export function CategoriesModal({ categories, onClose, isAr }: { categories: Cat
           </button>
         </div>
         
-        <form onSubmit={handleAdd} className="mb-6 flex gap-2">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={isAr ? "اسم التصنيف الجديد..." : "New category name..."}
-            className="h-10 flex-1 rounded-lg border border-border bg-transparent px-3 text-sm outline-none focus:border-primary"
-            required
-          />
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.98] hover:bg-primary/90"
-          >
-            {isAr ? "إضافة" : "Add"}
-          </button>
+        <form onSubmit={handleAdd} className="mb-6 rounded-lg border border-border p-4 bg-muted/20">
+          <h3 className="text-sm font-semibold mb-3">{isAr ? "إضافة تصنيف جديد" : "Add New Category"}</h3>
+          <div className="flex gap-2">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={isAr ? "اسم التصنيف الجديد..." : "New category name..."}
+              className="h-10 flex-1 rounded-lg border border-border bg-transparent px-3 text-sm outline-none focus:border-primary"
+              required
+            />
+            <button
+              type="submit"
+              className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.98] hover:bg-primary/90"
+            >
+              {isAr ? "إضافة" : "Add"}
+            </button>
+          </div>
+          {renderManagerInputs(managers, setManagers)}
         </form>
 
-        <div className="max-h-[300px] overflow-y-auto rounded-lg border border-border">
+        <div className="max-h-[350px] overflow-y-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <tbody className="divide-y divide-border">
               {categories.map((c) => (
                 <tr key={c.id} className="transition hover:bg-primary/5">
-                  <td className="px-4 py-3 font-medium text-foreground">{c.name}</td>
-                  <td className="px-4 py-3 text-end">
-                    <button
-                      onClick={() => handleDelete(c.id)}
-                      className="rounded p-1 text-muted-foreground transition hover:bg-rose-500/10 hover:text-rose-600"
-                      title={isAr ? "حذف" : "Delete"}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                  <td className="px-4 py-3">
+                    {editingId === c.id ? (
+                      <div className="space-y-3">
+                        <input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          className="h-9 w-full rounded-md border border-border bg-transparent px-3 text-sm outline-none focus:border-primary"
+                        />
+                        <div>
+                          <label className="text-xs font-semibold text-muted-foreground">{isAr ? "المدراء" : "Managers"}</label>
+                          {renderManagerInputs(editManagers, setEditManagers)}
+                        </div>
+                        <div className="flex justify-end gap-2 mt-2">
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="rounded px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted"
+                          >
+                            {isAr ? "إلغاء" : "Cancel"}
+                          </button>
+                          <button
+                            onClick={handleSaveEdit}
+                            className="rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                          >
+                            {isAr ? "حفظ" : "Save"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="font-medium text-foreground">{c.name}</div>
+                        {c.managers && c.managers.length > 0 && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {c.managers.map((m, i) => (
+                              <div key={i}>• {m.name} ({m.email})</div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-end align-top">
+                    {editingId !== c.id && (
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingId(c.id);
+                            setEditName(c.name);
+                            setEditManagers(c.managers || []);
+                          }}
+                          className="rounded p-1 text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
+                          title={isAr ? "تعديل" : "Edit"}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(c.id)}
+                          className="rounded p-1 text-muted-foreground transition hover:bg-rose-500/10 hover:text-rose-600"
+                          title={isAr ? "حذف" : "Delete"}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

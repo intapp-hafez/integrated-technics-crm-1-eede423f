@@ -18,8 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { actions, type LeadStatus } from "@/lib/store";
+import { actions, type LeadStatus, useStoreState } from "@/lib/store";
 import type { Lead } from "@/lib/mock-data";
+import { useRole } from "@/lib/role";
+import { sbValidateLeadWon } from "@/lib/supabaseWrites";
+import { toast } from "sonner";
 
 export interface StageTransitionPayload {
   lead: Lead;
@@ -161,6 +164,9 @@ function fieldsFor(stage: string): FieldDef[] {
 }
 
 export function StageTransitionDialog({ open, payload, onClose }: Props) {
+  const { isAdmin } = useRole();
+  const { leadCatalogItems } = useStoreState();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fields = useMemo(() => (payload ? fieldsFor(payload.toStage) : []), [payload]);
   const [values, setValues] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -176,6 +182,7 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
       }
       setValues(init);
       setErrors({});
+      setIsSubmitting(false);
     }
   }, [open, payload]);
 
@@ -183,7 +190,7 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
 
   const set = (k: string, v: string) => setValues((s) => ({ ...s, [k]: v }));
 
-  const handleConfirm = () => {
+  const handleSave = async () => {
     const errs: Record<string, string> = {};
     for (const f of fields) {
       if (f.required && !values[f.name]?.trim()) errs[f.name] = "Required";
@@ -240,7 +247,31 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
     if (details) {
       actions.addNote(lead.id, `[${toLabel}] ${details}`, payload.actor);
     }
-    actions.moveLead(lead.id, toStage, payload.actor);
+
+    setIsSubmitting(true);
+    let finalStage = toStage;
+
+    if (toStage === "won") {
+      const hasCatalogItems = leadCatalogItems.some((l) => l.leadId === lead.id);
+      const validationErrs = await sbValidateLeadWon(lead.id, hasCatalogItems);
+      
+      if (validationErrs.length > 0) {
+        toast.error(`Cannot move to Won: ${validationErrs.join(" ")}`);
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!isAdmin) {
+        actions.requestWonApproval(lead.id, payload.actor);
+        toast.success("Lead submitted for Admin approval");
+        setIsSubmitting(false);
+        onClose();
+        return;
+      }
+    }
+
+    actions.moveLead(lead.id, finalStage, payload.actor);
+    setIsSubmitting(false);
     onClose();
   };
 
@@ -295,10 +326,12 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
           ))}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm}>Confirm move</Button>
+          <Button onClick={handleSave} disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

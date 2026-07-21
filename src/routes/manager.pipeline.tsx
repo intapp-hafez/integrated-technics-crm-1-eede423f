@@ -188,7 +188,7 @@ function PipelinePage() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="truncate font-semibold text-foreground">{l.code || l.company}</div>
+                        <div className="line-clamp-3 font-semibold text-foreground leading-snug">{l.code || l.company}</div>
                         <div className="truncate text-xs text-muted-foreground">{l.contact}</div>
                       </div>
                       <Link

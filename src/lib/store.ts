@@ -154,6 +154,7 @@ export interface CatalogCategory {
   id: string;
   name: string;
   createdAt: string;
+  managers?: { name: string; email: string }[];
 }
 
 export interface CatalogItem {
@@ -926,6 +927,78 @@ export const actions = {
   clearCelebration() {
     set((s) => ({ ...s, celebrationLead: null }));
   },
+  requestWonApproval(leadId: string, actor?: string) {
+    let company = "";
+    set((s) => {
+      company = s.leads.find((l) => l.id === leadId)?.company ?? "";
+      return {
+        ...s,
+        leads: s.leads.map((l) => (l.id === leadId ? { ...l, pendingWonApproval: true } : l)),
+      };
+    });
+    logHistory({
+      module: "lead",
+      actor,
+      target: company || leadId,
+      action: "Requested Won Approval",
+      details: "Awaiting admin approval",
+    });
+    sb.sbUpdateLead(leadId, { pendingWonApproval: true });
+    
+    // Notify admins
+    const admins = state.users.filter((u) => u.role === "admin").map((u) => u.name);
+    if (admins.length > 0) {
+      pushNotificationInternal({
+        type: "lead",
+        titleEn: "Won Approval Requested",
+        titleAr: "طلب موافقة على كسب العميل",
+        bodyEn: `${actor || "Employee"} requested Won approval for ${company || leadId}`,
+        bodyAr: `طلب ${actor || "الموظف"} موافقة على كسب العميل ${company || leadId}`,
+        href: `/admin/leads/${leadId}`,
+        audience: admins,
+      });
+    }
+  },
+  approveWon(leadId: string, actor?: string) {
+    let company = "";
+    let ownerName = "";
+    set((s) => {
+      const lead = s.leads.find((l) => l.id === leadId);
+      company = lead?.company ?? "";
+      ownerName = lead?.owner ?? "";
+      const updatedLeads = s.leads.map((l) => {
+        if (l.id === leadId) {
+          return { ...l, status: "won", pendingWonApproval: false, updatedAt: "just now", probability: 100 };
+        }
+        return l;
+      });
+      return {
+        ...s,
+        leads: updatedLeads,
+        celebrationLead: updatedLeads.find((l) => l.id === leadId) || null,
+      };
+    });
+    logHistory({
+      module: "pipeline",
+      actor,
+      target: company || leadId,
+      action: "Approved Won",
+      details: "Admin approved the won stage",
+    });
+    sb.sbUpdateLead(leadId, { status: "won", pendingWonApproval: false, probability: 100 });
+    
+    if (ownerName && ownerName !== actor) {
+      pushNotificationInternal({
+        type: "lead",
+        titleEn: "Won Approved",
+        titleAr: "تمت الموافقة على كسب العميل",
+        bodyEn: `Admin ${actor || ""} approved Won status for ${company || leadId}`,
+        bodyAr: `وافق الإدارة على كسب العميل ${company || leadId}`,
+        href: `/employee/leads/${leadId}`,
+        audience: [ownerName],
+      });
+    }
+  },
   moveLead(leadId: string, to: LeadStatus, actor?: string) {
     let from: LeadStatus | undefined;
     let company = "";
@@ -1436,6 +1509,7 @@ export const actions = {
       ...s,
       settings: { ...s.settings, activityTypes: [...s.settings.activityTypes, n as ActivityType] },
     }));
+    sb.sbAddActivityType(n);
     logHistory({
       module: "settings",
       actor: "System",
@@ -1449,6 +1523,7 @@ export const actions = {
       ...s,
       settings: { ...s.settings, activityTypes: s.settings.activityTypes.filter((x) => x !== t) },
     }));
+    sb.sbRemoveActivityType(t);
     logHistory({
       module: "settings",
       actor: "System",
