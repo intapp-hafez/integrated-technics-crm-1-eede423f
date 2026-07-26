@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -7,6 +7,7 @@ import { KpiCard } from "@/components/dashboard/KpiCard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
@@ -473,8 +474,24 @@ function useDashboardData(range: RangeKey) {
 
 
 
+      // Calculate inactive leads
+      let inactive7Days = 0;
+      let inactive15Days = 0;
+      const nowMs = Date.now();
+      
+      allLeads.forEach((l) => {
+        if (l.status !== "won" && l.status !== "lost" && l.status !== "archived") {
+          const tMs = new Date(l.updated_at).getTime();
+          if (!isNaN(tMs)) {
+            const diffDays = Math.floor((nowMs - tMs) / (1000 * 60 * 60 * 24));
+            if (diffDays >= 15) inactive15Days++;
+            else if (diffDays >= 7) inactive7Days++;
+          }
+        }
+      });
+
       return {
-        kpis: { totalLeads, activeProjects, revenueForecast, conversion, wonValue, openLeadValue },
+        kpis: { totalLeads, activeProjects, revenueForecast, conversion, wonValue, openLeadValue, inactive7Days, inactive15Days },
         pipeline,
         funnel,
         trend,
@@ -517,6 +534,7 @@ function downloadCsv(filename: string, csv: string) {
 }
 
 function AdminDashboard() {
+  const navigate = useNavigate();
   const { t, lang } = useI18n();
   const { profile, role } = useAuth();
   const [range, setRange] = useState<RangeKey>("30d");
@@ -757,8 +775,8 @@ function AdminDashboard() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-75 fill-mode-both">
-        <Link to="/admin/leads" className="group/kpi block cursor-pointer">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-75 fill-mode-both">
+        <Link to="/admin/leads" className="group/kpi block cursor-pointer h-full">
           <KpiCard
             label={t("totalLeads")}
             value={kpis.totalLeads.toLocaleString()}
@@ -766,7 +784,7 @@ function AdminDashboard() {
             accent="primary"
           />
         </Link>
-        <Link to="/admin/projects" className="group/kpi block cursor-pointer">
+        <Link to="/admin/projects" className="group/kpi block cursor-pointer h-full">
           <KpiCard
             label={t("activeProjects")}
             value={String(kpis.activeProjects)}
@@ -774,7 +792,7 @@ function AdminDashboard() {
             accent="info"
           />
         </Link>
-        <Link to="/admin/offers" className="group/kpi block cursor-pointer">
+        <Link to="/admin/offers" className="group/kpi block cursor-pointer h-full">
           <KpiCard
             label={t("revenueForecast")}
             value={fmtMoney(kpis.revenueForecast)}
@@ -782,7 +800,7 @@ function AdminDashboard() {
             accent="success"
           />
         </Link>
-        <Link to="/admin/leads" className="group/kpi block cursor-pointer">
+        <Link to="/admin/leads" className="group/kpi block cursor-pointer h-full">
           <KpiCard
             label={t("conversionRate")}
             value={`${kpis.conversion}%`}
@@ -790,6 +808,34 @@ function AdminDashboard() {
             accent="warning"
           />
         </Link>
+        <div 
+          onClick={() => navigate({ to: "/admin/reports/inactive-leads" })} 
+          className="group/kpi block cursor-pointer h-full"
+        >
+          <KpiCard
+            label={lang === "ar" ? "عملاء غير نشطين" : "Inactive Leads"}
+            value={String(kpis.inactive7Days + kpis.inactive15Days)}
+            subText={
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); navigate({ to: "/admin/reports/inactive-leads", search: { age: "7-14" } as any }); }}
+                  className="hover:underline transition-colors focus:outline-hidden"
+                >
+                  {lang === "ar" ? `(${kpis.inactive7Days}) 7 أيام` : `${kpis.inactive7Days} (7d)`}
+                </button>
+                <span className="text-muted-foreground/60 text-[10px]">|</span>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); navigate({ to: "/admin/reports/inactive-leads", search: { age: "14+" } as any }); }}
+                  className="hover:underline transition-colors focus:outline-hidden"
+                >
+                  {lang === "ar" ? `(${kpis.inactive15Days}) 15 يوم` : `${kpis.inactive15Days} (15d)`}
+                </button>
+              </div>
+            }
+            icon={Clock}
+            accent="danger"
+          />
+        </div>
       </div>
 
 
@@ -1335,8 +1381,8 @@ function AdminDashboard() {
                     <div className="truncate text-sm font-semibold text-foreground">{title}</div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
                       <span>
-                        {a.due_date}
-                        {a.time ? ` · ${a.time}` : ""}
+                        {formatDate(a.due_date)}
+                        {a.time ? ` · ${a.time.substring(0, 5)}` : ""}
                       </span>
                       {a.ownerDetails && (
                         <>

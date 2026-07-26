@@ -7,6 +7,8 @@ import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
+import { SmartInsights } from "@/components/dashboard/SmartInsights";
+import { PipelineFunnel } from "@/components/dashboard/PipelineFunnel";
 import { useMemo } from "react";
 import { Users, TrendingUp, CheckCircle2, Clock, Target, ArrowRight } from "lucide-react";
 
@@ -112,6 +114,10 @@ function ManagerDashboard() {
           icon={CheckCircle2}
           accent="success"
         />
+      </div>
+
+      <div className="mt-6">
+        <SmartInsights leads={teamLeads} employees={myEmployees} activities={teamActivities} />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -253,6 +259,10 @@ function ManagerDashboard() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <PipelineFunnel leads={teamLeads} />
       </div>
 
       {/* Recent activities */}

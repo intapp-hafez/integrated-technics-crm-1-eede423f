@@ -273,6 +273,12 @@ function EmployeesPage() {
         Phone: e.phone ?? "",
         AnnualTarget: e.annualTarget ?? 0,
         AchievedTarget: e.achievedTarget ?? 0,
+        KPI_Target_Weight: e.kpiTargetWeight ?? "",
+        KPI_Activities_Weight: e.kpiActivitiesWeight ?? "",
+        KPI_Attendance_Weight: e.kpiAttendanceWeight ?? "",
+        KPI_Target_Period: e.kpiTargetPeriod ?? "",
+        KPI_Activities_Period: e.kpiActivitiesPeriod ?? "",
+        KPI_Attendance_Period: e.kpiAttendancePeriod ?? "",
       };
     });
     const ws = XLSX.utils.json_to_sheet(rows);

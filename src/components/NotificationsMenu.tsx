@@ -18,6 +18,8 @@ import { actions, useStoreState, type AppNotification } from "@/lib/store";
 import { isAllowed, useNotifPrefs } from "@/lib/notificationPrefs";
 import { useAuth } from "@/lib/auth";
 
+import { formatDatesInText } from "@/lib/utils";
+
 type Panel = "admin" | "manager" | "employee" | "finance";
 
 const ICONS: Record<AppNotification["type"], typeof Bell> = {
@@ -162,12 +164,12 @@ export function NotificationsMenu({ panel }: { panel: Panel }) {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <div className="truncate text-sm font-semibold text-foreground">
-                        {dir === "rtl" ? n.titleAr : n.titleEn}
+                        {formatDatesInText(dir === "rtl" ? n.titleAr : n.titleEn)}
                       </div>
                       <div className="text-[10px] text-muted-foreground">{timeAgo(n.ts)}</div>
                     </div>
                     <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                      {dir === "rtl" ? n.bodyAr : n.bodyEn}
+                      {formatDatesInText(dir === "rtl" ? n.bodyAr : n.bodyEn)}
                     </div>
                   </div>
                   <div className="flex flex-col items-center gap-1 opacity-0 transition group-hover:opacity-100">

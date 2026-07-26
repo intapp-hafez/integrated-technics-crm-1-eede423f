@@ -257,6 +257,12 @@ function ManagersPage() {
         Phone: e.phone ?? "",
         AnnualTarget: e.annualTarget ?? 0,
         AchievedTarget: e.achievedTarget ?? 0,
+        KPI_Target_Weight: (e as any).kpiTargetWeight ?? "",
+        KPI_Activities_Weight: (e as any).kpiActivitiesWeight ?? "",
+        KPI_Attendance_Weight: (e as any).kpiAttendanceWeight ?? "",
+        KPI_Target_Period: (e as any).kpiTargetPeriod ?? "",
+        KPI_Activities_Period: (e as any).kpiActivitiesPeriod ?? "",
+        KPI_Attendance_Period: (e as any).kpiAttendancePeriod ?? "",
       };
     });
     const ws = XLSX.utils.json_to_sheet(rows);

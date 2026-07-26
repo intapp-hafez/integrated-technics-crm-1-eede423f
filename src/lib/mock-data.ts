@@ -49,6 +49,7 @@ export interface Lead {
   lat: number;
   lng: number;
   email?: string;
+  phone?: string;
   street?: string;
   probability?: number;
   expectedCloseDate?: string;

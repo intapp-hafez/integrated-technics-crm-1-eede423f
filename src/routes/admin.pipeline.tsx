@@ -139,7 +139,7 @@ function PipelinePage() {
                 setOverStage(null);
               }}
               className={`w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
-              style={{ 
+              style={{
                 borderTopColor: stage.color,
                 backgroundColor: isOver ? `${stage.color}20` : isActive ? `${stage.color}15` : `${stage.color}05`
               }}
@@ -187,11 +187,10 @@ function PipelinePage() {
                         role === "admin" ? "/admin/leads/$leadId" : "/employee/leads/$leadId";
                       navigate({ to: targetRoute, params: { leadId: l.id } });
                     }}
-                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${
-                      dragId === l.id
+                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${dragId === l.id
                         ? "opacity-50 border-primary"
                         : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1 overflow-hidden">

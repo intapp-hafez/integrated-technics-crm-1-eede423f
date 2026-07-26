@@ -238,21 +238,30 @@ function LeadsPage() {
     if (filtered.length === 0) { toast.error(t("noLeadsMatch") as string); return; }
     const rows = filtered.map((l) => ({
       ID: shortId(l.id),
+      Code: l.code ?? "",
       Company: l.company,
-      Project: leadProjectName[l.id] ?? "",
-      ProjectWarning: leadValidation[l.id]?.message ?? "",
       Contact: l.contact,
       Email: l.email ?? "",
+      Phone: l.phone ?? "",
+      Source: l.source ?? "",
+      Status: l.status,
+      Owner: l.owner,
+      Value: l.value ?? 0,
       Industry: l.industry ?? "",
       City: l.city,
       District: leadDistricts[l.id] ?? "",
       Street: l.street ?? "",
-      Source: l.source ?? "",
-      Status: l.status,
+      Country: l.country ?? "",
+      Lat: l.lat,
+      Lng: l.lng,
       Probability: l.probability ?? 0,
-      Value: l.value ?? 0,
-      Owner: l.owner,
       ExpectedCloseDate: l.expectedCloseDate ?? "",
+      Project: leadProjectName[l.id] ?? "",
+      ProjectID: l.projectId ?? "",
+      ProjectWarning: leadValidation[l.id]?.message ?? "",
+      Tag: l.tag ?? "",
+      PendingWonApproval: l.pendingWonApproval ? "Yes" : "No",
+      UpdatedAt: l.updatedAt,
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -550,7 +559,7 @@ function LeadsPage() {
                 >
                   {([
                     ["id", "ID", ""],
-                    ["company", t("company"), ""],
+                    ["company", isAr ? "اسم العميل" : "Lead Name", ""],
                     ["project", t("project") ?? "Account", ""],
                     ["contact", t("contact"), ""],
                     ["city", t("city"), ""],
@@ -602,7 +611,14 @@ function LeadsPage() {
                           <div className="mt-1 text-[10px] font-semibold text-amber-700">⚠ {leadValidation[l.id].message}</div>
                         )}
                       </div>
-                      <div className="text-foreground">{l.contact}</div>
+                      <div>
+                        <div className="text-foreground">{l.contact}</div>
+                        {(() => {
+                          const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
+                          const displayPhone = l.phone || relatedProject?.clientPhone;
+                          return displayPhone ? <div className="text-xs text-muted-foreground opacity-90">{displayPhone}</div> : null;
+                        })()}
+                      </div>
                       <div className="text-muted-foreground">{cityLabel(l.city)}</div>
                       <div className="text-muted-foreground font-mono text-xs">{formatDate(l.expectedCloseDate)}</div>
                       <div>

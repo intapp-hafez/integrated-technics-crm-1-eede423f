@@ -167,7 +167,7 @@ function LeadsPage() {
 
 function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
   const { t } = useI18n();
-  const { settings } = useStoreState();
+  const { settings, projects } = useStoreState();
   const stageLabel = (k: string) => settings.stages.find((s) => s.key === k)?.label ?? (t(k as any) ?? k);
 
   return (
@@ -183,7 +183,15 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
               {l.code || l.company}
             </div>
             <div className="truncate text-xs text-muted-foreground">
-              {l.contact} · {l.industry || "—"}
+              {(() => {
+                const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
+                const displayPhone = l.phone || relatedProject?.clientPhone;
+                return (
+                  <>
+                    {l.contact} {displayPhone ? `· ${displayPhone}` : ""} · {l.industry || "—"}
+                  </>
+                );
+              })()}
             </div>
           </Link>
           <StatusBadge status={l.status} label={stageLabel(l.status)} />
@@ -199,9 +207,20 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
             <span className="truncate">Email</span>
           </a>
           <a
-            href={(l as any).phone ? `tel:${(l as any).phone}` : undefined}
-            onClick={(e) => !(l as any).phone && e.preventDefault()}
-            className={`flex items-center justify-center gap-1.5 rounded-lg bg-secondary/60 px-2 py-2 text-[11px] font-semibold transition active:scale-[0.97] ${(l as any).phone ? "text-foreground hover:bg-secondary" : "cursor-not-allowed text-muted-foreground/60"}`}
+            href={(() => {
+              const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
+              const displayPhone = l.phone || relatedProject?.clientPhone;
+              return displayPhone ? `tel:${displayPhone}` : undefined;
+            })()}
+            onClick={(e) => {
+              const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
+              const displayPhone = l.phone || relatedProject?.clientPhone;
+              if (!displayPhone) e.preventDefault();
+            }}
+            className={`flex items-center justify-center gap-1.5 rounded-lg bg-secondary/60 px-2 py-2 text-[11px] font-semibold transition active:scale-[0.97] ${(() => {
+              const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
+              return l.phone || relatedProject?.clientPhone ? "text-foreground hover:bg-secondary" : "cursor-not-allowed text-muted-foreground/60";
+            })()}`}
           >
             <Phone className="h-3.5 w-3.5" />
             <span>Call</span>

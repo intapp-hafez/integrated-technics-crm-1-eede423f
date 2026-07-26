@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState } from "@/lib/store";
@@ -78,6 +78,17 @@ function MyActivitiesPage() {
   useEffect(() => {
     setToday(new Date().toISOString().slice(0, 10));
   }, []);
+
+  const searchParams = (useSearch({ strict: false }) || {}) as {
+    type?: string;
+    period?: string;
+  };
+
+  useEffect(() => {
+    if (searchParams.period === "week" || searchParams.period === "all" || searchParams.type) {
+      setBucket("all");
+    }
+  }, [searchParams.period, searchParams.type]);
 
   const mine = useMemo(() => {
     if (!PROFILE_ID && !OWNER) return [];

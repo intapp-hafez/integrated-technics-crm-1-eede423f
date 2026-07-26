@@ -133,7 +133,7 @@ function PipelinePage() {
                 setOverStage(null);
               }}
               className={`min-w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
-              style={{ 
+              style={{
                 borderTopColor: stage.color,
                 backgroundColor: isOver ? `${stage.color}20` : isActive ? `${stage.color}15` : `${stage.color}05`
               }}

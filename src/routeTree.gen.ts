@@ -67,6 +67,8 @@ import { Route as AdminChatRouteImport } from './routes/admin.chat'
 import { Route as AdminAttendanceRouteImport } from './routes/admin.attendance'
 import { Route as AdminActivitiesRouteImport } from './routes/admin.activities'
 import { Route as ManagerEmployeesIndexRouteImport } from './routes/manager.employees.index'
+import { Route as AdminReportsIndexRouteImport } from './routes/admin.reports.index'
+import { Route as ManagerReportsInactiveLeadsRouteImport } from './routes/manager.reports.inactive-leads'
 import { Route as ManagerProjectsProjectIdRouteImport } from './routes/manager.projects.$projectId'
 import { Route as ManagerOffersQuotationIdRouteImport } from './routes/manager.offers.$quotationId'
 import { Route as ManagerNotificationsSettingsRouteImport } from './routes/manager.notifications.settings'
@@ -80,6 +82,7 @@ import { Route as EmployeeOffersQuotationIdRouteImport } from './routes/employee
 import { Route as EmployeeNotificationsSettingsRouteImport } from './routes/employee.notifications.settings'
 import { Route as EmployeeLeadsLeadIdRouteImport } from './routes/employee.leads.$leadId'
 import { Route as EmployeeActivitiesActivityIdRouteImport } from './routes/employee.activities.$activityId'
+import { Route as AdminReportsInactiveLeadsRouteImport } from './routes/admin.reports.inactive-leads'
 import { Route as AdminProjectsProjectIdRouteImport } from './routes/admin.projects.$projectId'
 import { Route as AdminOffersQuotationIdRouteImport } from './routes/admin.offers.$quotationId'
 import { Route as AdminNotificationsSettingsRouteImport } from './routes/admin.notifications.settings'
@@ -379,6 +382,17 @@ const ManagerEmployeesIndexRoute = ManagerEmployeesIndexRouteImport.update({
   path: '/employees/',
   getParentRoute: () => ManagerRoute,
 } as any)
+const AdminReportsIndexRoute = AdminReportsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminReportsRoute,
+} as any)
+const ManagerReportsInactiveLeadsRoute =
+  ManagerReportsInactiveLeadsRouteImport.update({
+    id: '/inactive-leads',
+    path: '/inactive-leads',
+    getParentRoute: () => ManagerReportsRoute,
+  } as any)
 const ManagerProjectsProjectIdRoute =
   ManagerProjectsProjectIdRouteImport.update({
     id: '/$projectId',
@@ -454,6 +468,12 @@ const EmployeeActivitiesActivityIdRoute =
     path: '/$activityId',
     getParentRoute: () => EmployeeActivitiesRoute,
   } as any)
+const AdminReportsInactiveLeadsRoute =
+  AdminReportsInactiveLeadsRouteImport.update({
+    id: '/inactive-leads',
+    path: '/inactive-leads',
+    getParentRoute: () => AdminReportsRoute,
+  } as any)
 const AdminProjectsProjectIdRoute = AdminProjectsProjectIdRouteImport.update({
   id: '/$projectId',
   path: '/$projectId',
@@ -519,7 +539,7 @@ export interface FileRoutesByFullPath {
   '/admin/offers': typeof AdminOffersRouteWithChildren
   '/admin/pipeline': typeof AdminPipelineRoute
   '/admin/projects': typeof AdminProjectsRouteWithChildren
-  '/admin/reports': typeof AdminReportsRoute
+  '/admin/reports': typeof AdminReportsRouteWithChildren
   '/admin/security': typeof AdminSecurityRoute
   '/admin/services-items': typeof AdminServicesItemsRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -550,7 +570,7 @@ export interface FileRoutesByFullPath {
   '/manager/offers': typeof ManagerOffersRouteWithChildren
   '/manager/pipeline': typeof ManagerPipelineRoute
   '/manager/projects': typeof ManagerProjectsRouteWithChildren
-  '/manager/reports': typeof ManagerReportsRoute
+  '/manager/reports': typeof ManagerReportsRouteWithChildren
   '/manager/send-email': typeof ManagerSendEmailRoute
   '/manager/services-items': typeof ManagerServicesItemsRoute
   '/admin/': typeof AdminIndexRoute
@@ -565,6 +585,7 @@ export interface FileRoutesByFullPath {
   '/admin/notifications/settings': typeof AdminNotificationsSettingsRoute
   '/admin/offers/$quotationId': typeof AdminOffersQuotationIdRoute
   '/admin/projects/$projectId': typeof AdminProjectsProjectIdRoute
+  '/admin/reports/inactive-leads': typeof AdminReportsInactiveLeadsRoute
   '/employee/activities/$activityId': typeof EmployeeActivitiesActivityIdRoute
   '/employee/leads/$leadId': typeof EmployeeLeadsLeadIdRoute
   '/employee/notifications/settings': typeof EmployeeNotificationsSettingsRoute
@@ -578,6 +599,8 @@ export interface FileRoutesByFullPath {
   '/manager/notifications/settings': typeof ManagerNotificationsSettingsRoute
   '/manager/offers/$quotationId': typeof ManagerOffersQuotationIdRoute
   '/manager/projects/$projectId': typeof ManagerProjectsProjectIdRoute
+  '/manager/reports/inactive-leads': typeof ManagerReportsInactiveLeadsRoute
+  '/admin/reports/': typeof AdminReportsIndexRoute
   '/manager/employees/': typeof ManagerEmployeesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -596,7 +619,6 @@ export interface FileRoutesByTo {
   '/admin/offers': typeof AdminOffersRouteWithChildren
   '/admin/pipeline': typeof AdminPipelineRoute
   '/admin/projects': typeof AdminProjectsRouteWithChildren
-  '/admin/reports': typeof AdminReportsRoute
   '/admin/security': typeof AdminSecurityRoute
   '/admin/services-items': typeof AdminServicesItemsRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -627,7 +649,7 @@ export interface FileRoutesByTo {
   '/manager/offers': typeof ManagerOffersRouteWithChildren
   '/manager/pipeline': typeof ManagerPipelineRoute
   '/manager/projects': typeof ManagerProjectsRouteWithChildren
-  '/manager/reports': typeof ManagerReportsRoute
+  '/manager/reports': typeof ManagerReportsRouteWithChildren
   '/manager/send-email': typeof ManagerSendEmailRoute
   '/manager/services-items': typeof ManagerServicesItemsRoute
   '/admin': typeof AdminIndexRoute
@@ -642,6 +664,7 @@ export interface FileRoutesByTo {
   '/admin/notifications/settings': typeof AdminNotificationsSettingsRoute
   '/admin/offers/$quotationId': typeof AdminOffersQuotationIdRoute
   '/admin/projects/$projectId': typeof AdminProjectsProjectIdRoute
+  '/admin/reports/inactive-leads': typeof AdminReportsInactiveLeadsRoute
   '/employee/activities/$activityId': typeof EmployeeActivitiesActivityIdRoute
   '/employee/leads/$leadId': typeof EmployeeLeadsLeadIdRoute
   '/employee/notifications/settings': typeof EmployeeNotificationsSettingsRoute
@@ -655,6 +678,8 @@ export interface FileRoutesByTo {
   '/manager/notifications/settings': typeof ManagerNotificationsSettingsRoute
   '/manager/offers/$quotationId': typeof ManagerOffersQuotationIdRoute
   '/manager/projects/$projectId': typeof ManagerProjectsProjectIdRoute
+  '/manager/reports/inactive-leads': typeof ManagerReportsInactiveLeadsRoute
+  '/admin/reports': typeof AdminReportsIndexRoute
   '/manager/employees': typeof ManagerEmployeesIndexRoute
 }
 export interface FileRoutesById {
@@ -678,7 +703,7 @@ export interface FileRoutesById {
   '/admin/offers': typeof AdminOffersRouteWithChildren
   '/admin/pipeline': typeof AdminPipelineRoute
   '/admin/projects': typeof AdminProjectsRouteWithChildren
-  '/admin/reports': typeof AdminReportsRoute
+  '/admin/reports': typeof AdminReportsRouteWithChildren
   '/admin/security': typeof AdminSecurityRoute
   '/admin/services-items': typeof AdminServicesItemsRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -709,7 +734,7 @@ export interface FileRoutesById {
   '/manager/offers': typeof ManagerOffersRouteWithChildren
   '/manager/pipeline': typeof ManagerPipelineRoute
   '/manager/projects': typeof ManagerProjectsRouteWithChildren
-  '/manager/reports': typeof ManagerReportsRoute
+  '/manager/reports': typeof ManagerReportsRouteWithChildren
   '/manager/send-email': typeof ManagerSendEmailRoute
   '/manager/services-items': typeof ManagerServicesItemsRoute
   '/admin/': typeof AdminIndexRoute
@@ -724,6 +749,7 @@ export interface FileRoutesById {
   '/admin/notifications/settings': typeof AdminNotificationsSettingsRoute
   '/admin/offers/$quotationId': typeof AdminOffersQuotationIdRoute
   '/admin/projects/$projectId': typeof AdminProjectsProjectIdRoute
+  '/admin/reports/inactive-leads': typeof AdminReportsInactiveLeadsRoute
   '/employee/activities/$activityId': typeof EmployeeActivitiesActivityIdRoute
   '/employee/leads/$leadId': typeof EmployeeLeadsLeadIdRoute
   '/employee/notifications/settings': typeof EmployeeNotificationsSettingsRoute
@@ -737,6 +763,8 @@ export interface FileRoutesById {
   '/manager/notifications/settings': typeof ManagerNotificationsSettingsRoute
   '/manager/offers/$quotationId': typeof ManagerOffersQuotationIdRoute
   '/manager/projects/$projectId': typeof ManagerProjectsProjectIdRoute
+  '/manager/reports/inactive-leads': typeof ManagerReportsInactiveLeadsRoute
+  '/admin/reports/': typeof AdminReportsIndexRoute
   '/manager/employees/': typeof ManagerEmployeesIndexRoute
 }
 export interface FileRouteTypes {
@@ -807,6 +835,7 @@ export interface FileRouteTypes {
     | '/admin/notifications/settings'
     | '/admin/offers/$quotationId'
     | '/admin/projects/$projectId'
+    | '/admin/reports/inactive-leads'
     | '/employee/activities/$activityId'
     | '/employee/leads/$leadId'
     | '/employee/notifications/settings'
@@ -820,6 +849,8 @@ export interface FileRouteTypes {
     | '/manager/notifications/settings'
     | '/manager/offers/$quotationId'
     | '/manager/projects/$projectId'
+    | '/manager/reports/inactive-leads'
+    | '/admin/reports/'
     | '/manager/employees/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -838,7 +869,6 @@ export interface FileRouteTypes {
     | '/admin/offers'
     | '/admin/pipeline'
     | '/admin/projects'
-    | '/admin/reports'
     | '/admin/security'
     | '/admin/services-items'
     | '/admin/settings'
@@ -884,6 +914,7 @@ export interface FileRouteTypes {
     | '/admin/notifications/settings'
     | '/admin/offers/$quotationId'
     | '/admin/projects/$projectId'
+    | '/admin/reports/inactive-leads'
     | '/employee/activities/$activityId'
     | '/employee/leads/$leadId'
     | '/employee/notifications/settings'
@@ -897,6 +928,8 @@ export interface FileRouteTypes {
     | '/manager/notifications/settings'
     | '/manager/offers/$quotationId'
     | '/manager/projects/$projectId'
+    | '/manager/reports/inactive-leads'
+    | '/admin/reports'
     | '/manager/employees'
   id:
     | '__root__'
@@ -965,6 +998,7 @@ export interface FileRouteTypes {
     | '/admin/notifications/settings'
     | '/admin/offers/$quotationId'
     | '/admin/projects/$projectId'
+    | '/admin/reports/inactive-leads'
     | '/employee/activities/$activityId'
     | '/employee/leads/$leadId'
     | '/employee/notifications/settings'
@@ -978,6 +1012,8 @@ export interface FileRouteTypes {
     | '/manager/notifications/settings'
     | '/manager/offers/$quotationId'
     | '/manager/projects/$projectId'
+    | '/manager/reports/inactive-leads'
+    | '/admin/reports/'
     | '/manager/employees/'
   fileRoutesById: FileRoutesById
 }
@@ -1397,6 +1433,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerEmployeesIndexRouteImport
       parentRoute: typeof ManagerRoute
     }
+    '/admin/reports/': {
+      id: '/admin/reports/'
+      path: '/'
+      fullPath: '/admin/reports/'
+      preLoaderRoute: typeof AdminReportsIndexRouteImport
+      parentRoute: typeof AdminReportsRoute
+    }
+    '/manager/reports/inactive-leads': {
+      id: '/manager/reports/inactive-leads'
+      path: '/inactive-leads'
+      fullPath: '/manager/reports/inactive-leads'
+      preLoaderRoute: typeof ManagerReportsInactiveLeadsRouteImport
+      parentRoute: typeof ManagerReportsRoute
+    }
     '/manager/projects/$projectId': {
       id: '/manager/projects/$projectId'
       path: '/$projectId'
@@ -1487,6 +1537,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/employee/activities/$activityId'
       preLoaderRoute: typeof EmployeeActivitiesActivityIdRouteImport
       parentRoute: typeof EmployeeActivitiesRoute
+    }
+    '/admin/reports/inactive-leads': {
+      id: '/admin/reports/inactive-leads'
+      path: '/inactive-leads'
+      fullPath: '/admin/reports/inactive-leads'
+      preLoaderRoute: typeof AdminReportsInactiveLeadsRouteImport
+      parentRoute: typeof AdminReportsRoute
     }
     '/admin/projects/$projectId': {
       id: '/admin/projects/$projectId'
@@ -1630,6 +1687,20 @@ const AdminProjectsRouteWithChildren = AdminProjectsRoute._addFileChildren(
   AdminProjectsRouteChildren,
 )
 
+interface AdminReportsRouteChildren {
+  AdminReportsInactiveLeadsRoute: typeof AdminReportsInactiveLeadsRoute
+  AdminReportsIndexRoute: typeof AdminReportsIndexRoute
+}
+
+const AdminReportsRouteChildren: AdminReportsRouteChildren = {
+  AdminReportsInactiveLeadsRoute: AdminReportsInactiveLeadsRoute,
+  AdminReportsIndexRoute: AdminReportsIndexRoute,
+}
+
+const AdminReportsRouteWithChildren = AdminReportsRoute._addFileChildren(
+  AdminReportsRouteChildren,
+)
+
 interface AdminRouteChildren {
   AdminActivitiesRoute: typeof AdminActivitiesRouteWithChildren
   AdminAttendanceRoute: typeof AdminAttendanceRoute
@@ -1645,7 +1716,7 @@ interface AdminRouteChildren {
   AdminOffersRoute: typeof AdminOffersRouteWithChildren
   AdminPipelineRoute: typeof AdminPipelineRoute
   AdminProjectsRoute: typeof AdminProjectsRouteWithChildren
-  AdminReportsRoute: typeof AdminReportsRoute
+  AdminReportsRoute: typeof AdminReportsRouteWithChildren
   AdminSecurityRoute: typeof AdminSecurityRoute
   AdminServicesItemsRoute: typeof AdminServicesItemsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -1670,7 +1741,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminOffersRoute: AdminOffersRouteWithChildren,
   AdminPipelineRoute: AdminPipelineRoute,
   AdminProjectsRoute: AdminProjectsRouteWithChildren,
-  AdminReportsRoute: AdminReportsRoute,
+  AdminReportsRoute: AdminReportsRouteWithChildren,
   AdminSecurityRoute: AdminSecurityRoute,
   AdminServicesItemsRoute: AdminServicesItemsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
@@ -1856,6 +1927,18 @@ const ManagerProjectsRouteWithChildren = ManagerProjectsRoute._addFileChildren(
   ManagerProjectsRouteChildren,
 )
 
+interface ManagerReportsRouteChildren {
+  ManagerReportsInactiveLeadsRoute: typeof ManagerReportsInactiveLeadsRoute
+}
+
+const ManagerReportsRouteChildren: ManagerReportsRouteChildren = {
+  ManagerReportsInactiveLeadsRoute: ManagerReportsInactiveLeadsRoute,
+}
+
+const ManagerReportsRouteWithChildren = ManagerReportsRoute._addFileChildren(
+  ManagerReportsRouteChildren,
+)
+
 interface ManagerRouteChildren {
   ManagerActivitiesRoute: typeof ManagerActivitiesRoute
   ManagerAttendanceRoute: typeof ManagerAttendanceRoute
@@ -1867,7 +1950,7 @@ interface ManagerRouteChildren {
   ManagerOffersRoute: typeof ManagerOffersRouteWithChildren
   ManagerPipelineRoute: typeof ManagerPipelineRoute
   ManagerProjectsRoute: typeof ManagerProjectsRouteWithChildren
-  ManagerReportsRoute: typeof ManagerReportsRoute
+  ManagerReportsRoute: typeof ManagerReportsRouteWithChildren
   ManagerSendEmailRoute: typeof ManagerSendEmailRoute
   ManagerServicesItemsRoute: typeof ManagerServicesItemsRoute
   ManagerIndexRoute: typeof ManagerIndexRoute
@@ -1886,7 +1969,7 @@ const ManagerRouteChildren: ManagerRouteChildren = {
   ManagerOffersRoute: ManagerOffersRouteWithChildren,
   ManagerPipelineRoute: ManagerPipelineRoute,
   ManagerProjectsRoute: ManagerProjectsRouteWithChildren,
-  ManagerReportsRoute: ManagerReportsRoute,
+  ManagerReportsRoute: ManagerReportsRouteWithChildren,
   ManagerSendEmailRoute: ManagerSendEmailRoute,
   ManagerServicesItemsRoute: ManagerServicesItemsRoute,
   ManagerIndexRoute: ManagerIndexRoute,

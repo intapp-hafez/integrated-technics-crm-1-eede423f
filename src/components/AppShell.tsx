@@ -23,6 +23,7 @@ import {
   ListTodo,
   StickyNote,
   Box,
+  AlertTriangle,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { LangToggle, useI18n } from "@/lib/i18n";
@@ -52,6 +53,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/attendance", icon: Clock4, key: "attendance" },
   { to: "/admin/history", icon: History, key: "history" },
   { to: "/admin/reports", icon: History, key: "reports" },
+  { to: "/admin/reports/inactive-leads", icon: AlertTriangle, key: "inactiveLeadsReport" as any },
   { to: "/admin/chat", icon: MessageSquare, key: "chat" as any },
   { to: "/admin/email-inbox", icon: Inbox, key: "emailInbox" as any },
   { to: "/admin/security", icon: ShieldCheck, key: "securityCenter" as any },
@@ -190,8 +192,16 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
             if (item.search) {
               active = pathname.startsWith(item.to) && currentSearch?.tab === item.search.tab;
             } else {
+              const hasMoreSpecificMatch = nav.some(
+                (other) =>
+                  other.to !== item.to &&
+                  other.to.startsWith(item.to) &&
+                  (pathname === other.to || pathname.startsWith(other.to + "/"))
+              );
               active =
-                pathname === item.to || (item.to !== `/${panel}` && pathname.startsWith(item.to));
+                (pathname === item.to ||
+                  (item.to !== `/${panel}` && pathname.startsWith(item.to + "/"))) &&
+                !hasMoreSpecificMatch;
               // Avoid finance dashboard matching when a tab is selected
               if (
                 panel === "finance" &&

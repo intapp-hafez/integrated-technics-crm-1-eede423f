@@ -63,6 +63,7 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
   const [code, setCode] = useState<string>((initial as any)?.code ?? "");
   const [company, setCompany] = useState(initial?.company ?? "");
   const [contact, setContact] = useState(initial?.contact ?? "");
+  const [phone, setPhone] = useState(initial?.phone ?? "");
   const [email, setEmail] = useState(initial?.email ?? "");
   const [industry, setIndustry] = useState(initial?.industry ?? "");
   const [source, setSource] = useState(initial?.source ?? "Website");
@@ -135,10 +136,10 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
 
     const coords = CITY_COORDS[city] || [30.0444, 31.2357];
     if (initial) {
-      actions.updateLead(initial.id, { code: code || undefined, company, contact, email, industry, source, status: finalStatus, value, probability, city, street, owner, country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, lat: coords[0], lng: coords[1], tag: tag || undefined } as any);
+      actions.updateLead(initial.id, { code: code || undefined, company, contact, phone: phone || undefined, email, industry, source, status: finalStatus, value, probability, city, street, owner, country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, lat: coords[0], lng: coords[1], tag: tag || undefined } as any);
       leadId = initial.id;
     } else {
-      actions.addLead({ code: code || undefined, company, contact, email, industry, source, status: finalStatus, value, probability, city, street, owner: owner || "", lat: coords[0], lng: coords[1], country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, tag: tag || undefined } as any);
+      actions.addLead({ code: code || undefined, company, contact, phone: phone || undefined, email, industry, source, status: finalStatus, value, probability, city, street, owner: owner || "", lat: coords[0], lng: coords[1], country, projectId: projectId || undefined, expectedCloseDate: expectedCloseDate || undefined, description: description || undefined, tag: tag || undefined } as any);
       const latest = (typeof window !== "undefined" ? JSON.parse(localStorage.getItem("int-crm:leads") || "[]") : []) as Lead[];
       leadId = latest[0]?.id ?? "";
     }
@@ -166,7 +167,7 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
             />
           </label>
 
-          {/* Row 1: Account | Client | Email */}
+          {/* Row 1: Account | Client | Email | Phone */}
           <Field label={t("project")}>
             <select value={projectId} onChange={(e) => onProjectChange(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
               <option value="">{t("selectProjectPlaceholder")}</option>
@@ -176,7 +177,12 @@ export function LeadFormModal({ initial, locations, onClose, allowOwnerChange = 
           <Field label={t("client")}>
             <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder={t("autoFilledFromProject")} className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" />
           </Field>
-          <Field label={t("companyEmail")}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@company.com" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" /></Field>
+          <Field label="Phone"><input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+20 100 000 0000" className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm" /></Field>
+          
+          {/* Row 1.5: Email (and maybe others later) */}
+          <div className="col-span-3">
+            <Field label={t("companyEmail")}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@company.com" className="h-9 w-1/3 rounded-lg border border-border bg-background px-3 text-sm" /></Field>
+          </div>
 
           {/* Hidden fields */}
           <div className="hidden">

@@ -59,6 +59,8 @@ import {
 import { SendEmailEditor } from "@/components/SendEmailEditor";
 import { StatusesTab, StagesTab, ActivityTypesTab, WorkdayTab } from "@/components/admin/settings/PipelineTabs";
 import { DepartmentsTab, PositionsTab } from "@/components/admin/settings/OrgTabs";
+import { ActivitiesMonitoringTab } from "@/components/admin/settings/ActivitiesMonitoringTab";
+import { Activity } from "lucide-react";
 
 export const Route = createFileRoute("/admin/settings")({
   component: SettingsPage,
@@ -69,6 +71,7 @@ const TABS = [
   { key: "statuses", label: "Lead Statuses", icon: Tag },
   { key: "stages", label: "Pipeline Stages", icon: Workflow },
   { key: "activities", label: "Activity Types", icon: CalendarCheck },
+  { key: "monitoring", label: "Activities Monitoring", icon: Activity },
   { key: "workday", label: "Workday Hours", icon: Clock },
   { key: "departments", label: "Departments", icon: Building2 },
   { key: "positions", label: "Positions", icon: Briefcase },
@@ -155,6 +158,7 @@ function SettingsPage() {
           {tab === "statuses" && <StatusesTab />}
           {tab === "stages" && <StagesTab />}
           {tab === "activities" && <ActivityTypesTab />}
+          {tab === "monitoring" && <ActivitiesMonitoringTab />}
           {tab === "workday" && <WorkdayTab />}
           {tab === "departments" && <DepartmentsTab />}
           {tab === "positions" && <PositionsTab />}

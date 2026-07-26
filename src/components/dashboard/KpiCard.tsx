@@ -1,11 +1,13 @@
+import React from "react";
 import { ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react";
 
 interface Props {
   label: string;
   value: string;
   delta?: number;
+  subText?: React.ReactNode;
   icon: LucideIcon;
-  accent?: "primary" | "info" | "success" | "warning";
+  accent?: "primary" | "info" | "success" | "warning" | "danger";
 }
 
 const accentMap = {
@@ -13,6 +15,7 @@ const accentMap = {
   info: "bg-blue-50 text-blue-600",
   success: "bg-emerald-50 text-emerald-600",
   warning: "bg-amber-50 text-amber-600",
+  danger: "bg-rose-50 text-rose-600",
 };
 
 const bgMap = {
@@ -22,13 +25,15 @@ const bgMap = {
     "bg-emerald-50 border-emerald-200 hover:bg-emerald-100/50 dark:bg-emerald-950/20 dark:border-emerald-900/50",
   warning:
     "bg-amber-50 border-amber-200 hover:bg-amber-100/50 dark:bg-amber-950/20 dark:border-amber-900/50",
+  danger:
+    "bg-rose-50 border-rose-200 hover:bg-rose-100/50 dark:bg-rose-950/20 dark:border-rose-900/50",
 };
 
-export function KpiCard({ label, value, delta, icon: Icon, accent = "primary" }: Props) {
+export function KpiCard({ label, value, delta, subText, icon: Icon, accent = "primary" }: Props) {
   const positive = (delta ?? 0) >= 0;
   return (
     <div
-      className={`group relative overflow-hidden rounded-xl border p-5 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:shadow-lg ${bgMap[accent]}`}
+      className={`group relative flex flex-col justify-between h-full overflow-hidden rounded-xl border p-5 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:shadow-lg ${bgMap[accent]}`}
     >
       <div className="flex items-start justify-between">
         <div>
@@ -40,7 +45,7 @@ export function KpiCard({ label, value, delta, icon: Icon, accent = "primary" }:
           </p>
         </div>
         <div
-          className={`flex h-11 w-11 items-center justify-center rounded-lg ${accentMap[accent]}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${accentMap[accent]}`}
         >
           <Icon className="h-5 w-5" />
         </div>
@@ -57,9 +62,14 @@ export function KpiCard({ label, value, delta, icon: Icon, accent = "primary" }:
             ) : (
               <ArrowDownRight className="h-3 w-3" />
             )}
-            {Math.abs(delta).toFixed(1)}%
+            {Math.abs(delta)}%
           </span>
-          <span className="text-muted-foreground">vs last month</span>
+          <span className="text-muted-foreground font-normal">vs last month</span>
+        </div>
+      )}
+      {subText && (
+        <div className="mt-4 text-xs font-medium text-muted-foreground">
+          {subText}
         </div>
       )}
       <div className="pointer-events-none absolute -bottom-12 -end-12 h-32 w-32 rounded-full bg-primary/5 transition-all group-hover:bg-primary/10" />

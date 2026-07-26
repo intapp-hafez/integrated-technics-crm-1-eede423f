@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtMoney } from "@/lib/mock-data";
-import { CalendarDays, Target, Users2, X, Pencil } from "lucide-react";
+import { CalendarDays, Target, Users2, X, Pencil, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { useNavigate } from "@tanstack/react-router";
+import { useRole } from "@/lib/role";
+import { useStoreState } from "@/lib/store";
 
 export interface EmployeeTargetsCardProps {
   /** The employee's auth user id — used to fetch the profile row. */
@@ -229,6 +232,18 @@ export function EmployeeTargetsCard({
   }, [userId, profileId, qc]);
 
   const data = profileQuery.data;
+  const navigate = useNavigate();
+  const { role } = useRole();
+  const { employees } = useStoreState();
+
+  const employeeName = useMemo(() => {
+    if (!userId && !profileId) return undefined;
+    const match = employees?.find(
+      (e: any) => e.id === userId || e.profileId === profileId || e.userId === userId
+    );
+    return match?.name;
+  }, [userId, profileId, employees]);
+
   const startDate = data?.start_date ?? null;
   const annualTarget = Number(data?.annual_target ?? 0);
   const qTargets = [
@@ -385,13 +400,37 @@ export function EmployeeTargetsCard({
             </div>
 
             {/* Meetings this week */}
-            <div className="rounded-2xl border-2 border-secondary/60 bg-card p-5 flex flex-col justify-between shadow-sm">
+            <div
+              onClick={() => {
+                const targetRoute =
+                  role === "admin"
+                    ? "/admin/activities"
+                    : role === "manager"
+                      ? "/manager/activities"
+                      : "/employee/activities";
+                navigate({
+                  to: targetRoute as any,
+                  search: {
+                    type: "Meeting",
+                    period: "week",
+                    ...(employeeName ? { owner: employeeName } : {}),
+                  } as any,
+                });
+              }}
+              className="group cursor-pointer rounded-2xl border-2 border-secondary/60 bg-card p-5 flex flex-col justify-between shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+              title={
+                isAr
+                  ? "عرض اجتماعات الأسبوع في الأنشطة"
+                  : "View Meetings this week in Activities"
+              }
+            >
               <div className="flex justify-between items-start gap-3">
                 <div>
                   <p
-                    className={`text-muted-foreground text-xs font-semibold uppercase ${isAr ? "" : "tracking-wider"}`}
+                    className={`text-muted-foreground text-xs font-semibold uppercase flex items-center gap-1.5 ${isAr ? "" : "tracking-wider"}`}
                   >
                     {L.meetingsThisWeek}
+                    <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition group-hover:opacity-100 group-hover:text-primary" />
                   </p>
                   <h3 className="text-4xl font-black text-foreground mt-2" dir="ltr">
                     {meetingsDone}
@@ -400,8 +439,8 @@ export function EmployeeTargetsCard({
                     </span>
                   </h3>
                 </div>
-                <div className="bg-primary/10 p-2.5 rounded-xl shrink-0">
-                  <Users2 className="h-6 w-6 text-primary" />
+                <div className="bg-primary/10 p-2.5 rounded-xl shrink-0 transition group-hover:bg-primary group-hover:text-primary-foreground">
+                  <Users2 className="h-6 w-6 text-primary group-hover:text-primary-foreground" />
                 </div>
               </div>
               <div className="mt-5">

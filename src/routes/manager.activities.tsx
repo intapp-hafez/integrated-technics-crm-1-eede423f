@@ -1,10 +1,10 @@
 import { formatDate } from "@/lib/utils";
 import React from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState } from "@/lib/store";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Phone,
   Users2,
@@ -75,6 +75,23 @@ function ManagerActivitiesPage() {
   const [owner, setOwner] = useState("all");
   const [status, setStatus] = useState<"all" | ActivityStatus>("all");
   const [timeTab, setTimeTab] = useState<"today" | "upcoming" | "past">("today");
+
+  const searchParams = (useSearch({ strict: false }) || {}) as {
+    type?: string;
+    period?: string;
+    owner?: string;
+  };
+
+  useEffect(() => {
+    if (searchParams.owner) setOwner(searchParams.owner);
+    if (
+      searchParams.period === "week" ||
+      searchParams.period === "upcoming" ||
+      searchParams.period === "all"
+    ) {
+      setTimeTab("upcoming");
+    }
+  }, [searchParams.owner, searchParams.period]);
   const [open, setOpen] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());

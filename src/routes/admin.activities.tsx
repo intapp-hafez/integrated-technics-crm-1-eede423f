@@ -1,6 +1,6 @@
 import { formatDate } from "@/lib/utils";
 import React from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState, type ActivityType, type ActivityStatus } from "@/lib/store";
@@ -154,6 +154,18 @@ function ActivitiesPage() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
+  const searchParams = (useSearch({ strict: false }) || {}) as {
+    type?: string;
+    period?: Period;
+    owner?: string;
+  };
+
+  useEffect(() => {
+    if (searchParams.type) setFilter(searchParams.type as ActivityType);
+    if (searchParams.period) setPeriod(searchParams.period as Period);
+    if (searchParams.owner) setOwnerFilter(searchParams.owner);
+  }, [searchParams.type, searchParams.period, searchParams.owner]);
+
   // Period-scoped list (used by employee strip & global KPIs)
   const periodList = useMemo(
     () => activities.filter((a) => inPeriod(a.dueDate, period)),
@@ -294,6 +306,71 @@ function ActivitiesPage() {
   const activePeriodLabel = periodLabelMap[period];
   const activePeriodSub = periodSubMap[period];
 
+  const handleExportToExcel = () => {
+    if (list.length === 0) {
+      toast.error(isAr ? "لا توجد بيانات للتصدير" : "No data to export");
+      return;
+    }
+
+    const headers = [
+      "ID",
+      isAr ? "العنوان" : "Title",
+      isAr ? "النوع" : "Type",
+      isAr ? "المسؤول" : "Owner",
+      isAr ? "التاريخ" : "Date",
+      isAr ? "الوقت" : "Time",
+      isAr ? "العميل/المشروع" : "Lead/Project",
+      isAr ? "الحالة" : "Status",
+      isAr ? "حالة الموافقة" : "Approval Status",
+      "Notes",
+      "Est Minutes",
+      "Created At",
+      "Presales Team",
+      "Approved By",
+      "Approved At",
+      "Rejection Reason",
+      "Review Note",
+      "Created By"
+    ];
+
+    const rows = list.map((a) => {
+      const lead = leads.find((l) => l.id === a.leadId);
+      const ownerName = a.owner && a.owner !== "Unassigned" ? a.owner : a.createdByName ?? "Unassigned";
+      return [
+        `"${(a.id || "").toString().replace(/"/g, '""')}"`,
+        `"${(a.title || "").replace(/"/g, '""')}"`,
+        `"${(a.type || "").replace(/"/g, '""')}"`,
+        `"${ownerName.replace(/"/g, '""')}"`,
+        `"${(a.dueDate || "").replace(/"/g, '""')}"`,
+        `"${(a.time || "").replace(/"/g, '""')}"`,
+        `"${(lead?.company ?? a.projectId ?? "").replace(/"/g, '""')}"`,
+        `"${(a.status || "").replace(/"/g, '""')}"`,
+        `"${(a.approvalStatus || "").replace(/"/g, '""')}"`,
+        `"${(a.notes || "").replace(/"/g, '""')}"`,
+        `"${(a.estMinutes?.toString() || "").replace(/"/g, '""')}"`,
+        `"${(a.createdAt || "").replace(/"/g, '""')}"`,
+        `"${(a.presalesTeam?.join(", ") || "").replace(/"/g, '""')}"`,
+        `"${(a.approvedByName ?? a.approvedBy ?? "").replace(/"/g, '""')}"`,
+        `"${(a.approvedAt || "").replace(/"/g, '""')}"`,
+        `"${(a.rejectionReason || "").replace(/"/g, '""')}"`,
+        `"${(a.reviewNote || "").replace(/"/g, '""')}"`,
+        `"${(a.createdByName ?? a.createdBy ?? "").replace(/"/g, '""')}"`
+      ];
+    });
+
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `activities_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(isAr ? "تم التصدير بنجاح" : "Exported successfully!");
+  };
+
   return (
     <AppShell
       panel={role}
@@ -351,11 +428,10 @@ function ActivitiesPage() {
                   setPeriod(p.key);
                   setOwnerFilter("all");
                 }}
-                className={`group relative inline-flex items-center gap-2 rounded-t-xl border border-b-0 px-4 py-2.5 text-sm font-semibold transition ${
-                  active
+                className={`group relative inline-flex items-center gap-2 rounded-t-xl border border-b-0 px-4 py-2.5 text-sm font-semibold transition ${active
                     ? "border-border bg-card text-foreground shadow-[var(--shadow-soft)]"
                     : "border-transparent bg-transparent text-muted-foreground hover:bg-card/60 hover:text-foreground"
-                }`}
+                  }`}
               >
                 <CalendarDays className={`h-4 w-4 ${active ? "text-primary" : ""}`} />
                 {periodLabelMap[p.key]}
@@ -437,9 +513,8 @@ function ActivitiesPage() {
                 <button
                   key={e.name}
                   onClick={() => setOwnerFilter(isActive ? "all" : e.name)}
-                  className={`group text-start rounded-2xl border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:-translate-y-0.5 hover:border-primary hover:shadow-lg ${
-                    isActive ? "border-primary ring-2 ring-primary/30" : "border-border"
-                  }`}
+                  className={`group text-start rounded-2xl border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:-translate-y-0.5 hover:border-primary hover:shadow-lg ${isActive ? "border-primary ring-2 ring-primary/30" : "border-border"
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     {e.photo ? (
@@ -537,11 +612,10 @@ function ActivitiesPage() {
             <button
               key={tp}
               onClick={() => setFilter(tp as any)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                filter === tp
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${filter === tp
                   ? "bg-primary text-primary-foreground"
                   : "bg-card text-foreground ring-1 ring-border hover:bg-accent"
-              }`}
+                }`}
             >
               {tp === "all" ? t("all") : ACT_I18N[tp] ? t(ACT_I18N[tp]) : tp}
             </button>
@@ -583,8 +657,17 @@ function ActivitiesPage() {
           <option value="cancelled">{t("cancelled")}</option>
           <option value="delayed">{t("delayed")}</option>
         </select>
-        <div className="ms-auto inline-flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground">
-          <Target className="h-3.5 w-3.5" /> {list.length} {t("matches")}
+        <div className="ms-auto inline-flex items-center gap-1.5">
+          <button
+            onClick={handleExportToExcel}
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[11px] font-semibold text-foreground hover:bg-accent"
+          >
+            <Download className="h-3.5 w-3.5" />
+            {isAr ? "تصدير" : "Export"}
+          </button>
+          <div className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-secondary/60 px-3 text-[11px] font-semibold text-muted-foreground">
+            <Target className="h-3.5 w-3.5" /> {list.length} {t("matches")}
+          </div>
         </div>
       </div>
 

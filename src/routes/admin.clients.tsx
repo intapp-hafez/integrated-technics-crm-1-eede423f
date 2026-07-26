@@ -173,7 +173,10 @@ function AdminClientsPage() {
         ", ",
       );
       return {
+        ID: c.id,
         [isAr ? "الاسم" : "Name"]: name,
+        Name_EN: c.name_en || "",
+        Name_AR: c.name_ar || "",
         [isAr ? "الهاتف" : "Phone"]: c.phone || "—",
         [isAr ? "البريد" : "Email"]: c.email || "—",
         [isAr ? "الحسابات" : "Accounts"]: projectsList || (isAr ? "لا يوجد" : "None"),

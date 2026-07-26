@@ -41,7 +41,15 @@ import {
   type GpsPosition,
   type GeoAddress,
 } from "@/lib/geoLocation";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/employee/")({
   component: EmployeeDashboard,
   head: () => ({ meta: [{ title: "My Dashboard · INT-CRM" }] }),
@@ -73,6 +81,36 @@ function EmployeeDashboard() {
     userId: profile.userId ?? authUser?.id,
     name: profile.name,
   });
+
+  const inactiveLeads = useMemo(() => {
+    return myLeads.filter((l: any) => {
+      if (l.status === "won" || l.status === "lost") return false;
+      let diffDays = 0;
+      const rawDate = l.updatedAtIso || l.updatedAt || l.createdAt;
+      if (typeof rawDate === "string" && rawDate.includes("d ago")) {
+        const m = rawDate.match(/(\d+)d\s*ago/);
+        if (m) diffDays = parseInt(m[1], 10);
+      } else if (rawDate) {
+        const tMs = new Date(rawDate).getTime();
+        if (!isNaN(tMs)) {
+          diffDays = Math.floor((Date.now() - tMs) / (1000 * 60 * 60 * 24));
+        }
+      }
+      return diffDays >= 7; // Inactive for 7 days or more
+    });
+  }, [myLeads]);
+
+  const [showInactiveModal, setShowInactiveModal] = useState(false);
+
+  useEffect(() => {
+    if (inactiveLeads.length > 0) {
+      const hasShown = sessionStorage.getItem("shownInactiveLeads");
+      if (!hasShown) {
+        setShowInactiveModal(true);
+        sessionStorage.setItem("shownInactiveLeads", "true");
+      }
+    }
+  }, [inactiveLeads.length]);
 
   // Fetch real target from profiles table (the profiles_directory view used by sync omits target fields)
   const targetQuery = useQuery({
@@ -358,6 +396,49 @@ function EmployeeDashboard() {
       user={user}
       pageTitle={`${t("welcome")}, ${(profile.name || "there").split(" ")[0]} 👋`}
     >
+      <Dialog open={showInactiveModal} onOpenChange={setShowInactiveModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{(t as any)("inactiveLeadsAlert") || "Inactive Leads Alert"}</DialogTitle>
+            <DialogDescription>
+              {(t as any)("inactiveLeadsMessage") || `You have ${inactiveLeads.length} lead(s) that have been inactive for 7 or more days. Please review and update them to keep your pipeline healthy.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[300px] overflow-y-auto space-y-2 py-2">
+            {inactiveLeads.map((l: any) => {
+              let diffDays = 0;
+              const rawDate = l.updatedAtIso || l.updatedAt || l.createdAt;
+              if (typeof rawDate === "string" && rawDate.includes("d ago")) {
+                const m = rawDate.match(/(\d+)d\s*ago/);
+                if (m) diffDays = parseInt(m[1], 10);
+              } else if (rawDate) {
+                const tMs = new Date(rawDate).getTime();
+                if (!isNaN(tMs)) {
+                  diffDays = Math.floor((Date.now() - tMs) / (1000 * 60 * 60 * 24));
+                }
+              }
+              return (
+                <div key={l.id} className="flex flex-col gap-1 rounded-md bg-secondary/30 p-3 text-sm border border-border/50">
+                  <div className="font-semibold text-foreground flex justify-between">
+                    <span>{l.company || "Unknown Company"}</span>
+                    <span className="text-xs font-normal text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded-full">{diffDays} days ago</span>
+                  </div>
+                  <div className="text-muted-foreground flex justify-between text-xs">
+                    <span>{l.contact || "Unknown Contact"}</span>
+                    <span className="capitalize">{l.status || "Unknown status"}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowInactiveModal(false)}>{t("close") || "Close"}</Button>
+            <Link to="/employee/leads" onClick={() => setShowInactiveModal(false)}>
+              <Button variant="outline">{(t as any)("viewLeads") || "View Leads"}</Button>
+            </Link>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Check-in card */}
       <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
         {/* Accent: full-width strip on mobile, right-half on md+ */}

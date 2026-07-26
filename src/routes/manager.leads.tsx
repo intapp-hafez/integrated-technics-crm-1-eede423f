@@ -300,7 +300,7 @@ function ManagerLeadsListPage() {
             <thead className="bg-secondary/60">
               <tr>
                 <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {t("company")}
+                  {isAr ? "العميل/الشركة" : "Lead Name"}
                 </th>
                 <th className="px-4 py-3 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {t("contact")}
@@ -350,7 +350,14 @@ function ManagerLeadsListPage() {
                       </button>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{l.contact}</td>
+                  <td className="px-4 py-3">
+                    <div className="text-foreground font-medium">{l.contact}</div>
+                    {(() => {
+                      const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
+                      const displayPhone = l.phone || relatedProject?.clientPhone;
+                      return displayPhone ? <div className="text-xs text-muted-foreground opacity-90">{displayPhone}</div> : null;
+                    })()}
+                  </td>
                   <td className="px-4 py-3 text-foreground">{l.owner || "—"}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={l.status} label={stageLabel(l.status)} />

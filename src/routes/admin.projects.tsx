@@ -230,6 +230,16 @@ function ProjectsPage() {
       Street: p.street ?? "",
       Start_Date: p.startDate ?? "",
       End_Date: p.endDate ?? "",
+      Competitors: p.competitors?.join(", ") ?? "",
+      Client_Email: p.clientEmail ?? "",
+      Client_Phone: p.clientPhone ?? "",
+      Team_Members: p.teamMembers?.join(", ") ?? "",
+      Account_Type: p.accountType ?? "",
+      Other_Account_Type: p.otherAccountType ?? "",
+      Website: p.website ?? "",
+      Created_By: p.createdBy ?? "",
+      Created_By_Name: p.createdByName ?? "",
+      Manager_ID: p.managerId ?? "",
       Extra_Contacts: p.extraContacts
         ? (p.extraContacts as any[])
             .map((c) => `${c.name} (${c.title || "N/A"}) - ${c.phone} - ${c.email || ""}`)
@@ -862,9 +872,9 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
     teamMembers.length === 0
       ? t("selectTeamMembers")
       : employees
-          .filter((e) => teamMembers.includes(e.id))
-          .map((e) => e.name)
-          .join(", ");
+        .filter((e) => teamMembers.includes(e.id))
+        .map((e) => e.name)
+        .join(", ");
 
   return (
     <div
