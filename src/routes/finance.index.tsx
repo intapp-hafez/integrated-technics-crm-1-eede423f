@@ -1,7 +1,7 @@
 import { createFileRoute, useSearch, useNavigate, Link } from "@tanstack/react-router";
 import { shortId } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
-import { ChatWithContacts } from "@/components/ChatWithContacts";
+import { ChatWithContacts } from "@/components/chat/ChatWithContacts";
 import { chatContactsFor } from "@/lib/chatContacts";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";

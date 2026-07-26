@@ -16,6 +16,7 @@ import {
   Mail,
 } from "lucide-react";
 import { useStoreState } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 
 export function ActivitiesMonitoringTab() {
   const { t, lang } = useI18n();
@@ -82,47 +83,69 @@ export function ActivitiesMonitoringTab() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("crm_activities_monitoring_settings");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.enabled !== undefined) setEnabled(parsed.enabled);
-        if (parsed.threshold) setThreshold(parsed.threshold);
-        if (parsed.frequency) setFrequency(parsed.frequency);
-        if (parsed.workingDays) setWorkingDays(parsed.workingDays);
-        if (parsed.workStart) setWorkStart(parsed.workStart);
-        if (parsed.workEnd) setWorkEnd(parsed.workEnd);
-        if (parsed.exclusions) setExclusions(parsed.exclusions);
-        if (parsed.otherSettings) setOtherSettings(parsed.otherSettings);
-        if (parsed.templates) setTemplates(parsed.templates);
-        if (parsed.employeeEmails) setEmployeeEmails(parsed.employeeEmails);
-      } catch (e) {
-        console.error(e);
+    const fetchSettings = async () => {
+      const { data, error } = await (supabase as any)
+        .from("system_settings")
+        .select("value")
+        .eq("key", "crm_activities_monitoring_settings")
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching settings:", error);
+        return;
       }
-    }
+
+      if (data?.value) {
+        try {
+          const parsed = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+          if (parsed.enabled !== undefined) setEnabled(parsed.enabled);
+          if (parsed.threshold) setThreshold(parsed.threshold);
+          if (parsed.frequency) setFrequency(parsed.frequency);
+          if (parsed.workingDays) setWorkingDays(parsed.workingDays);
+          if (parsed.workStart) setWorkStart(parsed.workStart);
+          if (parsed.workEnd) setWorkEnd(parsed.workEnd);
+          if (parsed.exclusions) setExclusions(parsed.exclusions);
+          if (parsed.otherSettings) setOtherSettings(parsed.otherSettings);
+          if (parsed.templates) setTemplates(parsed.templates);
+          if (parsed.employeeEmails) setEmployeeEmails(parsed.employeeEmails);
+        } catch (e) {
+          console.error("Error parsing settings:", e);
+        }
+      }
+    };
+    fetchSettings();
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    localStorage.setItem(
-      "crm_activities_monitoring_settings",
-      JSON.stringify({
-        enabled,
-        threshold,
-        frequency,
-        workingDays,
-        workStart,
-        workEnd,
-        exclusions,
-        otherSettings,
-        templates,
-        employeeEmails,
-      })
-    );
-    setTimeout(() => {
-      setIsSaving(false);
+    
+    const settingsObject = {
+      enabled,
+      threshold,
+      frequency,
+      workingDays,
+      workStart,
+      workEnd,
+      exclusions,
+      otherSettings,
+      templates,
+      employeeEmails,
+    };
+
+    const { error } = await (supabase as any).from("system_settings").upsert({
+      key: "crm_activities_monitoring_settings",
+      value: settingsObject,
+      updated_at: new Date().toISOString(),
+    });
+
+    setIsSaving(false);
+
+    if (error) {
+      console.error("Error saving settings:", error);
+      toast.error(isAr ? "فشل حفظ الإعدادات" : "Failed to save settings");
+    } else {
       toast.success(isAr ? "تم حفظ إعدادات مراقبة الأنشطة بنجاح" : "Activities Monitoring settings saved successfully!");
-    }, 400);
+    }
   };
 
   const subTabs = [
@@ -584,13 +607,6 @@ export function ActivitiesMonitoringTab() {
                             onChange={(e) => {
                               const newEmails = { ...employeeEmails, [u.id]: e.target.value };
                               setEmployeeEmails(newEmails);
-                              // Auto-save to localStorage to prevent data loss if user forgets to click save
-                              try {
-                                const saved = localStorage.getItem("crm_activities_monitoring_settings");
-                                const parsed = saved ? JSON.parse(saved) : {};
-                                parsed.employeeEmails = newEmails;
-                                localStorage.setItem("crm_activities_monitoring_settings", JSON.stringify(parsed));
-                              } catch(err) {}
                             }}
                             placeholder={isAr ? "أدخل البريد الإلكتروني..." : "Enter email address..."}
                             className="w-full max-w-md rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500/20"

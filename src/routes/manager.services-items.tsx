@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
 import { Box, Briefcase, Search, Plus, Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 import { sbDeleteCatalogItem } from "@/lib/supabaseWrites";
 import { toast } from "sonner";
 import type { CatalogItem } from "@/lib/store";

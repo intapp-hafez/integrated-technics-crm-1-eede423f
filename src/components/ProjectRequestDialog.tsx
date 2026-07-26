@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { PhoneInput } from "@/components/PhoneInput";
+import { PhoneInput } from "@/components/shared/PhoneInput";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 

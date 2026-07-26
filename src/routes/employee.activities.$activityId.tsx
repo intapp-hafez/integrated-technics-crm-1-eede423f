@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ActivityDetailView } from "@/components/ActivityDetailView";
+import { ActivityDetailView } from "@/components/activities/ActivityDetailView";
 
 export const Route = createFileRoute("/employee/activities/$activityId")({
   component: () => {

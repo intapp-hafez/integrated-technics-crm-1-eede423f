@@ -6,14 +6,14 @@ import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState, getProbabilityForStatus, type LeadStatus } from "@/lib/store";
 import { useRole } from "@/lib/role";
-import { MultiSelect } from "@/components/PipelineFilters";
+import { MultiSelect } from "@/components/pipeline/PipelineFilters";
 import { GripVertical, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   StageTransitionDialog,
   type StageTransitionPayload,
-} from "@/components/StageTransitionDialog";
+} from "@/components/pipeline/StageTransitionDialog";
 
 export const Route = createFileRoute("/employee/pipeline")({
   component: PipelinePage,

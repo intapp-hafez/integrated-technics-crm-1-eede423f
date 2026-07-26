@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState } from "@/lib/store";
 import { shortId, formatDate } from "@/lib/utils";
-import { CopyIdButton } from "@/components/CopyIdButton";
+import { CopyIdButton } from "@/components/shared/CopyIdButton";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { fmtMoney } from "@/lib/mock-data";
 import {

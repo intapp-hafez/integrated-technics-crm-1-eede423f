@@ -33,8 +33,8 @@ import { useChatNotifications } from "@/lib/useChatNotifications";
 import { useState, type ReactNode } from "react";
 import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { RealtimeStatus } from "@/components/RealtimeStatus";
-import { GlobalSearch } from "@/components/GlobalSearch";
-import { LeadWonCelebration } from "@/components/LeadWonCelebration";
+import { GlobalSearch } from "@/components/shared/GlobalSearch";
+import { LeadWonCelebration } from "@/components/pipeline/LeadWonCelebration";
 
 type NavItem = { to: string; icon: typeof Users; key: any; search?: Record<string, string> };
 

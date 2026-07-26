@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { shortId, formatDate } from "@/lib/utils";
-import { CopyIdButton } from "@/components/CopyIdButton";
+import { CopyIdButton } from "@/components/shared/CopyIdButton";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";

@@ -1,12 +1,12 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { shortId, formatDate } from "@/lib/utils";
-import { CopyIdButton } from "@/components/CopyIdButton";
+import { CopyIdButton } from "@/components/shared/CopyIdButton";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState, actions } from "@/lib/store";
-import { LocationPicker } from "@/components/LocationPicker";
+import { LocationPicker } from "@/components/shared/LocationPicker";
 import { useRole } from "@/lib/role";
 import {
   ArrowLeft,
@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
-import { NewActivityDialog } from "@/components/NewActivityDialog";
+import { NewActivityDialog } from "@/components/activities/NewActivityDialog";
 
 export const Route = createFileRoute("/admin/projects/$projectId")({
   component: ProjectDetailsPage,

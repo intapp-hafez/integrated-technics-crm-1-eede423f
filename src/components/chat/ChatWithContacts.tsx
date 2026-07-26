@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Search, MessageCircle } from "lucide-react";
-import { RealChat } from "@/components/RealChat";
+import { RealChat } from "@/components/chat/RealChat";
 import { useI18n } from "@/lib/i18n";
 
 export interface ChatContact {

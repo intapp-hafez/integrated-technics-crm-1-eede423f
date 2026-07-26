@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Send, Trash2, Smile, Paperclip, Check, CheckCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 
 interface Msg {
   id: string;

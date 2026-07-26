@@ -28,7 +28,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 
 export const Route = createFileRoute("/employee/activities")({
   component: MyActivitiesPage,

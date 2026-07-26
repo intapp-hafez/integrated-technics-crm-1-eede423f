@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { Plus, Filter, Download, Search, List, Map as MapIcon, Pencil, Trash2, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback, type ComponentType } from "react";
 import type { Lead, LeadStatus } from "@/lib/mock-data";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { ExcelImportModal } from "@/components/ExcelImportModal";

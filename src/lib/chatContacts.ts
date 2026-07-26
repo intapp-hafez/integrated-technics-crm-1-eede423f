@@ -1,4 +1,4 @@
-import type { ChatContact } from "@/components/ChatWithContacts";
+import type { ChatContact } from "@/components/chat/ChatWithContacts";
 import type { AppUser, Employee } from "@/lib/store";
 
 type Role = "admin" | "manager" | "finance" | "employee" | "hr" | string | null | undefined;

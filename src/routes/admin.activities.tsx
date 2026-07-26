@@ -32,9 +32,9 @@ import {
   Grid3X3,
 } from "lucide-react";
 import { useRole } from "@/lib/role";
-import { NewActivityDialog } from "@/components/NewActivityDialog";
-import { ActivityApprovalCard } from "@/components/ActivityApprovalCard";
-import { RejectActivityDialog } from "@/components/RejectActivityDialog";
+import { NewActivityDialog } from "@/components/activities/NewActivityDialog";
+import { ActivityApprovalCard } from "@/components/activities/ActivityApprovalCard";
+import { RejectActivityDialog } from "@/components/activities/RejectActivityDialog";
 import { toast } from "sonner";
 import {
   Table,

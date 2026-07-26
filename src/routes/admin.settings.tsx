@@ -40,7 +40,7 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 import {
   APP_PAGES,
   USER_ROLES,
@@ -56,7 +56,7 @@ import {
   adminAddPosition,
   adminDeletePosition,
 } from "@/lib/admin-api";
-import { SendEmailEditor } from "@/components/SendEmailEditor";
+import { SendEmailEditor } from "@/components/email/SendEmailEditor";
 import { StatusesTab, StagesTab, ActivityTypesTab, WorkdayTab } from "@/components/admin/settings/PipelineTabs";
 import { DepartmentsTab, PositionsTab } from "@/components/admin/settings/OrgTabs";
 import { ActivitiesMonitoringTab } from "@/components/admin/settings/ActivitiesMonitoringTab";

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { SendEmailEditor } from "@/components/SendEmailEditor";
+import { SendEmailEditor } from "@/components/email/SendEmailEditor";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/employee/send-email")({

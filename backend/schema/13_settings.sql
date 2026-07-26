@@ -60,3 +60,9 @@ create table public.role_permissions (
   can_delete boolean default false,
   unique(role, page)
 );
+
+create table public.system_settings (
+  key text primary key,
+  value jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);

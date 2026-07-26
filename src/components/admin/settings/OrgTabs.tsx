@@ -5,7 +5,7 @@ import { Plus, Building2, Briefcase, Trash2 } from "lucide-react";
 import { useStoreState } from "@/lib/store";
 import { adminAddDepartment, adminDeleteDepartment, adminAddPosition, adminDeletePosition } from "@/lib/admin-api";
 import { Header, BilingualImportBar, PageBar, inputCls } from "./shared";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 
 const PAGE_SIZE = 10;
 

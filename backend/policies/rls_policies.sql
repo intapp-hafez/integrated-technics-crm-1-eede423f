@@ -282,7 +282,8 @@ declare t text;
 begin
   for t in select unnest(array[
     'pipeline_stages','activity_types_config','locations',
-    'automation_rules','notification_templates','role_permissions'
+    'automation_rules','notification_templates','role_permissions',
+    'system_settings'
   ]) loop
     execute format('alter table public.%I enable row level security;', t);
     execute format($p$

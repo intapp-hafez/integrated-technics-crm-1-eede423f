@@ -31,10 +31,10 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
-import { PhoneInput } from "@/components/PhoneInput";
+import { PhoneInput } from "@/components/shared/PhoneInput";
 import { supabase } from "@/integrations/supabase/client";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 import { ProjectRequestDialog } from "@/components/ProjectRequestDialog";
 
 export const Route = createFileRoute("/manager/projects")({

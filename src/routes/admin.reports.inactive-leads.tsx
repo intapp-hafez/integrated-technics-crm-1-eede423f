@@ -112,6 +112,7 @@ export function InactiveLeadsReportPage() {
     const result: InactiveLeadItem[] = [];
 
     leads.forEach((l, idx) => {
+      if (l.status === "won" || l.status === "lost" || l.status === "archived") return;
       let diffDays = 0;
       const rawDate = (l as any).updatedAtIso || l.updatedAt || (l as any).createdAt;
 
@@ -139,8 +140,13 @@ export function InactiveLeadsReportPage() {
         .slice(0, 2)
         .toUpperCase();
 
-      const matchedEmp = employees.find((e: any) => e.name === l.owner);
-      const matchedUser = users.find((u: any) => u.name === l.owner);
+      const resolvedOwner = (l.owner || "hafez Rahim").trim().toLowerCase();
+      const matchedEmp = employees.find((e: any) => e.name?.trim().toLowerCase() === resolvedOwner);
+      const matchedUser = users.find((u: any) => u.name?.trim().toLowerCase() === resolvedOwner);
+
+      // Filter out if user is inactive, or if they are entirely deleted from the system
+      if (matchedUser && !matchedUser.active) return;
+      if (!matchedUser && !matchedEmp) return;
 
       result.push({
         id: l.id,
@@ -166,10 +172,16 @@ export function InactiveLeadsReportPage() {
   const availableEmployees = useMemo(() => {
     const set = new Set<string>();
     employees.forEach((e: any) => {
-      if (e.name) set.add(e.name);
+      const empName = e.name?.trim().toLowerCase();
+      const matchedUser = users.find((u: any) => u.name?.trim().toLowerCase() === empName);
+      
+      const isUserInactive = matchedUser && !matchedUser.active;
+      const isMissing = !matchedUser && !e.name;
+      
+      if (e.name && !isUserInactive && !isMissing) set.add(e.name);
     });
     return Array.from(set).sort();
-  }, [employees]);
+  }, [employees, users]);
 
   const availableStages = useMemo(() => {
     const set = new Set<string>();
@@ -294,11 +306,21 @@ export function InactiveLeadsReportPage() {
   const handleAction = async (lead: any, type: "reminder" | "warning") => {
     let email = "unknown";
     let body = "";
+    
+    // Fallback: use user's primary email
+    const matchedUser = users.find((u) => u.id === lead.ownerId || u.name === lead.assignedTo);
+    if (matchedUser?.email) email = matchedUser.email;
+
     try {
-      const saved = localStorage.getItem("crm_activities_monitoring_settings");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.employeeEmails && parsed.employeeEmails[lead.ownerId]) {
+      const { data } = await (supabase as any)
+        .from("system_settings")
+        .select("value")
+        .eq("key", "crm_activities_monitoring_settings")
+        .maybeSingle();
+        
+      if (data?.value) {
+        const parsed = data.value as any;
+        if (parsed.employeeEmails && parsed.employeeEmails[lead.ownerId] && parsed.employeeEmails[lead.ownerId].trim() !== "") {
           email = parsed.employeeEmails[lead.ownerId];
         }
         if (type === "warning") body = parsed.templates?.employeeWarning || "";
@@ -578,7 +600,9 @@ export function InactiveLeadsReportPage() {
                               />
                             </td>
                             <td className="px-4 py-3.5">
-                              <div className="font-bold text-foreground">{lead.name}</div>
+                              <Link to="/admin/leads/$leadId" params={{ leadId: lead.id }} className="font-bold text-foreground hover:text-primary transition-colors hover:underline block">
+                                {lead.name}
+                              </Link>
                             </td>
                             <td className="px-4 py-3.5 text-muted-foreground font-medium">{lead.account}</td>
                             <td className="px-4 py-3.5">

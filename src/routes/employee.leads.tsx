@@ -24,7 +24,7 @@ import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { z } from "zod";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
 import { Download } from "lucide-react";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 
 const leadSchema = z.object({
   company: z

@@ -5278,6 +5278,152 @@
               }
             }
           ]
+        },
+        {
+          "name": "system_settings",
+          "item": [
+            {
+              "name": "Get all system_settings",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/system_settings?select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "system_settings"
+                  ],
+                  "query": [
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get one system_settings",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/system_settings?id=eq.1&select=*",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "system_settings"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    },
+                    {
+                      "key": "select",
+                      "value": "*"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create system_settings",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/system_settings",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "system_settings"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update system_settings",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Prefer",
+                    "value": "return=representation"
+                  }
+                ],
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/system_settings?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "system_settings"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"column_name\": \"new_value\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete system_settings",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{supabase_url}}/rest/v1/system_settings?id=eq.1",
+                  "host": [
+                    "{{supabase_url}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v1",
+                    "system_settings"
+                  ],
+                  "query": [
+                    {
+                      "key": "id",
+                      "value": "eq.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     }

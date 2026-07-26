@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
 import { Plus, Search, Pencil, Trash2, Box, Briefcase } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 import { sbAddCatalogItem, sbUpdateCatalogItem, sbDeleteCatalogItem, sbAddCatalogCategory, sbUpdateCatalogCategory, sbDeleteCatalogCategory, newUuid } from "@/lib/supabaseWrites";
 import { toast } from "sonner";
 import type { CatalogItem, CatalogCategory } from "@/lib/store";

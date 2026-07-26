@@ -5,12 +5,12 @@ import { fmtMoney } from "@/lib/mock-data";
 import { getProbabilityForStatus, type LeadStatus, useStoreState } from "@/lib/store";
 import { GripVertical, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MultiSelect } from "@/components/PipelineFilters";
+import { MultiSelect } from "@/components/pipeline/PipelineFilters";
 import { formatDate } from "@/lib/utils";
 import {
   StageTransitionDialog,
   type StageTransitionPayload,
-} from "@/components/StageTransitionDialog";
+} from "@/components/pipeline/StageTransitionDialog";
 
 export function PipelineBoard({
   leads,

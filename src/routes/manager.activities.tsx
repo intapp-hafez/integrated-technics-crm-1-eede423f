@@ -23,8 +23,8 @@ import {
   Grid3X3,
 } from "lucide-react";
 import type { ActivityStatus } from "@/lib/store";
-import { NewActivityDialog } from "@/components/NewActivityDialog";
-import { ActivityApprovalCard } from "@/components/ActivityApprovalCard";
+import { NewActivityDialog } from "@/components/activities/NewActivityDialog";
+import { ActivityApprovalCard } from "@/components/activities/ActivityApprovalCard";
 import { useRole } from "@/lib/role";
 import { cairoIsoDate } from "@/lib/cairoTime";
 import { useMyTeam } from "@/lib/useMyTeam";

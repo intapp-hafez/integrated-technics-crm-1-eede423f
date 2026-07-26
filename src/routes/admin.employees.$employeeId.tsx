@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { shortId, formatDate } from "@/lib/utils";
-import { CopyIdButton } from "@/components/CopyIdButton";
+import { CopyIdButton } from "@/components/shared/CopyIdButton";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { RealChat } from "@/components/RealChat";
+import { RealChat } from "@/components/chat/RealChat";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState } from "@/lib/store";
@@ -30,7 +30,7 @@ import {
   Search,
 } from "lucide-react";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
-import { PipelineBoard } from "@/components/PipelineBoard";
+import { PipelineBoard } from "@/components/pipeline/PipelineBoard";
 import { AdminReviewTab } from "@/components/admin/AdminReviewTab";
 import { useEffect, useMemo, useState, Fragment } from "react";
 import { TargetCountdown, TargetRefreshIndicator } from "@/components/TargetCountdown";

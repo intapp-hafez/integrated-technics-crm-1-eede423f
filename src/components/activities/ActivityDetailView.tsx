@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { shortId, formatDate } from "@/lib/utils";
-import { CopyIdButton } from "@/components/CopyIdButton";
+import { CopyIdButton } from "@/components/shared/CopyIdButton";
 import { actions, useStoreState, type ActivityStatus } from "@/lib/store";
 import {
   ArrowLeft,

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { ChatWithContacts } from "@/components/ChatWithContacts";
+import { ChatWithContacts } from "@/components/chat/ChatWithContacts";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useStoreState } from "@/lib/store";
