@@ -3,7 +3,7 @@ import { shortId } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState, type HistoryModule } from "@/lib/store";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Filter,
   Workflow,
@@ -75,15 +75,28 @@ function HistoryPage() {
   const [mod, setMod] = useState<HistoryModule | "all">("all");
   const [q, setQ] = useState("");
   const [actor, setActor] = useState("all");
+  const [page, setPage] = useState(1);
+  const pageSize = 15;
 
   const actors = useMemo(() => Array.from(new Set(history.map((h) => h.actor))), [history]);
-  const filtered = history.filter(
-    (h) =>
-      (mod === "all" || h.module === mod) &&
-      (actor === "all" || h.actor === actor) &&
-      (q === "" ||
-        [h.target, h.action, h.details ?? ""].join(" ").toLowerCase().includes(q.toLowerCase())),
-  );
+  const filtered = useMemo(() => {
+    return history.filter(
+      (h) =>
+        (mod === "all" || h.module === mod) &&
+        (actor === "all" || h.actor === actor) &&
+        (q === "" ||
+          [h.target, h.action, h.details ?? ""].join(" ").toLowerCase().includes(q.toLowerCase())),
+    );
+  }, [history, mod, actor, q]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [mod, q, actor]);
+
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  const paginated = useMemo(() => {
+    return filtered.slice((page - 1) * pageSize, page * pageSize);
+  }, [filtered, page, pageSize]);
 
   return (
     <AppShell
@@ -149,13 +162,13 @@ function HistoryPage() {
           {t("auditLog")} · {filtered.length} entries
         </div>
         <ol className="relative">
-          {filtered.map((h, idx) => {
+          {paginated.map((h, idx) => {
             const m = MODULES.find((x) => x.key === h.module)!;
             const Icon = m.icon;
             return (
               <li
                 key={h.id}
-                className={`relative flex gap-4 px-5 py-4 ${idx < filtered.length - 1 ? "border-b border-border" : ""}`}
+                className={`relative flex gap-4 px-5 py-4 ${idx < paginated.length - 1 ? "border-b border-border" : ""}`}
               >
                 <div
                   className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary ${m.tone}`}
@@ -192,6 +205,36 @@ function HistoryPage() {
             </li>
           )}
         </ol>
+
+        {totalPages > 1 && (
+          <div className="border-t border-border p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground">
+                Showing {(page - 1) * pageSize + 1} to{" "}
+                {Math.min(page * pageSize, filtered.length)} of {filtered.length} entries
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <div className="px-2 text-xs font-semibold">
+                  {page} / {totalPages}
+                </div>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );

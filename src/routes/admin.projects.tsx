@@ -25,6 +25,10 @@ import {
   Target,
   Activity as ActivityIcon,
   Mail,
+  Phone,
+  UserCheck,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
@@ -44,12 +48,38 @@ const STATUSES = ["On Track", "At Risk", "Delayed", "Completed"];
 function ProjectsPage() {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
-  const { projects, employees, leads, activities } = useStoreState();
+  const { projects, employees, leads, activities, users } = useStoreState();
 
   const getOwner = (p: Project) => {
-    if (p.teamMembers && p.teamMembers.length > 0) return p.teamMembers[0];
+    if (p.createdByName && !p.createdByName.includes("-")) {
+      return p.createdByName;
+    }
+    if (p.createdBy) {
+      const u = users?.find((usr: any) => usr.id === p.createdBy || usr.profileId === p.createdBy);
+      if (u?.name && !u.name.includes("-")) return u.name;
+      const e = employees?.find((emp: any) => emp.id === p.createdBy || emp.profileId === p.createdBy);
+      if (e?.name && !e.name.includes("-")) return e.name;
+    }
     if (p.createdByName) return p.createdByName;
+    if (p.teamMembers && p.teamMembers.length > 0) {
+      const tm = p.teamMembers[0];
+      const e = employees?.find((emp: any) => emp.id === tm || emp.profileId === tm || emp.name === tm);
+      if (e?.name && !e.name.includes("-")) return e.name;
+      const u = users?.find((usr: any) => usr.id === tm || usr.profileId === tm || usr.name === tm);
+      if (u?.name && !u.name.includes("-")) return u.name;
+      if (!tm.includes("-")) return tm;
+    }
     return employees.slice(0, p.team || 1)[0]?.name || "—";
+  };
+
+  const getOwnerPhoto = (name?: string) => {
+    if (!name || name === "—") return undefined;
+    const norm = name.trim().toLowerCase();
+    const u = users?.find((usr) => usr.name?.trim().toLowerCase() === norm);
+    if (u?.avatarUrl) return u.avatarUrl;
+    const e = employees?.find((emp) => emp.name?.trim().toLowerCase() === norm);
+    if (e?.photo) return e.photo;
+    return undefined;
   };
   const { role, isAdmin, isManager } = useRole();
   const canManage = isAdmin || isManager;
@@ -65,7 +95,8 @@ function ProjectsPage() {
   });
   const [editing, setEditing] = useState<Project | "new" | null>(null);
   const { confirm, ConfirmDialog } = useConfirm();
-  const [view, setView] = useState<"table" | "grid">("table");
+  const [view, setView] = useState<"table" | "grid" | "contacts">("table");
+  const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
   const [mainTab, setMainTab] = useState<"projects" | "pending">("projects");
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [showImport, setShowImport] = useState(false);
@@ -114,10 +145,19 @@ function ProjectsPage() {
     }
     if (query.trim()) {
       const q = query.toLowerCase();
+      const matchExtra = p.extraContacts?.some(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.title?.toLowerCase().includes(q) ||
+          c.phone.includes(q) ||
+          c.email?.toLowerCase().includes(q)
+      );
       if (
         !p.name.toLowerCase().includes(q) &&
         !p.client.toLowerCase().includes(q) &&
-        !shortId(p.id).toLowerCase().includes(q)
+        !(p.clientEmail && p.clientEmail.toLowerCase().includes(q)) &&
+        !shortId(p.id).toLowerCase().includes(q) &&
+        !matchExtra
       )
         return false;
     }
@@ -127,7 +167,7 @@ function ProjectsPage() {
   const [sortKey, setSortKey] = useState<string>("");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const pageSize = 15;
   const toggleSort = (k: string) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else {
@@ -169,6 +209,11 @@ function ProjectsPage() {
     });
     return arr;
   }, [filtered, sortKey, sortDir]);
+
+  const paginated = useMemo(
+    () => sorted.slice((page - 1) * pageSize, page * pageSize),
+    [sorted, page, pageSize],
+  );
 
   const activeFilterCount =
     (statusFilter !== "all" ? 1 : 0) +
@@ -213,6 +258,31 @@ function ProjectsPage() {
       toast.error("No projects match your filters");
       return;
     }
+    const stamp = new Date().toISOString().slice(0, 10);
+
+    if (view === "contacts") {
+      const rows = filtered.map((p) => ({
+        "Account Name": p.name,
+        "Account Type": p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : (p.category || ""),
+        "Owner": getOwner(p),
+        "Main Contact": p.client || "",
+        "Main Phone": p.clientPhone || "",
+        "Main Email": p.clientEmail || "",
+        "Extra Contacts Count": p.extraContacts?.length || 0,
+        "Extra Contacts": p.extraContacts
+          ? (p.extraContacts as any[])
+              .map((c) => `${c.name}${c.title ? ` (${c.title})` : ""}${c.phone ? ` - ${c.phone}` : ""}${c.email ? ` - ${c.email}` : ""}`)
+              .join("; ")
+          : "",
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Account Contacts");
+      XLSX.writeFile(wb, `account-contacts-${stamp}.xlsx`);
+      toast.success(`${filtered.length} account contacts exported`);
+      return;
+    }
+
     const rows = filtered.map((p) => ({
       ID: shortId(p.id),
       Name: p.name,
@@ -250,7 +320,6 @@ function ProjectsPage() {
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Accounts");
-    const stamp = new Date().toISOString().slice(0, 10);
     XLSX.writeFile(wb, `accounts-${stamp}.xlsx`);
     toast.success(`${filtered.length} accounts exported`);
   };
@@ -467,6 +536,12 @@ function ProjectsPage() {
                 >
                   <LayoutGrid className="h-4 w-4" /> {t("gridView")}
                 </button>
+                <button
+                  onClick={() => setView("contacts")}
+                  className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${view === "contacts" ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  <UserCheck className="h-4 w-4" /> {isAr ? "دليل جهات الاتصال" : "Contacts View"}
+                </button>
               </div>
               <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer">
                 <input
@@ -636,102 +711,298 @@ function ProjectsPage() {
                 </div>
               )}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {sorted.map((p) => (
-                <div
-                  key={p.id}
-                  className="group relative rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] transition hover:-translate-y-0.5 hover:border-primary hover:shadow-lg"
-                >
-                  <Link
-                    to="/admin/projects/$projectId"
-                    params={{ projectId: p.id }}
-                    className="block"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                          {shortId(p.id)}
-                          {(p.accountType || p.category) &&
-                            ` · ${p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : p.category}`}
-                        </div>
-                        <h3 className="mt-1 font-display text-base font-bold text-foreground">
-                          {p.name}
-                        </h3>
-                        <div className="text-sm font-semibold tracking-wide text-foreground">{p.clientPhone || "—"}</div>
-                        <p className="text-xs text-muted-foreground">{p.client}</p>
-                      </div>
-                    </div>
+          ) : view === "contacts" ? (
+            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[960px] text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 py-3 text-start">{isAr ? "اسم الحساب" : "Account Name"}</th>
+                      <th className="px-4 py-3 text-start">{isAr ? "المالك" : "Owner"}</th>
+                      <th className="px-4 py-3 text-start">{isAr ? "جهة الاتصال الرئيسية" : "Main Contact"}</th>
+                      <th className="px-4 py-3 text-start">{isAr ? "البريد الإلكتروني" : "Email"}</th>
+                      <th className="px-4 py-3 text-start">{isAr ? "جهات اتصال إضافية" : "Extra Contacts"}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {paginated.map((p: Project) => {
+                      const ownerName = getOwner(p);
+                      const ownerPhoto = getOwnerPhoto(ownerName);
+                      const ownerInitials = ownerName.split(" ").map((w) => w[0]).join("").slice(0, 2);
+                      const extras = p.extraContacts ?? [];
 
-                    {p.competitors && p.competitors.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {p.competitors.map((c) => (
-                          <span
-                            key={c}
-                            className="rounded-md bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-rose-600 ring-1 ring-inset ring-rose-200"
-                          >
-                            VS {c}
-                          </span>
-                        ))}
-                      </div>
+                      return (
+                        <tr key={p.id} className="hover:bg-primary/5 transition-colors">
+                          {/* Account Name */}
+                          <td className="align-top px-4 py-4 font-semibold text-foreground">
+                            <Link
+                              to="/admin/projects/$projectId"
+                              params={{ projectId: p.id }}
+                              className="hover:text-primary transition-colors block"
+                            >
+                              <div className="font-bold text-foreground text-sm">{p.name}</div>
+                              {(p.accountType || p.category) && (
+                                <div className="text-xs text-muted-foreground font-normal">
+                                  {p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : p.category}
+                                </div>
+                              )}
+                            </Link>
+                          </td>
+
+                          {/* Owner */}
+                          <td className="align-top px-4 py-4">
+                            <div className="flex items-center gap-2">
+                              {ownerPhoto ? (
+                                <img src={ownerPhoto} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border" />
+                              ) : (
+                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                                  {ownerInitials || "?"}
+                                </div>
+                              )}
+                              <span className="text-sm font-medium text-foreground">{ownerName}</span>
+                            </div>
+                          </td>
+
+                          {/* Main Contact */}
+                          <td className="align-top px-4 py-4">
+                            <div className="font-semibold text-foreground text-sm">{p.client}</div>
+                            {p.clientPhone && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                                <Phone className="h-3 w-3 text-primary/70" />
+                                <a href={`tel:${p.clientPhone}`} className="hover:underline">{p.clientPhone}</a>
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Email */}
+                          <td className="align-top px-4 py-4 text-sm">
+                            {p.clientEmail ? (
+                              <a href={`mailto:${p.clientEmail}`} className="inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:underline">
+                                <Mail className="h-3.5 w-3.5" />
+                                {p.clientEmail}
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </td>
+
+                          {/* Extra Contacts (One Column Format - Collapsed after 2) */}
+                          <td className="align-top px-4 py-3">
+                            {extras.length > 0 ? (
+                              <div>
+                                <div className="space-y-2">
+                                  {(expandedContacts[p.id] ? extras : extras.slice(0, 2)).map((c: { name: string; title: string; phone: string; email: string }, i: number) => (
+                                    <div
+                                      key={i}
+                                      className="rounded-lg border border-border/80 bg-secondary/30 p-2.5 text-xs space-y-1"
+                                    >
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="font-bold text-foreground">{c.name}</span>
+                                        {c.title && (
+                                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                                            {c.title}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-[11px]">
+                                        {c.phone && (
+                                          <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1 hover:text-foreground">
+                                            <Phone className="h-3 w-3 text-primary/70" /> {c.phone}
+                                          </a>
+                                        )}
+                                        {c.email && (
+                                          <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1 hover:text-foreground">
+                                            <Mail className="h-3 w-3 text-primary/70" /> {c.email}
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                                {extras.length > 2 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setExpandedContacts((prev) => ({ ...prev, [p.id]: !prev[p.id] }))}
+                                    className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 hover:underline cursor-pointer"
+                                  >
+                                    {expandedContacts[p.id] ? (
+                                      <>
+                                        <ChevronUp className="h-3.5 w-3.5" />
+                                        {isAr ? "عرض أقل" : "Show less"}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <ChevronDown className="h-3.5 w-3.5" />
+                                        {isAr ? `عرض ${extras.length - 2} المزيد` : `+ Show ${extras.length - 2} more`}
+                                      </>
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground italic">
+                                {isAr ? "لا توجد جهات اتصال إضافية" : "No extra contacts"}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+
+                    {paginated.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                          {t("nothingHere") ?? "No accounts found matching your filters."}
+                        </td>
+                      </tr>
                     )}
-
-                    <div className="mt-5">
-                      <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="text-muted-foreground inline-flex items-center gap-1.5">
-                          <Mail className="h-3.5 w-3.5" />
-                          {t("email") || "Email"}
-                        </span>
-                      </div>
-                      <div className="truncate text-sm text-foreground">
-                        {p.clientEmail || "—"}
-                      </div>
+                  </tbody>
+                </table>
+              </div>
+              {Math.ceil(sorted.length / pageSize) > 1 && (
+                <div className="border-t border-border p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-muted-foreground">
+                      Showing {(page - 1) * pageSize + 1} to{" "}
+                      {Math.min(page * pageSize, sorted.length)} of {sorted.length} entries
                     </div>
-
-                    <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-xs">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Users2 className="h-3.5 w-3.5" />
-                        <span>
-                          {p.team} {t("members")}
-                        </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                      >
+                        Previous
+                      </button>
+                      <div className="px-2 text-xs font-semibold">
+                        {page} / {Math.ceil(sorted.length / pageSize)}
                       </div>
-                      <div className="flex items-center gap-1.5 text-muted-foreground" title={t("leads") || "Leads"}>
-                        <Target className="h-3.5 w-3.5" />
-                        <span>{leads?.filter((l) => l.projectId === p.id).length || 0}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-muted-foreground" title={t("activities") || "Activities"}>
-                        <ActivityIcon className="h-3.5 w-3.5" />
-                        <span>{activities?.filter((a) => a.projectId === p.id).length || 0}</span>
-                      </div>
-                      <div className="text-end">
-                        <div className="font-mono font-bold text-primary">
-                          {leads?.filter((l) => l.projectId === p.id).length || 0} {t("leads") || "Leads"}
-                        </div>
-                      </div>
+                      <button
+                        onClick={() =>
+                          setPage((p) => Math.min(Math.ceil(sorted.length / pageSize), p + 1))
+                        }
+                        disabled={page === Math.ceil(sorted.length / pageSize)}
+                        className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                      >
+                        Next
+                      </button>
                     </div>
-                  </Link>
-                  <div className="mt-3 flex gap-2 border-t border-border pt-3">
-                    <button
-                      onClick={() => setEditing(p)}
-                      className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-secondary px-2 py-1.5 text-xs font-semibold hover:bg-accent"
-                    >
-                      <Pencil className="h-3 w-3" /> {t("edit")}
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (await confirm({ message: `${t("confirmDelete")} (${p.name})` }))
-                          actions.removeProject(p.id);
-                      }}
-                      className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-rose-50 px-2 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100"
-                    >
-                      <Trash2 className="h-3 w-3" /> {t("delete")}
-                    </button>
                   </div>
                 </div>
-              ))}
-              {filtered.length === 0 && (
-                <div className="col-span-full rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
-                  No projects match your filters.
+              )}
+            </div>
+          ) : (
+            <div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {paginated.map((p) => (
+                  <div
+                    key={p.id}
+                    className="group relative rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] transition hover:-translate-y-0.5 hover:border-primary hover:shadow-lg"
+                  >
+                    <Link
+                      to="/admin/projects/$projectId"
+                      params={{ projectId: p.id }}
+                      className="block"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                            {shortId(p.id)}
+                            {(p.accountType || p.category) &&
+                              ` · ${p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : p.category}`}
+                          </div>
+                          <h3 className="mt-1 font-display text-base font-bold text-foreground">
+                            {p.name}
+                          </h3>
+                          <div className="text-sm font-semibold tracking-wide text-foreground">{p.clientPhone || "—"}</div>
+                          <p className="text-xs text-muted-foreground">{p.client}</p>
+                        </div>
+                      </div>
+
+                      {p.competitors && p.competitors.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {p.competitors.map((c) => (
+                            <span
+                              key={c}
+                              className="rounded-md bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-rose-600 ring-1 ring-inset ring-rose-200"
+                            >
+                              VS {c}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                        <div>
+                          Owner: <span className="font-medium text-foreground">{getOwner(p)}</span>
+                        </div>
+                        <div>
+                          Leads: <span className="font-medium text-foreground">{leads?.filter((l) => l.projectId === p.id).length || 0}</span>
+                        </div>
+                        <div>
+                          Email: <span className="font-medium text-foreground">{p.clientEmail || "—"}</span>
+                        </div>
+                        <div>
+                          Team: <span className="font-medium text-foreground">{p.team}</span>
+                        </div>
+                      </div>
+                    </Link>
+
+                    <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
+                      <button
+                        onClick={() => setEditing(p)}
+                        className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5 text-xs font-semibold text-foreground hover:bg-accent"
+                      >
+                        <Pencil className="h-3 w-3" /> {t("edit")}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (await confirm({ message: `${t("confirmDelete")} (${p.name})` }))
+                            actions.removeProject(p.id);
+                        }}
+                        className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-rose-50 px-2 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100"
+                      >
+                        <Trash2 className="h-3 w-3" /> {t("delete")}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {filtered.length === 0 && (
+                  <div className="col-span-full rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
+                    No projects match your filters.
+                  </div>
+                )}
+              </div>
+
+              {Math.ceil(sorted.length / pageSize) > 1 && (
+                <div className="mt-4 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-muted-foreground">
+                      Showing {(page - 1) * pageSize + 1} to{" "}
+                      {Math.min(page * pageSize, sorted.length)} of {sorted.length} entries
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                      >
+                        Previous
+                      </button>
+                      <div className="px-2 text-xs font-semibold">
+                        {page} / {Math.ceil(sorted.length / pageSize)}
+                      </div>
+                      <button
+                        onClick={() =>
+                          setPage((p) => Math.min(Math.ceil(sorted.length / pageSize), p + 1))
+                        }
+                        disabled={page === Math.ceil(sorted.length / pageSize)}
+                        className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

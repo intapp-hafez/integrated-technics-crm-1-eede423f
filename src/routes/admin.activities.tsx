@@ -133,7 +133,20 @@ function ActivitiesPage() {
   const isAr = lang === "ar";
   const { isAdmin, isManager, role } = useRole();
   const canApprove = isAdmin || isManager;
-  const { activities, leads, settings } = useStoreState();
+  const { activities, leads, settings, employees, users } = useStoreState();
+
+  const getOwnerPhoto = (name?: string, fallbackPhoto?: string) => {
+    if (fallbackPhoto) return fallbackPhoto;
+    if (!name || name === "Unassigned") return undefined;
+    const norm = name.trim().toLowerCase();
+    const u = users?.find((usr) => usr.name?.trim().toLowerCase() === norm);
+    if (u?.avatarUrl) return u.avatarUrl;
+    const e = employees?.find((emp) => emp.name?.trim().toLowerCase() === norm);
+    if (e?.photo) return e.photo;
+    const empMock = employeesData.find((emp) => emp.name?.trim().toLowerCase() === norm);
+    if (empMock?.photo) return empMock.photo;
+    return undefined;
+  };
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [reminderFor, setReminderFor] = useState<string | null>(null);
@@ -224,8 +237,7 @@ function ActivitiesPage() {
     for (const a of periodList) {
       const hasRealOwner = a.owner && a.owner !== "Unassigned";
       const ownerName = hasRealOwner ? a.owner : (a.createdByName ?? "Unassigned");
-      const emp = employeesData.find((e) => e.name === ownerName);
-      const photo = hasRealOwner ? emp?.photo : (a.createdByPhoto ?? emp?.photo);
+      const photo = getOwnerPhoto(ownerName, a.createdByPhoto);
       const initials = ownerName
         .split(" ")
         .map((w) => w[0])
@@ -695,8 +707,7 @@ function ActivitiesPage() {
                   const lead = leads.find((l) => l.id === a.leadId);
                   const hasOwner = a.owner && a.owner !== "Unassigned";
                   const displayName = hasOwner ? a.owner : (a.createdByName ?? "Unassigned");
-                  const emp = employeesData.find((e) => e.name === displayName);
-                  const displayPhoto = hasOwner ? emp?.photo : (a.createdByPhoto ?? emp?.photo);
+                  const displayPhoto = getOwnerPhoto(displayName, a.createdByPhoto);
                   return (
                     <TableRow
                       key={a.id}
@@ -889,8 +900,7 @@ function ActivitiesPage() {
                   const lead = leads.find((l) => l.id === a.leadId);
                   const hasOwner = a.owner && a.owner !== "Unassigned";
                   const displayName = hasOwner ? a.owner : (a.createdByName ?? "Unassigned");
-                  const emp = employeesData.find((e) => e.name === displayName);
-                  const displayPhoto = hasOwner ? emp?.photo : (a.createdByPhoto ?? emp?.photo);
+                  const displayPhoto = getOwnerPhoto(displayName, a.createdByPhoto);
                   return (
                     <div
                       key={a.id}

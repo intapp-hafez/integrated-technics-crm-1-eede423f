@@ -131,8 +131,8 @@ export function InactiveLeadsReportPage() {
       }
 
       const actDate = getPastDate(diffDays);
-      const leadName = l.company || l.code || (l as any).name || (l as any).title || `Lead #${l.id.slice(0, 5)}`;
-      const accountName = l.company || "Standard Account";
+      const leadName = (l as any).title || (l as any).name || l.code || l.company || l.contact || `Lead #${l.id.slice(0, 5)}`;
+      const accountName = l.company || (l as any).account || "Standard Account";
       const initials = leadName
         .split(" ")
         .map((n: string) => n[0])

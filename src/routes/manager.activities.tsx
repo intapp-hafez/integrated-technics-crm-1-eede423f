@@ -70,7 +70,18 @@ const STATUS_TONE: Record<ActivityStatus, string> = {
 function ManagerActivitiesPage() {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
-  const { activities, leads } = useStoreState();
+  const { activities, leads, employees, users } = useStoreState();
+
+  const getOwnerPhoto = (name?: string, fallbackPhoto?: string) => {
+    if (fallbackPhoto) return fallbackPhoto;
+    if (!name || name === "Unassigned") return undefined;
+    const norm = name.trim().toLowerCase();
+    const u = users?.find((usr) => usr.name?.trim().toLowerCase() === norm);
+    if (u?.avatarUrl) return u.avatarUrl;
+    const e = employees?.find((emp) => emp.name?.trim().toLowerCase() === norm);
+    if (e?.photo) return e.photo;
+    return undefined;
+  };
   const [view, setView] = useState<"table" | "cards">("table");
   const [owner, setOwner] = useState("all");
   const [status, setStatus] = useState<"all" | ActivityStatus>("all");
@@ -326,26 +337,30 @@ function ManagerActivitiesPage() {
                           <div className="text-xs text-muted-foreground">{a.type}</div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            {a.createdByPhoto ? (
-                              <img
-                                src={a.createdByPhoto}
-                                alt=""
-                                className="h-5 w-5 rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-foreground">
-                                {(a.createdByName ?? a.owner)
-                                  .split(" ")
-                                  .map((w) => w[0])
-                                  .join("")
-                                  .slice(0, 2)}
+                          {(() => {
+                            const ownerName = a.createdByName ?? a.owner ?? "Unassigned";
+                            const photo = getOwnerPhoto(ownerName, a.createdByPhoto);
+                            return (
+                              <div className="flex items-center gap-2">
+                                {photo ? (
+                                  <img
+                                    src={photo}
+                                    alt=""
+                                    className="h-5 w-5 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-foreground">
+                                    {ownerName
+                                      .split(" ")
+                                      .map((w) => w[0])
+                                      .join("")
+                                      .slice(0, 2)}
+                                  </div>
+                                )}
+                                <span className="text-sm text-muted-foreground">{ownerName}</span>
                               </div>
-                            )}
-                            <span className="text-sm text-muted-foreground">
-                              {a.createdByName ?? a.owner}
-                            </span>
-                          </div>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{formatDate(a.dueDate)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{a.time}</TableCell>
@@ -448,27 +463,33 @@ function ManagerActivitiesPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-semibold text-foreground">{a.title}</div>
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                            {a.createdByPhoto ? (
-                              <img
-                                src={a.createdByPhoto}
-                                alt=""
-                                className="h-4 w-4 rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-foreground">
-                                {(a.createdByName ?? a.owner)
-                                  .split(" ")
-                                  .map((w) => w[0])
-                                  .join("")
-                                  .slice(0, 2)}
+                          {(() => {
+                            const ownerName = a.createdByName ?? a.owner ?? "Unassigned";
+                            const photo = getOwnerPhoto(ownerName, a.createdByPhoto);
+                            return (
+                              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                {photo ? (
+                                  <img
+                                    src={photo}
+                                    alt=""
+                                    className="h-4 w-4 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[8px] font-bold text-foreground">
+                                    {ownerName
+                                      .split(" ")
+                                      .map((w) => w[0])
+                                      .join("")
+                                      .slice(0, 2)}
+                                  </div>
+                                )}
+                                <span>
+                                  {ownerName} · {a.time}
+                                  {lead ? ` · ${lead.company}` : ""}
+                                </span>
                               </div>
-                            )}
-                            <span>
-                              {a.createdByName ?? a.owner} Â· {a.time}
-                              {lead ? ` Â· ${lead.company}` : ""}
-                            </span>
-                          </div>
+                            );
+                          })()}
                         </div>
                         <div
                           className={`flex items-center gap-1.5 text-xs font-semibold ${STATUS_TONE[a.status]}`}

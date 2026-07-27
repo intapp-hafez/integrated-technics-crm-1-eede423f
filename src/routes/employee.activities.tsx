@@ -50,7 +50,17 @@ function MyActivitiesPage() {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const navigate = useNavigate();
-  const { activities, leads, profile, users } = useStoreState();
+  const { activities, leads, profile, users, employees } = useStoreState();
+  const getOwnerPhoto = (name?: string, fallbackPhoto?: string) => {
+    if (fallbackPhoto) return fallbackPhoto;
+    if (!name || name === "Unassigned") return undefined;
+    const norm = name.trim().toLowerCase();
+    const u = users?.find((usr) => usr.name?.trim().toLowerCase() === norm);
+    if (u?.avatarUrl) return u.avatarUrl;
+    const e = employees?.find((emp) => emp.name?.trim().toLowerCase() === norm);
+    if (e?.photo) return e.photo;
+    return undefined;
+  };
   const { user } = useAuth();
   const me = useMemo(() => users.find((u) => u.id === user?.id), [users, user?.id]);
   const OWNER = profile?.name && profile.name !== "—" ? profile.name : (me?.name ?? "");
@@ -379,18 +389,20 @@ function MyActivitiesPage() {
                       </div>
                       {a.presalesTeam && a.presalesTeam.length > 0 && (
                         <div className="flex -space-x-1" title={t("presalesTeam")}>
-                          {a.presalesTeam.map((p) => (
-                            <div
-                              key={p}
-                              className="flex h-4 w-4 items-center justify-center rounded-full border border-card bg-secondary text-[8px] font-bold text-foreground"
-                            >
-                              {p
-                                .split(" ")
-                                .map((w) => w[0])
-                                .join("")
-                                .slice(0, 2)}
-                            </div>
-                          ))}
+                          {a.presalesTeam.map((p) => {
+                            const photo = getOwnerPhoto(p);
+                            const initials = p.split(" ").map((w) => w[0]).join("").slice(0, 2);
+                            return photo ? (
+                              <img key={p} src={photo} alt={p} className="h-4 w-4 rounded-full object-cover ring-1 ring-card" />
+                            ) : (
+                              <div
+                                key={p}
+                                className="flex h-4 w-4 items-center justify-center rounded-full border border-card bg-secondary text-[8px] font-bold text-foreground"
+                              >
+                                {initials}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>

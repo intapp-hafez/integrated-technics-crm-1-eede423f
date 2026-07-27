@@ -62,7 +62,7 @@ export function ActivityDetailView({
   panel: "admin" | "employee" | "manager" | "finance";
 }) {
   const { t } = useI18n();
-  const { activities, leads, history } = useStoreState();
+  const { activities, leads, history, users, employees } = useStoreState();
   const a = activities.find((x) => x.id === activityId);
   const backTo =
     panel === "admin"
@@ -144,15 +144,24 @@ export function ActivityDetailView({
                 label="Time"
                 value={`${a.time}${a.estMinutes ? ` · ${fmtH(a.estMinutes)}` : ""}`}
               />
-              <Stat
-                icon={UserIcon}
-                label="Assignee"
-                value={
+              {(() => {
+                const assigneeName =
                   (a as any).createdByName ??
-                  (a.owner && a.owner !== "Unassigned" ? a.owner : "Unassigned")
-                }
-                photo={(a as any).createdByPhoto}
-              />
+                  (a.owner && a.owner !== "Unassigned" ? a.owner : "Unassigned");
+                const normName = assigneeName.trim().toLowerCase();
+                const userMatch = users?.find((u) => u.name?.trim().toLowerCase() === normName);
+                const empMatch = employees?.find((e) => e.name?.trim().toLowerCase() === normName);
+                const resolvedPhoto =
+                  (a as any).createdByPhoto || userMatch?.avatarUrl || empMatch?.photo;
+                return (
+                  <Stat
+                    icon={UserIcon}
+                    label="Assignee"
+                    value={assigneeName}
+                    photo={resolvedPhoto}
+                  />
+                );
+              })()}
               <Stat
                 icon={lead ? Building2 : Briefcase}
                 label={lead ? "Lead" : "Account"}

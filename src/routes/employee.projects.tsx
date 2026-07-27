@@ -1,6 +1,8 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Users2, Target, Activity as ActivityIcon, LayoutGrid, Table as TableIcon, Mail } from "lucide-react";
+import { Plus, Users2, Target, Activity as ActivityIcon, LayoutGrid, Table as TableIcon, Mail, Phone, UserCheck, Download, ChevronDown, ChevronUp } from "lucide-react";
+import * as XLSX from "xlsx";
+import { toast } from "sonner";
 import { shortId } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -12,7 +14,7 @@ import { filterMyProjects, isProjectMemberOf } from "@/lib/employeeProjects";
 import { ProjectRequestDialog } from "@/components/ProjectRequestDialog";
 import { ProjectRequestsPanel } from "@/components/ProjectRequestsPanel";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
-import { Download } from "lucide-react";
+
 
 export const Route = createFileRoute("/employee/projects")({
   component: ProjectsPage,
@@ -30,12 +32,45 @@ function ProjectsPage() {
     myAccounts: isAr ? "حساباتي" : "My Accounts",
     myRequests: isAr ? "طلباتي" : "My Requests",
   };
-  const { projects, profile, projectRequests, leads, activities } = useStoreState();
+  const { projects, profile, projectRequests, leads, activities, users, employees } = useStoreState();
   const { user: authUser } = useAuth();
   const [showDialog, setShowDialog] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [refresh, setRefresh] = useState(0);
-  const [displayView, setDisplayView] = useState<"table" | "grid">("table");
+  const [displayView, setDisplayView] = useState<"table" | "grid" | "contacts">("table");
+  const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
+
+  const getOwner = (p: Project) => {
+    if (p.createdByName && !p.createdByName.includes("-")) {
+      return p.createdByName;
+    }
+    if (p.createdBy) {
+      const u = users?.find((usr: any) => usr.id === p.createdBy || usr.profileId === p.createdBy);
+      if (u?.name && !u.name.includes("-")) return u.name;
+      const e = employees?.find((emp: any) => emp.id === p.createdBy || emp.profileId === p.createdBy);
+      if (e?.name && !e.name.includes("-")) return e.name;
+    }
+    if (p.createdByName) return p.createdByName;
+    if (p.teamMembers && p.teamMembers.length > 0) {
+      const tm = p.teamMembers[0];
+      const e = employees?.find((emp: any) => emp.id === tm || emp.profileId === tm || emp.name === tm);
+      if (e?.name && !e.name.includes("-")) return e.name;
+      const u = users?.find((usr: any) => usr.id === tm || usr.profileId === tm || usr.name === tm);
+      if (u?.name && !u.name.includes("-")) return u.name;
+      if (!tm.includes("-")) return tm;
+    }
+    return employees.slice(0, p.team || 1)[0]?.name || "—";
+  };
+
+  const getOwnerPhoto = (name?: string) => {
+    if (!name || name === "—") return undefined;
+    const norm = name.trim().toLowerCase();
+    const u = users?.find((usr) => usr.name?.trim().toLowerCase() === norm);
+    if (u?.avatarUrl) return u.avatarUrl;
+    const e = employees?.find((emp) => emp.name?.trim().toLowerCase() === norm);
+    if (e?.photo) return e.photo;
+    return undefined;
+  };
 
   const approvedRequests = (projectRequests || []).filter(
     (req: any) => req.status === "approved" && req.requested_by === profile.profileId,
@@ -103,7 +138,68 @@ function ProjectsPage() {
             >
               <LayoutGrid className="h-3.5 w-3.5" />
             </button>
+            <button
+              onClick={() => setDisplayView("contacts")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition ${displayView === "contacts" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <UserCheck className="h-3.5 w-3.5" />
+            </button>
           </div>
+          <button
+            onClick={() => {
+              if (myProjects.length === 0) {
+                toast.error("No accounts to export");
+                return;
+              }
+              const stamp = new Date().toISOString().slice(0, 10);
+              if (displayView === "contacts") {
+                const rows = myProjects.map((p) => ({
+                  "Account Name": p.name,
+                  "Account Type": p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : (p.category || ""),
+                  "Owner": getOwner(p),
+                  "Main Contact": p.client || "",
+                  "Main Phone": p.clientPhone || "",
+                  "Main Email": p.clientEmail || "",
+                  "Extra Contacts Count": p.extraContacts?.length || 0,
+                  "Extra Contacts": p.extraContacts
+                    ? (p.extraContacts as any[])
+                        .map((c) => `${c.name}${c.title ? ` (${c.title})` : ""}${c.phone ? ` - ${c.phone}` : ""}${c.email ? ` - ${c.email}` : ""}`)
+                        .join("; ")
+                    : "",
+                }));
+                const ws = XLSX.utils.json_to_sheet(rows);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Account Contacts");
+                XLSX.writeFile(wb, `account-contacts-${stamp}.xlsx`);
+                toast.success(`${myProjects.length} account contacts exported`);
+                return;
+              }
+              const rows = myProjects.map((p) => ({
+                ID: shortId(p.id),
+                Name: p.name,
+                Client: p.client,
+                Owner: getOwner(p),
+                Category: p.category ?? "",
+                Status: p.status,
+                Progress: p.progress,
+                Client_Email: p.clientEmail ?? "",
+                Client_Phone: p.clientPhone ?? "",
+                Extra_Contacts: p.extraContacts
+                  ? (p.extraContacts as any[])
+                      .map((c) => `${c.name} (${c.title || "N/A"}) - ${c.phone} - ${c.email || ""}`)
+                      .join("; ")
+                  : "",
+              }));
+              const ws = XLSX.utils.json_to_sheet(rows);
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, "My Accounts");
+              XLSX.writeFile(wb, `my-accounts-${stamp}.xlsx`);
+              toast.success(`${myProjects.length} accounts exported`);
+            }}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
+          >
+            <Download className="h-3.5 w-3.5" /> {isAr ? "تصدير إلى إكسل" : "Export Excel"}
+          </button>
           <button
             onClick={() => setShowImport(true)}
             className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
@@ -209,6 +305,157 @@ function ProjectsPage() {
                 {myProjects.length === 0 && (
                   <tr>
                     <td colSpan={9} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                      {L.notMember}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "accounts" && displayView === "contacts" && (
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[960px] text-sm">
+              <thead>
+                <tr className="border-b border-border bg-secondary/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <th className="px-4 py-3 text-start">{isAr ? "اسم الحساب" : "Account Name"}</th>
+                  <th className="px-4 py-3 text-start">{isAr ? "المالك" : "Owner"}</th>
+                  <th className="px-4 py-3 text-start">{isAr ? "جهة الاتصال الرئيسية" : "Main Contact"}</th>
+                  <th className="px-4 py-3 text-start">{isAr ? "البريد الإلكتروني" : "Email"}</th>
+                  <th className="px-4 py-3 text-start">{isAr ? "جهات اتصال إضافية" : "Extra Contacts"}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {myProjects.map((p) => {
+                  const ownerName = getOwner(p);
+                  const ownerPhoto = getOwnerPhoto(ownerName);
+                  const ownerInitials = ownerName.split(" ").map((w) => w[0]).join("").slice(0, 2);
+                  const extras = p.extraContacts ?? [];
+
+                  return (
+                    <tr key={p.id} className="hover:bg-primary/5 transition-colors">
+                      {/* Account Name */}
+                      <td className="align-top px-4 py-4 font-semibold text-foreground">
+                        <Link
+                          to="/employee/projects/$projectId"
+                          params={{ projectId: p.id }}
+                          className="hover:text-primary transition-colors block"
+                        >
+                          <div className="font-bold text-foreground text-sm">{p.name}</div>
+                          {(p.accountType || p.category) && (
+                            <div className="text-xs text-muted-foreground font-normal">
+                              {p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : p.category}
+                            </div>
+                          )}
+                        </Link>
+                      </td>
+
+                      {/* Owner */}
+                      <td className="align-top px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          {ownerPhoto ? (
+                            <img src={ownerPhoto} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border" />
+                          ) : (
+                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                              {ownerInitials || "?"}
+                            </div>
+                          )}
+                          <span className="text-sm font-medium text-foreground">{ownerName}</span>
+                        </div>
+                      </td>
+
+                      {/* Main Contact */}
+                      <td className="align-top px-4 py-4">
+                        <div className="font-semibold text-foreground text-sm">{p.client}</div>
+                        {p.clientPhone && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                            <Phone className="h-3 w-3 text-primary/70" />
+                            <a href={`tel:${p.clientPhone}`} className="hover:underline">{p.clientPhone}</a>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Email */}
+                      <td className="align-top px-4 py-4 text-sm">
+                        {p.clientEmail ? (
+                          <a href={`mailto:${p.clientEmail}`} className="inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:underline">
+                            <Mail className="h-3.5 w-3.5" />
+                            {p.clientEmail}
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+
+                      {/* Extra Contacts (One Column Format - Collapsed after 2) */}
+                      <td className="align-top px-4 py-3">
+                        {extras.length > 0 ? (
+                          <div>
+                            <div className="space-y-2">
+                              {(expandedContacts[p.id] ? extras : extras.slice(0, 2)).map((c: { name: string; title: string; phone: string; email: string }, i: number) => (
+                                <div
+                                  key={i}
+                                  className="rounded-lg border border-border/80 bg-secondary/30 p-2.5 text-xs space-y-1"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-bold text-foreground">{c.name}</span>
+                                    {c.title && (
+                                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                                        {c.title}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-[11px]">
+                                    {c.phone && (
+                                      <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1 hover:text-foreground">
+                                        <Phone className="h-3 w-3 text-primary/70" /> {c.phone}
+                                      </a>
+                                    )}
+                                    {c.email && (
+                                      <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1 hover:text-foreground">
+                                        <Mail className="h-3 w-3 text-primary/70" /> {c.email}
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            {extras.length > 2 && (
+                              <button
+                                type="button"
+                                onClick={() => setExpandedContacts((prev) => ({ ...prev, [p.id]: !prev[p.id] }))}
+                                className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 hover:underline cursor-pointer"
+                              >
+                                {expandedContacts[p.id] ? (
+                                  <>
+                                    <ChevronUp className="h-3.5 w-3.5" />
+                                    {isAr ? "عرض أقل" : "Show less"}
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="h-3.5 w-3.5" />
+                                    {isAr ? `عرض ${extras.length - 2} المزيد` : `+ Show ${extras.length - 2} more`}
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">
+                            {isAr ? "لا توجد جهات اتصال إضافية" : "No extra contacts"}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {myProjects.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
                       {L.notMember}
                     </td>
                   </tr>

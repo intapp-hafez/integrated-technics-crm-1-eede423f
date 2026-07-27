@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { actions, type Activity } from "@/lib/store";
+import { actions, useStoreState, type Activity } from "@/lib/store";
 import { RejectActivityDialog } from "./RejectActivityDialog";
 
 type AttachmentRow = {
@@ -52,6 +52,7 @@ export function ActivityApprovalCard({
   const [attachments, setAttachments] = useState<AttachmentRow[]>([]);
   const [loadingAtt, setLoadingAtt] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const { users, employees } = useStoreState();
   const [rejectOpen, setRejectOpen] = useState(false);
 
   useEffect(() => {
@@ -157,31 +158,38 @@ export function ActivityApprovalCard({
         <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Created by
         </span>
-        <div className="flex items-center gap-2 rounded-full bg-card px-2 py-1 ring-1 ring-border">
-          {activity.createdByPhoto ? (
-            <img
-              src={activity.createdByPhoto}
-              alt={`${activity.createdByName ?? activity.owner ?? "Creator"} avatar`}
-              aria-label={`Created by ${activity.createdByName ?? activity.owner ?? "Unknown"}`}
-              className="h-6 w-6 rounded-full object-cover"
-            />
-          ) : (
-            <div
-              role="img"
-              aria-label={`Created by ${activity.createdByName ?? activity.owner ?? "Unknown"}`}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary"
-            >
-              {(activity.createdByName ?? activity.owner ?? "?")
-                .split(" ")
-                .map((w) => w[0])
-                .join("")
-                .slice(0, 2)}
+        {(() => {
+          const ownerName = activity.createdByName ?? activity.owner ?? "Unknown";
+          const norm = ownerName.trim().toLowerCase();
+          const userMatch = users?.find((u) => u.name?.trim().toLowerCase() === norm);
+          const empMatch = employees?.find((e) => e.name?.trim().toLowerCase() === norm);
+          const displayPhoto = activity.createdByPhoto || userMatch?.avatarUrl || empMatch?.photo;
+          return (
+            <div className="flex items-center gap-2 rounded-full bg-card px-2 py-1 ring-1 ring-border">
+              {displayPhoto ? (
+                <img
+                  src={displayPhoto}
+                  alt={`${ownerName} avatar`}
+                  aria-label={`Created by ${ownerName}`}
+                  className="h-6 w-6 rounded-full object-cover"
+                />
+              ) : (
+                <div
+                  role="img"
+                  aria-label={`Created by ${ownerName}`}
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary"
+                >
+                  {ownerName
+                    .split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .slice(0, 2)}
+                </div>
+              )}
+              <span className="font-semibold text-foreground">{ownerName}</span>
             </div>
-          )}
-          <span className="font-semibold text-foreground">
-            {activity.createdByName ?? activity.owner ?? "Unknown"}
-          </span>
-        </div>
+          );
+        })()}
         {activity.createdAt && (
           <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
             <Clock className="h-3 w-3" /> {new Date(activity.createdAt).toLocaleString()}

@@ -101,9 +101,17 @@ function EmployeesPage() {
   const [maxPerf, setMaxPerf] = useState<string>("");
 
   const activeEmployees = useMemo(() => {
-    return employees.filter(e => {
-      const u = users.find(user => user.profileId === e.id || user.id === (e as any).userId);
-      return u?.role !== "admin";
+    return employees.filter((e) => {
+      const u = users.find((user) => user.profileId === e.id || user.id === (e as any).userId);
+      if (u) {
+        return u.role !== "admin" && u.role !== "manager" && u.active !== false;
+      }
+      return (
+        (e as any).active !== false &&
+        (e as any).status !== "inactive" &&
+        !e.role?.toLowerCase().includes("manager") &&
+        !e.role?.toLowerCase().includes("admin")
+      );
     });
   }, [employees, users]);
   const depts = ["all", ...Array.from(new Set(activeEmployees.map((e) => e.department)))];
@@ -747,9 +755,17 @@ function ExportHoursDialog({ onClose }: { onClose: () => void }) {
   const [to, setTo] = useState(today);
 
   const rows = useMemo(() => {
-    const activeEmployees = employees.filter(e => {
-      const u = users.find(user => user.profileId === e.id || user.id === (e as any).userId);
-      return u?.role !== "admin";
+    const activeEmployees = employees.filter((e) => {
+      const u = users.find((user) => user.profileId === e.id || user.id === (e as any).userId);
+      if (u) {
+        return u.role !== "admin" && u.role !== "manager" && u.active !== false;
+      }
+      return (
+        (e as any).active !== false &&
+        (e as any).status !== "inactive" &&
+        !e.role?.toLowerCase().includes("manager") &&
+        !e.role?.toLowerCase().includes("admin")
+      );
     });
     const owners = Array.from(new Set(activeEmployees.map((e) => e.name)));
     const dates: string[] = [];
