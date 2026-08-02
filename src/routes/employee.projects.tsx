@@ -1,6 +1,19 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Users2, Target, Activity as ActivityIcon, LayoutGrid, Table as TableIcon, Mail, Phone, UserCheck, Download, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Plus,
+  Users2,
+  Target,
+  Activity as ActivityIcon,
+  LayoutGrid,
+  Table as TableIcon,
+  Mail,
+  Phone,
+  UserCheck,
+  Download,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { shortId } from "@/lib/utils";
@@ -14,7 +27,6 @@ import { filterMyProjects, isProjectMemberOf } from "@/lib/employeeProjects";
 import { ProjectRequestDialog } from "@/components/ProjectRequestDialog";
 import { ProjectRequestsPanel } from "@/components/ProjectRequestsPanel";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
-
 
 export const Route = createFileRoute("/employee/projects")({
   component: ProjectsPage,
@@ -32,7 +44,8 @@ function ProjectsPage() {
     myAccounts: isAr ? "حساباتي" : "My Accounts",
     myRequests: isAr ? "طلباتي" : "My Requests",
   };
-  const { projects, profile, projectRequests, leads, activities, users, employees } = useStoreState();
+  const { projects, profile, projectRequests, leads, activities, users, employees } =
+    useStoreState();
   const { user: authUser } = useAuth();
   const [showDialog, setShowDialog] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -47,13 +60,17 @@ function ProjectsPage() {
     if (p.createdBy) {
       const u = users?.find((usr: any) => usr.id === p.createdBy || usr.profileId === p.createdBy);
       if (u?.name && !u.name.includes("-")) return u.name;
-      const e = employees?.find((emp: any) => emp.id === p.createdBy || emp.profileId === p.createdBy);
+      const e = employees?.find(
+        (emp: any) => emp.id === p.createdBy || emp.profileId === p.createdBy,
+      );
       if (e?.name && !e.name.includes("-")) return e.name;
     }
     if (p.createdByName) return p.createdByName;
     if (p.teamMembers && p.teamMembers.length > 0) {
       const tm = p.teamMembers[0];
-      const e = employees?.find((emp: any) => emp.id === tm || emp.profileId === tm || emp.name === tm);
+      const e = employees?.find(
+        (emp: any) => emp.id === tm || emp.profileId === tm || emp.name === tm,
+      );
       if (e?.name && !e.name.includes("-")) return e.name;
       const u = users?.find((usr: any) => usr.id === tm || usr.profileId === tm || usr.name === tm);
       if (u?.name && !u.name.includes("-")) return u.name;
@@ -155,15 +172,22 @@ function ProjectsPage() {
               if (displayView === "contacts") {
                 const rows = myProjects.map((p) => ({
                   "Account Name": p.name,
-                  "Account Type": p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : (p.category || ""),
-                  "Owner": getOwner(p),
+                  "Account Type": p.accountType
+                    ? p.accountType === "Other" && p.otherAccountType
+                      ? p.otherAccountType
+                      : p.accountType
+                    : p.category || "",
+                  Owner: getOwner(p),
                   "Main Contact": p.client || "",
                   "Main Phone": p.clientPhone || "",
                   "Main Email": p.clientEmail || "",
                   "Extra Contacts Count": p.extraContacts?.length || 0,
                   "Extra Contacts": p.extraContacts
                     ? (p.extraContacts as any[])
-                        .map((c) => `${c.name}${c.title ? ` (${c.title})` : ""}${c.phone ? ` - ${c.phone}` : ""}${c.email ? ` - ${c.email}` : ""}`)
+                        .map(
+                          (c) =>
+                            `${c.name}${c.title ? ` (${c.title})` : ""}${c.phone ? ` - ${c.phone}` : ""}${c.email ? ` - ${c.email}` : ""}`,
+                        )
                         .join("; ")
                     : "",
                 }));
@@ -263,8 +287,12 @@ function ProjectsPage() {
                   <th className="px-4 py-3 text-start">{t("name")}</th>
                   <th className="px-4 py-3 text-start">{t("client")}</th>
                   <th className="px-4 py-3 text-start">{t("email") || "Email"}</th>
-                  <th className="px-4 py-3 text-start" title={t("members") || "Members"}><Users2 className="h-3.5 w-3.5" /></th>
-                  <th className="px-4 py-3 text-start" title={t("activities") || "Activities"}><ActivityIcon className="h-3.5 w-3.5" /></th>
+                  <th className="px-4 py-3 text-start" title={t("members") || "Members"}>
+                    <Users2 className="h-3.5 w-3.5" />
+                  </th>
+                  <th className="px-4 py-3 text-start" title={t("activities") || "Activities"}>
+                    <ActivityIcon className="h-3.5 w-3.5" />
+                  </th>
                   <th className="px-4 py-3 text-end">{t("leads") || "Leads"}</th>
                 </tr>
               </thead>
@@ -272,12 +300,20 @@ function ProjectsPage() {
                 {myProjects.map((p) => (
                   <tr key={p.id} className="hover:bg-primary/5 transition-colors">
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                      <Link to="/employee/projects/$projectId" params={{ projectId: p.id }} className="hover:text-primary">
+                      <Link
+                        to="/employee/projects/$projectId"
+                        params={{ projectId: p.id }}
+                        className="hover:text-primary"
+                      >
                         {shortId(p.id)}
                       </Link>
                     </td>
                     <td className="px-4 py-3">
-                      <Link to="/employee/projects/$projectId" params={{ projectId: p.id }} className="font-semibold text-foreground hover:text-primary">
+                      <Link
+                        to="/employee/projects/$projectId"
+                        params={{ projectId: p.id }}
+                        className="font-semibold text-foreground hover:text-primary"
+                      >
                         {p.name}
                       </Link>
                       {(p.accountType || p.category) && (
@@ -291,20 +327,29 @@ function ProjectsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-semibold tracking-wide text-foreground">{p.clientPhone || "—"}</div>
+                      <div className="font-semibold tracking-wide text-foreground">
+                        {p.clientPhone || "—"}
+                      </div>
                       <div className="text-xs text-muted-foreground">{p.client}</div>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">
                       {p.clientEmail || "—"}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">{p.team}</td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{activities?.filter((a) => a.projectId === p.id).length || 0}</td>
-                    <td className="px-4 py-3 text-end font-mono font-semibold text-primary">{leads?.filter((l) => l.projectId === p.id).length || 0}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">
+                      {activities?.filter((a) => a.projectId === p.id).length || 0}
+                    </td>
+                    <td className="px-4 py-3 text-end font-mono font-semibold text-primary">
+                      {leads?.filter((l) => l.projectId === p.id).length || 0}
+                    </td>
                   </tr>
                 ))}
                 {myProjects.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    <td
+                      colSpan={9}
+                      className="px-4 py-10 text-center text-sm text-muted-foreground"
+                    >
                       {L.notMember}
                     </td>
                   </tr>
@@ -323,16 +368,24 @@ function ProjectsPage() {
                 <tr className="border-b border-border bg-secondary/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   <th className="px-4 py-3 text-start">{isAr ? "اسم الحساب" : "Account Name"}</th>
                   <th className="px-4 py-3 text-start">{isAr ? "المالك" : "Owner"}</th>
-                  <th className="px-4 py-3 text-start">{isAr ? "جهة الاتصال الرئيسية" : "Main Contact"}</th>
+                  <th className="px-4 py-3 text-start">
+                    {isAr ? "جهة الاتصال الرئيسية" : "Main Contact"}
+                  </th>
                   <th className="px-4 py-3 text-start">{isAr ? "البريد الإلكتروني" : "Email"}</th>
-                  <th className="px-4 py-3 text-start">{isAr ? "جهات اتصال إضافية" : "Extra Contacts"}</th>
+                  <th className="px-4 py-3 text-start">
+                    {isAr ? "جهات اتصال إضافية" : "Extra Contacts"}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {myProjects.map((p) => {
                   const ownerName = getOwner(p);
                   const ownerPhoto = getOwnerPhoto(ownerName);
-                  const ownerInitials = ownerName.split(" ").map((w) => w[0]).join("").slice(0, 2);
+                  const ownerInitials = ownerName
+                    .split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .slice(0, 2);
                   const extras = p.extraContacts ?? [];
 
                   return (
@@ -347,7 +400,11 @@ function ProjectsPage() {
                           <div className="font-bold text-foreground text-sm">{p.name}</div>
                           {(p.accountType || p.category) && (
                             <div className="text-xs text-muted-foreground font-normal">
-                              {p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : p.category}
+                              {p.accountType
+                                ? p.accountType === "Other" && p.otherAccountType
+                                  ? p.otherAccountType
+                                  : p.accountType
+                                : p.category}
                             </div>
                           )}
                         </Link>
@@ -357,7 +414,11 @@ function ProjectsPage() {
                       <td className="align-top px-4 py-4">
                         <div className="flex items-center gap-2">
                           {ownerPhoto ? (
-                            <img src={ownerPhoto} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border" />
+                            <img
+                              src={ownerPhoto}
+                              alt=""
+                              className="h-6 w-6 rounded-full object-cover ring-1 ring-border"
+                            />
                           ) : (
                             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
                               {ownerInitials || "?"}
@@ -373,7 +434,9 @@ function ProjectsPage() {
                         {p.clientPhone && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                             <Phone className="h-3 w-3 text-primary/70" />
-                            <a href={`tel:${p.clientPhone}`} className="hover:underline">{p.clientPhone}</a>
+                            <a href={`tel:${p.clientPhone}`} className="hover:underline">
+                              {p.clientPhone}
+                            </a>
                           </div>
                         )}
                       </td>
@@ -381,7 +444,10 @@ function ProjectsPage() {
                       {/* Email */}
                       <td className="align-top px-4 py-4 text-sm">
                         {p.clientEmail ? (
-                          <a href={`mailto:${p.clientEmail}`} className="inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:underline">
+                          <a
+                            href={`mailto:${p.clientEmail}`}
+                            className="inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:underline"
+                          >
                             <Mail className="h-3.5 w-3.5" />
                             {p.clientEmail}
                           </a>
@@ -395,38 +461,51 @@ function ProjectsPage() {
                         {extras.length > 0 ? (
                           <div>
                             <div className="space-y-2">
-                              {(expandedContacts[p.id] ? extras : extras.slice(0, 2)).map((c: { name: string; title: string; phone: string; email: string }, i: number) => (
-                                <div
-                                  key={i}
-                                  className="rounded-lg border border-border/80 bg-secondary/30 p-2.5 text-xs space-y-1"
-                                >
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="font-bold text-foreground">{c.name}</span>
-                                    {c.title && (
-                                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                                        {c.title}
-                                      </span>
-                                    )}
+                              {(expandedContacts[p.id] ? extras : extras.slice(0, 2)).map(
+                                (
+                                  c: { name: string; title: string; phone: string; email: string },
+                                  i: number,
+                                ) => (
+                                  <div
+                                    key={i}
+                                    className="rounded-lg border border-border/80 bg-secondary/30 p-2.5 text-xs space-y-1"
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="font-bold text-foreground">{c.name}</span>
+                                      {c.title && (
+                                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                                          {c.title}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-[11px]">
+                                      {c.phone && (
+                                        <a
+                                          href={`tel:${c.phone}`}
+                                          className="inline-flex items-center gap-1 hover:text-foreground"
+                                        >
+                                          <Phone className="h-3 w-3 text-primary/70" /> {c.phone}
+                                        </a>
+                                      )}
+                                      {c.email && (
+                                        <a
+                                          href={`mailto:${c.email}`}
+                                          className="inline-flex items-center gap-1 hover:text-foreground"
+                                        >
+                                          <Mail className="h-3 w-3 text-primary/70" /> {c.email}
+                                        </a>
+                                      )}
+                                    </div>
                                   </div>
-                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-[11px]">
-                                    {c.phone && (
-                                      <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1 hover:text-foreground">
-                                        <Phone className="h-3 w-3 text-primary/70" /> {c.phone}
-                                      </a>
-                                    )}
-                                    {c.email && (
-                                      <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1 hover:text-foreground">
-                                        <Mail className="h-3 w-3 text-primary/70" /> {c.email}
-                                      </a>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
+                                ),
+                              )}
                             </div>
                             {extras.length > 2 && (
                               <button
                                 type="button"
-                                onClick={() => setExpandedContacts((prev) => ({ ...prev, [p.id]: !prev[p.id] }))}
+                                onClick={() =>
+                                  setExpandedContacts((prev) => ({ ...prev, [p.id]: !prev[p.id] }))
+                                }
                                 className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 hover:underline cursor-pointer"
                               >
                                 {expandedContacts[p.id] ? (
@@ -437,7 +516,9 @@ function ProjectsPage() {
                                 ) : (
                                   <>
                                     <ChevronDown className="h-3.5 w-3.5" />
-                                    {isAr ? `عرض ${extras.length - 2} المزيد` : `+ Show ${extras.length - 2} more`}
+                                    {isAr
+                                      ? `عرض ${extras.length - 2} المزيد`
+                                      : `+ Show ${extras.length - 2} more`}
                                   </>
                                 )}
                               </button>
@@ -455,7 +536,10 @@ function ProjectsPage() {
 
                 {myProjects.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    <td
+                      colSpan={5}
+                      className="px-4 py-10 text-center text-sm text-muted-foreground"
+                    >
                       {L.notMember}
                     </td>
                   </tr>
@@ -482,7 +566,9 @@ function ProjectsPage() {
                     {(p.accountType || p.category) &&
                       ` · ${p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : p.category}`}
                   </div>
-                  <h3 className="mt-1 font-display text-base font-bold text-foreground">{p.name}</h3>
+                  <h3 className="mt-1 font-display text-base font-bold text-foreground">
+                    {p.name}
+                  </h3>
                 </div>
                 <div className="text-end">
                   <div className="inline-block rounded-full bg-secondary/50 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-muted-foreground">
@@ -499,9 +585,18 @@ function ProjectsPage() {
               </div>
               <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs">
                 <div className="flex items-center gap-3 text-muted-foreground">
-                  <span className="flex items-center gap-1"><Users2 className="h-3.5 w-3.5" />{p.team}</span>
-                  <span className="flex items-center gap-1" title="Leads"><Target className="h-3.5 w-3.5" />{leads?.filter((l) => l.projectId === p.id).length || 0}</span>
-                  <span className="flex items-center gap-1" title="Activities"><ActivityIcon className="h-3.5 w-3.5" />{activities?.filter((a) => a.projectId === p.id).length || 0}</span>
+                  <span className="flex items-center gap-1">
+                    <Users2 className="h-3.5 w-3.5" />
+                    {p.team}
+                  </span>
+                  <span className="flex items-center gap-1" title="Leads">
+                    <Target className="h-3.5 w-3.5" />
+                    {leads?.filter((l) => l.projectId === p.id).length || 0}
+                  </span>
+                  <span className="flex items-center gap-1" title="Activities">
+                    <ActivityIcon className="h-3.5 w-3.5" />
+                    {activities?.filter((a) => a.projectId === p.id).length || 0}
+                  </span>
                 </div>
                 <div className="font-mono font-bold text-primary">{fmtMoney(p.budget)}</div>
               </div>
@@ -514,7 +609,6 @@ function ProjectsPage() {
           )}
         </div>
       )}
-
 
       {showDialog && (
         <ProjectRequestDialog

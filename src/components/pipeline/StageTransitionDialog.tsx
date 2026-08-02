@@ -176,8 +176,10 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
       const init: Record<string, string> = {};
       for (const f of fieldsFor(payload.toStage)) {
         if (f.type === "date") init[f.name] = today();
-        else if (f.name === "budget" && payload.lead.value) init[f.name] = payload.lead.value.toString();
-        else if (f.name === "amount" && payload.lead.value) init[f.name] = payload.lead.value.toString();
+        else if (f.name === "budget" && payload.lead.value)
+          init[f.name] = payload.lead.value.toString();
+        else if (f.name === "amount" && payload.lead.value)
+          init[f.name] = payload.lead.value.toString();
         else init[f.name] = "";
       }
       setValues(init);
@@ -254,7 +256,7 @@ export function StageTransitionDialog({ open, payload, onClose }: Props) {
     if (toStage === "won") {
       const hasCatalogItems = leadCatalogItems.some((l) => l.leadId === lead.id);
       const validationErrs = await sbValidateLeadWon(lead.id, hasCatalogItems);
-      
+
       if (validationErrs.length > 0) {
         toast.error(`Cannot move to Won: ${validationErrs.join(" ")}`);
         setIsSubmitting(false);

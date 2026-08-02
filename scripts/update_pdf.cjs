@@ -1,16 +1,16 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-let code = fs.readFileSync('src/components/leads/LeadDetailsPage.tsx', 'utf-8');
+let code = fs.readFileSync("src/components/leads/LeadDetailsPage.tsx", "utf-8");
 
 // Read logo as base64
-const logoPath = path.join(__dirname, 'public', 'logo.png');
-const logoBase64 = fs.readFileSync(logoPath).toString('base64');
+const logoPath = path.join(__dirname, "public", "logo.png");
+const logoBase64 = fs.readFileSync(logoPath).toString("base64");
 
 // Replace the handleDownloadNotesPdf function
 const oldFn = code.substring(
-  code.indexOf('  const handleDownloadNotesPdf'),
-  code.indexOf('  };\n', code.indexOf('  const handleDownloadNotesPdf')) + 4
+  code.indexOf("  const handleDownloadNotesPdf"),
+  code.indexOf("  };\n", code.indexOf("  const handleDownloadNotesPdf")) + 4,
 );
 
 const newFn = `  const handleDownloadNotesPdf = () => {
@@ -193,5 +193,5 @@ const newFn = `  const handleDownloadNotesPdf = () => {
 
 code = code.replace(oldFn, newFn);
 
-fs.writeFileSync('src/components/leads/LeadDetailsPage.tsx', code, 'utf-8');
-console.log('Done — logo embedded, brand colors applied, lead details added.');
+fs.writeFileSync("src/components/leads/LeadDetailsPage.tsx", code, "utf-8");
+console.log("Done — logo embedded, brand colors applied, lead details added.");

@@ -153,7 +153,9 @@ export function BilingualImportBar({
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
       const seen = new Set(existingEn.map((s) => s.trim().toLowerCase()));
-      let ok = 0, fail = 0, dup = 0;
+      let ok = 0,
+        fail = 0,
+        dup = 0;
       for (const r of rows) {
         const get = (keys: string[]) => {
           for (const k of keys) {
@@ -162,11 +164,25 @@ export function BilingualImportBar({
           }
           return "";
         };
-        const en = get(["Name (EN)", "Name EN", "name_en", "name", "Name", "Title (EN)", "Title EN", "title_en", "title", "Title"]);
+        const en = get([
+          "Name (EN)",
+          "Name EN",
+          "name_en",
+          "name",
+          "Name",
+          "Title (EN)",
+          "Title EN",
+          "title_en",
+          "title",
+          "Title",
+        ]);
         const ar = get(["Name (AR)", "Name AR", "name_ar", "Title (AR)", "Title AR", "title_ar"]);
         if (!en) continue;
         const key = en.toLowerCase();
-        if (seen.has(key)) { dup++; continue; }
+        if (seen.has(key)) {
+          dup++;
+          continue;
+        }
         seen.add(key);
         try {
           await onImportRow({ en, ar });
@@ -175,7 +191,9 @@ export function BilingualImportBar({
           fail++;
         }
       }
-      toast.success(`Imported ${ok} ${label}${dup ? ` · ${dup} duplicate${dup === 1 ? "" : "s"} skipped` : ""}${fail ? ` · ${fail} failed` : ""}`);
+      toast.success(
+        `Imported ${ok} ${label}${dup ? ` · ${dup} duplicate${dup === 1 ? "" : "s"} skipped` : ""}${fail ? ` · ${fail} failed` : ""}`,
+      );
     } catch (err) {
       toast.error(`Import failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -200,8 +218,16 @@ export function BilingualImportBar({
       >
         <Upload className="h-3.5 w-3.5" /> {busy ? "Importing…" : "Import from Excel"}
       </button>
-      <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImport} className="hidden" />
-      <span className="ms-auto text-[11px] text-muted-foreground">Columns: Name (EN), Name (AR)</span>
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".xlsx,.xls,.csv"
+        onChange={handleImport}
+        className="hidden"
+      />
+      <span className="ms-auto text-[11px] text-muted-foreground">
+        Columns: Name (EN), Name (AR)
+      </span>
     </div>
   );
 }

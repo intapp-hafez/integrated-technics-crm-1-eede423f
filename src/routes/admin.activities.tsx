@@ -342,12 +342,13 @@ function ActivitiesPage() {
       "Approved At",
       "Rejection Reason",
       "Review Note",
-      "Created By"
+      "Created By",
     ];
 
     const rows = list.map((a) => {
       const lead = leads.find((l) => l.id === a.leadId);
-      const ownerName = a.owner && a.owner !== "Unassigned" ? a.owner : a.createdByName ?? "Unassigned";
+      const ownerName =
+        a.owner && a.owner !== "Unassigned" ? a.owner : (a.createdByName ?? "Unassigned");
       return [
         `"${(a.id || "").toString().replace(/"/g, '""')}"`,
         `"${(a.title || "").replace(/"/g, '""')}"`,
@@ -366,7 +367,7 @@ function ActivitiesPage() {
         `"${(a.approvedAt || "").replace(/"/g, '""')}"`,
         `"${(a.rejectionReason || "").replace(/"/g, '""')}"`,
         `"${(a.reviewNote || "").replace(/"/g, '""')}"`,
-        `"${(a.createdByName ?? a.createdBy ?? "").replace(/"/g, '""')}"`
+        `"${(a.createdByName ?? a.createdBy ?? "").replace(/"/g, '""')}"`,
       ];
     });
 
@@ -440,10 +441,11 @@ function ActivitiesPage() {
                   setPeriod(p.key);
                   setOwnerFilter("all");
                 }}
-                className={`group relative inline-flex items-center gap-2 rounded-t-xl border border-b-0 px-4 py-2.5 text-sm font-semibold transition ${active
+                className={`group relative inline-flex items-center gap-2 rounded-t-xl border border-b-0 px-4 py-2.5 text-sm font-semibold transition ${
+                  active
                     ? "border-border bg-card text-foreground shadow-[var(--shadow-soft)]"
                     : "border-transparent bg-transparent text-muted-foreground hover:bg-card/60 hover:text-foreground"
-                  }`}
+                }`}
               >
                 <CalendarDays className={`h-4 w-4 ${active ? "text-primary" : ""}`} />
                 {periodLabelMap[p.key]}
@@ -463,31 +465,57 @@ function ActivitiesPage() {
             onClick={() => setStatusFilter("all")}
             className={`text-start transition rounded-xl p-1 -m-1 ring-2 ${statusFilter === "all" ? "ring-primary/40" : "ring-transparent hover:ring-border"}`}
           >
-            <Kpi icon={ActivityIcon} label={t("kpiTotal")} value={String(kpis.total)} tone="text-foreground" />
+            <Kpi
+              icon={ActivityIcon}
+              label={t("kpiTotal")}
+              value={String(kpis.total)}
+              tone="text-foreground"
+            />
           </button>
           <button
             onClick={() => setStatusFilter(statusFilter === "done" ? "all" : "done")}
             className={`text-start transition rounded-xl p-1 -m-1 ring-2 ${statusFilter === "done" ? "ring-emerald-400/50" : "ring-transparent hover:ring-border"}`}
           >
-            <Kpi icon={CheckCircle2} label={t("kpiDone")} value={String(kpis.done)} tone="text-emerald-600" />
+            <Kpi
+              icon={CheckCircle2}
+              label={t("kpiDone")}
+              value={String(kpis.done)}
+              tone="text-emerald-600"
+            />
           </button>
           <button
             onClick={() => setStatusFilter(statusFilter === "in_progress" ? "all" : "in_progress")}
             className={`text-start transition rounded-xl p-1 -m-1 ring-2 ${statusFilter === "in_progress" ? "ring-amber-400/50" : "ring-transparent hover:ring-border"}`}
           >
-            <Kpi icon={PlayCircle} label={t("kpiInProgress")} value={String(kpis.inprog)} tone="text-amber-600" />
+            <Kpi
+              icon={PlayCircle}
+              label={t("kpiInProgress")}
+              value={String(kpis.inprog)}
+              tone="text-amber-600"
+            />
           </button>
           <button
             onClick={() => setStatusFilter(statusFilter === "pending" ? "all" : "pending")}
             className={`text-start transition rounded-xl p-1 -m-1 ring-2 ${statusFilter === "pending" ? "ring-muted-foreground/30" : "ring-transparent hover:ring-border"}`}
           >
-            <Kpi icon={Circle} label={t("kpiPending")} value={String(kpis.pending)} tone="text-muted-foreground" />
+            <Kpi
+              icon={Circle}
+              label={t("kpiPending")}
+              value={String(kpis.pending)}
+              tone="text-muted-foreground"
+            />
           </button>
           <button
             onClick={() => setStatusFilter("all")}
             className="text-start transition rounded-xl p-1 -m-1 ring-2 ring-transparent hover:ring-border"
           >
-            <Kpi icon={TrendingUp} label={t("kpiCompletion")} value={`${kpis.completion}%`} tone="text-primary" sub={fmtH(kpis.mins)} />
+            <Kpi
+              icon={TrendingUp}
+              label={t("kpiCompletion")}
+              value={`${kpis.completion}%`}
+              tone="text-primary"
+              sub={fmtH(kpis.mins)}
+            />
           </button>
         </div>
       </div>
@@ -525,8 +553,9 @@ function ActivitiesPage() {
                 <button
                   key={e.name}
                   onClick={() => setOwnerFilter(isActive ? "all" : e.name)}
-                  className={`group text-start rounded-2xl border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:-translate-y-0.5 hover:border-primary hover:shadow-lg ${isActive ? "border-primary ring-2 ring-primary/30" : "border-border"
-                    }`}
+                  className={`group text-start rounded-2xl border bg-card p-4 shadow-[var(--shadow-soft)] transition hover:-translate-y-0.5 hover:border-primary hover:shadow-lg ${
+                    isActive ? "border-primary ring-2 ring-primary/30" : "border-border"
+                  }`}
                 >
                   <div className="flex items-center gap-3">
                     {e.photo ? (
@@ -624,10 +653,11 @@ function ActivitiesPage() {
             <button
               key={tp}
               onClick={() => setFilter(tp as any)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${filter === tp
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                filter === tp
                   ? "bg-primary text-primary-foreground"
                   : "bg-card text-foreground ring-1 ring-border hover:bg-accent"
-                }`}
+              }`}
             >
               {tp === "all" ? t("all") : ACT_I18N[tp] ? t(ACT_I18N[tp]) : tp}
             </button>
@@ -750,7 +780,9 @@ function ActivitiesPage() {
                           <span className="text-sm text-muted-foreground">{displayName}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{formatDate(a.dueDate)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDate(a.dueDate)}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{a.time}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {lead?.company ?? a.projectId ?? "—"}

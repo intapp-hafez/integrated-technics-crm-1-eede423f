@@ -109,7 +109,7 @@ function ManagerNotesPage() {
       await queryClient.cancelQueries({ queryKey: ["sticky_notes", profile?.id] });
       const previousNotes = queryClient.getQueryData(["sticky_notes", profile?.id]);
       queryClient.setQueryData(["sticky_notes", profile?.id], (old: any) =>
-        old.map((n: any) => (n.id === newNote.id ? { ...n, ...newNote } : n))
+        old.map((n: any) => (n.id === newNote.id ? { ...n, ...newNote } : n)),
       );
       return { previousNotes };
     },
@@ -124,7 +124,10 @@ function ManagerNotesPage() {
 
   const deleteNoteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("sticky_notes" as any).delete().eq("id", id);
+      const { error } = await supabase
+        .from("sticky_notes" as any)
+        .delete()
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -145,7 +148,9 @@ function ManagerNotesPage() {
               {t("stickyNotes" as any) || "Sticky Notes"}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {lang === "ar" ? "أضف ملاحظاتك وأفكارك السريعة." : "Add your quick thoughts and notes."}
+              {lang === "ar"
+                ? "أضف ملاحظاتك وأفكارك السريعة."
+                : "Add your quick thoughts and notes."}
             </p>
           </div>
           <button

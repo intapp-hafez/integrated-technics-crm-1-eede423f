@@ -59,13 +59,17 @@ function ProjectsPage() {
     if (p.createdBy) {
       const u = users?.find((usr: any) => usr.id === p.createdBy || usr.profileId === p.createdBy);
       if (u?.name && !u.name.includes("-")) return u.name;
-      const e = employees?.find((emp: any) => emp.id === p.createdBy || emp.profileId === p.createdBy);
+      const e = employees?.find(
+        (emp: any) => emp.id === p.createdBy || emp.profileId === p.createdBy,
+      );
       if (e?.name && !e.name.includes("-")) return e.name;
     }
     if (p.createdByName) return p.createdByName;
     if (p.teamMembers && p.teamMembers.length > 0) {
       const tm = p.teamMembers[0];
-      const e = employees?.find((emp: any) => emp.id === tm || emp.profileId === tm || emp.name === tm);
+      const e = employees?.find(
+        (emp: any) => emp.id === tm || emp.profileId === tm || emp.name === tm,
+      );
       if (e?.name && !e.name.includes("-")) return e.name;
       const u = users?.find((usr: any) => usr.id === tm || usr.profileId === tm || usr.name === tm);
       if (u?.name && !u.name.includes("-")) return u.name;
@@ -188,7 +192,7 @@ function ProjectsPage() {
           c.name.toLowerCase().includes(q) ||
           c.title?.toLowerCase().includes(q) ||
           c.phone.includes(q) ||
-          c.email?.toLowerCase().includes(q)
+          c.email?.toLowerCase().includes(q),
       );
       if (
         !p.name.toLowerCase().includes(q) &&
@@ -277,15 +281,22 @@ function ProjectsPage() {
     if (view === "contacts") {
       const rows = filtered.map((p) => ({
         "Account Name": p.name,
-        "Account Type": p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : (p.category || ""),
-        "Owner": getOwner(p),
+        "Account Type": p.accountType
+          ? p.accountType === "Other" && p.otherAccountType
+            ? p.otherAccountType
+            : p.accountType
+          : p.category || "",
+        Owner: getOwner(p),
         "Main Contact": p.client || "",
         "Main Phone": p.clientPhone || "",
         "Main Email": p.clientEmail || "",
         "Extra Contacts Count": p.extraContacts?.length || 0,
         "Extra Contacts": p.extraContacts
           ? (p.extraContacts as any[])
-              .map((c) => `${c.name}${c.title ? ` (${c.title})` : ""}${c.phone ? ` - ${c.phone}` : ""}${c.email ? ` - ${c.email}` : ""}`)
+              .map(
+                (c) =>
+                  `${c.name}${c.title ? ` (${c.title})` : ""}${c.phone ? ` - ${c.phone}` : ""}${c.email ? ` - ${c.email}` : ""}`,
+              )
               .join("; ")
           : "",
       }));
@@ -560,7 +571,8 @@ function ProjectsPage() {
                     onClick={() => setView("contacts")}
                     className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition ${view === "contacts" ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]" : "text-muted-foreground hover:text-foreground"}`}
                   >
-                    <UserCheck className="h-3.5 w-3.5" /> {isAr ? "دليل جهات الاتصال" : "Contacts View"}
+                    <UserCheck className="h-3.5 w-3.5" />{" "}
+                    {isAr ? "دليل جهات الاتصال" : "Contacts View"}
                   </button>
                 </div>
               </div>
@@ -636,7 +648,9 @@ function ProjectsPage() {
                           )}
                         </td>
                         <td className="px-3 py-2.5">
-                          <div className="font-semibold tracking-wide text-foreground">{p.clientPhone || "—"}</div>
+                          <div className="font-semibold tracking-wide text-foreground">
+                            {p.clientPhone || "—"}
+                          </div>
                           <div className="text-xs text-muted-foreground">{p.client}</div>
                         </td>
                         <td className="px-3 py-2.5 text-muted-foreground">{getOwner(p)}</td>
@@ -695,18 +709,30 @@ function ProjectsPage() {
                 <table className="w-full min-w-[960px] text-sm">
                   <thead>
                     <tr className="border-b border-border bg-secondary/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      <th className="px-4 py-3 text-start">{isAr ? "اسم الحساب" : "Account Name"}</th>
+                      <th className="px-4 py-3 text-start">
+                        {isAr ? "اسم الحساب" : "Account Name"}
+                      </th>
                       <th className="px-4 py-3 text-start">{isAr ? "المالك" : "Owner"}</th>
-                      <th className="px-4 py-3 text-start">{isAr ? "جهة الاتصال الرئيسية" : "Main Contact"}</th>
-                      <th className="px-4 py-3 text-start">{isAr ? "البريد الإلكتروني" : "Email"}</th>
-                      <th className="px-4 py-3 text-start">{isAr ? "جهات اتصال إضافية" : "Extra Contacts"}</th>
+                      <th className="px-4 py-3 text-start">
+                        {isAr ? "جهة الاتصال الرئيسية" : "Main Contact"}
+                      </th>
+                      <th className="px-4 py-3 text-start">
+                        {isAr ? "البريد الإلكتروني" : "Email"}
+                      </th>
+                      <th className="px-4 py-3 text-start">
+                        {isAr ? "جهات اتصال إضافية" : "Extra Contacts"}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {sorted.map((p: Project) => {
                       const ownerName = getOwner(p);
                       const ownerPhoto = getOwnerPhoto(ownerName);
-                      const ownerInitials = ownerName.split(" ").map((w: string) => w[0]).join("").slice(0, 2);
+                      const ownerInitials = ownerName
+                        .split(" ")
+                        .map((w: string) => w[0])
+                        .join("")
+                        .slice(0, 2);
                       const extras = p.extraContacts ?? [];
 
                       return (
@@ -720,7 +746,11 @@ function ProjectsPage() {
                               <div className="font-bold text-foreground text-sm">{p.name}</div>
                               {(p.accountType || p.category) && (
                                 <div className="text-xs text-muted-foreground font-normal">
-                                  {p.accountType ? (p.accountType === "Other" && p.otherAccountType ? p.otherAccountType : p.accountType) : p.category}
+                                  {p.accountType
+                                    ? p.accountType === "Other" && p.otherAccountType
+                                      ? p.otherAccountType
+                                      : p.accountType
+                                    : p.category}
                                 </div>
                               )}
                             </Link>
@@ -728,13 +758,19 @@ function ProjectsPage() {
                           <td className="align-top px-4 py-4">
                             <div className="flex items-center gap-2">
                               {ownerPhoto ? (
-                                <img src={ownerPhoto} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border" />
+                                <img
+                                  src={ownerPhoto}
+                                  alt=""
+                                  className="h-6 w-6 rounded-full object-cover ring-1 ring-border"
+                                />
                               ) : (
                                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
                                   {ownerInitials || "?"}
                                 </div>
                               )}
-                              <span className="text-sm font-medium text-foreground">{ownerName}</span>
+                              <span className="text-sm font-medium text-foreground">
+                                {ownerName}
+                              </span>
                             </div>
                           </td>
                           <td className="align-top px-4 py-4">
@@ -742,13 +778,18 @@ function ProjectsPage() {
                             {p.clientPhone && (
                               <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                                 <Phone className="h-3 w-3 text-primary/70" />
-                                <a href={`tel:${p.clientPhone}`} className="hover:underline">{p.clientPhone}</a>
+                                <a href={`tel:${p.clientPhone}`} className="hover:underline">
+                                  {p.clientPhone}
+                                </a>
                               </div>
                             )}
                           </td>
                           <td className="align-top px-4 py-4 text-sm">
                             {p.clientEmail ? (
-                              <a href={`mailto:${p.clientEmail}`} className="inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:underline">
+                              <a
+                                href={`mailto:${p.clientEmail}`}
+                                className="inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:underline"
+                              >
                                 <Mail className="h-3.5 w-3.5" />
                                 {p.clientEmail}
                               </a>
@@ -760,38 +801,62 @@ function ProjectsPage() {
                             {extras.length > 0 ? (
                               <div>
                                 <div className="space-y-2">
-                                  {(expandedContacts[p.id] ? extras : extras.slice(0, 2)).map((c: { name: string; title: string; phone: string; email: string }, i: number) => (
-                                    <div
-                                      key={i}
-                                      className="rounded-lg border border-border/80 bg-secondary/30 p-2.5 text-xs space-y-1"
-                                    >
-                                      <div className="flex items-center justify-between gap-2">
-                                        <span className="font-bold text-foreground">{c.name}</span>
-                                        {c.title && (
-                                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                                            {c.title}
+                                  {(expandedContacts[p.id] ? extras : extras.slice(0, 2)).map(
+                                    (
+                                      c: {
+                                        name: string;
+                                        title: string;
+                                        phone: string;
+                                        email: string;
+                                      },
+                                      i: number,
+                                    ) => (
+                                      <div
+                                        key={i}
+                                        className="rounded-lg border border-border/80 bg-secondary/30 p-2.5 text-xs space-y-1"
+                                      >
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="font-bold text-foreground">
+                                            {c.name}
                                           </span>
-                                        )}
+                                          {c.title && (
+                                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                                              {c.title}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-[11px]">
+                                          {c.phone && (
+                                            <a
+                                              href={`tel:${c.phone}`}
+                                              className="inline-flex items-center gap-1 hover:text-foreground"
+                                            >
+                                              <Phone className="h-3 w-3 text-primary/70" />{" "}
+                                              {c.phone}
+                                            </a>
+                                          )}
+                                          {c.email && (
+                                            <a
+                                              href={`mailto:${c.email}`}
+                                              className="inline-flex items-center gap-1 hover:text-foreground"
+                                            >
+                                              <Mail className="h-3 w-3 text-primary/70" /> {c.email}
+                                            </a>
+                                          )}
+                                        </div>
                                       </div>
-                                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-[11px]">
-                                        {c.phone && (
-                                          <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1 hover:text-foreground">
-                                            <Phone className="h-3 w-3 text-primary/70" /> {c.phone}
-                                          </a>
-                                        )}
-                                        {c.email && (
-                                          <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1 hover:text-foreground">
-                                            <Mail className="h-3 w-3 text-primary/70" /> {c.email}
-                                          </a>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))}
+                                    ),
+                                  )}
                                 </div>
                                 {extras.length > 2 && (
                                   <button
                                     type="button"
-                                    onClick={() => setExpandedContacts((prev) => ({ ...prev, [p.id]: !prev[p.id] }))}
+                                    onClick={() =>
+                                      setExpandedContacts((prev) => ({
+                                        ...prev,
+                                        [p.id]: !prev[p.id],
+                                      }))
+                                    }
                                     className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 hover:underline cursor-pointer"
                                   >
                                     {expandedContacts[p.id] ? (
@@ -802,7 +867,9 @@ function ProjectsPage() {
                                     ) : (
                                       <>
                                         <ChevronDown className="h-3.5 w-3.5" />
-                                        {isAr ? `عرض ${extras.length - 2} المزيد` : `+ Show ${extras.length - 2} more`}
+                                        {isAr
+                                          ? `عرض ${extras.length - 2} المزيد`
+                                          : `+ Show ${extras.length - 2} more`}
                                       </>
                                     )}
                                   </button>
@@ -820,7 +887,10 @@ function ProjectsPage() {
 
                     {sorted.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                        <td
+                          colSpan={5}
+                          className="px-4 py-10 text-center text-sm text-muted-foreground"
+                        >
                           {t("nothingHere") ?? "No accounts found matching your filters."}
                         </td>
                       </tr>
@@ -856,7 +926,9 @@ function ProjectsPage() {
                         <div className="inline-block rounded-full bg-secondary/50 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-muted-foreground">
                           {p.clientPhone || "—"}
                         </div>
-                        <div className="mt-1 pr-1 text-[11px] text-muted-foreground">{p.client}</div>
+                        <div className="mt-1 pr-1 text-[11px] text-muted-foreground">
+                          {p.client}
+                        </div>
                       </div>
                     </div>
 
@@ -887,17 +959,24 @@ function ProjectsPage() {
                           {p.team} {t("members")}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-muted-foreground" title={t("leads") || "Leads"}>
+                      <div
+                        className="flex items-center gap-1.5 text-muted-foreground"
+                        title={t("leads") || "Leads"}
+                      >
                         <Target className="h-3.5 w-3.5" />
                         <span>{leads?.filter((l) => l.projectId === p.id).length || 0}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-muted-foreground" title={t("activities") || "Activities"}>
+                      <div
+                        className="flex items-center gap-1.5 text-muted-foreground"
+                        title={t("activities") || "Activities"}
+                      >
                         <ActivityIcon className="h-3.5 w-3.5" />
                         <span>{activities?.filter((a) => a.projectId === p.id).length || 0}</span>
                       </div>
                       <div className="text-end">
                         <div className="font-mono font-bold text-primary">
-                          {leads?.filter((l) => l.projectId === p.id).length || 0} {t("leads") || "Leads"}
+                          {leads?.filter((l) => l.projectId === p.id).length || 0}{" "}
+                          {t("leads") || "Leads"}
                         </div>
                       </div>
                     </div>

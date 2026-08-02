@@ -80,22 +80,10 @@ export async function reverseGeocode(lat: number, lng: number): Promise<GeoAddre
       "";
 
     const district =
-      a.suburb ||
-      a.neighbourhood ||
-      a.quarter ||
-      a.village ||
-      a.hamlet ||
-      a.borough ||
-      "";
+      a.suburb || a.neighbourhood || a.quarter || a.village || a.hamlet || a.borough || "";
 
     const city =
-      a.city ||
-      a.town ||
-      a.municipality ||
-      a.county ||
-      a.state_district ||
-      a.state ||
-      "";
+      a.city || a.town || a.municipality || a.county || a.state_district || a.state || "";
 
     const label = [street, district, city].filter(Boolean).join(", ") || json.display_name || "";
 

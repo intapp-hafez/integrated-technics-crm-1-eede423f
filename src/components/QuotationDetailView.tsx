@@ -376,7 +376,9 @@ export function QuotationDetailView({
             <div className="mt-1 font-mono text-3xl font-bold text-primary">
               {fmtMoney(q.value)}
             </div>
-            <div className="mt-1 text-[11px] text-muted-foreground">{q.currency === "SAR" ? "USD" : (q.currency ?? "USD")}</div>
+            <div className="mt-1 text-[11px] text-muted-foreground">
+              {q.currency === "SAR" ? "USD" : (q.currency ?? "USD")}
+            </div>
             {description && (
               <p className="mt-3 rounded-lg bg-background/60 p-3 text-xs italic text-muted-foreground whitespace-pre-line">
                 {description}
@@ -542,7 +544,11 @@ function QuotationActivities({
 }) {
   const related = (activities ?? [])
     .filter((a) => leadId && a.leadId === leadId)
-    .sort((a, b) => `${formatDate(b.dueDate)} ${b.time ?? ""}`.localeCompare(`${formatDate(a.dueDate)} ${a.time ?? ""}`));
+    .sort((a, b) =>
+      `${formatDate(b.dueDate)} ${b.time ?? ""}`.localeCompare(
+        `${formatDate(a.dueDate)} ${a.time ?? ""}`,
+      ),
+    );
 
   const iconFor = (t: string) => {
     const k = String(t || "").toLowerCase();

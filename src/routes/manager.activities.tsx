@@ -362,7 +362,9 @@ function ManagerActivitiesPage() {
                             );
                           })()}
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{formatDate(a.dueDate)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDate(a.dueDate)}
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{a.time}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {lead?.company ?? "â€”"}
@@ -567,5 +569,3 @@ function ManagerActivitiesPage() {
     </AppShell>
   );
 }
-
-

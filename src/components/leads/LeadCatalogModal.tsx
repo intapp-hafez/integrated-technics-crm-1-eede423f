@@ -21,7 +21,9 @@ export function LeadCatalogModal({
   const [saving, setSaving] = useState(false);
 
   const filtered = catalogItems.filter((c) => {
-    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.category.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch =
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.category.toLowerCase().includes(search.toLowerCase());
     const matchesType = typeFilter === "all" || c.type === typeFilter;
     return matchesSearch && matchesType;
   });
@@ -115,14 +117,18 @@ export function LeadCatalogModal({
                   <div
                     key={item.id}
                     className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                      isSelected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"
+                      isSelected
+                        ? "border-primary bg-primary/5"
+                        : "border-border bg-card hover:border-primary/50"
                     }`}
                   >
-                    <div 
+                    <div
                       className="flex-1 flex items-center gap-3 cursor-pointer"
                       onClick={() => toggleItem(item)}
                     >
-                      <div className={`h-5 w-5 rounded-md border flex items-center justify-center shrink-0 ${isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"}`}>
+                      <div
+                        className={`h-5 w-5 rounded-md border flex items-center justify-center shrink-0 ${isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"}`}
+                      >
                         {isSelected && <Check className="h-3.5 w-3.5" />}
                       </div>
                       <div>
@@ -134,7 +140,9 @@ export function LeadCatalogModal({
                     </div>
                     {isSelected && (
                       <div className="flex items-center gap-2">
-                        <label className="text-xs text-muted-foreground">{isAr ? "الكمية:" : "Qty:"}</label>
+                        <label className="text-xs text-muted-foreground">
+                          {isAr ? "الكمية:" : "Qty:"}
+                        </label>
                         <input
                           type="number"
                           min="1"

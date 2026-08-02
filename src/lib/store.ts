@@ -890,7 +890,7 @@ export function useStoreState(): State {
 function logHistory(entry: Omit<HistoryEntry, "id" | "ts"> & { actor?: string }) {
   const normalizedEntry = { ...entry, actor: entry.actor ?? "System" };
   set((s) => ({ ...s, history: [{ id: id("H"), ts: now(), ...normalizedEntry }, ...s.history] }));
-  
+
   // Call Supabase to persist the history entry
   void sb.sbAddHistory({
     module: entry.module as any,
@@ -944,7 +944,7 @@ export const actions = {
       details: "Awaiting admin approval",
     });
     sb.sbUpdateLead(leadId, { pendingWonApproval: true });
-    
+
     // Notify admins
     const admins = state.users.filter((u) => u.role === "admin").map((u) => u.name);
     if (admins.length > 0) {
@@ -968,7 +968,13 @@ export const actions = {
       ownerName = lead?.owner ?? "";
       const updatedLeads = s.leads.map((l) => {
         if (l.id === leadId) {
-          return { ...l, status: "won", pendingWonApproval: false, updatedAt: "just now", probability: 100 };
+          return {
+            ...l,
+            status: "won",
+            pendingWonApproval: false,
+            updatedAt: "just now",
+            probability: 100,
+          };
         }
         return l;
       });
@@ -986,7 +992,7 @@ export const actions = {
       details: "Admin approved the won stage",
     });
     sb.sbUpdateLead(leadId, { status: "won", pendingWonApproval: false, probability: 100 });
-    
+
     if (ownerName && ownerName !== actor) {
       pushNotificationInternal({
         type: "lead",
@@ -1002,7 +1008,7 @@ export const actions = {
   moveLead(leadId: string, to: LeadStatus, actor?: string) {
     let from: LeadStatus | undefined;
     let company = "";
-    
+
     set((s) => {
       from = s.leads.find((l) => l.id === leadId)?.status;
       company = s.leads.find((l) => l.id === leadId)?.company ?? "";
@@ -1019,7 +1025,9 @@ export const actions = {
         ...s,
         leads: updatedLeads,
         celebrationLead:
-          to === "won" && from !== "won" ? updatedLeads.find((l) => l.id === leadId) || null : s.celebrationLead,
+          to === "won" && from !== "won"
+            ? updatedLeads.find((l) => l.id === leadId) || null
+            : s.celebrationLead,
       };
     });
     if (from && from !== to) {
@@ -2138,7 +2146,10 @@ export const actions = {
     pushNotificationInternal({
       type: "quotation",
       titleEn: patch.status === "accepted" ? "Quotation approved" : "Quotation updated",
-      titleAr: patch.status === "accepted" ? "ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø¹Ø±Ø¶" : "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¹Ø±Ø¶",
+      titleAr:
+        patch.status === "accepted"
+          ? "ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø¹Ø±Ø¶"
+          : "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¹Ø±Ø¶",
       bodyEn: `${next.id} Â· ${next.client} â€” ${details.join(" Â· ") || "updated"}`,
       bodyAr: `${next.id} Â· ${next.client} â€” ${details.join(" Â· ") || "ØªØ­Ø¯ÙŠØ«"}`,
       href: `/admin/offers/${next.id}`,
@@ -2158,10 +2169,10 @@ export const actions = {
         for (const r of rows) {
           if (!perms[r.role]) continue;
           const ops: CrudOp[] = [];
-          if (r.can_create) ops.push('create');
-          if (r.can_read) ops.push('read');
-          if (r.can_update) ops.push('update');
-          if (r.can_delete) ops.push('delete');
+          if (r.can_create) ops.push("create");
+          if (r.can_read) ops.push("read");
+          if (r.can_update) ops.push("update");
+          if (r.can_delete) ops.push("delete");
           const cur = perms[r.role as UserRoleKey];
           const pages = ops.length
             ? Array.from(new Set([...cur.pages, r.page]))

@@ -126,9 +126,13 @@ using (
   or owner_id = public.current_profile_id()
 );
 
-create policy "activities: delete admin/manager"
+create policy "activities: delete admin/manager/owner_pending"
 on public.activities for delete to authenticated
-using (public.has_role(auth.uid(),'admin') or public.has_role(auth.uid(),'manager'));
+using (
+  public.has_role(auth.uid(),'admin') 
+  or public.has_role(auth.uid(),'manager')
+  or (owner_id = public.current_profile_id() and status = 'pending')
+);
 
 ------------------------------------------------------------
 -- projects

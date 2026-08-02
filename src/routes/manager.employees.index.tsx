@@ -3,6 +3,7 @@ import { shortId } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
+import { computeEmployeeKpis } from "@/lib/employeeTargets";
 import { useMyTeam } from "@/lib/useMyTeam";
 import { LayoutGrid, List, TrendingUp, Clock4, Phone, Mail } from "lucide-react";
 import logo from "@/assets/logo.png";
@@ -66,7 +67,7 @@ function Avatar({
 
 function ManagerEmployeesPage() {
   const { t, dir } = useI18n();
-  const { activities, leads } = useStoreState();
+  const { activities, leads, attendance } = useStoreState();
   const { teamEmployees: employees } = useMyTeam();
   const [view, setView] = useState<"card" | "table">("card");
   const [dept, setDept] = useState("all");
@@ -136,9 +137,9 @@ function ManagerEmployeesPage() {
           {filtered.map((e) => {
             const myLeads = empLeads(e.name);
             const won = myLeads.filter((l) => l.status === "won").length;
-            const targetPerc = e.annualTarget
-              ? Math.round(((e.achievedTarget ?? 0) / e.annualTarget) * 100)
-              : e.perf;
+            const empActivities = activities.filter((a) => a.owner === e.name);
+            const kpi = computeEmployeeKpis(e, empActivities, myLeads, attendance);
+            const targetPerc = kpi.overallKpi;
             const perfColor =
               targetPerc >= 100
                 ? "text-emerald-500"
@@ -245,7 +246,7 @@ function ManagerEmployeesPage() {
                 </div>
 
                 {/* ── STATS ROW ── */}
-                <div className="mx-5 mt-3 grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-secondary/50 text-center">
+                <div className="mx-5 mt-3 grid grid-cols-4 divide-x divide-border rounded-xl border border-border bg-secondary/50 text-center">
                   <div className="py-2">
                     <div className="font-mono text-sm font-extrabold text-foreground">
                       {myLeads.length}
@@ -268,21 +269,40 @@ function ManagerEmployeesPage() {
                       {t("today")}
                     </div>
                   </div>
+                  <div className="py-2">
+                    <div className={`font-mono text-sm font-extrabold ${perfColor}`}>
+                      {targetPerc}%
+                    </div>
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                      {t("performance")}
+                    </div>
+                  </div>
                 </div>
 
                 {/* ── PERFORMANCE BAR ── */}
                 <div className="mx-5 mt-3">
-                  <div className="flex items-center justify-between text-[10px] font-bold mb-1">
-                    <span className="text-muted-foreground uppercase tracking-wider">
-                      {t("performance")}
-                    </span>
-                    <span className={perfColor}>{targetPerc}%</span>
-                  </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                  <div className="mb-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
                     <div
                       className={`h-full rounded-full bg-gradient-to-r ${perfBg} transition-all duration-700`}
                       style={{ width: `${Math.min(targetPerc, 100)}%` }}
                     />
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500/80"></span>
+                      {t("sales") ?? "Sales"}:{" "}
+                      <span className="text-foreground">{kpi.targetScore}%</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-purple-500/80"></span>
+                      {t("tasks") ?? "Tasks"}:{" "}
+                      <span className="text-foreground">{kpi.activityScore}%</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-orange-500/80"></span>
+                      {t("attendance") ?? "Att."}:{" "}
+                      <span className="text-foreground">{kpi.attendanceRate}%</span>
+                    </div>
                   </div>
                 </div>
 
@@ -355,6 +375,8 @@ function ManagerEmployeesPage() {
                 {filtered.map((e) => {
                   const myLeads = empLeads(e.name);
                   const won = myLeads.filter((l) => l.status === "won").length;
+                  const empActivities = activities.filter((a) => a.owner === e.name);
+                  const kpi = computeEmployeeKpis(e, empActivities, myLeads, attendance);
                   return (
                     <tr key={e.id} className="transition hover:bg-primary/5">
                       <td className="px-4 py-3">
@@ -385,10 +407,10 @@ function ManagerEmployeesPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
-                            <PerfBar value={e.perf} />
+                            <PerfBar value={kpi.overallKpi} />
                           </div>
                           <span className="font-mono text-xs font-bold text-primary">
-                            {e.perf}%
+                            {kpi.overallKpi}%
                           </span>
                         </div>
                       </td>

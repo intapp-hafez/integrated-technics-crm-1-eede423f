@@ -489,11 +489,13 @@ export const en = {
 
   // Activities Monitoring & Inactive Leads
   activitiesMonitoring: "Activities Monitoring",
-  activitiesMonitoringDesc: "Configure how the system monitors sales activities and sends notifications to keep your team engaged.",
+  activitiesMonitoringDesc:
+    "Configure how the system monitors sales activities and sends notifications to keep your team engaged.",
   enableActivitiesMonitoring: "Enable Activities Monitoring",
   enableActivitiesMonitoringDesc: "Enable or disable activities monitoring for all users.",
   noActivityThreshold: "No Activity Threshold",
-  noActivityThresholdDesc: "Lead will be considered inactive if no activity is recorded within this period.",
+  noActivityThresholdDesc:
+    "Lead will be considered inactive if no activity is recorded within this period.",
   notificationFrequency: "Notification Frequency",
   notificationFrequencyDesc: "Choose how often notifications should be sent.",
   dailyDesc: "Send notifications every day",
@@ -524,7 +526,8 @@ export const en = {
   autoCreateFollowup: "Auto-Create Follow-up",
   autoCreateFollowupDesc: "Automatically create follow-up task after escalation.",
   howItWorks: "How it works",
-  howItWorksDesc: "The system checks the last activity on each lead. If no activity is found within the defined threshold, notifications will be sent based on the escalation rules above.",
+  howItWorksDesc:
+    "The system checks the last activity on each lead. If no activity is found within the defined threshold, notifications will be sent based on the escalation rules above.",
   inactiveLeadsReport: "Inactive Leads Report",
   inactiveLeadsReportDesc: "Leads that have no activity within the selected period.",
   scheduleReport: "Schedule Report",

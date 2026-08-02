@@ -210,8 +210,8 @@ function HistoryPage() {
           <div className="border-t border-border p-4">
             <div className="flex items-center justify-between">
               <div className="text-xs text-muted-foreground">
-                Showing {(page - 1) * pageSize + 1} to{" "}
-                {Math.min(page * pageSize, filtered.length)} of {filtered.length} entries
+                Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, filtered.length)}{" "}
+                of {filtered.length} entries
               </div>
               <div className="flex items-center gap-1">
                 <button

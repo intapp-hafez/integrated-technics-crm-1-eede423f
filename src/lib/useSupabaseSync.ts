@@ -90,11 +90,26 @@ export function useSupabaseSync() {
         supabase
           .from("project_requests")
           .select("id, status, created_project_id, requested_by, name_en, website"),
-        supabase.from("admin_tasks" as any).select("*").order("date", { ascending: false }),
-        supabase.from("admin_task_activities" as any).select("*").order("ts", { ascending: false }),
-        supabase.from("catalog_items" as any).select("*").order("created_at", { ascending: false }),
-        supabase.from("catalog_categories" as any).select("*").order("name", { ascending: true }),
-        supabase.from("lead_catalog_items" as any).select("*").order("created_at", { ascending: false }),
+        supabase
+          .from("admin_tasks" as any)
+          .select("*")
+          .order("date", { ascending: false }),
+        supabase
+          .from("admin_task_activities" as any)
+          .select("*")
+          .order("ts", { ascending: false }),
+        supabase
+          .from("catalog_items" as any)
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("catalog_categories" as any)
+          .select("*")
+          .order("name", { ascending: true }),
+        supabase
+          .from("lead_catalog_items" as any)
+          .select("*")
+          .order("created_at", { ascending: false }),
         supabase.from("activity_types_config").select("*").order("label_en"),
       ]);
       return {
@@ -276,6 +291,7 @@ export function useSupabaseSync() {
         street: pick(l.street_en, l.street_ar) || undefined,
         probability: l.probability ?? undefined,
         expectedCloseDate: l.expected_close_date ?? undefined,
+        pendingWonApproval: l.pending_won_approval ?? false,
         projectId: l.project_id ?? undefined,
         tag: l.tag ?? undefined,
       };

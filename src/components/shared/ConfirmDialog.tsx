@@ -49,7 +49,11 @@ export function useConfirm() {
 
   const Dialog = () =>
     state.open ? (
-      <ConfirmDialogUI {...state} onConfirm={() => handleResponse(true)} onCancel={() => handleResponse(false)} />
+      <ConfirmDialogUI
+        {...state}
+        onConfirm={() => handleResponse(true)}
+        onCancel={() => handleResponse(false)}
+      />
     ) : null;
 
   return { confirm, ConfirmDialog: Dialog };
@@ -98,7 +102,9 @@ function ConfirmDialogUI({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Icon */}
-        <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full ${iconColor}`}>
+        <div
+          className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full ${iconColor}`}
+        >
           {variant === "danger" ? (
             <Trash2 className="h-5 w-5" />
           ) : (
@@ -108,7 +114,9 @@ function ConfirmDialogUI({
 
         {/* Title */}
         {title && (
-          <h3 className="mb-1 text-center font-display text-base font-bold text-foreground">{title}</h3>
+          <h3 className="mb-1 text-center font-display text-base font-bold text-foreground">
+            {title}
+          </h3>
         )}
 
         {/* Message */}
@@ -131,6 +139,6 @@ function ConfirmDialogUI({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

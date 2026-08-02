@@ -98,26 +98,24 @@ export function LeadWonCelebration() {
 
       <div className="celebrate-card text-foreground">
         <div className="celebrate-trophy">🏆</div>
-        
+
         <h1 className="mt-2 text-3xl font-bold text-emerald-600">Congratulations!</h1>
         <p className="mt-2 text-muted-foreground">Lead Successfully Won</p>
-        
+
         <div className="mt-6 text-2xl font-bold text-foreground">
           {celebrationLead.contact || "Unknown Contact"}
         </div>
         <div className="mt-1 text-base text-muted-foreground">
           {celebrationLead.company || "Unknown Company"}
         </div>
-        
+
         <div className="my-8 text-5xl font-bold text-emerald-600 tracking-tight">
           ${currentValue.toLocaleString()}
         </div>
-        
-        <div className="text-xl text-amber-500 font-semibold mb-6">
-          🎉 Another Deal Closed!
-        </div>
-        
-        <button 
+
+        <div className="text-xl text-amber-500 font-semibold mb-6">🎉 Another Deal Closed!</div>
+
+        <button
           onClick={() => actions.clearCelebration()}
           className="rounded-xl bg-emerald-600 px-8 py-3 text-lg font-semibold text-white transition-transform hover:scale-105 hover:bg-emerald-700 active:scale-95"
         >
@@ -164,9 +162,9 @@ function Fireworks() {
     const newBursts = Array.from({ length: 8 }).map((_, k) => {
       const cx = Math.random() * (typeof window !== "undefined" ? window.innerWidth : 1000);
       const cy = Math.random() * (typeof window !== "undefined" ? window.innerHeight / 2 : 500);
-      
+
       const particles = Array.from({ length: 30 }).map((__, i) => {
-        const angle = (Math.PI * 2 / 30) * i;
+        const angle = ((Math.PI * 2) / 30) * i;
         const distance = 60 + Math.random() * 90;
         return {
           id: `${k}-${i}`,
@@ -190,11 +188,13 @@ function Fireworks() {
             <div
               key={p.id}
               className="celebrate-firework"
-              style={{
-                "--x": `${p.x}px`,
-                "--y": `${p.y}px`,
-                background: p.color,
-              } as React.CSSProperties}
+              style={
+                {
+                  "--x": `${p.x}px`,
+                  "--y": `${p.y}px`,
+                  background: p.color,
+                } as React.CSSProperties
+              }
             />
           ))}
         </div>

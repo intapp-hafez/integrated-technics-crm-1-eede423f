@@ -9,7 +9,15 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { formatDate } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import {
   Users,
   Briefcase,
@@ -114,30 +122,33 @@ function useDashboardData(range: RangeKey) {
       const in7 = new Date();
       in7.setDate(in7.getDate() + 7);
 
-      const [leadsRes, projectsRes, quotationsRes, activitiesRes, profilesRes, attendanceRes] = await Promise.all([
-        supabase
-          .from("leads")
-          .select(
-            "id,company_en,status,value,owner_id,source_en,created_at,updated_at,expected_close_date,project_id",
-          ),
-        supabase.from("projects").select("id,status,name_en,created_at,project_members(profile_id)"),
-        supabase.from("quotations").select("id,value,status,created_at"),
-        supabase
-          .from("activities")
-          .select("id,title_en,title_ar,type,status,time,due_date,owner_id,lead_id,created_at")
-          .order("due_date", { ascending: true })
-          .limit(200),
-        supabase
-          .from("profiles")
-          .select(
-            "id,full_name_en,full_name_ar,title_en,title_ar,target_value,annual_target,avatar_url",
-          )
-          .eq("active", true),
-        supabase
-          .from("attendance")
-          .select("profile_id,check_in,check_out,status")
-          .eq("date", new Date().toISOString().slice(0, 10)),
-      ]);
+      const [leadsRes, projectsRes, quotationsRes, activitiesRes, profilesRes, attendanceRes] =
+        await Promise.all([
+          supabase
+            .from("leads")
+            .select(
+              "id,company_en,status,value,owner_id,source_en,created_at,updated_at,expected_close_date,project_id",
+            ),
+          supabase
+            .from("projects")
+            .select("id,status,name_en,created_at,project_members(profile_id)"),
+          supabase.from("quotations").select("id,value,status,created_at"),
+          supabase
+            .from("activities")
+            .select("id,title_en,title_ar,type,status,time,due_date,owner_id,lead_id,created_at")
+            .order("due_date", { ascending: true })
+            .limit(200),
+          supabase
+            .from("profiles")
+            .select(
+              "id,full_name_en,full_name_ar,title_en,title_ar,target_value,annual_target,avatar_url",
+            )
+            .eq("active", true),
+          supabase
+            .from("attendance")
+            .select("profile_id,check_in,check_out,status")
+            .eq("date", new Date().toISOString().slice(0, 10)),
+        ]);
 
       const allLeads = leadsRes.data ?? [];
       const projects = projectsRes.data ?? [];
@@ -254,8 +265,9 @@ function useDashboardData(range: RangeKey) {
         inNegotiation: countBy("negotiation"),
         wonWeek: allLeads.filter((l) => l.status === "won" && l.updated_at >= weekAgo.toISOString())
           .length,
-        lostWeek: allLeads.filter((l) => l.status === "lost" && l.updated_at >= weekAgo.toISOString())
-          .length,
+        lostWeek: allLeads.filter(
+          (l) => l.status === "lost" && l.updated_at >= weekAgo.toISOString(),
+        ).length,
       };
 
       const revenueForecast =
@@ -393,7 +405,7 @@ function useDashboardData(range: RangeKey) {
       // Smart Insights
       // Smart Insights
       const insights = [];
-      
+
       const fifteenDaysAgo = new Date();
       fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
       const accountsWithoutLeads = projects.filter((p) => {
@@ -407,10 +419,16 @@ function useDashboardData(range: RangeKey) {
           textEn: `${accountsWithoutLeads.length} account${accountsWithoutLeads.length > 1 ? "s" : ""} have no leads in 15 days`,
           textAr: `${accountsWithoutLeads.length} حسابات بدون عملاء محتملين لأكثر من 15 يومًا`,
           link: "/admin/projects",
-          items: accountsWithoutLeads.map(p => {
+          items: accountsWithoutLeads.map((p) => {
             const memberProfileId = p.project_members?.[0]?.profile_id;
-            const owner = memberProfileId ? profiles.find(pr => pr.id === memberProfileId) : null;
-            return { id: p.id, name: p.name_en || "Unknown Account", badgeText: owner ? (owner.full_name_en || "Unknown") : null, badgeEmoji: "👤", link: `/admin/projects/${p.id}` };
+            const owner = memberProfileId ? profiles.find((pr) => pr.id === memberProfileId) : null;
+            return {
+              id: p.id,
+              name: p.name_en || "Unknown Account",
+              badgeText: owner ? owner.full_name_en || "Unknown" : null,
+              badgeEmoji: "👤",
+              link: `/admin/projects/${p.id}`,
+            };
           }),
         });
       }
@@ -422,9 +440,15 @@ function useDashboardData(range: RangeKey) {
           textEn: `${idleLeads.length} lead${idleLeads.length > 1 ? "s" : ""} have no activity in 7 days`,
           textAr: `${idleLeads.length} عملاء محتملين بدون نشاط منذ 7 أيام`,
           link: "/admin/leads",
-          items: idleLeads.map(l => {
-            const owner = profiles.find(p => p.id === l.owner_id);
-            return { id: l.id, name: l.company_en, badgeText: owner ? (owner.full_name_en || "Unknown") : null, badgeEmoji: "👤", link: `/admin/leads/${l.id}` };
+          items: idleLeads.map((l) => {
+            const owner = profiles.find((p) => p.id === l.owner_id);
+            return {
+              id: l.id,
+              name: l.company_en,
+              badgeText: owner ? owner.full_name_en || "Unknown" : null,
+              badgeEmoji: "👤",
+              link: `/admin/leads/${l.id}`,
+            };
           }),
         });
       }
@@ -440,7 +464,13 @@ function useDashboardData(range: RangeKey) {
           textEn: `${employeesWithoutCheckin.length} employee${employeesWithoutCheckin.length > 1 ? "s" : ""} haven't checked in today`,
           textAr: `${employeesWithoutCheckin.length} موظفين لم يسجلوا حضور اليوم`,
           link: "/admin/attendance",
-          items: employeesWithoutCheckin.map(p => ({ id: p.id, name: p.full_name_en || "Unknown", badgeText: p.title_en || "Employee", badgeEmoji: "👔", link: `/admin/employees/${p.id}` })),
+          items: employeesWithoutCheckin.map((p) => ({
+            id: p.id,
+            name: p.full_name_en || "Unknown",
+            badgeText: p.title_en || "Employee",
+            badgeEmoji: "👔",
+            link: `/admin/employees/${p.id}`,
+          })),
         });
       }
 
@@ -458,9 +488,15 @@ function useDashboardData(range: RangeKey) {
           textEn: `${leadsClosingSoon.length} lead${leadsClosingSoon.length > 1 ? "s" : ""} closing in the next 7 days`,
           textAr: `${leadsClosingSoon.length} عملاء محتملين من المتوقع إغلاقهم قريباً`,
           link: "/admin/leads",
-          items: leadsClosingSoon.map(l => {
-            const owner = profiles.find(p => p.id === l.owner_id);
-            return { id: l.id, name: l.company_en, badgeText: owner ? (owner.full_name_en || "Unknown") : null, badgeEmoji: "👤", link: `/admin/leads/${l.id}` };
+          items: leadsClosingSoon.map((l) => {
+            const owner = profiles.find((p) => p.id === l.owner_id);
+            return {
+              id: l.id,
+              name: l.company_en,
+              badgeText: owner ? owner.full_name_en || "Unknown" : null,
+              badgeEmoji: "👤",
+              link: `/admin/leads/${l.id}`,
+            };
           }),
         });
       }
@@ -472,13 +508,11 @@ function useDashboardData(range: RangeKey) {
         .map((l) => ({ ...l, ownerDetails: getOwner(l.owner_id) }))
         .slice(0, 5);
 
-
-
       // Calculate inactive leads
       let inactive7Days = 0;
       let inactive15Days = 0;
       const nowMs = Date.now();
-      
+
       allLeads.forEach((l) => {
         if (l.status !== "won" && l.status !== "lost" && l.status !== "archived") {
           const tMs = new Date(l.updated_at).getTime();
@@ -491,7 +525,16 @@ function useDashboardData(range: RangeKey) {
       });
 
       return {
-        kpis: { totalLeads, activeProjects, revenueForecast, conversion, wonValue, openLeadValue, inactive7Days, inactive15Days },
+        kpis: {
+          totalLeads,
+          activeProjects,
+          revenueForecast,
+          conversion,
+          wonValue,
+          openLeadValue,
+          inactive7Days,
+          inactive15Days,
+        },
         pipeline,
         funnel,
         trend,
@@ -808,8 +851,8 @@ function AdminDashboard() {
             accent="warning"
           />
         </Link>
-        <div 
-          onClick={() => navigate({ to: "/admin/reports/inactive-leads" })} 
+        <div
+          onClick={() => navigate({ to: "/admin/reports/inactive-leads" })}
           className="group/kpi block cursor-pointer h-full"
         >
           <KpiCard
@@ -817,18 +860,32 @@ function AdminDashboard() {
             value={String(kpis.inactive7Days + kpis.inactive15Days)}
             subText={
               <div className="flex items-center gap-1.5 mt-0.5">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); navigate({ to: "/admin/reports/inactive-leads", search: { age: "7-14" } as any }); }}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate({
+                      to: "/admin/reports/inactive-leads",
+                      search: { age: "7-14" } as any,
+                    });
+                  }}
                   className="hover:underline transition-colors focus:outline-hidden"
                 >
                   {lang === "ar" ? `(${kpis.inactive7Days}) 7 أيام` : `${kpis.inactive7Days} (7d)`}
                 </button>
                 <span className="text-muted-foreground/60 text-[10px]">|</span>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); navigate({ to: "/admin/reports/inactive-leads", search: { age: "14+" } as any }); }}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate({
+                      to: "/admin/reports/inactive-leads",
+                      search: { age: "14+" } as any,
+                    });
+                  }}
                   className="hover:underline transition-colors focus:outline-hidden"
                 >
-                  {lang === "ar" ? `(${kpis.inactive15Days}) 15 يوم` : `${kpis.inactive15Days} (15d)`}
+                  {lang === "ar"
+                    ? `(${kpis.inactive15Days}) 15 يوم`
+                    : `${kpis.inactive15Days} (15d)`}
                 </button>
               </div>
             }
@@ -837,7 +894,6 @@ function AdminDashboard() {
           />
         </div>
       </div>
-
 
       {/* Online Now — real-time presence via Supabase */}
       {onlineEmployees.length > 0 && (
@@ -900,29 +956,53 @@ function AdminDashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(val) => {
-                  if (val === 0) return "0";
-                  if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
-                  return `$${(val / 1000).toFixed(0)}k`;
-                }} />
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                  dy={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                  tickFormatter={(val) => {
+                    if (val === 0) return "0";
+                    if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
+                    return `$${(val / 1000).toFixed(0)}k`;
+                  }}
+                />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
                         <div className="rounded-lg border bg-background p-3 shadow-md">
-                          <div className="mb-1 text-[10px] font-bold uppercase text-muted-foreground">{payload[0].payload.label}</div>
+                          <div className="mb-1 text-[10px] font-bold uppercase text-muted-foreground">
+                            {payload[0].payload.label}
+                          </div>
                           <div className="flex flex-col">
-                            <span className="text-sm font-bold text-emerald-600">{fmtMoney(payload[0].value as number)}</span>
-                            <span className="text-xs text-muted-foreground">{payload[0].payload.count} {t("leadsCount")}</span>
+                            <span className="text-sm font-bold text-emerald-600">
+                              {fmtMoney(payload[0].value as number)}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {payload[0].payload.count} {t("leadsCount")}
+                            </span>
                           </div>
                         </div>
-                      )
+                      );
                     }
                     return null;
                   }}
                 />
-                <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#10b981"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#colorValue)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -1308,7 +1388,9 @@ function AdminDashboard() {
                       {lang === "ar" && l.company_ar ? l.company_ar : l.company_en}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      <span>{days} {t("daysInactive")}</span>
+                      <span>
+                        {days} {t("daysInactive")}
+                      </span>
                       <span>·</span>
                       <StatusBadge
                         status={l.status}
@@ -1321,13 +1403,18 @@ function AdminDashboard() {
                           <span>·</span>
                           <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
                             {l.ownerDetails.avatar ? (
-                              <img src={l.ownerDetails.avatar} className="h-4 w-4 rounded-full object-cover" />
+                              <img
+                                src={l.ownerDetails.avatar}
+                                className="h-4 w-4 rounded-full object-cover"
+                              />
                             ) : (
                               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
                                 {l.ownerDetails.initials}
                               </span>
                             )}
-                            {lang === "ar" && l.ownerDetails.nameAr ? l.ownerDetails.nameAr : l.ownerDetails.name}
+                            {lang === "ar" && l.ownerDetails.nameAr
+                              ? l.ownerDetails.nameAr
+                              : l.ownerDetails.name}
                           </span>
                         </>
                       )}
@@ -1485,14 +1572,17 @@ function AdminDashboard() {
                   <span className="font-display text-sm font-bold text-foreground">
                     {lang === "ar" ? insight.textAr : insight.textEn}
                   </span>
-                  <Link to={insight.link} className="ms-auto text-xs font-semibold hover:underline opacity-70">
+                  <Link
+                    to={insight.link}
+                    className="ms-auto text-xs font-semibold hover:underline opacity-70"
+                  >
                     {t("viewAll")}
                   </Link>
                 </div>
 
                 {/* Items List */}
                 <div className="flex-1 p-4 bg-card max-h-[300px] overflow-y-auto">
-                  {(!insight.items || insight.items.length === 0) ? (
+                  {!insight.items || insight.items.length === 0 ? (
                     <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
                       No specific items to list.
                     </div>
@@ -1505,7 +1595,9 @@ function AdminDashboard() {
                             to={item.link}
                             className="group/item flex items-center justify-between rounded-lg border border-border/50 bg-secondary/30 p-3 shadow-sm transition hover:bg-accent hover:border-primary/50"
                           >
-                            <span className="font-semibold text-sm text-foreground truncate max-w-[60%]">{item.name}</span>
+                            <span className="font-semibold text-sm text-foreground truncate max-w-[60%]">
+                              {item.name}
+                            </span>
                             <div className="flex items-center gap-2 text-muted-foreground shrink-0">
                               {item.badgeText && (
                                 <span className="text-[10px] uppercase tracking-wider font-semibold bg-background px-2 py-1 rounded-md border shadow-sm">

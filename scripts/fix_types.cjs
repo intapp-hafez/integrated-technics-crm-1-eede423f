@@ -1,6 +1,6 @@
-const fs = require('fs');
+const fs = require("fs");
 
-let c = fs.readFileSync('src/lib/store.ts', 'utf-8');
+let c = fs.readFileSync("src/lib/store.ts", "utf-8");
 
 // All const actor = externalActor || ... lines — already inside bodies, fine
 // The issue is logHistory({ actor: actor ... }) where actor is string | undefined
@@ -18,10 +18,10 @@ let c = fs.readFileSync('src/lib/store.ts', 'utf-8');
 c = c.replace(/(\s+)actor: actor,\n/g, '$1actor: actor ?? "System",\n');
 c = c.replace(/(\s+)actor,\n/g, '$1actor: actor ?? "System",\n');
 
-// Also fix full_name_en that doesn't exist on Profile type  
+// Also fix full_name_en that doesn't exist on Profile type
 // The Profile type likely only has name, not full_name_en
 // Just remove the full_name_en references from inside action bodies (not default params)
-c = c.replace(/ \|\| state\.profile\?\.full_name_en/g, '');
+c = c.replace(/ \|\| state\.profile\?\.full_name_en/g, "");
 
-fs.writeFileSync('src/lib/store.ts', c);
-console.log('Fixed actor type issues');
+fs.writeFileSync("src/lib/store.ts", c);
+console.log("Fixed actor type issues");

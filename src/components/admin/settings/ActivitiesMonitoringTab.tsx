@@ -22,17 +22,21 @@ export function ActivitiesMonitoringTab() {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const { users } = useStoreState();
-  const notificationUsers = users.filter((u) => u.active && (u.role === "employee" || u.role === "manager"));
+  const notificationUsers = users.filter(
+    (u) => u.active && (u.role === "employee" || u.role === "manager"),
+  );
 
   const [activeSubTab, setActiveSubTab] = useState<string>("all");
   const [employeeEmails, setEmployeeEmails] = useState<Record<string, string>>({});
   const [enabled, setEnabled] = useState<boolean>(true);
   const [threshold, setThreshold] = useState<string>("3");
-  const [frequency, setFrequency] = useState<{ daily: boolean; weekly: boolean; monthly: boolean }>({
-    daily: true,
-    weekly: true,
-    monthly: false,
-  });
+  const [frequency, setFrequency] = useState<{ daily: boolean; weekly: boolean; monthly: boolean }>(
+    {
+      daily: true,
+      weekly: true,
+      monthly: false,
+    },
+  );
   const [workingDays, setWorkingDays] = useState<Record<string, boolean>>({
     Sunday: true,
     Monday: true,
@@ -74,10 +78,14 @@ export function ActivitiesMonitoringTab() {
     salesManagerEscalation: string;
     adminEscalation: string;
   }>({
-    employeeWarning: "Action Required: Lead {lead_name} has been inactive for {inactive_days} days.",
-    managerEscalation: "Escalation Alert: Lead {lead_name} assigned to {owner_name} requires attention ({inactive_days} days inactive).",
-    salesManagerEscalation: "High Priority Inactivity: {company} has recorded 0 activities for {inactive_days} days.",
-    adminEscalation: "Critical Inactivity Alert: {lead_name} ({company}) is stagnant for {inactive_days} days.",
+    employeeWarning:
+      "Action Required: Lead {lead_name} has been inactive for {inactive_days} days.",
+    managerEscalation:
+      "Escalation Alert: Lead {lead_name} assigned to {owner_name} requires attention ({inactive_days} days inactive).",
+    salesManagerEscalation:
+      "High Priority Inactivity: {company} has recorded 0 activities for {inactive_days} days.",
+    adminEscalation:
+      "Critical Inactivity Alert: {lead_name} ({company}) is stagnant for {inactive_days} days.",
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -118,7 +126,7 @@ export function ActivitiesMonitoringTab() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    
+
     const settingsObject = {
       enabled,
       threshold,
@@ -144,7 +152,11 @@ export function ActivitiesMonitoringTab() {
       console.error("Error saving settings:", error);
       toast.error(isAr ? "فشل حفظ الإعدادات" : "Failed to save settings");
     } else {
-      toast.success(isAr ? "تم حفظ إعدادات مراقبة الأنشطة بنجاح" : "Activities Monitoring settings saved successfully!");
+      toast.success(
+        isAr
+          ? "تم حفظ إعدادات مراقبة الأنشطة بنجاح"
+          : "Activities Monitoring settings saved successfully!",
+      );
     }
   };
 
@@ -177,9 +189,7 @@ export function ActivitiesMonitoringTab() {
           <h2 className="font-display text-2xl font-bold text-foreground">
             {t("activitiesMonitoring")}
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {t("activitiesMonitoringDesc")}
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("activitiesMonitoringDesc")}</p>
         </div>
         <button
           onClick={handleSave}
@@ -187,7 +197,13 @@ export function ActivitiesMonitoringTab() {
           className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:opacity-50"
         >
           <Save className="h-4 w-4" />
-          {isSaving ? (isAr ? "جاري الحفظ..." : "Saving...") : (isAr ? "حفظ التغييرات" : "Save Changes")}
+          {isSaving
+            ? isAr
+              ? "جاري الحفظ..."
+              : "Saving..."
+            : isAr
+              ? "حفظ التغييرات"
+              : "Save Changes"}
         </button>
       </div>
 
@@ -249,12 +265,8 @@ export function ActivitiesMonitoringTab() {
 
               {/* No Activity Threshold */}
               <div className="rounded-2xl border border-border bg-card p-6 shadow-xs transition hover:shadow-sm">
-                <h3 className="text-sm font-bold text-foreground">
-                  {t("noActivityThreshold")}
-                </h3>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t("noActivityThresholdDesc")}
-                </p>
+                <h3 className="text-sm font-bold text-foreground">{t("noActivityThreshold")}</h3>
+                <p className="mt-1 text-xs text-muted-foreground">{t("noActivityThresholdDesc")}</p>
                 <div className="mt-4">
                   <select
                     value={threshold}
@@ -276,12 +288,8 @@ export function ActivitiesMonitoringTab() {
           {/* Notification Frequency */}
           {(activeSubTab === "all" || activeSubTab === "notification") && (
             <div className="rounded-2xl border border-border bg-card p-6 shadow-xs">
-              <h3 className="text-sm font-bold text-foreground">
-                {t("notificationFrequency")}
-              </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t("notificationFrequencyDesc")}
-              </p>
+              <h3 className="text-sm font-bold text-foreground">{t("notificationFrequency")}</h3>
+              <p className="mt-1 text-xs text-muted-foreground">{t("notificationFrequencyDesc")}</p>
 
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <label className="flex items-start gap-3 rounded-xl border border-border bg-background p-3.5 cursor-pointer hover:border-primary/50">
@@ -337,13 +345,16 @@ export function ActivitiesMonitoringTab() {
             {/* Working Days */}
             {(activeSubTab === "all" || activeSubTab === "working") && (
               <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
-                <h3 className="text-sm font-bold text-foreground">{isAr ? "أيام العمل" : "Working Days"}</h3>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  {t("workingDaysDesc")}
-                </p>
+                <h3 className="text-sm font-bold text-foreground">
+                  {isAr ? "أيام العمل" : "Working Days"}
+                </h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">{t("workingDaysDesc")}</p>
                 <div className="mt-3.5 space-y-2">
                   {DAYS_LIST.map((d) => (
-                    <label key={d.key} className="flex items-center gap-2.5 text-xs font-medium text-foreground cursor-pointer">
+                    <label
+                      key={d.key}
+                      className="flex items-center gap-2.5 text-xs font-medium text-foreground cursor-pointer"
+                    >
                       <input
                         type="checkbox"
                         checked={workingDays[d.key]}
@@ -364,10 +375,10 @@ export function ActivitiesMonitoringTab() {
               {/* Working Hours */}
               {(activeSubTab === "all" || activeSubTab === "working") && (
                 <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
-                  <h3 className="text-sm font-bold text-foreground">{isAr ? "ساعات العمل" : "Working Hours"}</h3>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    {t("workingHoursDesc")}
-                  </p>
+                  <h3 className="text-sm font-bold text-foreground">
+                    {isAr ? "ساعات العمل" : "Working Hours"}
+                  </h3>
+                  <p className="mt-1 text-[11px] text-muted-foreground">{t("workingHoursDesc")}</p>
                   <div className="mt-3.5 flex items-center gap-1.5 min-w-0">
                     <select
                       value={workStart}
@@ -431,7 +442,9 @@ export function ActivitiesMonitoringTab() {
                       <input
                         type="checkbox"
                         checked={exclusions.archived}
-                        onChange={(e) => setExclusions({ ...exclusions, archived: e.target.checked })}
+                        onChange={(e) =>
+                          setExclusions({ ...exclusions, archived: e.target.checked })
+                        }
                         className="h-4 w-4 rounded-sm border-border text-primary focus:ring-primary"
                       />
                       {t("ignoreArchivedLeads")}
@@ -445,9 +458,7 @@ export function ActivitiesMonitoringTab() {
             {(activeSubTab === "all" || activeSubTab === "escalation") && (
               <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
                 <h3 className="text-sm font-bold text-foreground">{t("escalationRules")}</h3>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  {t("escalationRulesDesc")}
-                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">{t("escalationRulesDesc")}</p>
 
                 <div className="mt-4 space-y-3">
                   {/* 3 Days -> Employee */}
@@ -501,7 +512,7 @@ export function ActivitiesMonitoringTab() {
                 {isAr ? "قوالب الإشعارات" : "Notification Templates"}
               </h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                {isAr 
+                {isAr
                   ? "تخصيص نصوص الإشعارات لكل مستوى تصعيد. استخدم المتغيرات التالية: {lead_name}, {company}, {inactive_days}, {owner_name}"
                   : "Customize the notification text for each escalation level. Use variables: {lead_name}, {company}, {inactive_days}, {owner_name}"}
               </p>
@@ -514,7 +525,9 @@ export function ActivitiesMonitoringTab() {
                   </label>
                   <textarea
                     value={templates.employeeWarning}
-                    onChange={(e) => setTemplates({ ...templates, employeeWarning: e.target.value })}
+                    onChange={(e) =>
+                      setTemplates({ ...templates, employeeWarning: e.target.value })
+                    }
                     rows={3}
                     className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:border-emerald-500 focus:outline-hidden focus:ring-1 focus:ring-emerald-500/20"
                   />
@@ -527,7 +540,9 @@ export function ActivitiesMonitoringTab() {
                   </label>
                   <textarea
                     value={templates.managerEscalation}
-                    onChange={(e) => setTemplates({ ...templates, managerEscalation: e.target.value })}
+                    onChange={(e) =>
+                      setTemplates({ ...templates, managerEscalation: e.target.value })
+                    }
                     rows={3}
                     className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:border-blue-500 focus:outline-hidden focus:ring-1 focus:ring-blue-500/20"
                   />
@@ -540,7 +555,9 @@ export function ActivitiesMonitoringTab() {
                   </label>
                   <textarea
                     value={templates.salesManagerEscalation}
-                    onChange={(e) => setTemplates({ ...templates, salesManagerEscalation: e.target.value })}
+                    onChange={(e) =>
+                      setTemplates({ ...templates, salesManagerEscalation: e.target.value })
+                    }
                     rows={3}
                     className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:border-amber-500 focus:outline-hidden focus:ring-1 focus:ring-amber-500/20"
                   />
@@ -553,7 +570,9 @@ export function ActivitiesMonitoringTab() {
                   </label>
                   <textarea
                     value={templates.adminEscalation}
-                    onChange={(e) => setTemplates({ ...templates, adminEscalation: e.target.value })}
+                    onChange={(e) =>
+                      setTemplates({ ...templates, adminEscalation: e.target.value })
+                    }
                     rows={3}
                     className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:border-rose-500 focus:outline-hidden focus:ring-1 focus:ring-rose-500/20"
                   />
@@ -572,32 +591,41 @@ export function ActivitiesMonitoringTab() {
                 </h3>
               </div>
               <p className="text-xs text-muted-foreground mb-6">
-                {isAr ? "حدد عناوين البريد الإلكتروني المخصصة لتلقي إشعارات التصعيد لكل موظف." : "Specify dedicated email addresses for receiving escalation notifications for each employee."}
+                {isAr
+                  ? "حدد عناوين البريد الإلكتروني المخصصة لتلقي إشعارات التصعيد لكل موظف."
+                  : "Specify dedicated email addresses for receiving escalation notifications for each employee."}
               </p>
 
               <div className="overflow-hidden rounded-xl border border-border">
                 <table className="w-full text-start text-xs">
                   <thead className="bg-secondary/40 font-bold text-muted-foreground border-b border-border">
                     <tr>
-                      <th className="px-4 py-3 text-start">{isAr ? "اسم الموظف" : "Employee Name"}</th>
-                      <th className="px-4 py-3 text-start">{isAr ? "البريد الإلكتروني للإشعارات" : "Notification Email"}</th>
+                      <th className="px-4 py-3 text-start">
+                        {isAr ? "اسم الموظف" : "Employee Name"}
+                      </th>
+                      <th className="px-4 py-3 text-start">
+                        {isAr ? "البريد الإلكتروني للإشعارات" : "Notification Email"}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {notificationUsers.map((u) => (
-                      <tr key={u.id} className="bg-background hover:bg-secondary/20 transition-colors">
+                      <tr
+                        key={u.id}
+                        className="bg-background hover:bg-secondary/20 transition-colors"
+                      >
                         <td className="px-4 py-3 font-semibold text-foreground flex items-center gap-2">
-                           {u.avatarUrl ? (
-                              <img
-                                src={u.avatarUrl}
-                                alt={u.name}
-                                className="h-6 w-6 rounded-full object-cover"
-                              />
-                            ) : (
-                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
-                                {u.name[0]}
-                              </span>
-                            )}
+                          {u.avatarUrl ? (
+                            <img
+                              src={u.avatarUrl}
+                              alt={u.name}
+                              className="h-6 w-6 rounded-full object-cover"
+                            />
+                          ) : (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                              {u.name[0]}
+                            </span>
+                          )}
                           {u.name}
                         </td>
                         <td className="px-4 py-2">
@@ -608,7 +636,9 @@ export function ActivitiesMonitoringTab() {
                               const newEmails = { ...employeeEmails, [u.id]: e.target.value };
                               setEmployeeEmails(newEmails);
                             }}
-                            placeholder={isAr ? "أدخل البريد الإلكتروني..." : "Enter email address..."}
+                            placeholder={
+                              isAr ? "أدخل البريد الإلكتروني..." : "Enter email address..."
+                            }
                             className="w-full max-w-md rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500/20"
                           />
                         </td>
@@ -645,7 +675,10 @@ export function ActivitiesMonitoringTab() {
                 <button
                   type="button"
                   onClick={() =>
-                    setOtherSettings({ ...otherSettings, ignoreOthers: !otherSettings.ignoreOthers })
+                    setOtherSettings({
+                      ...otherSettings,
+                      ignoreOthers: !otherSettings.ignoreOthers,
+                    })
                   }
                   className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
                     otherSettings.ignoreOthers ? "bg-primary" : "bg-secondary"
@@ -653,7 +686,11 @@ export function ActivitiesMonitoringTab() {
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
-                      otherSettings.ignoreOthers ? (isAr ? "-translate-x-4" : "translate-x-4") : "translate-x-0"
+                      otherSettings.ignoreOthers
+                        ? isAr
+                          ? "-translate-x-4"
+                          : "translate-x-4"
+                        : "translate-x-0"
                     }`}
                   />
                 </button>
@@ -685,7 +722,11 @@ export function ActivitiesMonitoringTab() {
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
-                      otherSettings.includeSub ? (isAr ? "-translate-x-4" : "translate-x-4") : "translate-x-0"
+                      otherSettings.includeSub
+                        ? isAr
+                          ? "-translate-x-4"
+                          : "translate-x-4"
+                        : "translate-x-0"
                     }`}
                   />
                 </button>
@@ -709,7 +750,10 @@ export function ActivitiesMonitoringTab() {
                 <button
                   type="button"
                   onClick={() =>
-                    setOtherSettings({ ...otherSettings, pauseHolidays: !otherSettings.pauseHolidays })
+                    setOtherSettings({
+                      ...otherSettings,
+                      pauseHolidays: !otherSettings.pauseHolidays,
+                    })
                   }
                   className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
                     otherSettings.pauseHolidays ? "bg-primary" : "bg-secondary"
@@ -717,7 +761,11 @@ export function ActivitiesMonitoringTab() {
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
-                      otherSettings.pauseHolidays ? (isAr ? "-translate-x-4" : "translate-x-4") : "translate-x-0"
+                      otherSettings.pauseHolidays
+                        ? isAr
+                          ? "-translate-x-4"
+                          : "translate-x-4"
+                        : "translate-x-0"
                     }`}
                   />
                 </button>
@@ -741,7 +789,10 @@ export function ActivitiesMonitoringTab() {
                 <button
                   type="button"
                   onClick={() =>
-                    setOtherSettings({ ...otherSettings, autoFollowup: !otherSettings.autoFollowup })
+                    setOtherSettings({
+                      ...otherSettings,
+                      autoFollowup: !otherSettings.autoFollowup,
+                    })
                   }
                   className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
                     otherSettings.autoFollowup ? "bg-primary" : "bg-secondary"
@@ -749,7 +800,11 @@ export function ActivitiesMonitoringTab() {
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
-                      otherSettings.autoFollowup ? (isAr ? "-translate-x-4" : "translate-x-4") : "translate-x-0"
+                      otherSettings.autoFollowup
+                        ? isAr
+                          ? "-translate-x-4"
+                          : "translate-x-4"
+                        : "translate-x-0"
                     }`}
                   />
                 </button>
@@ -762,9 +817,7 @@ export function ActivitiesMonitoringTab() {
             <Info className="h-5 w-5 shrink-0" />
             <div>
               <span className="font-bold">{t("howItWorks")}</span>
-              <p className="mt-0.5 text-primary/80 leading-relaxed">
-                {t("howItWorksDesc")}
-              </p>
+              <p className="mt-0.5 text-primary/80 leading-relaxed">{t("howItWorksDesc")}</p>
             </div>
           </div>
         </div>

@@ -10,8 +10,10 @@ import {
   FileText,
   CheckCircle2,
   Lock,
+  Search,
 } from "lucide-react";
 import { actions, useStoreState, type ActivityType } from "@/lib/store";
+import { isProjectMemberOf } from "@/lib/employeeProjects";
 import { employees as employeesData } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useRole } from "@/lib/role";
@@ -35,16 +37,92 @@ interface Props {
 
 export function NewActivityDialog({ onClose, defaultProjectId, defaultStep }: Props) {
   const { t, dir } = useI18n();
-  const { leads, projects, settings, profile } = useStoreState();
-  const { teamEmployees } = useMyTeam();
+  const { leads, projects, settings, profile, projectRequests, employees, users } = useStoreState();
+  const isManagerContext = window.location.pathname.startsWith("/manager");
+  const { teamEmployees } = useMyTeam({ forceTeam: isManagerContext });
   const { isAdmin, isManager } = useRole();
   const canAssignOthers = isAdmin || isManager;
   const myName = profile?.name && profile.name !== "—" ? profile.name : "";
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(defaultStep ?? 1);
-  const [projectId, setProjectId] = useState<string>(defaultProjectId ?? projects[0]?.id ?? "");
   const [leadId, setLeadId] = useState<string>("");
   const [owner, setOwner] = useState<string>(canAssignOthers ? "" : myName);
+  const [accountSearch, setAccountSearch] = useState("");
+
+  const getOwner = (p: any) => {
+    if (p.createdByName && !p.createdByName.includes("-")) {
+      return p.createdByName;
+    }
+    if (p.createdBy) {
+      const u = users?.find((usr: any) => usr.id === p.createdBy || usr.profileId === p.createdBy);
+      if (u?.name && !u.name.includes("-")) return u.name;
+      const e = employees?.find(
+        (emp: any) => emp.id === p.createdBy || emp.profileId === p.createdBy,
+      );
+      if (e?.name && !e.name.includes("-")) return e.name;
+    }
+    if (p.createdByName) return p.createdByName;
+    if (p.teamMembers && p.teamMembers.length > 0) {
+      const tm = p.teamMembers[0];
+      const e = employees?.find(
+        (emp: any) => emp.id === tm || emp.profileId === tm || emp.name === tm,
+      );
+      if (e?.name && !e.name.includes("-")) return e.name;
+      const u = users?.find((usr: any) => usr.id === tm || usr.profileId === tm || usr.name === tm);
+      if (u?.name && !u.name.includes("-")) return u.name;
+      if (!tm.includes("-")) return tm;
+    }
+    return employees.slice(0, p.team || 1)[0]?.name || "—";
+  };
+
+  const visibleProjects = useMemo(() => {
+    if (isAdmin && !isManagerContext) return projects;
+
+    const myProfileId = profile?.profileId || (profile as any)?.id;
+    const teamProfileIds = new Set(
+      teamEmployees.map((e: any) => e.profileId ?? e.id).filter(Boolean),
+    );
+
+    const approvedRequests = (projectRequests ?? []).filter(
+      (r: any) =>
+        r.status === "approved" &&
+        (r.requested_by === myProfileId || teamProfileIds.has(r.requested_by)),
+    );
+
+    const requestedProjectIds = new Set(
+      approvedRequests.map((r: any) => r.created_project_id).filter(Boolean),
+    );
+
+    const requestedProjectNames = new Set(
+      approvedRequests.map((r: any) => r.name_en?.trim().toLowerCase()).filter(Boolean),
+    );
+
+    return projects.filter((p) => {
+      if (isProjectMemberOf(p, profile as any)) return true;
+
+      const teamHasMember = teamEmployees.some((e: any) =>
+        isProjectMemberOf(p, { profileId: e.profileId ?? e.id, userId: e.userId, name: e.name }),
+      );
+      if (teamHasMember) return true;
+
+      if (requestedProjectIds.has(p.id)) return true;
+      if (p.name && requestedProjectNames.has(p.name.trim().toLowerCase())) return true;
+
+      return false;
+    });
+  }, [projects, isAdmin, profile, teamEmployees, projectRequests]);
+
+  const searchedProjects = useMemo(() => {
+    if (!accountSearch.trim()) return visibleProjects;
+    const q = accountSearch.toLowerCase();
+    return visibleProjects.filter(
+      (p) => p.name.toLowerCase().includes(q) || p.client.toLowerCase().includes(q),
+    );
+  }, [visibleProjects, accountSearch]);
+
+  const [projectId, setProjectId] = useState<string>(
+    defaultProjectId ?? visibleProjects[0]?.id ?? "",
+  );
   const [form, setForm] = useState({
     type: settings.activityTypes[0] as ActivityType,
     title: "",
@@ -54,7 +132,10 @@ export function NewActivityDialog({ onClose, defaultProjectId, defaultStep }: Pr
     estMinutes: 30,
   });
 
-  const project = useMemo(() => projects.find((p) => p.id === projectId), [projects, projectId]);
+  const project = useMemo(
+    () => visibleProjects.find((p) => p.id === projectId),
+    [visibleProjects, projectId],
+  );
   // Leads "related to project" = leads whose company matches project's client
   const projectLeads = useMemo(
     () => (project ? leads.filter((l) => l.company === project.client) : []),
@@ -180,8 +261,20 @@ export function NewActivityDialog({ onClose, defaultProjectId, defaultStep }: Pr
                   ? "اختر الحساب المرتبط بهذا النشاط"
                   : "Pick the account this activity belongs to"}
               </div>
+              <div className="mb-3 relative">
+                <Search
+                  className={`absolute ${dir === "rtl" ? "right-2.5" : "left-2.5"} top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground`}
+                />
+                <input
+                  type="text"
+                  placeholder={dir === "rtl" ? "بحث عن حساب..." : "Search accounts..."}
+                  value={accountSearch}
+                  onChange={(e) => setAccountSearch(e.target.value)}
+                  className={`w-full ${dir === "rtl" ? "pr-9 pl-3" : "pl-9 pr-3"} h-9 text-xs rounded-lg border border-border bg-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary`}
+                />
+              </div>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 max-h-[300px] overflow-y-auto pr-1">
-                {projects.map((p) => {
+                {searchedProjects.map((p) => {
                   const active = projectId === p.id;
                   return (
                     <button
@@ -211,8 +304,14 @@ export function NewActivityDialog({ onClose, defaultProjectId, defaultStep }: Pr
                         </div>
                       </div>
                       <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
-                        <span>{p.status}</span>
-                        <span>{p.progress}%</span>
+                        <span className="flex items-center gap-1 text-primary/70 font-medium">
+                          <UserCircle2 className="h-3 w-3" />
+                          <span className="truncate max-w-[100px]">{getOwner(p)}</span>
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span>{p.status}</span>
+                          <span>{p.progress}%</span>
+                        </div>
                       </div>
                     </button>
                   );

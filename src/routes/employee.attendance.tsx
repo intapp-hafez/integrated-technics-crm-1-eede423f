@@ -4,8 +4,17 @@ import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState } from "@/lib/store";
 import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import {
-  LogIn, LogOut, MapPin, Clock, Check, Loader2,
-  Navigation, Building2, Home, AlertTriangle, Wifi,
+  LogIn,
+  LogOut,
+  MapPin,
+  Clock,
+  Check,
+  Loader2,
+  Navigation,
+  Building2,
+  Home,
+  AlertTriangle,
+  Wifi,
 } from "lucide-react";
 import { cairoIsoDate, cairoTime } from "@/lib/cairoTime";
 import {
@@ -35,7 +44,9 @@ function useAttendanceMap() {
     import("@/components/AttendanceMap").then((m) => {
       if (mounted) setComp(() => m.AttendanceMap);
     });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
   return Comp;
 }
@@ -117,11 +128,15 @@ function AttendancePage() {
         addr = await reverseGeocode(fresh.lat, fresh.lng);
       } else {
         const ipPos = await getIpPosition();
-        if (ipPos) { pos = ipPos; addr = await reverseGeocode(ipPos.lat, ipPos.lng); }
+        if (ipPos) {
+          pos = ipPos;
+          addr = await reverseGeocode(ipPos.lat, ipPos.lng);
+        }
       }
     }
 
-    const baseLoc = addr?.label || (pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}` : profile.location);
+    const baseLoc =
+      addr?.label || (pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}` : profile.location);
     const locName = withDevice(baseLoc || "");
 
     actions.addAttendance({
@@ -156,7 +171,10 @@ function AttendancePage() {
         addr = await reverseGeocode(fresh.lat, fresh.lng);
       } else {
         const ipPos = await getIpPosition();
-        if (ipPos) { pos = ipPos; addr = await reverseGeocode(ipPos.lat, ipPos.lng); }
+        if (ipPos) {
+          pos = ipPos;
+          addr = await reverseGeocode(ipPos.lat, ipPos.lng);
+        }
       }
     }
 
@@ -183,9 +201,7 @@ function AttendancePage() {
     gps.status === "ready" ? [gps.pos.lat, gps.pos.lng] : null;
 
   const storedCenter: [number, number] | null =
-    todayRec?.lat != null && todayRec?.lng != null
-      ? [todayRec.lat, todayRec.lng]
-      : null;
+    todayRec?.lat != null && todayRec?.lng != null ? [todayRec.lat, todayRec.lng] : null;
 
   const mapCenter = liveCenter ?? storedCenter;
 
@@ -196,7 +212,9 @@ function AttendancePage() {
     if (todayRec?.lat != null) {
       const isApprox = !!(todayRec as any).isApproximate;
       return (
-        <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white ${isApprox ? "bg-amber-500/20" : "bg-emerald-500/20"}`}>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white ${isApprox ? "bg-amber-500/20" : "bg-emerald-500/20"}`}
+        >
           <Check className="h-3.5 w-3.5" /> GPS Verified
         </span>
       );
@@ -250,7 +268,11 @@ function AttendancePage() {
       user={{
         name: profile.name,
         role: t("employee"),
-        initials: profile.name.split(" ").map((s) => s[0]).join("").slice(0, 2),
+        initials: profile.name
+          .split(" ")
+          .map((s) => s[0])
+          .join("")
+          .slice(0, 2),
       }}
       pageTitle={t("attendance")}
     >
@@ -287,7 +309,11 @@ function AttendancePage() {
                 onClick={handleCheckIn}
                 className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-foreground hover:bg-white/90 disabled:opacity-60"
               >
-                {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+                {locating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogIn className="h-4 w-4" />
+                )}
                 {t("checkIn")}
               </button>
             ) : !todayRec.checkOut ? (
@@ -296,7 +322,11 @@ function AttendancePage() {
                 onClick={handleCheckOut}
                 className="inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-foreground/90 disabled:opacity-60"
               >
-                {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                {locating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogOut className="h-4 w-4" />
+                )}
                 {t("checkOut")}
               </button>
             ) : (
@@ -328,28 +358,41 @@ function AttendancePage() {
             <div className="flex items-start gap-3 p-4">
               <Home className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Street</div>
-                <div className="mt-0.5 text-sm font-semibold text-foreground">{addr.street || "—"}</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Street
+                </div>
+                <div className="mt-0.5 text-sm font-semibold text-foreground">
+                  {addr.street || "—"}
+                </div>
               </div>
             </div>
             <div className="flex items-start gap-3 p-4">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">District</div>
-                <div className="mt-0.5 text-sm font-semibold text-foreground">{addr.district || "—"}</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  District
+                </div>
+                <div className="mt-0.5 text-sm font-semibold text-foreground">
+                  {addr.district || "—"}
+                </div>
               </div>
             </div>
             <div className="flex items-start gap-3 p-4">
               <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">City</div>
-                <div className="mt-0.5 text-sm font-semibold text-foreground">{addr.city || "—"}</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  City
+                </div>
+                <div className="mt-0.5 text-sm font-semibold text-foreground">
+                  {addr.city || "—"}
+                </div>
               </div>
             </div>
           </div>
           {gps.status === "ready" && (
             <div className="border-t border-border bg-secondary/30 px-4 py-2 font-mono text-[10px] text-muted-foreground">
-              {gps.pos.lat.toFixed(6)}, {gps.pos.lng.toFixed(6)} · ±{Math.round(gps.pos.accuracy)}m accuracy
+              {gps.pos.lat.toFixed(6)}, {gps.pos.lng.toFixed(6)} · ±{Math.round(gps.pos.accuracy)}m
+              accuracy
             </div>
           )}
         </div>
@@ -422,9 +465,20 @@ function AttendanceHistory({
 
   const accLabel = (a?: number | null) => {
     if (a == null) return null;
-    if (a <= 20) return { txt: `±${Math.round(a)}m · High`, cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" };
-    if (a <= 50) return { txt: `±${Math.round(a)}m · Medium`, cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400" };
-    return { txt: `±${Math.round(a)}m · Low`, cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400" };
+    if (a <= 20)
+      return {
+        txt: `±${Math.round(a)}m · High`,
+        cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+      };
+    if (a <= 50)
+      return {
+        txt: `±${Math.round(a)}m · Medium`,
+        cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+      };
+    return {
+      txt: `±${Math.round(a)}m · Low`,
+      cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400",
+    };
   };
 
   const now = new Date();
@@ -464,7 +518,9 @@ function AttendanceHistory({
               key={f}
               onClick={() => setFilter(f)}
               className={`rounded-full px-3 py-1.5 text-[11px] font-semibold capitalize transition ${
-                filter === f ? "bg-foreground text-background" : "bg-secondary text-muted-foreground hover:text-foreground"
+                filter === f
+                  ? "bg-foreground text-background"
+                  : "bg-secondary text-muted-foreground hover:text-foreground"
               }`}
             >
               {f === "all" ? "All" : f === "week" ? "This week" : "This month"}
@@ -476,7 +532,10 @@ function AttendanceHistory({
       {loading && (
         <div className="space-y-3 p-4">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="flex animate-pulse items-center gap-3 rounded-lg bg-secondary/50 p-3">
+            <div
+              key={i}
+              className="flex animate-pulse items-center gap-3 rounded-lg bg-secondary/50 p-3"
+            >
               <div className="h-12 w-12 rounded-lg bg-secondary" />
               <div className="flex-1 space-y-2">
                 <div className="h-3 w-1/3 rounded bg-secondary" />
@@ -505,7 +564,9 @@ function AttendanceHistory({
             <section key={month}>
               <div className="sticky top-16 z-[1] flex items-center justify-between bg-secondary/70 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground backdrop-blur md:px-5">
                 <span>{month}</span>
-                <span>{rows.length} {rows.length === 1 ? "day" : "days"}</span>
+                <span>
+                  {rows.length} {rows.length === 1 ? "day" : "days"}
+                </span>
               </div>
               <ul>
                 {rows.map((w) => {
@@ -518,30 +579,48 @@ function AttendanceHistory({
                     <li key={w.id} className="px-4 py-3 md:px-5">
                       <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          <span className="font-display text-base font-bold leading-none">{day}</span>
-                          <span className="mt-0.5 text-[10px] font-semibold uppercase">{weekday}</span>
+                          <span className="font-display text-base font-bold leading-none">
+                            {day}
+                          </span>
+                          <span className="mt-0.5 text-[10px] font-semibold uppercase">
+                            {weekday}
+                          </span>
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm font-semibold text-foreground">{w.checkIn || "—"}</span>
+                            <span className="font-mono text-sm font-semibold text-foreground">
+                              {w.checkIn || "—"}
+                            </span>
                             <span className="text-muted-foreground">→</span>
-                            <span className={`font-mono text-sm ${complete ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                            <span
+                              className={`font-mono text-sm ${complete ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+                            >
                               {w.checkOut || "—"}
                             </span>
-                            <span className={`ms-auto rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                              complete ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                            }`}>
+                            <span
+                              className={`ms-auto rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                                complete
+                                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                                  : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                              }`}
+                            >
                               {complete ? "Done" : "Open"}
                             </span>
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
                             <MapPin className="h-3 w-3 shrink-0 text-primary" />
-                            <span className="truncate max-w-[14rem] md:max-w-sm">{w.location || "—"}</span>
+                            <span className="truncate max-w-[14rem] md:max-w-sm">
+                              {w.location || "—"}
+                            </span>
                             <span aria-hidden>·</span>
-                            <span className="font-mono font-semibold text-foreground">{w.hours}</span>
+                            <span className="font-mono font-semibold text-foreground">
+                              {w.hours}
+                            </span>
                             {hasGps ? (
                               acc ? (
-                                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${acc.cls}`}>
+                                <span
+                                  className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${acc.cls}`}
+                                >
                                   {acc.txt}
                                 </span>
                               ) : (
@@ -582,7 +661,9 @@ function AttendanceHistory({
                             )}
                           </div>
                           <div className="flex items-center justify-between bg-secondary/40 px-3 py-1.5 font-mono text-[10px] text-muted-foreground">
-                            <span>{(w.lat as number).toFixed(5)}, {(w.lng as number).toFixed(5)}</span>
+                            <span>
+                              {(w.lat as number).toFixed(5)}, {(w.lng as number).toFixed(5)}
+                            </span>
                             <a
                               href={`https://www.openstreetmap.org/?mlat=${w.lat}&mlon=${w.lng}#map=17/${w.lat}/${w.lng}`}
                               target="_blank"

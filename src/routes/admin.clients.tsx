@@ -70,7 +70,13 @@ function AdminClientsPage() {
         (projects || []).forEach((p: any) => {
           if (!p.client_id) return;
           const list = byClient.get(p.client_id) || [];
-          list.push({ id: p.id, name_en: p.name_en, name_ar: p.name_ar, status: p.status, client_name: p.client_name });
+          list.push({
+            id: p.id,
+            name_en: p.name_en,
+            name_ar: p.name_ar,
+            status: p.status,
+            client_name: p.client_name,
+          });
           byClient.set(p.client_id, list);
         });
         setRows(
@@ -100,7 +106,7 @@ function AdminClientsPage() {
           (c.name_ar || "").toLowerCase().includes(ql) ||
           (c.email || "").toLowerCase().includes(ql) ||
           (c.phone || "").toLowerCase().includes(ql) ||
-          c.projects.some(p => p.client_name?.toLowerCase().includes(ql))
+          c.projects.some((p) => p.client_name?.toLowerCase().includes(ql))
         )
       )
         return false;
@@ -111,7 +117,7 @@ function AdminClientsPage() {
     const getVal = (c: ClientRow): string | number => {
       switch (sortKey) {
         case "name":
-          const pName = c.projects.find(p => p.client_name)?.client_name;
+          const pName = c.projects.find((p) => p.client_name)?.client_name;
           return (pName || (isAr ? c.name_ar : c.name_en) || c.name_en || "").toLowerCase();
         case "email":
           return (c.email || "").toLowerCase();
@@ -164,7 +170,7 @@ function AdminClientsPage() {
 
   const handleExport = () => {
     const data = filtered.map((c) => {
-      const pName = c.projects.find(p => p.client_name)?.client_name;
+      const pName = c.projects.find((p) => p.client_name)?.client_name;
       const name = pName || (isAr ? c.name_ar : c.name_en) || c.name_en || c.name_ar || "—";
       const projectsList = c.projects
         .map((p) => (isAr ? p.name_ar : p.name_en) || p.name_en || "—")
@@ -266,8 +272,9 @@ function AdminClientsPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {pageRows.map((c) => {
-                    const pName = c.projects.find(p => p.client_name)?.client_name;
-                    const name = pName || (isAr ? c.name_ar : c.name_en) || c.name_en || c.name_ar || "—";
+                    const pName = c.projects.find((p) => p.client_name)?.client_name;
+                    const name =
+                      pName || (isAr ? c.name_ar : c.name_en) || c.name_en || c.name_ar || "—";
                     return (
                       <tr key={c.id} className="hover:bg-accent/40">
                         <td className="px-4 py-3 font-semibold text-foreground">

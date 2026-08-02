@@ -3,6 +3,7 @@ import { shortId, formatDate } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
+import { computeEmployeeKpis } from "@/lib/employeeTargets";
 import { filterMyProjects } from "@/lib/employeeProjects";
 import {
   Clock4,
@@ -84,7 +85,7 @@ function AvatarSm({ initials, photo, name }: { initials: string; photo?: string;
 function EmployeesPage() {
   const { t, dir } = useI18n();
   const navigate = useNavigate();
-  const { activities, leads, employees, projects, users } = useStoreState();
+  const { activities, leads, employees, projects, users, attendance } = useStoreState();
   const isDetailRoute = useRouterState({
     select: (state) => state.location.pathname.startsWith("/admin/employees/"),
   });
@@ -121,10 +122,7 @@ function EmployeesPage() {
   // Accounts are counted via filterMyProjects (memberProfileIds / memberUserIds / teamMembers),
   // not by counting unique company names from leads.
   const leadStatsByOwner = useMemo(() => {
-    const map = new Map<
-      string,
-      { leads: number; won: number; wonAccounts: Set<string> }
-    >();
+    const map = new Map<string, { leads: number; won: number; wonAccounts: Set<string> }>();
     for (const l of leads) {
       const owner = (l.owner || "").toLowerCase();
       if (!owner) continue;
@@ -476,6 +474,11 @@ function EmployeesPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((e) => {
             const stats = getStats(e);
+            const empActivities = activities.filter((a) => a.owner === e.name);
+            const empLeads = leads.filter(
+              (l) => l.owner === e.name || (e.id && l.owner === e.id),
+            );
+            const kpi = computeEmployeeKpis(e, empActivities, empLeads, attendance);
             const goToAccounts = (ev: React.MouseEvent) => {
               ev.preventDefault();
               ev.stopPropagation();
@@ -509,16 +512,42 @@ function EmployeesPage() {
                       {e.department}
                     </span>
                   </div>
-                  <div className="text-end">
-                    <div className="font-mono text-2xl font-extrabold text-primary">{e.perf}%</div>
+                  <div className="py-3">
+                    <div
+                      className={`font-mono text-2xl font-extrabold ${kpi.overallKpi >= 100 ? "text-emerald-600" : kpi.overallKpi >= 75 ? "text-amber-600" : "text-rose-600"}`}
+                    >
+                      {kpi.overallKpi}%
+                    </div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       {t("performance")}
                     </div>
                   </div>
                 </div>
 
-                <div className="px-5 pb-2">
-                  <PerfBar value={e.perf} />
+                <div className="border-t border-border px-5 py-3">
+                  <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-secondary">
+                    <div
+                      className={`h-full rounded-full ${kpi.overallKpi >= 100 ? "bg-emerald-500" : kpi.overallKpi >= 75 ? "bg-amber-500" : "bg-rose-500"}`}
+                      style={{ width: `${kpi.overallKpi}%` }}
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500/80"></span>
+                      {t("sales") ?? "Sales"}:{" "}
+                      <span className="text-foreground">{kpi.targetScore}%</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-purple-500/80"></span>
+                      {t("tasks") ?? "Tasks"}:{" "}
+                      <span className="text-foreground">{kpi.activityScore}%</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-orange-500/80"></span>
+                      {t("attendance") ?? "Att."}:{" "}
+                      <span className="text-foreground">{kpi.attendanceRate}%</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Account win rate row */}
@@ -542,9 +571,7 @@ function EmployeesPage() {
                 {/* Stats row */}
                 <div className="grid grid-cols-4 divide-x divide-border border-t border-border text-center">
                   <div className="py-3">
-                    <div className="font-mono text-lg font-bold text-foreground">
-                      {stats.leads}
-                    </div>
+                    <div className="font-mono text-lg font-bold text-foreground">{stats.leads}</div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       {t("leads")}
                     </div>
@@ -639,6 +666,11 @@ function EmployeesPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {sorted.slice((page - 1) * pageSize, page * pageSize).map((e) => {
+                  const empActivities = activities.filter((a) => a.owner === e.name);
+                  const empLeads = leads.filter(
+                    (l) => l.owner === e.name || (e.id && l.owner === e.id),
+                  );
+                  const kpi = computeEmployeeKpis(e, empActivities, empLeads, attendance);
                   const myLeads = leads.filter((l) => l.owner === e.name);
                   const won = myLeads.filter((l) => l.status === "won").length;
                   return (
@@ -671,10 +703,10 @@ function EmployeesPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
-                            <PerfBar value={e.perf} />
+                            <PerfBar value={kpi.overallKpi} />
                           </div>
                           <span className="font-mono text-xs font-bold text-primary">
-                            {e.perf}%
+                            {kpi.overallKpi}%
                           </span>
                         </div>
                       </td>

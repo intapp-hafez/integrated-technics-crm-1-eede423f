@@ -197,7 +197,20 @@ function AdminReportsPage() {
 
   const monthlyTrend = useMemo(() => {
     const months = ar
-      ? ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
+      ? [
+          "يناير",
+          "فبراير",
+          "مارس",
+          "أبريل",
+          "مايو",
+          "يونيو",
+          "يوليو",
+          "أغسطس",
+          "سبتمبر",
+          "أكتوبر",
+          "نوفمبر",
+          "ديسمبر",
+        ]
       : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     const now = new Date();
@@ -548,8 +561,21 @@ function AdminReportsPage() {
                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend />
-                <Bar yAxisId="left" dataKey="leads" name={ar ? "العملاء" : "Leads"} fill="var(--color-primary, #3b82f6)" radius={[4, 4, 0, 0]} />
-                <Line yAxisId="right" type="monotone" dataKey="revenue" name={ar ? "الإيرادات" : "Revenue"} stroke="#10b981" strokeWidth={3} />
+                <Bar
+                  yAxisId="left"
+                  dataKey="leads"
+                  name={ar ? "العملاء" : "Leads"}
+                  fill="var(--color-primary, #3b82f6)"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="revenue"
+                  name={ar ? "الإيرادات" : "Revenue"}
+                  stroke="#10b981"
+                  strokeWidth={3}
+                />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -566,9 +592,19 @@ function AdminReportsPage() {
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
                 <XAxis type="number" tick={{ fontSize: 12 }} />
                 <YAxis dataKey="stage" type="category" tick={{ fontSize: 12 }} width={90} />
-                <Tooltip formatter={(value: any, name: any) => [name === "count" ? value : fmtMoney(Number(value)), name === "count" ? (ar ? "العدد" : "Count") : (ar ? "القيمة" : "Value")]} />
+                <Tooltip
+                  formatter={(value: any, name: any) => [
+                    name === "count" ? value : fmtMoney(Number(value)),
+                    name === "count" ? (ar ? "العدد" : "Count") : ar ? "القيمة" : "Value",
+                  ]}
+                />
                 <Legend />
-                <Bar dataKey="count" name={ar ? "عدد الصفقات" : "Deals Count"} fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                <Bar
+                  dataKey="count"
+                  name={ar ? "عدد الصفقات" : "Deals Count"}
+                  fill="#8b5cf6"
+                  radius={[0, 4, 4, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -611,7 +647,11 @@ function AdminReportsPage() {
                       <div className="h-2 w-16 overflow-hidden rounded-full bg-secondary">
                         <div
                           className={`h-full rounded-full ${
-                            r.perf >= 100 ? "bg-emerald-500" : r.perf >= 60 ? "bg-amber-500" : "bg-rose-500"
+                            r.perf >= 100
+                              ? "bg-emerald-500"
+                              : r.perf >= 60
+                                ? "bg-amber-500"
+                                : "bg-rose-500"
                           }`}
                           style={{ width: `${Math.min(100, r.perf)}%` }}
                         />

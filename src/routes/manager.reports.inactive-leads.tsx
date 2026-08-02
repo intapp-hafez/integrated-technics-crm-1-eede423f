@@ -63,9 +63,8 @@ export function InactiveLeadsReportPage() {
   const meName = profile?.full_name_en || profile?.full_name_ar || "";
 
   // Filter leads and employees for this manager
-  const leads = storeLeads.filter(l => includesLead(l));
+  const leads = storeLeads.filter((l) => includesLead(l));
   const employees = teamEmployees;
-
 
   // Filters state
   const [dateRange, setDateRange] = useState<string>("all");
@@ -140,7 +139,13 @@ export function InactiveLeadsReportPage() {
       }
 
       const actDate = getPastDate(diffDays);
-      const leadName = (l as any).title || (l as any).name || l.code || l.company || l.contact || `Lead #${l.id.slice(0, 5)}`;
+      const leadName =
+        (l as any).title ||
+        (l as any).name ||
+        l.code ||
+        l.company ||
+        l.contact ||
+        `Lead #${l.id.slice(0, 5)}`;
       const accountName = l.company || (l as any).account || "Standard Account";
       const initials = leadName
         .split(" ")
@@ -165,7 +170,9 @@ export function InactiveLeadsReportPage() {
         assignedPhoto: matchedEmp?.photo,
         lastActivityDate: actDate,
         inactiveDays: diffDays,
-        stage: (l as any).stage || (l.status === "contacted" ? "Proposal" : l.status === "new" ? "New" : "Qualification"),
+        stage:
+          (l as any).stage ||
+          (l.status === "contacted" ? "Proposal" : l.status === "new" ? "New" : "Qualification"),
         priority: (l.value ?? 0) > 100000 ? "High" : (l.value ?? 0) > 30000 ? "Medium" : "Low",
         source: l.source || "Website",
         initials,
@@ -183,10 +190,10 @@ export function InactiveLeadsReportPage() {
     employees.forEach((e: any) => {
       const empName = e.name?.trim().toLowerCase();
       const matchedUser = users.find((u: any) => u.name?.trim().toLowerCase() === empName);
-      
+
       const isUserInactive = matchedUser && !matchedUser.active;
       const isMissing = !matchedUser && !e.name;
-      
+
       if (e.name && !isUserInactive && !isMissing) set.add(e.name);
     });
     return Array.from(set).sort();
@@ -227,10 +234,14 @@ export function InactiveLeadsReportPage() {
       .filter((l) => {
         if (dateRange === "7+" && l.inactiveDays < 7) return false;
         if (dateRange === "14+" && l.inactiveDays < 14) return false;
-        if (employeeFilter !== "all" && l.assignedTo.toLowerCase() !== employeeFilter.toLowerCase()) return false;
-        if (stageFilter !== "all" && l.stage.toLowerCase() !== stageFilter.toLowerCase()) return false;
-        if (priorityFilter !== "all" && l.priority.toLowerCase() !== priorityFilter.toLowerCase()) return false;
-        if (sourceFilter !== "all" && l.source.toLowerCase() !== sourceFilter.toLowerCase()) return false;
+        if (employeeFilter !== "all" && l.assignedTo.toLowerCase() !== employeeFilter.toLowerCase())
+          return false;
+        if (stageFilter !== "all" && l.stage.toLowerCase() !== stageFilter.toLowerCase())
+          return false;
+        if (priorityFilter !== "all" && l.priority.toLowerCase() !== priorityFilter.toLowerCase())
+          return false;
+        if (sourceFilter !== "all" && l.source.toLowerCase() !== sourceFilter.toLowerCase())
+          return false;
 
         const hasAgeFilter =
           ageCheckboxes.today ||
@@ -257,7 +268,16 @@ export function InactiveLeadsReportPage() {
         if (sortBy === "name") return a.name.localeCompare(b.name);
         return 0;
       });
-  }, [inactiveLeads, dateRange, employeeFilter, stageFilter, priorityFilter, sourceFilter, ageCheckboxes, sortBy]);
+  }, [
+    inactiveLeads,
+    dateRange,
+    employeeFilter,
+    stageFilter,
+    priorityFilter,
+    sourceFilter,
+    ageCheckboxes,
+    sortBy,
+  ]);
 
   // Summary counts calculated 100% dynamically from filtered dataset
   const summary = useMemo(() => {
@@ -315,7 +335,7 @@ export function InactiveLeadsReportPage() {
   const handleAction = async (lead: any, type: "reminder" | "warning") => {
     let email = "unknown";
     let body = "";
-    
+
     // Fallback: use user's primary email
     const matchedUser = users.find((u) => u.id === lead.ownerId || u.name === lead.assignedTo);
     if (matchedUser?.email) email = matchedUser.email;
@@ -326,18 +346,23 @@ export function InactiveLeadsReportPage() {
         .select("value")
         .eq("key", "crm_activities_monitoring_settings")
         .maybeSingle();
-        
+
       if (data?.value) {
         const parsed = data.value as any;
-        if (parsed.employeeEmails && parsed.employeeEmails[lead.ownerId] && parsed.employeeEmails[lead.ownerId].trim() !== "") {
+        if (
+          parsed.employeeEmails &&
+          parsed.employeeEmails[lead.ownerId] &&
+          parsed.employeeEmails[lead.ownerId].trim() !== ""
+        ) {
           email = parsed.employeeEmails[lead.ownerId];
         }
         if (type === "warning") body = parsed.templates?.employeeWarning || "";
         else body = parsed.templates?.managerEscalation || "";
       }
-    } catch (e) { }
+    } catch (e) {}
 
-    const actionText = type === "reminder" ? (isAr ? "تذكير" : "reminder") : (isAr ? "إنذار" : "warning");
+    const actionText =
+      type === "reminder" ? (isAr ? "تذكير" : "reminder") : isAr ? "إنذار" : "warning";
 
     if (email !== "unknown") {
       body = body
@@ -353,17 +378,17 @@ export function InactiveLeadsReportPage() {
           subject: actionText.toUpperCase() + ` - ${lead.name}`,
           body: htmlBody,
           status: "queued",
-          created_by: user?.id ?? null
+          created_by: user?.id ?? null,
         });
         if (insertError) throw insertError;
 
         // Trigger edge function to send immediately
-        supabase.functions.invoke("email-dispatch", { body: {} }).catch(() => { });
+        supabase.functions.invoke("email-dispatch", { body: {} }).catch(() => {});
 
         toast.success(
           isAr
             ? `تم إرسال ${actionText} إلى ${email} للموظف ${lead.assignedTo}`
-            : `Sent ${actionText} to ${email} for ${lead.assignedTo}`
+            : `Sent ${actionText} to ${email} for ${lead.assignedTo}`,
         );
       } catch (error) {
         toast.error(isAr ? "فشل إرسال البريد الإلكتروني" : "Failed to send email");
@@ -372,7 +397,7 @@ export function InactiveLeadsReportPage() {
       toast.error(
         isAr
           ? `لم يتم تكوين بريد إلكتروني للموظف ${lead.assignedTo}`
-          : `No configured email found for ${lead.assignedTo}`
+          : `No configured email found for ${lead.assignedTo}`,
       );
     }
   };
@@ -391,10 +416,10 @@ export function InactiveLeadsReportPage() {
       isAr ? "المرحلة" : "Stage",
       isAr ? "الأولوية" : "Priority",
       isAr ? "المصدر" : "Source",
-      isAr ? "تاريخ آخر نشاط" : "Last Activity"
+      isAr ? "تاريخ آخر نشاط" : "Last Activity",
     ];
 
-    const rows = filtered.map(l => [
+    const rows = filtered.map((l) => [
       `"${(l.name || "").replace(/"/g, '""')}"`,
       `"${(l.account || "").replace(/"/g, '""')}"`,
       `"${(l.assignedTo || "").replace(/"/g, '""')}"`,
@@ -402,10 +427,10 @@ export function InactiveLeadsReportPage() {
       `"${(l.stage || "").replace(/"/g, '""')}"`,
       `"${(l.priority || "").replace(/"/g, '""')}"`,
       `"${(l.source || "").replace(/"/g, '""')}"`,
-      `"${(l.lastActivityDate || "").replace(/"/g, '""')}"`
+      `"${(l.lastActivityDate || "").replace(/"/g, '""')}"`,
     ]);
 
-    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     // Add BOM for Excel UTF-8 compatibility
     const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -424,7 +449,8 @@ export function InactiveLeadsReportPage() {
   const STAGE_BADGES: Record<string, string> = {
     Proposal: "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 font-bold",
     Negotiation: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 font-bold",
-    Qualification: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold",
+    Qualification:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold",
     New: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 font-bold",
   };
 
@@ -441,8 +467,16 @@ export function InactiveLeadsReportPage() {
       user={{
         name: meName,
         role: t("manager"),
-        initials: meName.split(/\s+/).filter(Boolean).map((w: string) => w[0]?.toUpperCase()).join("").slice(0, 2) || "HR",
-        photo: profile?.avatar_url || "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg"
+        initials:
+          meName
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((w: string) => w[0]?.toUpperCase())
+            .join("")
+            .slice(0, 2) || "HR",
+        photo:
+          profile?.avatar_url ||
+          "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
       }}
     >
       <div className="space-y-6">
@@ -578,21 +612,37 @@ export function InactiveLeadsReportPage() {
                           className="h-4 w-4 rounded-sm border-border text-primary focus:ring-primary"
                         />
                       </th>
-                      <th className="px-4 py-3 text-start font-bold">{isAr ? "اسم العميل" : "Lead Name"}</th>
-                      <th className="px-4 py-3 text-start font-bold">{isAr ? "الحساب" : "Account"}</th>
-                      <th className="px-4 py-3 text-start font-bold">{isAr ? "مسند إلى" : "Assigned To"}</th>
-                      <th className="px-4 py-3 text-start font-bold">{isAr ? "آخر نشاط" : "Last Activity"}</th>
+                      <th className="px-4 py-3 text-start font-bold">
+                        {isAr ? "اسم العميل" : "Lead Name"}
+                      </th>
+                      <th className="px-4 py-3 text-start font-bold">
+                        {isAr ? "الحساب" : "Account"}
+                      </th>
+                      <th className="px-4 py-3 text-start font-bold">
+                        {isAr ? "مسند إلى" : "Assigned To"}
+                      </th>
+                      <th className="px-4 py-3 text-start font-bold">
+                        {isAr ? "آخر نشاط" : "Last Activity"}
+                      </th>
                       <th className="px-4 py-3 text-start font-bold">{t("inactiveFor")}</th>
-                      <th className="px-4 py-3 text-start font-bold">{isAr ? "المرحلة" : "Stage"}</th>
-                      <th className="px-4 py-3 text-start font-bold">{isAr ? "الأولوية" : "Priority"}</th>
-                      <th className="px-4 py-3 text-end font-bold">{isAr ? "الإجراءات" : "Actions"}</th>
+                      <th className="px-4 py-3 text-start font-bold">
+                        {isAr ? "المرحلة" : "Stage"}
+                      </th>
+                      <th className="px-4 py-3 text-start font-bold">
+                        {isAr ? "الأولوية" : "Priority"}
+                      </th>
+                      <th className="px-4 py-3 text-end font-bold">
+                        {isAr ? "الإجراءات" : "Actions"}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {paginated.length === 0 ? (
                       <tr>
                         <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
-                          {isAr ? "لا توجد نتائج مطابقة للفلاتر" : "No inactive leads match your filters"}
+                          {isAr
+                            ? "لا توجد نتائج مطابقة للفلاتر"
+                            : "No inactive leads match your filters"}
                         </td>
                       </tr>
                     ) : (
@@ -602,8 +652,9 @@ export function InactiveLeadsReportPage() {
                         return (
                           <tr
                             key={lead.id}
-                            className={`transition hover:bg-secondary/40 ${isSelected ? "bg-primary/5" : ""
-                              }`}
+                            className={`transition hover:bg-secondary/40 ${
+                              isSelected ? "bg-primary/5" : ""
+                            }`}
                           >
                             <td className="px-4 py-3.5">
                               <input
@@ -614,11 +665,17 @@ export function InactiveLeadsReportPage() {
                               />
                             </td>
                             <td className="px-4 py-3.5">
-                              <Link to="/manager/leads/$leadId" params={{ leadId: lead.id }} className="font-bold text-foreground hover:text-primary transition-colors hover:underline block">
+                              <Link
+                                to="/manager/leads/$leadId"
+                                params={{ leadId: lead.id }}
+                                className="font-bold text-foreground hover:text-primary transition-colors hover:underline block"
+                              >
                                 {lead.name}
                               </Link>
                             </td>
-                            <td className="px-4 py-3.5 text-muted-foreground font-medium">{lead.account}</td>
+                            <td className="px-4 py-3.5 text-muted-foreground font-medium">
+                              {lead.account}
+                            </td>
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-2">
                                 {lead.assignedPhoto ? (
@@ -632,7 +689,9 @@ export function InactiveLeadsReportPage() {
                                     {lead.assignedTo[0]}
                                   </span>
                                 )}
-                                <span className="font-semibold text-foreground">{lead.assignedTo}</span>
+                                <span className="font-semibold text-foreground">
+                                  {lead.assignedTo}
+                                </span>
                               </div>
                             </td>
                             <td className="px-4 py-3.5">
@@ -647,16 +706,18 @@ export function InactiveLeadsReportPage() {
                             </td>
                             <td className="px-4 py-3.5">
                               <span
-                                className={`inline-flex rounded-lg px-2.5 py-1 text-[11px] font-bold ${STAGE_BADGES[lead.stage] || "bg-secondary text-foreground"
-                                  }`}
+                                className={`inline-flex rounded-lg px-2.5 py-1 text-[11px] font-bold ${
+                                  STAGE_BADGES[lead.stage] || "bg-secondary text-foreground"
+                                }`}
                               >
                                 {lead.stage}
                               </span>
                             </td>
                             <td className="px-4 py-3.5">
                               <span
-                                className={`inline-flex rounded-lg px-2.5 py-1 text-[11px] font-bold ${PRIORITY_BADGES[lead.priority] || "bg-secondary text-foreground"
-                                  }`}
+                                className={`inline-flex rounded-lg px-2.5 py-1 text-[11px] font-bold ${
+                                  PRIORITY_BADGES[lead.priority] || "bg-secondary text-foreground"
+                                }`}
                               >
                                 {lead.priority}
                               </span>
@@ -691,8 +752,8 @@ export function InactiveLeadsReportPage() {
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-3 text-xs text-muted-foreground">
                 <div>
                   {isAr ? "عرض" : "Showing"} {paginated.length > 0 ? (page - 1) * pageSize + 1 : 0}{" "}
-                  {isAr ? "إلى" : "to"} {Math.min(page * pageSize, filtered.length)} {isAr ? "من أصل" : "of"}{" "}
-                  {summary.total} {isAr ? "سجل" : "records"}
+                  {isAr ? "إلى" : "to"} {Math.min(page * pageSize, filtered.length)}{" "}
+                  {isAr ? "من أصل" : "of"} {summary.total} {isAr ? "سجل" : "records"}
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -707,10 +768,11 @@ export function InactiveLeadsReportPage() {
                     <button
                       key={pageNum}
                       onClick={() => setPage(pageNum)}
-                      className={`h-7 w-7 rounded-lg text-xs font-bold transition ${page === pageNum
+                      className={`h-7 w-7 rounded-lg text-xs font-bold transition ${
+                        page === pageNum
                           ? "bg-primary text-primary-foreground"
                           : "border border-border bg-card text-foreground hover:bg-secondary"
-                        }`}
+                      }`}
                     >
                       {pageNum}
                     </button>
@@ -766,13 +828,36 @@ export function InactiveLeadsReportPage() {
               </h3>
               <div className="space-y-2.5">
                 {[
-                  { key: "today" as AgeBucket, label: isAr ? "اليوم" : "Today", count: ageCounts.today },
-                  { key: "1-2" as AgeBucket, label: isAr ? "1 - 2 أيام" : "1 - 2 Days", count: ageCounts["1-2"] },
-                  { key: "3-6" as AgeBucket, label: isAr ? "3 - 6 أيام" : "3 - 6 Days", count: ageCounts["3-6"] },
-                  { key: "7-14" as AgeBucket, label: isAr ? "7 - 14 يومًا" : "7 - 14 Days", count: ageCounts["7-14"] },
-                  { key: "14+" as AgeBucket, label: isAr ? "14+ يومًا" : "14+ Days", count: ageCounts["14+"] },
+                  {
+                    key: "today" as AgeBucket,
+                    label: isAr ? "اليوم" : "Today",
+                    count: ageCounts.today,
+                  },
+                  {
+                    key: "1-2" as AgeBucket,
+                    label: isAr ? "1 - 2 أيام" : "1 - 2 Days",
+                    count: ageCounts["1-2"],
+                  },
+                  {
+                    key: "3-6" as AgeBucket,
+                    label: isAr ? "3 - 6 أيام" : "3 - 6 Days",
+                    count: ageCounts["3-6"],
+                  },
+                  {
+                    key: "7-14" as AgeBucket,
+                    label: isAr ? "7 - 14 يومًا" : "7 - 14 Days",
+                    count: ageCounts["7-14"],
+                  },
+                  {
+                    key: "14+" as AgeBucket,
+                    label: isAr ? "14+ يومًا" : "14+ Days",
+                    count: ageCounts["14+"],
+                  },
                 ].map((b) => (
-                  <label key={b.key} className="flex items-center justify-between text-xs font-medium text-foreground cursor-pointer">
+                  <label
+                    key={b.key}
+                    className="flex items-center justify-between text-xs font-medium text-foreground cursor-pointer"
+                  >
                     <div className="flex items-center gap-2.5">
                       <input
                         type="checkbox"
@@ -876,19 +961,31 @@ export function InactiveLeadsReportPage() {
 
               <div className="space-y-3 text-xs">
                 <div className="flex items-center justify-between font-bold">
-                  <span className="text-muted-foreground">{isAr ? "إجمالي العملاء غير النشطين" : "Total Inactive Leads"}</span>
+                  <span className="text-muted-foreground">
+                    {isAr ? "إجمالي العملاء غير النشطين" : "Total Inactive Leads"}
+                  </span>
                   <span className="text-sm font-black text-primary">{summary.total}</span>
                 </div>
                 <div className="flex items-center justify-between font-bold">
-                  <span className="text-muted-foreground">{isAr ? "أولوية عالية" : "High Priority"}</span>
-                  <span className="text-rose-600 dark:text-rose-400 font-black">{summary.high}</span>
+                  <span className="text-muted-foreground">
+                    {isAr ? "أولوية عالية" : "High Priority"}
+                  </span>
+                  <span className="text-rose-600 dark:text-rose-400 font-black">
+                    {summary.high}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between font-bold">
-                  <span className="text-muted-foreground">{isAr ? "أولوية متوسطة" : "Medium Priority"}</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-black">{summary.medium}</span>
+                  <span className="text-muted-foreground">
+                    {isAr ? "أولوية متوسطة" : "Medium Priority"}
+                  </span>
+                  <span className="text-amber-600 dark:text-amber-400 font-black">
+                    {summary.medium}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between font-bold">
-                  <span className="text-muted-foreground">{isAr ? "أولوية منخفضة" : "Low Priority"}</span>
+                  <span className="text-muted-foreground">
+                    {isAr ? "أولوية منخفضة" : "Low Priority"}
+                  </span>
                   <span className="text-blue-600 dark:text-blue-400 font-black">{summary.low}</span>
                 </div>
               </div>
@@ -896,7 +993,9 @@ export function InactiveLeadsReportPage() {
 
             {/* Big Generate Report Button matching Screenshot 2 */}
             <button
-              onClick={() => toast.success(isAr ? "تم توليد التقرير بنجاح" : "Report generated successfully!")}
+              onClick={() =>
+                toast.success(isAr ? "تم توليد التقرير بنجاح" : "Report generated successfully!")
+              }
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-xs font-bold text-primary-foreground shadow-sm transition hover:bg-primary/90"
             >
               <BarChart2 className="h-4 w-4" />

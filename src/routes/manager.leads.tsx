@@ -1,4 +1,4 @@
-import { LeadFormModal } from '@/components/leads/LeadFormModal';
+import { LeadFormModal } from "@/components/leads/LeadFormModal";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
@@ -65,16 +65,21 @@ function ManagerLeadsListPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [q, status, owner, closingThisMonthFilter, next7DaysFilter, next15DaysFilter, noActivitiesFilter]);
+  }, [
+    q,
+    status,
+    owner,
+    closingThisMonthFilter,
+    next7DaysFilter,
+    next15DaysFilter,
+    noActivitiesFilter,
+  ]);
 
   const isAr = lang === "ar";
   const stageLabel = (k: string) =>
     settings.stages.find((s) => s.key === k)?.label ?? t(k as any) ?? k;
 
-  const teamLeads = useMemo(
-    () => leads.filter((l) => includesLead(l)),
-    [leads, includesLead],
-  );
+  const teamLeads = useMemo(() => leads.filter((l) => includesLead(l)), [leads, includesLead]);
 
   // Projects where at least one team member is a member
   const teamProjects = useMemo(
@@ -108,7 +113,8 @@ function ManagerLeadsListPage() {
           const dTime = d.getTime();
           let pass = false;
           if (closingThisMonthFilter) {
-            if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()) pass = true;
+            if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth())
+              pass = true;
           }
           if (next7DaysFilter && !pass) {
             const diffDays = (dTime - tTime) / (1000 * 60 * 60 * 24);
@@ -142,7 +148,17 @@ function ManagerLeadsListPage() {
       }
       return true;
     });
-  }, [teamLeads, q, status, owner, closingThisMonthFilter, next7DaysFilter, next15DaysFilter, noActivitiesFilter, activities]);
+  }, [
+    teamLeads,
+    q,
+    status,
+    owner,
+    closingThisMonthFilter,
+    next7DaysFilter,
+    next15DaysFilter,
+    noActivitiesFilter,
+    activities,
+  ]);
 
   const totalValue = filtered.reduce((s, l) => s + (l.value || 0), 0);
   const wonCount = filtered.filter((l) => l.status === "won").length;
@@ -324,9 +340,12 @@ function ManagerLeadsListPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {paginated.map((l) => (
-                <tr key={l.id} className={`transition ${
-                  (l.value || 0) === 0 ? "bg-rose-50/50 hover:bg-rose-50" : "hover:bg-primary/5"
-                }`}>
+                <tr
+                  key={l.id}
+                  className={`transition ${
+                    (l.value || 0) === 0 ? "bg-rose-50/50 hover:bg-rose-50" : "hover:bg-primary/5"
+                  }`}
+                >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div>
@@ -353,9 +372,15 @@ function ManagerLeadsListPage() {
                   <td className="px-4 py-3">
                     <div className="text-foreground font-medium">{l.contact}</div>
                     {(() => {
-                      const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
+                      const relatedProject = projects.find(
+                        (p) => p.id === (l as any).projectId || p.id === (l as any).project_id,
+                      );
                       const displayPhone = l.phone || relatedProject?.clientPhone;
-                      return displayPhone ? <div className="text-xs text-muted-foreground opacity-90">{displayPhone}</div> : null;
+                      return displayPhone ? (
+                        <div className="text-xs text-muted-foreground opacity-90">
+                          {displayPhone}
+                        </div>
+                      ) : null;
                     })()}
                   </td>
                   <td className="px-4 py-3 text-foreground">{l.owner || "—"}</td>

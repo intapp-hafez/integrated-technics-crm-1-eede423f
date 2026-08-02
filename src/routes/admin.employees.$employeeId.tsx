@@ -34,7 +34,12 @@ import { PipelineBoard } from "@/components/pipeline/PipelineBoard";
 import { AdminReviewTab } from "@/components/admin/AdminReviewTab";
 import { useEffect, useMemo, useState, Fragment } from "react";
 import { TargetCountdown, TargetRefreshIndicator } from "@/components/TargetCountdown";
-import { computeTargetPeriod, fmtCairoDate, sumWonInPeriod, getKpiPeriodDates } from "@/lib/targetPeriod";
+import {
+  computeTargetPeriod,
+  fmtCairoDate,
+  sumWonInPeriod,
+  getKpiPeriodDates,
+} from "@/lib/targetPeriod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isAssignedToEmployee } from "@/lib/activityFilters";
@@ -105,9 +110,16 @@ function EmployeeDetailsPage() {
       .join("")
       .slice(0, 2) || "AD";
   const user = { name: meName, role: t("admin"), initials: meInitials, photo: mePhoto };
-  const [tab, setTab] = useState<"overview" | "admin_review" | "attendance" | "leads" | "activities" | "chat" | "accounts" | "pipeline">(
-    "overview",
-  );
+  const [tab, setTab] = useState<
+    | "overview"
+    | "admin_review"
+    | "attendance"
+    | "leads"
+    | "activities"
+    | "chat"
+    | "accounts"
+    | "pipeline"
+  >("overview");
   const [page, setPage] = useState(1);
   const [overviewActivitiesPage, setOverviewActivitiesPage] = useState(1);
   const [auditPage, setAuditPage] = useState(1);
@@ -118,6 +130,7 @@ function EmployeeDetailsPage() {
   const [filterClosingThisMonth, setFilterClosingThisMonth] = useState(false);
   const [filterNext7Days, setFilterNext7Days] = useState(false);
   const [filterNext15Days, setFilterNext15Days] = useState(false);
+  const [activitiesDateFilter, setActivitiesDateFilter] = useState("");
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>({});
   useEffect(() => {
@@ -147,28 +160,65 @@ function EmployeeDetailsPage() {
   const todayDateObj = new Date();
   const todayStr = todayDateObj.toISOString().slice(0, 10);
   const thisMonthStr = todayStr.slice(0, 7);
-  const in7DaysStr = new Date(todayDateObj.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const in15DaysStr = new Date(todayDateObj.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const in7DaysStr = new Date(todayDateObj.getTime() + 7 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  const in15DaysStr = new Date(todayDateObj.getTime() + 15 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
 
   const timeFilteredLeads = empLeads.filter((l: any) => {
     if (!filterClosingThisMonth && !filterNext7Days && !filterNext15Days) return true;
     let match = false;
-    if (filterClosingThisMonth && l.expectedCloseDate && l.expectedCloseDate.startsWith(thisMonthStr)) match = true;
-    if (filterNext7Days && l.expectedCloseDate && l.expectedCloseDate >= todayStr && l.expectedCloseDate <= in7DaysStr) match = true;
-    if (filterNext15Days && l.expectedCloseDate && l.expectedCloseDate >= todayStr && l.expectedCloseDate <= in15DaysStr) match = true;
+    if (
+      filterClosingThisMonth &&
+      l.expectedCloseDate &&
+      l.expectedCloseDate.startsWith(thisMonthStr)
+    )
+      match = true;
+    if (
+      filterNext7Days &&
+      l.expectedCloseDate &&
+      l.expectedCloseDate >= todayStr &&
+      l.expectedCloseDate <= in7DaysStr
+    )
+      match = true;
+    if (
+      filterNext15Days &&
+      l.expectedCloseDate &&
+      l.expectedCloseDate >= todayStr &&
+      l.expectedCloseDate <= in15DaysStr
+    )
+      match = true;
     return match;
   });
 
-  const displayedLeads = filterNoActivities ? timeFilteredLeads.filter((l) => !activities.some((a) => a.leadId === l.id)) : timeFilteredLeads;
+  const displayedLeads = filterNoActivities
+    ? timeFilteredLeads.filter((l) => !activities.some((a) => a.leadId === l.id))
+    : timeFilteredLeads;
 
-  const displayedProjects = filterNoLeads ? empProjects.filter((p: any) => !storeLeads.some((l: any) => l.projectId === p.id)) : empProjects;
+  const displayedProjects = filterNoLeads
+    ? empProjects.filter((p: any) => !storeLeads.some((l: any) => l.projectId === p.id))
+    : empProjects;
 
   const ITEMS_PER_PAGE = 20;
-  const paginatedActivities = empActivities.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-  const paginatedLeads = displayedLeads.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-  const paginatedProjects = displayedProjects.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  
+  const filteredEmpActivities = empActivities.filter(a => !activitiesDateFilter || a.dueDate === activitiesDateFilter);
 
-  const overviewActivitiesPaginated = empActivities.slice((overviewActivitiesPage - 1) * 10, overviewActivitiesPage * 10);
+  const paginatedActivities = filteredEmpActivities.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE,
+  );
+  const paginatedLeads = displayedLeads.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedProjects = displayedProjects.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE,
+  );
+
+  const overviewActivitiesPaginated = empActivities.slice(
+    (overviewActivitiesPage - 1) * 10,
+    overviewActivitiesPage * 10,
+  );
   const auditPaginated = empHistory.slice((auditPage - 1) * 10, auditPage * 10);
 
   const renderPagination = (total: number) => {
@@ -178,13 +228,23 @@ function EmployeeDetailsPage() {
       <div className="flex items-center justify-between border-t border-border mt-4 pt-4">
         <div className="flex flex-1 items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing <span className="font-medium">{(page - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium">{Math.min(page * ITEMS_PER_PAGE, total)}</span> of <span className="font-medium">{total}</span> results
+            Showing <span className="font-medium">{(page - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
+            <span className="font-medium">{Math.min(page * ITEMS_PER_PAGE, total)}</span> of{" "}
+            <span className="font-medium">{total}</span> results
           </p>
           <div className="flex gap-2">
-            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:pointer-events-none transition-colors">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+              className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:pointer-events-none transition-colors"
+            >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:pointer-events-none transition-colors">
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage(page + 1)}
+              className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:pointer-events-none transition-colors"
+            >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -299,21 +359,41 @@ function EmployeeDetailsPage() {
   const nowLocal = new Date();
   const curYear = nowLocal.getFullYear();
   const curMonth = nowLocal.getMonth();
-  
-  const tP = getKpiPeriodDates(emp?.kpiTargetPeriod || "monthly", curYear, curMonth, kpiPeriodOffset);
-  const acP = getKpiPeriodDates(emp?.kpiActivitiesPeriod || "monthly", curYear, curMonth, kpiPeriodOffset);
-  const atP = getKpiPeriodDates(emp?.kpiAttendancePeriod || "monthly", curYear, curMonth, kpiPeriodOffset);
+
+  const tP = getKpiPeriodDates(
+    emp?.kpiTargetPeriod || "monthly",
+    curYear,
+    curMonth,
+    kpiPeriodOffset,
+  );
+  const acP = getKpiPeriodDates(
+    emp?.kpiActivitiesPeriod || "monthly",
+    curYear,
+    curMonth,
+    kpiPeriodOffset,
+  );
+  const atP = getKpiPeriodDates(
+    emp?.kpiAttendancePeriod || "monthly",
+    curYear,
+    curMonth,
+    kpiPeriodOffset,
+  );
 
   const kpiPeriodLabel = tP.label;
 
-  const actsInMonth = empActivities.filter(a => {
+  const actsInMonth = empActivities.filter((a) => {
     if (!(a as any).dueDate) return kpiPeriodOffset === 0;
     const d = new Date((a as any).dueDate).getTime();
     return d >= acP.start.getTime() && d <= acP.end.getTime();
   });
   const totalActs = actsInMonth.length;
   const completedActs = actsInMonth.filter((a) => a.status === "done").length;
-  const activityScore = totalActs > 0 ? (completedActs / totalActs) * 100 : (kpiPeriodOffset <= 0 && totalActs === 0 ? 100 : 0);
+  const activityScore =
+    totalActs > 0
+      ? (completedActs / totalActs) * 100
+      : kpiPeriodOffset <= 0 && totalActs === 0
+        ? 100
+        : 0;
 
   // ---- Real-time target & period-aware achievement (unified with employee panel) ----
   const empUserId = (emp as any)?.userId as string | undefined;
@@ -373,29 +453,36 @@ function EmployeeDetailsPage() {
     countdownLabel,
   } = period;
   const achievedTarget = useMemo(() => sumWonInPeriod(empLeads as any, period), [empLeads, period]);
-  
+
   // Period Target Score
   const kpiMonthlyTarget = annualTarget / tP.divisor;
-  const kpiMonthlyAchieved = useMemo(() => sumWonInPeriod(empLeads as any, {
-    periodStartMs: tP.start.getTime(),
-    periodEndMs: tP.end.getTime(),
-  }), [empLeads, tP]);
-  
+  const kpiMonthlyAchieved = useMemo(
+    () =>
+      sumWonInPeriod(empLeads as any, {
+        periodStartMs: tP.start.getTime(),
+        periodEndMs: tP.end.getTime(),
+      }),
+    [empLeads, tP],
+  );
+
   const achieveRate = kpiMonthlyTarget > 0 ? (kpiMonthlyAchieved / kpiMonthlyTarget) * 100 : 0;
   const targetScore = Math.min(100, achieveRate);
-  
+
   const periodAchieveRate = annualTarget > 0 ? (achievedTarget / annualTarget) * 100 : 0;
-  
+
   // Attendance Rate for selected period
   const presentDays = storeAttendance.filter((r) => {
     if (r.owner !== emp?.name) return false;
     const d = new Date(r.date);
     return d >= atP.start && d <= atP.end;
   }).length;
-  
-  const targetDay = kpiPeriodOffset === 0 && atP.start.getTime() <= nowLocal.getTime() && nowLocal.getTime() <= atP.end.getTime() 
-    ? nowLocal 
-    : atP.end;
+
+  const targetDay =
+    kpiPeriodOffset === 0 &&
+    atP.start.getTime() <= nowLocal.getTime() &&
+    nowLocal.getTime() <= atP.end.getTime()
+      ? nowLocal
+      : atP.end;
   let workingDays = 0;
   for (let d = new Date(atP.start); d <= targetDay; d.setDate(d.getDate() + 1)) {
     const wd = d.getDay(); // 0=Sun..6=Sat
@@ -408,9 +495,7 @@ function EmployeeDetailsPage() {
   const atW = emp?.kpiAttendanceWeight ?? 33.34;
 
   const overallKpi = Math.round(
-    targetScore * (tW / 100) + 
-    activityScore * (acW / 100) + 
-    attendanceRate * (atW / 100)
+    targetScore * (tW / 100) + activityScore * (acW / 100) + attendanceRate * (atW / 100),
   );
 
   if (!emp) {
@@ -520,9 +605,9 @@ function EmployeeDetailsPage() {
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <Stat 
-              label={t("leads")} 
-              value={empLeads.length} 
+            <Stat
+              label={t("leads")}
+              value={empLeads.length}
               subtext={
                 empLeads.filter((l) => !activities.some((a) => a.leadId === l.id)).length > 0
                   ? `${empLeads.filter((l) => !activities.some((a) => a.leadId === l.id)).length} no activities`
@@ -530,11 +615,12 @@ function EmployeeDetailsPage() {
               }
               subtextTone="text-amber-600"
             />
-            <Stat 
-              label="Accounts" 
-              value={empProjects.length} 
+            <Stat
+              label="Accounts"
+              value={empProjects.length}
               subtext={
-                empProjects.filter((p: any) => !storeLeads.some((l: any) => l.projectId === p.id)).length > 0
+                empProjects.filter((p: any) => !storeLeads.some((l: any) => l.projectId === p.id))
+                  .length > 0
                   ? `${empProjects.filter((p: any) => !storeLeads.some((l: any) => l.projectId === p.id)).length} no leads`
                   : undefined
               }
@@ -563,15 +649,18 @@ function EmployeeDetailsPage() {
         <div className="mt-3 flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-blue-500/80"></span>
-            {t("sales") ?? "Sales"}: <span className="text-foreground">{Math.round(targetScore)}%</span>
+            {t("sales") ?? "Sales"}:{" "}
+            <span className="text-foreground">{Math.round(targetScore)}%</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-purple-500/80"></span>
-            {t("tasks") ?? "Tasks"}: <span className="text-foreground">{Math.round(activityScore)}%</span>
+            {t("tasks") ?? "Tasks"}:{" "}
+            <span className="text-foreground">{Math.round(activityScore)}%</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-orange-500/80"></span>
-            {t("attendance") ?? "Attendance"}: <span className="text-foreground">{Math.round(attendanceRate)}%</span>
+            {t("attendance") ?? "Attendance"}:{" "}
+            <span className="text-foreground">{Math.round(attendanceRate)}%</span>
           </div>
         </div>
       </div>
@@ -584,8 +673,16 @@ function EmployeeDetailsPage() {
             { k: "attendance", label: t("attendance"), Icon: CalendarDays },
             { k: "pipeline", label: t("pipeline") ?? "Pipeline", Icon: Workflow },
             { k: "leads", label: `${t("relatedLeads")} (${empLeads.length})`, Icon: Users2 },
-            { k: "activities", label: `${t("activities")} (${empActivities.length})`, Icon: ActivityIcon },
-            { k: "accounts", label: `${t("relatedAccounts")} (${empProjects.length})`, Icon: FolderGit2 },
+            {
+              k: "activities",
+              label: `${t("activities")} (${empActivities.length})`,
+              Icon: ActivityIcon,
+            },
+            {
+              k: "accounts",
+              label: `${t("relatedAccounts")} (${empProjects.length})`,
+              Icon: FolderGit2,
+            },
             { k: "chat", label: t("chat"), Icon: MessageCircle },
           ] as const
         ).map(({ k, label, Icon }) => (
@@ -606,9 +703,7 @@ function EmployeeDetailsPage() {
         ))}
       </div>
 
-      {tab === "admin_review" && (
-        <AdminReviewTab leads={empLeads} activities={empActivities} />
-      )}
+      {tab === "admin_review" && <AdminReviewTab leads={empLeads} activities={empActivities} />}
 
       {tab === "pipeline" && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
@@ -659,16 +754,24 @@ function EmployeeDetailsPage() {
                 {t("assignedActivities")}
               </h3>
               <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
-                {empActivities.length}
+                {filteredEmpActivities.length}
               </span>
             </div>
-            <button
-              onClick={() => setShowImport("activities")}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={activitiesDateFilter}
+                onChange={(e) => setActivitiesDateFilter(e.target.value)}
+                className="h-8 rounded-lg border border-border bg-background px-2 text-xs"
+              />
+              <button
+                onClick={() => setShowImport("activities")}
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
             >
               <Download className="h-3.5 w-3.5 rotate-180" />
               {t("importExcel")}
             </button>
+          </div>
           </div>
           {empActivities.length === 0 && (
             <p className="text-sm text-muted-foreground">{t("noActivitiesOwned")}</p>
@@ -677,11 +780,21 @@ function EmployeeDetailsPage() {
             <table className="w-full text-sm">
               <thead className="bg-secondary/60">
                 <tr>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("type")}</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Title</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("dueDate")}</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Time & Est.</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("status")}</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("type")}
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Title
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("dueDate")}
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Time & Est.
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("status")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -689,14 +802,18 @@ function EmployeeDetailsPage() {
                   const isExpanded = expandedNoteId === a.id;
                   return (
                     <Fragment key={a.id}>
-                      <tr 
-                        onClick={() => a.notes ? setExpandedNoteId(isExpanded ? null : a.id) : null}
-                        className={`transition-colors ${a.notes ? 'cursor-pointer hover:bg-primary/5' : 'hover:bg-primary/5'}`}
+                      <tr
+                        onClick={() =>
+                          a.notes ? setExpandedNoteId(isExpanded ? null : a.id) : null
+                        }
+                        className={`transition-colors ${a.notes ? "cursor-pointer hover:bg-primary/5" : "hover:bg-primary/5"}`}
                       >
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-2">
                             {a.notes && (
-                              <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                              <ChevronRight
+                                className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                              />
                             )}
                             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                               {a.type}
@@ -729,7 +846,9 @@ function EmployeeDetailsPage() {
                         <tr className="bg-secondary/20">
                           <td colSpan={5} className="px-3 py-3 border-t border-border/50">
                             <div className="text-sm text-foreground whitespace-pre-wrap pl-6">
-                              <span className="font-semibold block mb-1 text-xs text-muted-foreground uppercase tracking-wider">Note</span>
+                              <span className="font-semibold block mb-1 text-xs text-muted-foreground uppercase tracking-wider">
+                                Note
+                              </span>
                               {a.notes}
                             </div>
                           </td>
@@ -741,7 +860,7 @@ function EmployeeDetailsPage() {
               </tbody>
             </table>
           </div>
-          {renderPagination(empActivities.length)}
+          {renderPagination(filteredEmpActivities.length)}
         </div>
       )}
 
@@ -827,7 +946,9 @@ function EmployeeDetailsPage() {
               <tbody className="divide-y divide-border">
                 {monthlyAttendance.rows.map((r) => (
                   <tr key={formatDate(r.date)} className="hover:bg-primary/5">
-                    <td className="px-3 py-2 font-mono text-xs text-foreground">{formatDate(r.date)}</td>
+                    <td className="px-3 py-2 font-mono text-xs text-foreground">
+                      {formatDate(r.date)}
+                    </td>
                     <td className="px-3 py-2 text-muted-foreground">{r.weekday}</td>
                     <td className="px-3 py-2 font-mono text-foreground">{r.in}</td>
                     <td className="px-3 py-2 font-mono text-muted-foreground">{r.out}</td>
@@ -934,27 +1055,39 @@ function EmployeeDetailsPage() {
             <table className="w-full text-sm">
               <thead className="bg-secondary/60">
                 <tr>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">ID</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("company")}</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("contact")}</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Close Date</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("status")}</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("value")}</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    ID
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("company")}
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("contact")}
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Close Date
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("status")}
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("value")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {paginatedLeads.map((l) => (
                   <tr
                     key={l.id}
-                    onClick={() => router.navigate({ to: "/admin/leads/$leadId", params: { leadId: l.id } })}
+                    onClick={() =>
+                      router.navigate({ to: "/admin/leads/$leadId", params: { leadId: l.id } })
+                    }
                     className="hover:bg-primary/5 cursor-pointer transition-colors"
                   >
                     <td className="px-3 py-2 font-mono text-xs text-muted-foreground w-20">
                       {shortId(l.id)}
                     </td>
-                    <td className="px-3 py-2 font-semibold text-foreground">
-                      {l.company}
-                    </td>
+                    <td className="px-3 py-2 font-semibold text-foreground">{l.company}</td>
                     <td className="px-3 py-2 text-muted-foreground">
                       {l.contact} <span className="text-[10px] opacity-70">· {l.city}</span>
                       {!activities.some((a) => a.leadId === l.id) && (
@@ -1016,29 +1149,40 @@ function EmployeeDetailsPage() {
             <table className="w-full text-sm">
               <thead className="bg-secondary/60">
                 <tr>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">ID</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Name</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("client")}</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contact & Owner</th>
-                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("budget")}</th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    ID
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Name
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("client")}
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Contact & Owner
+                  </th>
+                  <th className="px-3 py-2 text-start text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("budget")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {paginatedProjects.map((p: any) => (
                   <tr
                     key={p.id}
-                    onClick={() => router.navigate({ to: "/admin/projects/$projectId", params: { projectId: p.id } })}
+                    onClick={() =>
+                      router.navigate({
+                        to: "/admin/projects/$projectId",
+                        params: { projectId: p.id },
+                      })
+                    }
                     className="hover:bg-primary/5 cursor-pointer transition-colors"
                   >
                     <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
                       {shortId(p.id)}
                     </td>
-                    <td className="px-3 py-2 font-semibold text-foreground">
-                      {p.name}
-                    </td>
-                    <td className="px-3 py-2 text-muted-foreground">
-                      {p.client}
-                    </td>
+                    <td className="px-3 py-2 font-semibold text-foreground">{p.name}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{p.client}</td>
                     <td className="px-3 py-2 text-[11px] space-y-0.5">
                       {p.clientPhone && (
                         <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -1054,7 +1198,9 @@ function EmployeeDetailsPage() {
                       )}
                       <div className="flex items-center gap-1.5 text-muted-foreground mt-1">
                         <User className="h-3 w-3" />
-                        <span className="font-medium text-foreground">{p.createdByName || "Unknown"}</span>
+                        <span className="font-medium text-foreground">
+                          {p.createdByName || "Unknown"}
+                        </span>
                       </div>
                       {!storeLeads.some((l: any) => l.projectId === p.id) && (
                         <div className="mt-1 flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 w-fit">
@@ -1260,7 +1406,10 @@ function EmployeeDetailsPage() {
                         <span className="text-foreground">{attendanceRate.toFixed(0)}%</span>
                       </div>
                       <div className="h-1.5 w-full rounded-full bg-secondary">
-                        <div className="h-full bg-emerald-500" style={{ width: `${attendanceRate}%` }} />
+                        <div
+                          className="h-full bg-emerald-500"
+                          style={{ width: `${attendanceRate}%` }}
+                        />
                       </div>
                     </div>
                   </div>
@@ -1305,7 +1454,10 @@ function EmployeeDetailsPage() {
                 const h = d.mins > 0 ? Math.max(6, Math.round((pct / 100) * 120)) : 0;
                 const doneH = Math.round((donePct / 100) * 120);
                 return (
-                  <div key={formatDate(d.date)} className="flex flex-1 flex-col items-center gap-1.5">
+                  <div
+                    key={formatDate(d.date)}
+                    className="flex flex-1 flex-col items-center gap-1.5"
+                  >
                     <div className="text-[10px] font-semibold text-muted-foreground">
                       {fmtH(d.mins)}
                     </div>
@@ -1366,8 +1518,8 @@ function EmployeeDetailsPage() {
                 return (
                   <div
                     key={a.id}
-                    onClick={() => a.notes ? setExpandedNoteId(isExpanded ? null : a.id) : null}
-                    className={`flex flex-col rounded-lg border border-border p-3 transition-colors ${a.notes ? 'cursor-pointer hover:bg-primary/5' : ''}`}
+                    onClick={() => (a.notes ? setExpandedNoteId(isExpanded ? null : a.id) : null)}
+                    className={`flex flex-col rounded-lg border border-border p-3 transition-colors ${a.notes ? "cursor-pointer hover:bg-primary/5" : ""}`}
                   >
                     <div className="flex items-center gap-3">
                       <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -1389,7 +1541,9 @@ function EmployeeDetailsPage() {
                         {a.status.replace("_", " ")}
                       </span>
                       {a.notes && (
-                        <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                        <ChevronRight
+                          className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                        />
                       )}
                     </div>
                     {isExpanded && a.notes && (
@@ -1404,13 +1558,23 @@ function EmployeeDetailsPage() {
             {empActivities.length > 10 && (
               <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
                 <span className="text-xs text-muted-foreground">
-                  Showing {(overviewActivitiesPage - 1) * 10 + 1} to {Math.min(overviewActivitiesPage * 10, empActivities.length)} of {empActivities.length}
+                  Showing {(overviewActivitiesPage - 1) * 10 + 1} to{" "}
+                  {Math.min(overviewActivitiesPage * 10, empActivities.length)} of{" "}
+                  {empActivities.length}
                 </span>
                 <div className="flex gap-2">
-                  <button disabled={overviewActivitiesPage === 1} onClick={() => setOverviewActivitiesPage(overviewActivitiesPage - 1)} className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-accent disabled:opacity-50">
+                  <button
+                    disabled={overviewActivitiesPage === 1}
+                    onClick={() => setOverviewActivitiesPage(overviewActivitiesPage - 1)}
+                    className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-accent disabled:opacity-50"
+                  >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
-                  <button disabled={overviewActivitiesPage * 10 >= empActivities.length} onClick={() => setOverviewActivitiesPage(overviewActivitiesPage + 1)} className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-accent disabled:opacity-50">
+                  <button
+                    disabled={overviewActivitiesPage * 10 >= empActivities.length}
+                    onClick={() => setOverviewActivitiesPage(overviewActivitiesPage + 1)}
+                    className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-accent disabled:opacity-50"
+                  >
                     <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
@@ -1444,13 +1608,22 @@ function EmployeeDetailsPage() {
             {empHistory.length > 10 && (
               <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
                 <span className="text-xs text-muted-foreground">
-                  Showing {(auditPage - 1) * 10 + 1} to {Math.min(auditPage * 10, empHistory.length)} of {empHistory.length}
+                  Showing {(auditPage - 1) * 10 + 1} to{" "}
+                  {Math.min(auditPage * 10, empHistory.length)} of {empHistory.length}
                 </span>
                 <div className="flex gap-2">
-                  <button disabled={auditPage === 1} onClick={() => setAuditPage(auditPage - 1)} className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-accent disabled:opacity-50">
+                  <button
+                    disabled={auditPage === 1}
+                    onClick={() => setAuditPage(auditPage - 1)}
+                    className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-accent disabled:opacity-50"
+                  >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
-                  <button disabled={auditPage * 10 >= empHistory.length} onClick={() => setAuditPage(auditPage + 1)} className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-accent disabled:opacity-50">
+                  <button
+                    disabled={auditPage * 10 >= empHistory.length}
+                    onClick={() => setAuditPage(auditPage + 1)}
+                    className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-accent disabled:opacity-50"
+                  >
                     <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>

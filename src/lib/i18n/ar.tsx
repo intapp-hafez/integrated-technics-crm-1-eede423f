@@ -491,7 +491,8 @@ export const ar: Dict = {
 
   // Activities Monitoring & Inactive Leads
   activitiesMonitoring: "مراقبة الأنشطة",
-  activitiesMonitoringDesc: "تكوين كيفية مراقبة النظام للأنشطة وإرسال الإشعارات لإبقاء فريقك متفاعلاً.",
+  activitiesMonitoringDesc:
+    "تكوين كيفية مراقبة النظام للأنشطة وإرسال الإشعارات لإبقاء فريقك متفاعلاً.",
   enableActivitiesMonitoring: "تفعيل مراقبة الأنشطة",
   enableActivitiesMonitoringDesc: "تفعيل أو تعطيل مراقبة الأنشطة لجميع المستخدمين.",
   noActivityThreshold: "حد عدم وجود نشاط",
@@ -526,7 +527,8 @@ export const ar: Dict = {
   autoCreateFollowup: "إنشاء متابعة تلقائية",
   autoCreateFollowupDesc: "إنشاء مهمة متابعة تلقائيًا بعد التصعيد.",
   howItWorks: "كيف يعمل",
-  howItWorksDesc: "يفحص النظام آخر نشاط لكل عميل محتمل. إذا لم يتم العثور على نشاط ضمن الحد المحدد، سيتم إرسال الإشعارات بناءً على قواعد التصعيد أعلاه.",
+  howItWorksDesc:
+    "يفحص النظام آخر نشاط لكل عميل محتمل. إذا لم يتم العثور على نشاط ضمن الحد المحدد، سيتم إرسال الإشعارات بناءً على قواعد التصعيد أعلاه.",
   inactiveLeadsReport: "تقرير العملاء غير النشطين",
   inactiveLeadsReportDesc: "العملاء المحتملون الذين ليس لديهم نشاط خلال الفترة المحددة.",
   scheduleReport: "جدولة التقرير",

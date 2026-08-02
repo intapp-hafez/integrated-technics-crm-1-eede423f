@@ -67,11 +67,7 @@ export function KpiCard({ label, value, delta, subText, icon: Icon, accent = "pr
           <span className="text-muted-foreground font-normal">vs last month</span>
         </div>
       )}
-      {subText && (
-        <div className="mt-4 text-xs font-medium text-muted-foreground">
-          {subText}
-        </div>
-      )}
+      {subText && <div className="mt-4 text-xs font-medium text-muted-foreground">{subText}</div>}
       <div className="pointer-events-none absolute -bottom-12 -end-12 h-32 w-32 rounded-full bg-primary/5 transition-all group-hover:bg-primary/10" />
     </div>
   );

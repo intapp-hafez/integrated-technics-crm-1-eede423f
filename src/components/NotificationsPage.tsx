@@ -242,12 +242,8 @@ export function NotificationsPage({
             )}
             {n.unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />}
             <div className="ms-auto shrink-0 text-end whitespace-nowrap">
-              <div className="text-[11px] font-semibold text-foreground">
-                {timeAgo(n.ts, dir)}
-              </div>
-              <div className="text-[10px] font-mono text-muted-foreground">
-                {formatDate(n.ts)}
-              </div>
+              <div className="text-[11px] font-semibold text-foreground">{timeAgo(n.ts, dir)}</div>
+              <div className="text-[10px] font-mono text-muted-foreground">{formatDate(n.ts)}</div>
             </div>
           </div>
           <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
@@ -274,11 +270,7 @@ export function NotificationsPage({
             aria-label="toggle-read"
             className="rounded p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
           >
-            {n.unread ? (
-              <MailOpen className="h-3.5 w-3.5" />
-            ) : (
-              <Mail className="h-3.5 w-3.5" />
-            )}
+            {n.unread ? <MailOpen className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
           </button>
           <button
             onClick={(e) => {
@@ -378,9 +370,7 @@ export function NotificationsPage({
             aria-label={dir === "rtl" ? "الموظف" : "Employee"}
             className="h-8 rounded-lg border border-border bg-card px-2.5 text-xs font-medium focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
-            <option value="all">
-              {dir === "rtl" ? "الموظف: الكل" : "Employee: All"}
-            </option>
+            <option value="all">{dir === "rtl" ? "الموظف: الكل" : "Employee: All"}</option>
             {employeeOptions.map((e) => (
               <option key={e} value={e}>
                 {e}
@@ -442,7 +432,9 @@ export function NotificationsPage({
               {dir === "rtl" ? "لا توجد إشعارات في هذه الفئة" : "No notifications in this category"}
             </div>
           )}
-          <ul className="divide-y divide-border">{paginatedFiltered.map((n) => renderNotifItem(n))}</ul>
+          <ul className="divide-y divide-border">
+            {paginatedFiltered.map((n) => renderNotifItem(n))}
+          </ul>
         </div>
       )}
 
@@ -450,19 +442,25 @@ export function NotificationsPage({
       {filtered.length > ITEMS_PER_PAGE && (
         <div className="mt-4 flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 shadow-[var(--shadow-soft)]">
           <span className="text-xs text-muted-foreground">
-            {dir === "rtl" ? "عرض" : "Showing"} {(page - 1) * ITEMS_PER_PAGE + 1} {dir === "rtl" ? "إلى" : "to"} {Math.min(page * ITEMS_PER_PAGE, filtered.length)} {dir === "rtl" ? "من" : "of"} {filtered.length} {dir === "rtl" ? "إشعار" : "entries"}
+            {dir === "rtl" ? "عرض" : "Showing"} {(page - 1) * ITEMS_PER_PAGE + 1}{" "}
+            {dir === "rtl" ? "إلى" : "to"} {Math.min(page * ITEMS_PER_PAGE, filtered.length)}{" "}
+            {dir === "rtl" ? "من" : "of"} {filtered.length} {dir === "rtl" ? "إشعار" : "entries"}
           </span>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
               className="rounded-lg p-1 hover:bg-secondary disabled:opacity-40"
             >
               <ChevronLeft className={`h-4 w-4 ${dir === "rtl" ? "rotate-180" : ""}`} />
             </button>
-            <span className="px-2 text-xs font-semibold">{page} / {Math.ceil(filtered.length / ITEMS_PER_PAGE)}</span>
+            <span className="px-2 text-xs font-semibold">
+              {page} / {Math.ceil(filtered.length / ITEMS_PER_PAGE)}
+            </span>
             <button
-              onClick={() => setPage(p => Math.min(Math.ceil(filtered.length / ITEMS_PER_PAGE), p + 1))}
+              onClick={() =>
+                setPage((p) => Math.min(Math.ceil(filtered.length / ITEMS_PER_PAGE), p + 1))
+              }
               disabled={page >= Math.ceil(filtered.length / ITEMS_PER_PAGE)}
               className="rounded-lg p-1 hover:bg-secondary disabled:opacity-40"
             >

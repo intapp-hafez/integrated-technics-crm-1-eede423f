@@ -14,7 +14,7 @@ export function formatDate(isoDate: string | null | undefined): string {
   if (!isoDate) return "—";
   if (/^\d{2}-\d{2}-\d{4}$/.test(isoDate)) return isoDate;
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(isoDate)) return isoDate.replace(/\//g, "-");
-  
+
   const match = isoDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (match) {
     return `${match[3]}-${match[2]}-${match[1]}`;
@@ -24,7 +24,7 @@ export function formatDate(isoDate: string | null | undefined): string {
   if (matchSlash) {
     return `${matchSlash[3]}-${matchSlash[2]}-${matchSlash[1]}`;
   }
-  
+
   try {
     const d = new Date(isoDate);
     if (isNaN(d.getTime())) return isoDate;
@@ -45,9 +45,9 @@ export function getEmailTemplate(typeText: string, content: string, isWarning: b
   const primaryOrange = "#F58220";
   const darkGray = "#5E5E63";
   const lightGray = "#F4F4F4";
-  
+
   // Use absolute URL for the logo so it renders in email clients
-  const logoUrl = typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : '';
+  const logoUrl = typeof window !== "undefined" ? `${window.location.origin}/logo.png` : "";
 
   return `
 <!DOCTYPE html>
@@ -62,7 +62,7 @@ export function getEmailTemplate(typeText: string, content: string, isWarning: b
   .header h1 { margin: 0; font-size: 24px; font-weight: 700; color: ${darkGray}; letter-spacing: 0.5px; text-transform: uppercase; }
   .header p { margin: 8px 0 0 0; font-size: 15px; color: ${primaryOrange}; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
   .content { padding: 32px 24px; color: ${darkGray}; font-size: 16px; line-height: 1.6; }
-  .badge { display: inline-block; padding: 6px 14px; background-color: ${isWarning ? '#fee2e2' : '#fef3c7'}; color: ${isWarning ? '#dc2626' : '#d97706'}; border-radius: 9999px; font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.5px; border: 1px solid ${isWarning ? '#fca5a5' : '#fcd34d'}; }
+  .badge { display: inline-block; padding: 6px 14px; background-color: ${isWarning ? "#fee2e2" : "#fef3c7"}; color: ${isWarning ? "#dc2626" : "#d97706"}; border-radius: 9999px; font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.5px; border: 1px solid ${isWarning ? "#fca5a5" : "#fcd34d"}; }
   .message-box { background-color: ${lightGray}; border-left: 4px solid ${primaryOrange}; padding: 20px; margin: 24px 0; border-radius: 0 6px 6px 0; color: ${darkGray}; }
   .footer { background-color: ${lightGray}; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
   .footer p { margin: 0 0 8px 0; color: #94a3b8; font-size: 13px; }

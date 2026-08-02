@@ -57,14 +57,8 @@
             ],
             "url": {
               "raw": "{{supabase_url}}/auth/v1/signup",
-              "host": [
-                "{{supabase_url}}"
-              ],
-              "path": [
-                "auth",
-                "v1",
-                "signup"
-              ]
+              "host": ["{{supabase_url}}"],
+              "path": ["auth", "v1", "signup"]
             },
             "body": {
               "mode": "raw",
@@ -84,14 +78,8 @@
             ],
             "url": {
               "raw": "{{supabase_url}}/auth/v1/token?grant_type=password",
-              "host": [
-                "{{supabase_url}}"
-              ],
-              "path": [
-                "auth",
-                "v1",
-                "token"
-              ],
+              "host": ["{{supabase_url}}"],
+              "path": ["auth", "v1", "token"],
               "query": [
                 {
                   "key": "grant_type",
@@ -122,14 +110,8 @@
             ],
             "url": {
               "raw": "{{supabase_url}}/functions/v1/admin-users",
-              "host": [
-                "{{supabase_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "admin-users"
-              ]
+              "host": ["{{supabase_url}}"],
+              "path": ["functions", "v1", "admin-users"]
             },
             "body": {
               "mode": "raw",
@@ -149,14 +131,8 @@
             ],
             "url": {
               "raw": "{{supabase_url}}/functions/v1/email-dispatch",
-              "host": [
-                "{{supabase_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "email-dispatch"
-              ]
+              "host": ["{{supabase_url}}"],
+              "path": ["functions", "v1", "email-dispatch"]
             },
             "body": {
               "mode": "raw",
@@ -178,14 +154,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/activities?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "activities"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "activities"],
                   "query": [
                     {
                       "key": "select",
@@ -201,14 +171,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/activities?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "activities"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "activities"],
                   "query": [
                     {
                       "key": "id",
@@ -238,14 +202,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/activities",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "activities"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "activities"]
                 },
                 "body": {
                   "mode": "raw",
@@ -269,14 +227,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/activities?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "activities"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "activities"],
                   "query": [
                     {
                       "key": "id",
@@ -296,14 +248,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/activities?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "activities"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "activities"],
                   "query": [
                     {
                       "key": "id",
@@ -324,14 +270,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/activity_types_config?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "activity_types_config"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "activity_types_config"],
                   "query": [
                     {
                       "key": "select",
@@ -347,14 +287,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/activity_types_config?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "activity_types_config"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "activity_types_config"],
                   "query": [
                     {
                       "key": "id",
@@ -384,14 +318,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/activity_types_config",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "activity_types_config"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "activity_types_config"]
                 },
                 "body": {
                   "mode": "raw",
@@ -415,14 +343,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/activity_types_config?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "activity_types_config"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "activity_types_config"],
                   "query": [
                     {
                       "key": "id",
@@ -442,14 +364,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/activity_types_config?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "activity_types_config"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "activity_types_config"],
                   "query": [
                     {
                       "key": "id",
@@ -470,14 +386,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/admin_task_activities?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "admin_task_activities"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "admin_task_activities"],
                   "query": [
                     {
                       "key": "select",
@@ -493,14 +403,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/admin_task_activities?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "admin_task_activities"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "admin_task_activities"],
                   "query": [
                     {
                       "key": "id",
@@ -530,14 +434,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/admin_task_activities",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "admin_task_activities"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "admin_task_activities"]
                 },
                 "body": {
                   "mode": "raw",
@@ -561,14 +459,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/admin_task_activities?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "admin_task_activities"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "admin_task_activities"],
                   "query": [
                     {
                       "key": "id",
@@ -588,14 +480,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/admin_task_activities?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "admin_task_activities"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "admin_task_activities"],
                   "query": [
                     {
                       "key": "id",
@@ -616,14 +502,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/admin_tasks?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "admin_tasks"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "admin_tasks"],
                   "query": [
                     {
                       "key": "select",
@@ -639,14 +519,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/admin_tasks?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "admin_tasks"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "admin_tasks"],
                   "query": [
                     {
                       "key": "id",
@@ -676,14 +550,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/admin_tasks",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "admin_tasks"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "admin_tasks"]
                 },
                 "body": {
                   "mode": "raw",
@@ -707,14 +575,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/admin_tasks?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "admin_tasks"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "admin_tasks"],
                   "query": [
                     {
                       "key": "id",
@@ -734,14 +596,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/admin_tasks?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "admin_tasks"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "admin_tasks"],
                   "query": [
                     {
                       "key": "id",
@@ -762,14 +618,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/attachments?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "attachments"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "attachments"],
                   "query": [
                     {
                       "key": "select",
@@ -785,14 +635,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/attachments?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "attachments"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "attachments"],
                   "query": [
                     {
                       "key": "id",
@@ -822,14 +666,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/attachments",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "attachments"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "attachments"]
                 },
                 "body": {
                   "mode": "raw",
@@ -853,14 +691,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/attachments?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "attachments"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "attachments"],
                   "query": [
                     {
                       "key": "id",
@@ -880,14 +712,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/attachments?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "attachments"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "attachments"],
                   "query": [
                     {
                       "key": "id",
@@ -908,14 +734,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/attendance?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "attendance"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "attendance"],
                   "query": [
                     {
                       "key": "select",
@@ -931,14 +751,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/attendance?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "attendance"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "attendance"],
                   "query": [
                     {
                       "key": "id",
@@ -968,14 +782,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/attendance",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "attendance"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "attendance"]
                 },
                 "body": {
                   "mode": "raw",
@@ -999,14 +807,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/attendance?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "attendance"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "attendance"],
                   "query": [
                     {
                       "key": "id",
@@ -1026,14 +828,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/attendance?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "attendance"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "attendance"],
                   "query": [
                     {
                       "key": "id",
@@ -1054,14 +850,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/automation_rules?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "automation_rules"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "automation_rules"],
                   "query": [
                     {
                       "key": "select",
@@ -1077,14 +867,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/automation_rules?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "automation_rules"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "automation_rules"],
                   "query": [
                     {
                       "key": "id",
@@ -1114,14 +898,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/automation_rules",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "automation_rules"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "automation_rules"]
                 },
                 "body": {
                   "mode": "raw",
@@ -1145,14 +923,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/automation_rules?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "automation_rules"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "automation_rules"],
                   "query": [
                     {
                       "key": "id",
@@ -1172,14 +944,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/automation_rules?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "automation_rules"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "automation_rules"],
                   "query": [
                     {
                       "key": "id",
@@ -1200,14 +966,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/clients?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "clients"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "clients"],
                   "query": [
                     {
                       "key": "select",
@@ -1223,14 +983,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/clients?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "clients"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "clients"],
                   "query": [
                     {
                       "key": "id",
@@ -1260,14 +1014,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/clients",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "clients"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "clients"]
                 },
                 "body": {
                   "mode": "raw",
@@ -1291,14 +1039,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/clients?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "clients"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "clients"],
                   "query": [
                     {
                       "key": "id",
@@ -1318,14 +1060,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/clients?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "clients"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "clients"],
                   "query": [
                     {
                       "key": "id",
@@ -1346,14 +1082,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/departments?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "departments"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "departments"],
                   "query": [
                     {
                       "key": "select",
@@ -1369,14 +1099,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/departments?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "departments"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "departments"],
                   "query": [
                     {
                       "key": "id",
@@ -1406,14 +1130,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/departments",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "departments"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "departments"]
                 },
                 "body": {
                   "mode": "raw",
@@ -1437,14 +1155,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/departments?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "departments"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "departments"],
                   "query": [
                     {
                       "key": "id",
@@ -1464,14 +1176,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/departments?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "departments"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "departments"],
                   "query": [
                     {
                       "key": "id",
@@ -1492,14 +1198,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/email_delivery_logs?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "email_delivery_logs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "email_delivery_logs"],
                   "query": [
                     {
                       "key": "select",
@@ -1515,14 +1215,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/email_delivery_logs?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "email_delivery_logs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "email_delivery_logs"],
                   "query": [
                     {
                       "key": "id",
@@ -1552,14 +1246,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/email_delivery_logs",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "email_delivery_logs"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "email_delivery_logs"]
                 },
                 "body": {
                   "mode": "raw",
@@ -1583,14 +1271,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/email_delivery_logs?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "email_delivery_logs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "email_delivery_logs"],
                   "query": [
                     {
                       "key": "id",
@@ -1610,14 +1292,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/email_delivery_logs?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "email_delivery_logs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "email_delivery_logs"],
                   "query": [
                     {
                       "key": "id",
@@ -1638,14 +1314,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/email_jobs?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "email_jobs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "email_jobs"],
                   "query": [
                     {
                       "key": "select",
@@ -1661,14 +1331,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/email_jobs?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "email_jobs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "email_jobs"],
                   "query": [
                     {
                       "key": "id",
@@ -1698,14 +1362,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/email_jobs",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "email_jobs"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "email_jobs"]
                 },
                 "body": {
                   "mode": "raw",
@@ -1729,14 +1387,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/email_jobs?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "email_jobs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "email_jobs"],
                   "query": [
                     {
                       "key": "id",
@@ -1756,14 +1408,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/email_jobs?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "email_jobs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "email_jobs"],
                   "query": [
                     {
                       "key": "id",
@@ -1784,14 +1430,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/history?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "history"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "history"],
                   "query": [
                     {
                       "key": "select",
@@ -1807,14 +1447,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/history?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "history"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "history"],
                   "query": [
                     {
                       "key": "id",
@@ -1844,14 +1478,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/history",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "history"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "history"]
                 },
                 "body": {
                   "mode": "raw",
@@ -1875,14 +1503,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/history?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "history"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "history"],
                   "query": [
                     {
                       "key": "id",
@@ -1902,14 +1524,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/history?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "history"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "history"],
                   "query": [
                     {
                       "key": "id",
@@ -1930,14 +1546,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/ip_blocklist?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "ip_blocklist"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "ip_blocklist"],
                   "query": [
                     {
                       "key": "select",
@@ -1953,14 +1563,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/ip_blocklist?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "ip_blocklist"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "ip_blocklist"],
                   "query": [
                     {
                       "key": "id",
@@ -1990,14 +1594,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/ip_blocklist",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "ip_blocklist"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "ip_blocklist"]
                 },
                 "body": {
                   "mode": "raw",
@@ -2021,14 +1619,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/ip_blocklist?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "ip_blocklist"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "ip_blocklist"],
                   "query": [
                     {
                       "key": "id",
@@ -2048,14 +1640,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/ip_blocklist?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "ip_blocklist"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "ip_blocklist"],
                   "query": [
                     {
                       "key": "id",
@@ -2076,14 +1662,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/ip_whitelist?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "ip_whitelist"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "ip_whitelist"],
                   "query": [
                     {
                       "key": "select",
@@ -2099,14 +1679,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/ip_whitelist?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "ip_whitelist"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "ip_whitelist"],
                   "query": [
                     {
                       "key": "id",
@@ -2136,14 +1710,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/ip_whitelist",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "ip_whitelist"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "ip_whitelist"]
                 },
                 "body": {
                   "mode": "raw",
@@ -2167,14 +1735,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/ip_whitelist?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "ip_whitelist"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "ip_whitelist"],
                   "query": [
                     {
                       "key": "id",
@@ -2194,14 +1756,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/ip_whitelist?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "ip_whitelist"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "ip_whitelist"],
                   "query": [
                     {
                       "key": "id",
@@ -2222,14 +1778,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/lead_notes?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "lead_notes"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "lead_notes"],
                   "query": [
                     {
                       "key": "select",
@@ -2245,14 +1795,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/lead_notes?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "lead_notes"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "lead_notes"],
                   "query": [
                     {
                       "key": "id",
@@ -2282,14 +1826,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/lead_notes",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "lead_notes"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "lead_notes"]
                 },
                 "body": {
                   "mode": "raw",
@@ -2313,14 +1851,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/lead_notes?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "lead_notes"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "lead_notes"],
                   "query": [
                     {
                       "key": "id",
@@ -2340,14 +1872,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/lead_notes?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "lead_notes"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "lead_notes"],
                   "query": [
                     {
                       "key": "id",
@@ -2368,14 +1894,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/leads?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "leads"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "leads"],
                   "query": [
                     {
                       "key": "select",
@@ -2391,14 +1911,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/leads?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "leads"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "leads"],
                   "query": [
                     {
                       "key": "id",
@@ -2428,14 +1942,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/leads",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "leads"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "leads"]
                 },
                 "body": {
                   "mode": "raw",
@@ -2459,14 +1967,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/leads?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "leads"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "leads"],
                   "query": [
                     {
                       "key": "id",
@@ -2486,14 +1988,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/leads?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "leads"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "leads"],
                   "query": [
                     {
                       "key": "id",
@@ -2514,14 +2010,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/locations?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "locations"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "locations"],
                   "query": [
                     {
                       "key": "select",
@@ -2537,14 +2027,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/locations?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "locations"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "locations"],
                   "query": [
                     {
                       "key": "id",
@@ -2574,14 +2058,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/locations",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "locations"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "locations"]
                 },
                 "body": {
                   "mode": "raw",
@@ -2605,14 +2083,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/locations?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "locations"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "locations"],
                   "query": [
                     {
                       "key": "id",
@@ -2632,14 +2104,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/locations?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "locations"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "locations"],
                   "query": [
                     {
                       "key": "id",
@@ -2660,14 +2126,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/messages?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "messages"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "messages"],
                   "query": [
                     {
                       "key": "select",
@@ -2683,14 +2143,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/messages?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "messages"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "messages"],
                   "query": [
                     {
                       "key": "id",
@@ -2720,14 +2174,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/messages",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "messages"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "messages"]
                 },
                 "body": {
                   "mode": "raw",
@@ -2751,14 +2199,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/messages?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "messages"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "messages"],
                   "query": [
                     {
                       "key": "id",
@@ -2778,14 +2220,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/messages?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "messages"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "messages"],
                   "query": [
                     {
                       "key": "id",
@@ -2806,14 +2242,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/notification_templates?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "notification_templates"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "notification_templates"],
                   "query": [
                     {
                       "key": "select",
@@ -2829,14 +2259,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/notification_templates?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "notification_templates"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "notification_templates"],
                   "query": [
                     {
                       "key": "id",
@@ -2866,14 +2290,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/notification_templates",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "notification_templates"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "notification_templates"]
                 },
                 "body": {
                   "mode": "raw",
@@ -2897,14 +2315,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/notification_templates?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "notification_templates"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "notification_templates"],
                   "query": [
                     {
                       "key": "id",
@@ -2924,14 +2336,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/notification_templates?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "notification_templates"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "notification_templates"],
                   "query": [
                     {
                       "key": "id",
@@ -2952,14 +2358,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/notifications?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "notifications"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "notifications"],
                   "query": [
                     {
                       "key": "select",
@@ -2975,14 +2375,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/notifications?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "notifications"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "notifications"],
                   "query": [
                     {
                       "key": "id",
@@ -3012,14 +2406,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/notifications",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "notifications"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "notifications"]
                 },
                 "body": {
                   "mode": "raw",
@@ -3043,14 +2431,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/notifications?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "notifications"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "notifications"],
                   "query": [
                     {
                       "key": "id",
@@ -3070,14 +2452,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/notifications?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "notifications"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "notifications"],
                   "query": [
                     {
                       "key": "id",
@@ -3098,14 +2474,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/pipeline_stages?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "pipeline_stages"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "pipeline_stages"],
                   "query": [
                     {
                       "key": "select",
@@ -3121,14 +2491,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/pipeline_stages?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "pipeline_stages"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "pipeline_stages"],
                   "query": [
                     {
                       "key": "id",
@@ -3158,14 +2522,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/pipeline_stages",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "pipeline_stages"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "pipeline_stages"]
                 },
                 "body": {
                   "mode": "raw",
@@ -3189,14 +2547,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/pipeline_stages?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "pipeline_stages"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "pipeline_stages"],
                   "query": [
                     {
                       "key": "id",
@@ -3216,14 +2568,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/pipeline_stages?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "pipeline_stages"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "pipeline_stages"],
                   "query": [
                     {
                       "key": "id",
@@ -3244,14 +2590,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/positions?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "positions"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "positions"],
                   "query": [
                     {
                       "key": "select",
@@ -3267,14 +2607,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/positions?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "positions"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "positions"],
                   "query": [
                     {
                       "key": "id",
@@ -3304,14 +2638,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/positions",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "positions"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "positions"]
                 },
                 "body": {
                   "mode": "raw",
@@ -3335,14 +2663,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/positions?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "positions"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "positions"],
                   "query": [
                     {
                       "key": "id",
@@ -3362,14 +2684,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/positions?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "positions"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "positions"],
                   "query": [
                     {
                       "key": "id",
@@ -3390,14 +2706,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/profiles?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "profiles"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "profiles"],
                   "query": [
                     {
                       "key": "select",
@@ -3413,14 +2723,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/profiles?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "profiles"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "profiles"],
                   "query": [
                     {
                       "key": "id",
@@ -3450,14 +2754,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/profiles",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "profiles"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "profiles"]
                 },
                 "body": {
                   "mode": "raw",
@@ -3481,14 +2779,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/profiles?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "profiles"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "profiles"],
                   "query": [
                     {
                       "key": "id",
@@ -3508,14 +2800,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/profiles?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "profiles"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "profiles"],
                   "query": [
                     {
                       "key": "id",
@@ -3536,14 +2822,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/project_members?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "project_members"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "project_members"],
                   "query": [
                     {
                       "key": "select",
@@ -3559,14 +2839,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/project_members?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "project_members"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "project_members"],
                   "query": [
                     {
                       "key": "id",
@@ -3596,14 +2870,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/project_members",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "project_members"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "project_members"]
                 },
                 "body": {
                   "mode": "raw",
@@ -3627,14 +2895,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/project_members?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "project_members"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "project_members"],
                   "query": [
                     {
                       "key": "id",
@@ -3654,14 +2916,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/project_members?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "project_members"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "project_members"],
                   "query": [
                     {
                       "key": "id",
@@ -3682,14 +2938,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/project_requests?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "project_requests"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "project_requests"],
                   "query": [
                     {
                       "key": "select",
@@ -3705,14 +2955,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/project_requests?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "project_requests"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "project_requests"],
                   "query": [
                     {
                       "key": "id",
@@ -3742,14 +2986,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/project_requests",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "project_requests"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "project_requests"]
                 },
                 "body": {
                   "mode": "raw",
@@ -3773,14 +3011,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/project_requests?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "project_requests"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "project_requests"],
                   "query": [
                     {
                       "key": "id",
@@ -3800,14 +3032,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/project_requests?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "project_requests"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "project_requests"],
                   "query": [
                     {
                       "key": "id",
@@ -3828,14 +3054,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/projects?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "projects"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "projects"],
                   "query": [
                     {
                       "key": "select",
@@ -3851,14 +3071,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/projects?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "projects"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "projects"],
                   "query": [
                     {
                       "key": "id",
@@ -3888,14 +3102,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/projects",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "projects"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "projects"]
                 },
                 "body": {
                   "mode": "raw",
@@ -3919,14 +3127,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/projects?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "projects"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "projects"],
                   "query": [
                     {
                       "key": "id",
@@ -3946,14 +3148,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/projects?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "projects"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "projects"],
                   "query": [
                     {
                       "key": "id",
@@ -3974,14 +3170,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/quotation_items?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "quotation_items"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "quotation_items"],
                   "query": [
                     {
                       "key": "select",
@@ -3997,14 +3187,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/quotation_items?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "quotation_items"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "quotation_items"],
                   "query": [
                     {
                       "key": "id",
@@ -4034,14 +3218,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/quotation_items",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "quotation_items"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "quotation_items"]
                 },
                 "body": {
                   "mode": "raw",
@@ -4065,14 +3243,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/quotation_items?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "quotation_items"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "quotation_items"],
                   "query": [
                     {
                       "key": "id",
@@ -4092,14 +3264,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/quotation_items?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "quotation_items"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "quotation_items"],
                   "query": [
                     {
                       "key": "id",
@@ -4120,14 +3286,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/quotations?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "quotations"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "quotations"],
                   "query": [
                     {
                       "key": "select",
@@ -4143,14 +3303,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/quotations?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "quotations"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "quotations"],
                   "query": [
                     {
                       "key": "id",
@@ -4180,14 +3334,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/quotations",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "quotations"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "quotations"]
                 },
                 "body": {
                   "mode": "raw",
@@ -4211,14 +3359,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/quotations?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "quotations"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "quotations"],
                   "query": [
                     {
                       "key": "id",
@@ -4238,14 +3380,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/quotations?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "quotations"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "quotations"],
                   "query": [
                     {
                       "key": "id",
@@ -4266,14 +3402,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/rate_limit_counters?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "rate_limit_counters"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "rate_limit_counters"],
                   "query": [
                     {
                       "key": "select",
@@ -4289,14 +3419,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/rate_limit_counters?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "rate_limit_counters"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "rate_limit_counters"],
                   "query": [
                     {
                       "key": "id",
@@ -4326,14 +3450,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/rate_limit_counters",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "rate_limit_counters"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "rate_limit_counters"]
                 },
                 "body": {
                   "mode": "raw",
@@ -4357,14 +3475,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/rate_limit_counters?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "rate_limit_counters"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "rate_limit_counters"],
                   "query": [
                     {
                       "key": "id",
@@ -4384,14 +3496,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/rate_limit_counters?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "rate_limit_counters"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "rate_limit_counters"],
                   "query": [
                     {
                       "key": "id",
@@ -4412,14 +3518,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/role_permissions?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "role_permissions"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "role_permissions"],
                   "query": [
                     {
                       "key": "select",
@@ -4435,14 +3535,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/role_permissions?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "role_permissions"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "role_permissions"],
                   "query": [
                     {
                       "key": "id",
@@ -4472,14 +3566,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/role_permissions",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "role_permissions"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "role_permissions"]
                 },
                 "body": {
                   "mode": "raw",
@@ -4503,14 +3591,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/role_permissions?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "role_permissions"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "role_permissions"],
                   "query": [
                     {
                       "key": "id",
@@ -4530,14 +3612,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/role_permissions?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "role_permissions"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "role_permissions"],
                   "query": [
                     {
                       "key": "id",
@@ -4558,14 +3634,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_audit_logs?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_audit_logs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_audit_logs"],
                   "query": [
                     {
                       "key": "select",
@@ -4581,14 +3651,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_audit_logs?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_audit_logs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_audit_logs"],
                   "query": [
                     {
                       "key": "id",
@@ -4618,14 +3682,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_audit_logs",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_audit_logs"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_audit_logs"]
                 },
                 "body": {
                   "mode": "raw",
@@ -4649,14 +3707,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_audit_logs?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_audit_logs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_audit_logs"],
                   "query": [
                     {
                       "key": "id",
@@ -4676,14 +3728,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_audit_logs?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_audit_logs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_audit_logs"],
                   "query": [
                     {
                       "key": "id",
@@ -4704,14 +3750,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_events?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_events"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_events"],
                   "query": [
                     {
                       "key": "select",
@@ -4727,14 +3767,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_events?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_events"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_events"],
                   "query": [
                     {
                       "key": "id",
@@ -4764,14 +3798,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_events",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_events"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_events"]
                 },
                 "body": {
                   "mode": "raw",
@@ -4795,14 +3823,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_events?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_events"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_events"],
                   "query": [
                     {
                       "key": "id",
@@ -4822,14 +3844,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_events?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_events"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_events"],
                   "query": [
                     {
                       "key": "id",
@@ -4850,14 +3866,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_scan_runs?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_scan_runs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_scan_runs"],
                   "query": [
                     {
                       "key": "select",
@@ -4873,14 +3883,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_scan_runs?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_scan_runs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_scan_runs"],
                   "query": [
                     {
                       "key": "id",
@@ -4910,14 +3914,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_scan_runs",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_scan_runs"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_scan_runs"]
                 },
                 "body": {
                   "mode": "raw",
@@ -4941,14 +3939,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_scan_runs?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_scan_runs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_scan_runs"],
                   "query": [
                     {
                       "key": "id",
@@ -4968,14 +3960,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/security_scan_runs?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "security_scan_runs"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "security_scan_runs"],
                   "query": [
                     {
                       "key": "id",
@@ -4996,14 +3982,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/smtp_settings?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "smtp_settings"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "smtp_settings"],
                   "query": [
                     {
                       "key": "select",
@@ -5019,14 +3999,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/smtp_settings?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "smtp_settings"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "smtp_settings"],
                   "query": [
                     {
                       "key": "id",
@@ -5056,14 +4030,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/smtp_settings",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "smtp_settings"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "smtp_settings"]
                 },
                 "body": {
                   "mode": "raw",
@@ -5087,14 +4055,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/smtp_settings?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "smtp_settings"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "smtp_settings"],
                   "query": [
                     {
                       "key": "id",
@@ -5114,14 +4076,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/smtp_settings?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "smtp_settings"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "smtp_settings"],
                   "query": [
                     {
                       "key": "id",
@@ -5142,14 +4098,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/user_roles?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "user_roles"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "user_roles"],
                   "query": [
                     {
                       "key": "select",
@@ -5165,14 +4115,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/user_roles?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "user_roles"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "user_roles"],
                   "query": [
                     {
                       "key": "id",
@@ -5202,14 +4146,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/user_roles",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "user_roles"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "user_roles"]
                 },
                 "body": {
                   "mode": "raw",
@@ -5233,14 +4171,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/user_roles?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "user_roles"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "user_roles"],
                   "query": [
                     {
                       "key": "id",
@@ -5260,14 +4192,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/user_roles?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "user_roles"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "user_roles"],
                   "query": [
                     {
                       "key": "id",
@@ -5288,14 +4214,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/system_settings?select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "system_settings"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "system_settings"],
                   "query": [
                     {
                       "key": "select",
@@ -5311,14 +4231,8 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/system_settings?id=eq.1&select=*",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "system_settings"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "system_settings"],
                   "query": [
                     {
                       "key": "id",
@@ -5348,14 +4262,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/system_settings",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "system_settings"
-                  ]
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "system_settings"]
                 },
                 "body": {
                   "mode": "raw",
@@ -5379,14 +4287,8 @@
                 ],
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/system_settings?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "system_settings"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "system_settings"],
                   "query": [
                     {
                       "key": "id",
@@ -5406,14 +4308,8 @@
                 "method": "DELETE",
                 "url": {
                   "raw": "{{supabase_url}}/rest/v1/system_settings?id=eq.1",
-                  "host": [
-                    "{{supabase_url}}"
-                  ],
-                  "path": [
-                    "rest",
-                    "v1",
-                    "system_settings"
-                  ],
+                  "host": ["{{supabase_url}}"],
+                  "path": ["rest", "v1", "system_settings"],
                   "query": [
                     {
                       "key": "id",

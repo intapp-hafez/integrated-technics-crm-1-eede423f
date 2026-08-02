@@ -241,7 +241,11 @@ export function EmployeeChat({
 
   const clear = async () => {
     if (typeof window === "undefined") return;
-    if (!(await confirm({ message: lang === "ar" ? "هل تريد مسح المحادثة؟" : "Clear this conversation?" })))
+    if (
+      !(await confirm({
+        message: lang === "ar" ? "هل تريد مسح المحادثة؟" : "Clear this conversation?",
+      }))
+    )
       return;
     setMessages([]);
     localStorage.removeItem(storageKey(employeeId));

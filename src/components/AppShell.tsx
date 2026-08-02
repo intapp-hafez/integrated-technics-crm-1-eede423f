@@ -196,7 +196,7 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
                 (other) =>
                   other.to !== item.to &&
                   other.to.startsWith(item.to) &&
-                  (pathname === other.to || pathname.startsWith(other.to + "/"))
+                  (pathname === other.to || pathname.startsWith(other.to + "/")),
               );
               active =
                 (pathname === item.to ||
@@ -350,7 +350,7 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
           })}
         </ul>
       </nav>
-      
+
       <LeadWonCelebration />
     </div>
   );

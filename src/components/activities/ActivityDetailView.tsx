@@ -71,10 +71,15 @@ export function ActivityDetailView({
         ? "/manager/activities"
         : "/employee/activities";
   const { profile } = useAuth();
-  const user = { 
-    name: profile?.full_name_en || profile?.full_name_ar || "", 
-    role: t(panel as any), 
-    initials: (profile?.full_name_en || profile?.full_name_ar || "U").split(" ").map((s: string) => s[0]).join("").substring(0, 2).toUpperCase() 
+  const user = {
+    name: profile?.full_name_en || profile?.full_name_ar || "",
+    role: t(panel as any),
+    initials: (profile?.full_name_en || profile?.full_name_ar || "U")
+      .split(" ")
+      .map((s: string) => s[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase(),
   };
 
   if (!a) {

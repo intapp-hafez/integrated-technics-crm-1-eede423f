@@ -26,6 +26,9 @@ import {
   Download,
   Table as TableIcon,
   LayoutGrid,
+  Search,
+  Calendar,
+  X,
 } from "lucide-react";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
 import { useConfirm } from "@/components/shared/ConfirmDialog";
@@ -50,7 +53,7 @@ function MyActivitiesPage() {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const navigate = useNavigate();
-  const { activities, leads, profile, users, employees } = useStoreState();
+  const { activities, leads, projects, profile, users, employees } = useStoreState();
   const getOwnerPhoto = (name?: string, fallbackPhoto?: string) => {
     if (fallbackPhoto) return fallbackPhoto;
     if (!name || name === "Unassigned") return undefined;
@@ -72,6 +75,8 @@ function MyActivitiesPage() {
   const [page, setPage] = useState(1);
   const [markDoneId, setMarkDoneId] = useState<string | null>(null);
   const [doneNote, setDoneNote] = useState("");
+  const [query, setQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
   const { confirm, ConfirmDialog } = useConfirm();
   const ITEMS_PER_PAGE = 20;
 
@@ -110,6 +115,7 @@ function MyActivitiesPage() {
   const filtered = useMemo(() => {
     const isAfter = (d: string) => d > today;
     const isBefore = (d: string) => d < today;
+    const q = query.toLowerCase();
     return mine
       .filter((a) => {
         if (bucket === "all") return true;
@@ -119,12 +125,23 @@ function MyActivitiesPage() {
         if (bucket === "top") return a.status !== "done" && (a.estMinutes ?? 0) >= 30;
         return true;
       })
+      .filter((a) => {
+        if (dateFilter && a.dueDate !== dateFilter) return false;
+        if (q) {
+          const titleMatch = (a.title || "").toLowerCase().includes(q);
+          const lead = leads.find((l) => l.id === a.leadId);
+          const project = projects.find((p) => p.id === a.projectId);
+          const leadMatch = (lead?.company || project?.name || "").toLowerCase().includes(q);
+          if (!titleMatch && !leadMatch) return false;
+        }
+        return true;
+      })
       .sort((a, b) => (a.dueDate + a.time).localeCompare(b.dueDate + b.time));
-  }, [mine, bucket, today]);
+  }, [mine, bucket, today, query, dateFilter, leads, projects]);
 
   useEffect(() => {
     setPage(1);
-  }, [bucket, view]);
+  }, [bucket, view, query, dateFilter]);
 
   const paginated = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
@@ -205,10 +222,11 @@ function MyActivitiesPage() {
               <button
                 key={b}
                 onClick={() => setBucket(b)}
-                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold capitalize ring-1 transition ${active
+                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold capitalize ring-1 transition ${
+                  active
                     ? "bg-primary text-primary-foreground ring-primary shadow-[var(--shadow-brand)]"
                     : "bg-card text-foreground ring-border hover:bg-accent"
-                  }`}
+                }`}
               >
                 {BUCKET_LABELS[b]}
               </button>
@@ -221,6 +239,40 @@ function MyActivitiesPage() {
             >
               <Download className="h-3.5 w-3.5 rotate-180" /> {t("importExcel")}
             </button>
+          </div>
+        </div>
+
+        {/* Search & Date Filters */}
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder={isAr ? "بحث بالاسم..." : "Search by name..."}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-4 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <div className="relative">
+            <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                if (e.target.value) setBucket("all");
+              }}
+              className="h-9 rounded-lg border border-border bg-card pl-9 pr-9 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+            {dateFilter && (
+              <button
+                onClick={() => setDateFilter("")}
+                className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -245,7 +297,9 @@ function MyActivitiesPage() {
                     <th className="px-4 py-3 text-start">{t("title")}</th>
                     <th className="px-4 py-3 text-start">Lead / Account</th>
                     <th className="px-4 py-3 text-start">{t("type")}</th>
-                    <th className="px-4 py-3 text-start">{t("date")} / {t("time")}</th>
+                    <th className="px-4 py-3 text-start">
+                      {t("date")} / {t("time")}
+                    </th>
                     <th className="px-4 py-3 text-start">Duration</th>
                     <th className="px-4 py-3 text-start">{t("status")}</th>
                     <th className="px-4 py-3 text-end">Actions</th>
@@ -266,17 +320,36 @@ function MyActivitiesPage() {
                       );
                     }
                     return (
-                      <tr key={a.id} className="hover:bg-primary/5 transition-colors group cursor-pointer" onClick={() => navigate({ to: "/employee/activities/$activityId", params: { activityId: a.id } })}>
+                      <tr
+                        key={a.id}
+                        className="hover:bg-primary/5 transition-colors group cursor-pointer"
+                        onClick={() =>
+                          navigate({
+                            to: "/employee/activities/$activityId",
+                            params: { activityId: a.id },
+                          })
+                        }
+                      >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${done ? "bg-emerald-50 text-emerald-600" : "bg-primary/10 text-primary"}`}>
+                            <div
+                              className={`flex h-7 w-7 items-center justify-center rounded-lg ${done ? "bg-emerald-50 text-emerald-600" : "bg-primary/10 text-primary"}`}
+                            >
                               <Icon className="h-3.5 w-3.5" />
                             </div>
-                            <span className={`font-semibold ${done ? "text-foreground" : "text-foreground"}`}>{a.title}</span>
+                            <span
+                              className={`font-semibold ${done ? "text-foreground" : "text-foreground"}`}
+                            >
+                              {a.title}
+                            </span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">
-                          {lead ? lead.company : a.projectId ? `Project: ${a.projectId.slice(0, 8)}` : "—"}
+                          {lead
+                            ? lead.company
+                            : a.projectId
+                              ? `Project: ${a.projectId.slice(0, 8)}`
+                              : "—"}
                         </td>
                         <td className="px-4 py-3">
                           <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -285,7 +358,13 @@ function MyActivitiesPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="text-xs font-medium text-foreground">
-                            {a.dueDate === today ? <span className="text-primary font-bold">{t("today").toUpperCase()}</span> : a.dueDate}
+                            {a.dueDate === today ? (
+                              <span className="text-primary font-bold">
+                                {t("today").toUpperCase()}
+                              </span>
+                            ) : (
+                              a.dueDate
+                            )}
                           </div>
                           <div className="text-[10px] text-muted-foreground">{a.time}</div>
                         </td>
@@ -306,14 +385,37 @@ function MyActivitiesPage() {
                         <td className="px-4 py-3 text-end">
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             {!done && (
-                              <button onClick={(e) => { e.stopPropagation(); setDoneNote(""); setMarkDoneId(a.id); }} className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 transition" title="Mark Done">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDoneNote("");
+                                  setMarkDoneId(a.id);
+                                }}
+                                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 transition"
+                                title="Mark Done"
+                              >
                                 <Check className="h-3.5 w-3.5" />
                               </button>
                             )}
-                            <button onClick={(e) => { e.stopPropagation(); setEditId(a.id); }} className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-primary transition">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditId(a.id);
+                              }}
+                              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-primary transition"
+                            >
                               <Pencil className="h-3.5 w-3.5" />
                             </button>
-                            <button onClick={async (e) => { e.stopPropagation(); if (await confirm({ message: `${t("confirmDelete")} "${a.title}"` })) actions.removeActivity(a.id); }} className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-rose-50 hover:text-rose-600 transition">
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (
+                                  await confirm({ message: `${t("confirmDelete")} "${a.title}"` })
+                                )
+                                  actions.removeActivity(a.id);
+                              }}
+                              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-rose-50 hover:text-rose-600 transition"
+                            >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           </div>
@@ -323,7 +425,10 @@ function MyActivitiesPage() {
                   })}
                   {paginated.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                      <td
+                        colSpan={7}
+                        className="px-4 py-10 text-center text-sm text-muted-foreground"
+                      >
                         {t("nothingHere")}
                       </td>
                     </tr>
@@ -353,8 +458,9 @@ function MyActivitiesPage() {
                       params: { activityId: a.id },
                     })
                   }
-                  className={`group flex items-center gap-3 rounded-2xl border bg-card p-3.5 shadow-[var(--shadow-soft)] transition cursor-pointer ${done ? "border-emerald-200" : "border-border hover:border-primary/40"
-                    }`}
+                  className={`group flex items-center gap-3 rounded-2xl border bg-card p-3.5 shadow-[var(--shadow-soft)] transition cursor-pointer ${
+                    done ? "border-emerald-200" : "border-border hover:border-primary/40"
+                  }`}
                 >
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-xl ${done ? "bg-emerald-50 text-emerald-600" : "bg-primary/10 text-primary"}`}
@@ -391,9 +497,18 @@ function MyActivitiesPage() {
                         <div className="flex -space-x-1" title={t("presalesTeam")}>
                           {a.presalesTeam.map((p) => {
                             const photo = getOwnerPhoto(p);
-                            const initials = p.split(" ").map((w) => w[0]).join("").slice(0, 2);
+                            const initials = p
+                              .split(" ")
+                              .map((w) => w[0])
+                              .join("")
+                              .slice(0, 2);
                             return photo ? (
-                              <img key={p} src={photo} alt={p} className="h-4 w-4 rounded-full object-cover ring-1 ring-card" />
+                              <img
+                                key={p}
+                                src={photo}
+                                alt={p}
+                                className="h-4 w-4 rounded-full object-cover ring-1 ring-card"
+                              />
                             ) : (
                               <div
                                 key={p}
@@ -460,7 +575,8 @@ function MyActivitiesPage() {
         {(view === "table" || view === "grid") && totalPages > 1 && (
           <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
             <p className="text-sm text-muted-foreground">
-              Showing {(page - 1) * ITEMS_PER_PAGE + 1} to {Math.min(page * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} entries
+              Showing {(page - 1) * ITEMS_PER_PAGE + 1} to{" "}
+              {Math.min(page * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} entries
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -474,10 +590,11 @@ function MyActivitiesPage() {
                 <button
                   key={p}
                   onClick={() => setPage(p)}
-                  className={`flex h-8 w-8 items-center justify-center rounded-md border text-xs font-medium transition-colors ${p === page
+                  className={`flex h-8 w-8 items-center justify-center rounded-md border text-xs font-medium transition-colors ${
+                    p === page
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-border bg-card text-foreground hover:bg-accent"
-                    }`}
+                  }`}
                 >
                   {p}
                 </button>
@@ -500,7 +617,9 @@ function MyActivitiesPage() {
           <div className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-xl">
             <h3 className="mb-4 text-lg font-bold text-foreground">Mark as Done</h3>
             <div className="mb-4 space-y-1.5">
-              <label className="text-sm font-semibold text-muted-foreground">{t("addNote")} (Min 10 chars)</label>
+              <label className="text-sm font-semibold text-muted-foreground">
+                {t("addNote")} (Min 10 chars)
+              </label>
               <textarea
                 autoFocus
                 value={doneNote}
@@ -706,12 +825,13 @@ function CalendarView({
             <button
               key={i}
               onClick={() => setSelected(c.date)}
-              className={`relative mx-auto w-full max-w-[44px] aspect-square rounded-lg text-sm font-semibold transition ${isSelected
+              className={`relative mx-auto w-full max-w-[44px] aspect-square rounded-lg text-sm font-semibold transition ${
+                isSelected
                   ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]"
                   : isToday
                     ? "bg-primary/10 text-primary ring-1 ring-primary/30"
                     : "text-foreground hover:bg-accent"
-                }`}
+              }`}
             >
               <span className={count > 0 ? "relative -top-2" : ""}>{c.day}</span>
               {count > 0 && (

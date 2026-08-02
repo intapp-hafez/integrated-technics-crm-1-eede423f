@@ -126,7 +126,12 @@ export function sumWonInPeriod(
     .reduce((s, l) => s + Number(l.value ?? 0), 0);
 }
 
-export function getKpiPeriodDates(periodVal: string, baseYear: number, baseMonth: number, offset: number) {
+export function getKpiPeriodDates(
+  periodVal: string,
+  baseYear: number,
+  baseMonth: number,
+  offset: number,
+) {
   let start: Date, end: Date, label: string, divisor: number;
   if (!periodVal || periodVal === "default" || periodVal === "yearly") {
     start = new Date(baseYear + offset, 0, 1);

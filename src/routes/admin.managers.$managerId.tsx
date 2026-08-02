@@ -129,7 +129,9 @@ function ManagerDetailsPage() {
       .join("")
       .slice(0, 2) || "AD";
   const user = { name: meName, role: t("admin"), initials: meInitials, photo: mePhoto };
-  const [tab, setTab] = useState<"overview" | "attendance" | "leads" | "chat" | "team" | "accounts">("overview");
+  const [tab, setTab] = useState<
+    "overview" | "attendance" | "leads" | "chat" | "team" | "accounts"
+  >("overview");
   const [accountOwnerFilter, setAccountOwnerFilter] = useState("all");
   const [monthOffset, setMonthOffset] = useState(0);
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>({});
@@ -158,7 +160,7 @@ function ManagerDetailsPage() {
 
   const empUserId = (emp as any)?.userId as string | undefined;
   const empProfileId = (emp as any)?.profileId as string | undefined;
-  
+
   const teamMembersRaw = emp
     ? (users as any[]).filter((u) => {
         if (!u.managerId) return false;
@@ -180,7 +182,12 @@ function ManagerDetailsPage() {
       department: u.departmentEn || "",
       perf: 0,
       photo: u.avatarUrl,
-      avatar: (u.name || "?").split(" ").map((w: string)=>w[0]).join("").slice(0,2).toUpperCase(),
+      avatar: (u.name || "?")
+        .split(" ")
+        .map((w: string) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase(),
     };
   });
 
@@ -188,11 +195,15 @@ function ManagerDetailsPage() {
     ? (projects as any[]).filter((p) => {
         // Direct assignment match
         if (isProjectMemberOf(p, empIdentity)) return true;
-        if (p.managerId === emp.id || p.managerId === empProfileId || p.managerId === empUserId) return true;
-        
+        if (p.managerId === emp.id || p.managerId === empProfileId || p.managerId === empUserId)
+          return true;
+
         // Team member matches
         for (const tm of teamMembersRaw) {
-          if (isProjectMemberOf(p, { profileId: tm.profileId || tm.id, userId: tm.id, name: tm.name })) return true;
+          if (
+            isProjectMemberOf(p, { profileId: tm.profileId || tm.id, userId: tm.id, name: tm.name })
+          )
+            return true;
           if (p.managerId === tm.id || (tm.profileId && p.managerId === tm.profileId)) return true;
         }
         return false;
@@ -200,13 +211,13 @@ function ManagerDetailsPage() {
     : [];
 
   const uniqueAccountOwners = useMemo(() => {
-    const set = new Set(empProjects.map(p => p.createdByName || "Unknown"));
+    const set = new Set(empProjects.map((p) => p.createdByName || "Unknown"));
     return Array.from(set).sort();
   }, [empProjects]);
 
   const displayedAccounts = useMemo(() => {
     if (accountOwnerFilter === "all") return empProjects;
-    return empProjects.filter(p => (p.createdByName || "Unknown") === accountOwnerFilter);
+    return empProjects.filter((p) => (p.createdByName || "Unknown") === accountOwnerFilter);
   }, [empProjects, accountOwnerFilter]);
 
   // Real monthly attendance from Supabase, indexed per day for the visible month (Egypt / Africa/Cairo timezone)
@@ -384,9 +395,7 @@ function ManagerDetailsPage() {
   const atW = emp?.kpiAttendanceWeight ?? 33.34;
 
   const overallKpi = Math.round(
-    targetScore * (tW / 100) + 
-    activityScore * (acW / 100) + 
-    attendanceRate * (atW / 100)
+    targetScore * (tW / 100) + activityScore * (acW / 100) + attendanceRate * (atW / 100),
   );
 
   if (!emp) {
@@ -520,15 +529,18 @@ function ManagerDetailsPage() {
         <div className="mt-3 flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-blue-500/80"></span>
-            {t("sales") ?? "Sales"}: <span className="text-foreground">{Math.round(targetScore)}%</span>
+            {t("sales") ?? "Sales"}:{" "}
+            <span className="text-foreground">{Math.round(targetScore)}%</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-purple-500/80"></span>
-            {t("tasks") ?? "Tasks"}: <span className="text-foreground">{Math.round(activityScore)}%</span>
+            {t("tasks") ?? "Tasks"}:{" "}
+            <span className="text-foreground">{Math.round(activityScore)}%</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-orange-500/80"></span>
-            {t("attendance") ?? "Attendance"}: <span className="text-foreground">{Math.round(attendanceRate)}%</span>
+            {t("attendance") ?? "Attendance"}:{" "}
+            <span className="text-foreground">{Math.round(attendanceRate)}%</span>
           </div>
         </div>
       </div>
@@ -644,7 +656,9 @@ function ManagerDetailsPage() {
               <tbody className="divide-y divide-border">
                 {monthlyAttendance.rows.map((r) => (
                   <tr key={formatDate(r.date)} className="hover:bg-primary/5">
-                    <td className="px-3 py-2 font-mono text-xs text-foreground">{formatDate(r.date)}</td>
+                    <td className="px-3 py-2 font-mono text-xs text-foreground">
+                      {formatDate(r.date)}
+                    </td>
                     <td className="px-3 py-2 text-muted-foreground">{r.weekday}</td>
                     <td className="px-3 py-2 font-mono text-foreground">{r.in}</td>
                     <td className="px-3 py-2 font-mono text-muted-foreground">{r.out}</td>
@@ -737,7 +751,9 @@ function ManagerDetailsPage() {
             )}
           </div>
           {displayedAccounts.length === 0 && (
-            <p className="text-sm text-muted-foreground">No related accounts found for this filter.</p>
+            <p className="text-sm text-muted-foreground">
+              No related accounts found for this filter.
+            </p>
           )}
           <div className="divide-y divide-border">
             {displayedAccounts.map((p) => (
@@ -756,7 +772,10 @@ function ManagerDetailsPage() {
                     {p.client} {p.category ? `· ${p.category}` : ""}
                   </div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">
-                    Owner: <span className="font-medium text-foreground">{p.createdByName || "Unknown"}</span>
+                    Owner:{" "}
+                    <span className="font-medium text-foreground">
+                      {p.createdByName || "Unknown"}
+                    </span>
                   </div>
                 </div>
                 <div className="text-[11px] text-right mr-4 text-muted-foreground space-y-0.5 hidden sm:block">
@@ -930,7 +949,10 @@ function ManagerDetailsPage() {
                           <span className="text-foreground">{activityScore.toFixed(0)}%</span>
                         </div>
                         <div className="h-1.5 w-full rounded-full bg-secondary">
-                          <div className="h-full bg-sky-500" style={{ width: `${activityScore}%` }} />
+                          <div
+                            className="h-full bg-sky-500"
+                            style={{ width: `${activityScore}%` }}
+                          />
                         </div>
                       </div>
 
@@ -942,7 +964,10 @@ function ManagerDetailsPage() {
                           <span className="text-foreground">{attendanceRate.toFixed(0)}%</span>
                         </div>
                         <div className="h-1.5 w-full rounded-full bg-secondary">
-                          <div className="h-full bg-emerald-500" style={{ width: `${attendanceRate}%` }} />
+                          <div
+                            className="h-full bg-emerald-500"
+                            style={{ width: `${attendanceRate}%` }}
+                          />
                         </div>
                       </div>
                     </div>
@@ -987,7 +1012,10 @@ function ManagerDetailsPage() {
                   const h = d.mins > 0 ? Math.max(6, Math.round((pct / 100) * 120)) : 0;
                   const doneH = Math.round((donePct / 100) * 120);
                   return (
-                    <div key={formatDate(d.date)} className="flex flex-1 flex-col items-center gap-1.5">
+                    <div
+                      key={formatDate(d.date)}
+                      className="flex flex-1 flex-col items-center gap-1.5"
+                    >
                       <div className="text-[10px] font-semibold text-muted-foreground">
                         {fmtH(d.mins)}
                       </div>

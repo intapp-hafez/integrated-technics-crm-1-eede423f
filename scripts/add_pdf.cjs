@@ -1,19 +1,16 @@
-const fs = require('fs');
-let code = fs.readFileSync('src/components/leads/LeadDetailsPage.tsx', 'utf-8');
+const fs = require("fs");
+let code = fs.readFileSync("src/components/leads/LeadDetailsPage.tsx", "utf-8");
 
 // 1. imports
-if (!code.includes('import jsPDF')) {
+if (!code.includes("import jsPDF")) {
   code = code.replace(
     'import { Link, useRouter } from "@tanstack/react-router";',
-    'import { Link, useRouter } from "@tanstack/react-router";\nimport jsPDF from "jspdf";\nimport autoTable from "jspdf-autotable";'
+    'import { Link, useRouter } from "@tanstack/react-router";\nimport jsPDF from "jspdf";\nimport autoTable from "jspdf-autotable";',
   );
 }
 
-if (!code.includes('FileDown,')) {
-  code = code.replace(
-    'FileText,',
-    'FileText,\n  FileDown,'
-  );
+if (!code.includes("FileDown,")) {
+  code = code.replace("FileText,", "FileText,\n  FileDown,");
 }
 
 // 2. handleDownloadNotesPdf
@@ -59,28 +56,28 @@ const funcCode = `
   };
 `;
 
-if (!code.includes('handleDownloadNotesPdf')) {
+if (!code.includes("handleDownloadNotesPdf")) {
   code = code.replace(
-    'const leadNotes = notesQuery.data ?? [];',
-    'const leadNotes = notesQuery.data ?? [];\n' + funcCode
+    "const leadNotes = notesQuery.data ?? [];",
+    "const leadNotes = notesQuery.data ?? [];\n" + funcCode,
   );
 }
 
 // 3. Section Component update
-if (!code.includes('action?: React.ReactNode;')) {
+if (!code.includes("action?: React.ReactNode;")) {
   code = code.replace(
-    'children: React.ReactNode;\n}) {',
-    'children: React.ReactNode;\n  action?: React.ReactNode;\n}) {'
+    "children: React.ReactNode;\n}) {",
+    "children: React.ReactNode;\n  action?: React.ReactNode;\n}) {",
   );
 
   code = code.replace(
     '<div className="mb-4 flex items-center gap-2">\n        <Icon',
-    '<div className="mb-4 flex items-center justify-between">\n        <div className="flex items-center gap-2">\n          <Icon'
+    '<div className="mb-4 flex items-center justify-between">\n        <div className="flex items-center gap-2">\n          <Icon',
   );
 
   code = code.replace(
-    '</h3>\n      </div>\n      {children}',
-    '</h3>\n        </div>\n        {action}\n      </div>\n      {children}'
+    "</h3>\n      </div>\n      {children}",
+    "</h3>\n        </div>\n        {action}\n      </div>\n      {children}",
   );
 }
 
@@ -95,12 +92,12 @@ const btn = `action={
             </button>
           }`;
 
-if (!code.includes('Download PDF')) {
+if (!code.includes("Download PDF")) {
   code = code.replace(
     '<Section title={t("notes")} icon={FileText}>',
-    `<Section title={t("notes")} icon={FileText} ${btn}>`
+    `<Section title={t("notes")} icon={FileText} ${btn}>`,
   );
 }
 
-fs.writeFileSync('src/components/leads/LeadDetailsPage.tsx', code, 'utf-8');
+fs.writeFileSync("src/components/leads/LeadDetailsPage.tsx", code, "utf-8");
 console.log("Done");

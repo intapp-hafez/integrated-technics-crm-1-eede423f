@@ -7,9 +7,11 @@ This document outlines the detailed architectural specification and step-by-step
 ## 🎯 Features Overview
 
 ### 1. ⚙️ Activities Monitoring Settings (`Settings > Activities Monitoring`)
+
 Configures automated background rules for tracking lead inactivity, business operating hours, and multi-tier notification escalation paths.
 
 #### Key Modules:
+
 - **Global Control & Threshold**:
   - Master enable/disable toggle for activities monitoring.
   - Dropdown selector for inactivity threshold (`1 Day`, `2 Days`, `3 Days`, `5 Days`, `7 Days`, `14 Days`). Default: `3 Days`.
@@ -33,9 +35,11 @@ Configures automated background rules for tracking lead inactivity, business ope
 ---
 
 ### 2. 📊 Inactive Leads Report (`Reports > Inactive Leads Report`)
+
 An interactive report and management workspace for analyzing dormant leads, filtering by inactivity age, sending batch reminders, and exporting reports.
 
 #### Key Modules:
+
 - **Header & Action Bar**:
   - Page title, subtitle, `Export` button, and `Schedule Report` modal trigger.
 - **Top Filter Bar**:
@@ -78,6 +82,7 @@ An interactive report and management workspace for analyzing dormant leads, filt
 ## 🛠️ Step-by-Step Technical Implementation Plan
 
 ### Step 1: Database Migration & Schema (`supabase/migrations/`)
+
 - Create table `activities_monitoring_settings`:
   ```sql
   CREATE TABLE IF NOT EXISTS public.activities_monitoring_settings (
@@ -108,16 +113,19 @@ An interactive report and management workspace for analyzing dormant leads, filt
 - Seed initial monitoring settings row.
 
 ### Step 2: Settings Component (`src/components/admin/settings/ActivitiesMonitoringTab.tsx`)
+
 - Build clean, responsive tab component matching Screenshot 1 layout.
 - Bind form controls to settings state and persist changes to Supabase / store state.
 - Add `Activities Monitoring` tab to `TABS` array in `src/routes/admin.settings.tsx`.
 
 ### Step 3: Inactive Leads Calculation & Helper Utilities (`src/lib/inactiveLeads.ts`)
+
 - Implement inactivity helper functions:
   - `calculateInactiveDays(lead, activities, workingDays, workingHours)`: Computes actual working days elapsed since the lead's latest activity.
   - `filterInactiveLeads(leads, activities, filters)`: Evaluates inactive deals against selected criteria (stage, age bucket, priority, owner).
 
 ### Step 4: Inactive Leads Report Route (`src/routes/admin.reports.inactive-leads.tsx` & `admin.reports.tsx`)
+
 - Build the report view with:
   - Top filter controls.
   - Table with multi-row selection & floating batch actions bar (`Send Reminder`, `Export to CSV`).
@@ -125,6 +133,7 @@ An interactive report and management workspace for analyzing dormant leads, filt
 - Add navigation link to `Inactive Leads Report` in `admin.reports.tsx` and `manager.reports.tsx`.
 
 ### Step 5: Reminder & Escalation Dispatch Engine
+
 - Implement `actions.sendLeadReminder(leadId, message)` in `src/lib/store.ts` to push instant notifications to lead owners.
 - Implement automated escalation alert logic based on escalation rule intervals.
 
@@ -133,6 +142,7 @@ An interactive report and management workspace for analyzing dormant leads, filt
 ## 🧪 Verification Plan
 
 ### Manual & UI Testing:
+
 1. Navigate to **Settings > Activities Monitoring** tab:
    - Toggle options, adjust dropdown threshold, working hours, and click **Save Changes**.
    - Verify settings persist across reloads.

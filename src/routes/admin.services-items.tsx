@@ -5,7 +5,15 @@ import { useStoreState } from "@/lib/store";
 import { Plus, Search, Pencil, Trash2, Box, Briefcase } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useConfirm } from "@/components/shared/ConfirmDialog";
-import { sbAddCatalogItem, sbUpdateCatalogItem, sbDeleteCatalogItem, sbAddCatalogCategory, sbUpdateCatalogCategory, sbDeleteCatalogCategory, newUuid } from "@/lib/supabaseWrites";
+import {
+  sbAddCatalogItem,
+  sbUpdateCatalogItem,
+  sbDeleteCatalogItem,
+  sbAddCatalogCategory,
+  sbUpdateCatalogCategory,
+  sbDeleteCatalogCategory,
+  newUuid,
+} from "@/lib/supabaseWrites";
 import { toast } from "sonner";
 import type { CatalogItem, CatalogCategory } from "@/lib/store";
 
@@ -28,7 +36,10 @@ function AdminCatalogPage() {
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
 
   const user = {
-    name: lang === "ar" ? (profile?.full_name_ar ?? profile?.full_name_en ?? "") : (profile?.full_name_en ?? ""),
+    name:
+      lang === "ar"
+        ? (profile?.full_name_ar ?? profile?.full_name_en ?? "")
+        : (profile?.full_name_en ?? ""),
     role: role ? t(role as any) : t("admin"),
     initials: (profile?.full_name_en || "U")[0].toUpperCase(),
     photo: profile?.avatar_url ?? "",
@@ -58,7 +69,14 @@ function AdminCatalogPage() {
   }, [catalogItems, q, typeFilter, categoryFilter]);
 
   const handleDelete = async (id: string) => {
-    if (await confirm({ title: isAr ? "حذف العنصر؟" : "Delete Item?", message: isAr ? "لا يمكن التراجع عن هذا الإجراء." : "This action cannot be undone.", confirmLabel: isAr ? "حذف" : "Delete", variant: "danger" })) {
+    if (
+      await confirm({
+        title: isAr ? "حذف العنصر؟" : "Delete Item?",
+        message: isAr ? "لا يمكن التراجع عن هذا الإجراء." : "This action cannot be undone.",
+        confirmLabel: isAr ? "حذف" : "Delete",
+        variant: "danger",
+      })
+    ) {
       toast.promise(sbDeleteCatalogItem(id), {
         loading: isAr ? "جاري الحذف..." : "Deleting...",
         success: isAr ? "تم החذف بنجاح" : "Item deleted successfully",
@@ -207,7 +225,17 @@ function AdminCatalogPage() {
   );
 }
 
-export function ItemModal({ item, onClose, isAr, categories }: { item: CatalogItem | null; onClose: () => void; isAr: boolean; categories: CatalogCategory[] }) {
+export function ItemModal({
+  item,
+  onClose,
+  isAr,
+  categories,
+}: {
+  item: CatalogItem | null;
+  onClose: () => void;
+  isAr: boolean;
+  categories: CatalogCategory[];
+}) {
   const [name, setName] = useState(item?.name || "");
   const [type, setType] = useState<"item" | "service">(item?.type || "item");
   const [category, setCategory] = useState(item?.category || (categories[0]?.name ?? ""));
@@ -338,10 +366,18 @@ export function ItemModal({ item, onClose, isAr, categories }: { item: CatalogIt
   );
 }
 
-export function CategoriesModal({ categories, onClose, isAr }: { categories: CatalogCategory[]; onClose: () => void; isAr: boolean }) {
+export function CategoriesModal({
+  categories,
+  onClose,
+  isAr,
+}: {
+  categories: CatalogCategory[];
+  onClose: () => void;
+  isAr: boolean;
+}) {
   const [name, setName] = useState("");
   const [managers, setManagers] = useState<{ name: string; email: string }[]>([]);
-  
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editManagers, setEditManagers] = useState<{ name: string; email: string }[]>([]);
@@ -363,7 +399,10 @@ export function CategoriesModal({ categories, onClose, isAr }: { categories: Cat
 
   const handleSaveEdit = async () => {
     if (!editingId || !editName.trim()) return;
-    const promise = sbUpdateCatalogCategory(editingId, { name: editName.trim(), managers: editManagers });
+    const promise = sbUpdateCatalogCategory(editingId, {
+      name: editName.trim(),
+      managers: editManagers,
+    });
     toast.promise(promise, {
       loading: isAr ? "جاري الحفظ..." : "Saving...",
       success: isAr ? "تم الحفظ بنجاح" : "Category saved successfully",
@@ -373,7 +412,16 @@ export function CategoriesModal({ categories, onClose, isAr }: { categories: Cat
   };
 
   const handleDelete = async (id: string) => {
-    if (await confirm({ title: isAr ? "حذف التصنيف؟" : "Delete Category?", message: isAr ? "قد يتأثر العناصر المرتبطة بهذا التصنيف." : "Items linked to this category may be affected.", confirmLabel: isAr ? "حذف" : "Delete", variant: "danger" })) {
+    if (
+      await confirm({
+        title: isAr ? "حذف التصنيف؟" : "Delete Category?",
+        message: isAr
+          ? "قد يتأثر العناصر المرتبطة بهذا التصنيف."
+          : "Items linked to this category may be affected.",
+        confirmLabel: isAr ? "حذف" : "Delete",
+        variant: "danger",
+      })
+    ) {
       toast.promise(sbDeleteCatalogCategory(id), {
         loading: isAr ? "جاري الحذف..." : "Deleting...",
         success: isAr ? "تم الحذف بنجاح" : "Category deleted successfully",
@@ -384,7 +432,7 @@ export function CategoriesModal({ categories, onClose, isAr }: { categories: Cat
 
   const renderManagerInputs = (
     list: { name: string; email: string }[],
-    setList: (m: { name: string; email: string }[]) => void
+    setList: (m: { name: string; email: string }[]) => void,
   ) => (
     <div className="space-y-2 mt-2">
       {list.map((m, idx) => (
@@ -439,9 +487,11 @@ export function CategoriesModal({ categories, onClose, isAr }: { categories: Cat
             ✕
           </button>
         </div>
-        
+
         <form onSubmit={handleAdd} className="mb-6 rounded-lg border border-border p-4 bg-muted/20">
-          <h3 className="text-sm font-semibold mb-3">{isAr ? "إضافة تصنيف جديد" : "Add New Category"}</h3>
+          <h3 className="text-sm font-semibold mb-3">
+            {isAr ? "إضافة تصنيف جديد" : "Add New Category"}
+          </h3>
           <div className="flex gap-2">
             <input
               value={name}
@@ -474,7 +524,9 @@ export function CategoriesModal({ categories, onClose, isAr }: { categories: Cat
                           className="h-9 w-full rounded-md border border-border bg-transparent px-3 text-sm outline-none focus:border-primary"
                         />
                         <div>
-                          <label className="text-xs font-semibold text-muted-foreground">{isAr ? "المدراء" : "Managers"}</label>
+                          <label className="text-xs font-semibold text-muted-foreground">
+                            {isAr ? "المدراء" : "Managers"}
+                          </label>
                           {renderManagerInputs(editManagers, setEditManagers)}
                         </div>
                         <div className="flex justify-end gap-2 mt-2">
@@ -498,7 +550,9 @@ export function CategoriesModal({ categories, onClose, isAr }: { categories: Cat
                         {c.managers && c.managers.length > 0 && (
                           <div className="text-xs text-muted-foreground mt-1">
                             {c.managers.map((m, i) => (
-                              <div key={i}>• {m.name} ({m.email})</div>
+                              <div key={i}>
+                                • {m.name} ({m.email})
+                              </div>
                             ))}
                           </div>
                         )}

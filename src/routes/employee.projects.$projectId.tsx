@@ -114,7 +114,10 @@ function EmployeeProjectDetailsPage() {
     (h) => h.target.includes(projectId) || h.target === project.name,
   );
   const timelineLimit = 6;
-  const paginatedTimeline = projectHistory.slice((timelinePage - 1) * timelineLimit, timelinePage * timelineLimit);
+  const paginatedTimeline = projectHistory.slice(
+    (timelinePage - 1) * timelineLimit,
+    timelinePage * timelineLimit,
+  );
   const totalTimelinePages = Math.ceil(projectHistory.length / timelineLimit);
   const relatedLeads = storeLeads.filter(
     (l: any) =>
@@ -199,7 +202,8 @@ function EmployeeProjectDetailsPage() {
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1">
-                  <ActivityIcon className="h-3.5 w-3.5" /> {relatedLeads.length} Lead{relatedLeads.length === 1 ? "" : "s"}
+                  <ActivityIcon className="h-3.5 w-3.5" /> {relatedLeads.length} Lead
+                  {relatedLeads.length === 1 ? "" : "s"}
                 </span>
               </div>
             </div>
@@ -214,7 +218,9 @@ function EmployeeProjectDetailsPage() {
             <Users2 className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Team</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Team
+            </div>
             <div className="mt-0.5 font-display text-base font-extrabold text-foreground">
               {members.length} member{members.length !== 1 ? "s" : ""}
             </div>
@@ -225,7 +231,9 @@ function EmployeeProjectDetailsPage() {
             <ActivityIcon className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Activities</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Activities
+            </div>
             <div className="mt-0.5 font-display text-base font-extrabold text-foreground">
               {projectActivities.length}
             </div>
@@ -253,7 +261,10 @@ function EmployeeProjectDetailsPage() {
               {clientLead?.contact && <InfoRow label="Contact">{clientLead.contact}</InfoRow>}
               <InfoRow label="Email">
                 {clientEmail ? (
-                  <a href={`mailto:${clientEmail}`} className="text-primary hover:underline font-mono">
+                  <a
+                    href={`mailto:${clientEmail}`}
+                    className="text-primary hover:underline font-mono"
+                  >
                     {clientEmail}
                   </a>
                 ) : (
@@ -262,7 +273,10 @@ function EmployeeProjectDetailsPage() {
               </InfoRow>
               <InfoRow label="Phone">
                 {clientPhone ? (
-                  <a href={`tel:${clientPhone.replace(/\s+/g, "")}`} className="text-primary hover:underline font-mono">
+                  <a
+                    href={`tel:${clientPhone.replace(/\s+/g, "")}`}
+                    className="text-primary hover:underline font-mono"
+                  >
                     {clientPhone}
                   </a>
                 ) : (
@@ -335,7 +349,8 @@ function EmployeeProjectDetailsPage() {
                             params={{ leadId: l.id }}
                             className="font-semibold text-foreground hover:text-primary transition-colors inline-flex items-center gap-1 group"
                           >
-                            {l.company} <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {l.company}{" "}
+                            <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </Link>
                         </td>
                         <td className="px-5 py-3">
@@ -344,7 +359,9 @@ function EmployeeProjectDetailsPage() {
                             <div className="text-[11px] text-muted-foreground mt-0.5">
                               {l.phone && <span>{l.phone}</span>}
                               {l.phone && (l as any).email && <span> · </span>}
-                              {(l as any).email && <span className="break-all">{(l as any).email}</span>}
+                              {(l as any).email && (
+                                <span className="break-all">{(l as any).email}</span>
+                              )}
                             </div>
                           )}
                         </td>
@@ -481,7 +498,9 @@ function EmployeeProjectDetailsPage() {
                           {fmtTime(h.ts)} ·{" "}
                           <span className="font-semibold text-foreground">{h.actor}</span>
                         </div>
-                        <div className="mt-0.5 text-sm font-semibold text-foreground">{h.action}</div>
+                        <div className="mt-0.5 text-sm font-semibold text-foreground">
+                          {h.action}
+                        </div>
                         {h.details && (
                           <div className="mt-0.5 text-xs text-muted-foreground">{h.details}</div>
                         )}
@@ -498,7 +517,8 @@ function EmployeeProjectDetailsPage() {
                         {lang === "ar" ? "السابق" : "Previous"}
                       </button>
                       <span className="text-xs text-muted-foreground">
-                        {lang === "ar" ? "صفحة" : "Page"} {timelinePage} {lang === "ar" ? "من" : "of"} {totalTimelinePages}
+                        {lang === "ar" ? "صفحة" : "Page"} {timelinePage}{" "}
+                        {lang === "ar" ? "من" : "of"} {totalTimelinePages}
                       </span>
                       <button
                         onClick={() => setTimelinePage((p) => Math.min(totalTimelinePages, p + 1))}
@@ -517,8 +537,8 @@ function EmployeeProjectDetailsPage() {
       </div>
 
       {showAddActivity && (
-        <NewActivityDialog 
-          onClose={() => setShowAddActivity(false)} 
+        <NewActivityDialog
+          onClose={() => setShowAddActivity(false)}
           defaultProjectId={project.id}
           defaultStep={2}
         />

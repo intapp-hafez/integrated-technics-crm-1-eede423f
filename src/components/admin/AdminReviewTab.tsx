@@ -30,7 +30,7 @@ export function AdminReviewTab({ leads, activities }: AdminReviewTabProps) {
       const isWon = lead.status === "won";
       const isLost = lead.status === "lost";
       const leadActivities = activities.filter((a) => a.leadId === lead.id);
-      
+
       // Cost analysis
       const estimatedCost = leadActivities.length * HOURS_PER_ACTIVITY * HOURLY_RATE;
       const budget = lead.value || 0;
@@ -38,7 +38,12 @@ export function AdminReviewTab({ leads, activities }: AdminReviewTabProps) {
         const costPercent = (estimatedCost / budget) * 100;
         // Flag if cost > 10% of budget and it's not won yet, or if it's generally high cost
         if (costPercent > 10 && !isWon) {
-          highCost.push({ lead, cost: estimatedCost, percent: costPercent, activitiesCount: leadActivities.length });
+          highCost.push({
+            lead,
+            cost: estimatedCost,
+            percent: costPercent,
+            activitiesCount: leadActivities.length,
+          });
         }
       }
 
@@ -127,7 +132,9 @@ export function AdminReviewTab({ leads, activities }: AdminReviewTabProps) {
           </div>
           <div className="divide-y divide-border max-h-[300px] overflow-y-auto">
             {insights.closedEarly.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground text-center">No leads closed early.</div>
+              <div className="p-4 text-sm text-muted-foreground text-center">
+                No leads closed early.
+              </div>
             ) : (
               insights.closedEarly.map((lead) => {
                 const expected = new Date(lead.expectedCloseDate);
@@ -135,16 +142,22 @@ export function AdminReviewTab({ leads, activities }: AdminReviewTabProps) {
                 const diffTime = Math.max(0, expected.getTime() - now.getTime());
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 return (
-                  <Link 
-                    to="/admin/leads/$leadId" 
+                  <Link
+                    to="/admin/leads/$leadId"
                     params={{ leadId: lead.id }}
-                    key={lead.id} 
+                    key={lead.id}
                     className="p-4 flex justify-between items-center hover:bg-muted/50 transition block"
                   >
                     <div>
-                      <p className="font-semibold text-sm group-hover:text-primary">{lead.company}</p>
+                      <p className="font-semibold text-sm group-hover:text-primary">
+                        {lead.company}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        Expected: {formatDate(lead.expectedCloseDate)} · {diffDays} days early · Closed {lead.updatedAt.includes('ago') ? lead.updatedAt : formatDate(lead.updatedAt)}
+                        Expected: {formatDate(lead.expectedCloseDate)} · {diffDays} days early ·
+                        Closed{" "}
+                        {lead.updatedAt.includes("ago")
+                          ? lead.updatedAt
+                          : formatDate(lead.updatedAt)}
                       </p>
                     </div>
                     <span className="text-xs font-bold bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded-md shrink-0 ml-4">
@@ -166,18 +179,22 @@ export function AdminReviewTab({ leads, activities }: AdminReviewTabProps) {
           </div>
           <div className="divide-y divide-border max-h-[300px] overflow-y-auto">
             {insights.closedLate.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground text-center">No leads closed late.</div>
+              <div className="p-4 text-sm text-muted-foreground text-center">
+                No leads closed late.
+              </div>
             ) : (
               insights.closedLate.map((lead) => (
-                <Link 
-                  to="/admin/leads/$leadId" 
+                <Link
+                  to="/admin/leads/$leadId"
                   params={{ leadId: lead.id }}
-                  key={lead.id} 
+                  key={lead.id}
                   className="p-4 flex justify-between items-center hover:bg-muted/50 transition block"
                 >
                   <div>
                     <p className="font-semibold text-sm group-hover:text-primary">{lead.company}</p>
-                    <p className="text-xs text-muted-foreground">Expected: {formatDate(lead.expectedCloseDate)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Expected: {formatDate(lead.expectedCloseDate)}
+                    </p>
                   </div>
                   <span className="text-xs font-bold bg-amber-500/10 text-amber-600 px-2 py-1 rounded-md shrink-0 ml-4">
                     Delayed
@@ -200,15 +217,17 @@ export function AdminReviewTab({ leads, activities }: AdminReviewTabProps) {
               <div className="p-4 text-sm text-muted-foreground text-center">No overdue leads.</div>
             ) : (
               insights.overdue.map((lead) => (
-                <Link 
-                  to="/admin/leads/$leadId" 
+                <Link
+                  to="/admin/leads/$leadId"
                   params={{ leadId: lead.id }}
-                  key={lead.id} 
+                  key={lead.id}
                   className="p-4 flex justify-between items-center hover:bg-muted/50 transition block"
                 >
                   <div>
                     <p className="font-semibold text-sm group-hover:text-primary">{lead.company}</p>
-                    <p className="text-xs text-muted-foreground">Expected: {formatDate(lead.expectedCloseDate)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Expected: {formatDate(lead.expectedCloseDate)}
+                    </p>
                   </div>
                   <span className="text-xs font-bold bg-rose-500/10 text-rose-600 px-2 py-1 rounded-md shrink-0 ml-4">
                     Overdue
@@ -228,26 +247,32 @@ export function AdminReviewTab({ leads, activities }: AdminReviewTabProps) {
           </div>
           <div className="divide-y divide-border max-h-[300px] overflow-y-auto">
             {insights.highCost.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground text-center">No high cost leads.</div>
+              <div className="p-4 text-sm text-muted-foreground text-center">
+                No high cost leads.
+              </div>
             ) : (
               insights.highCost.map((item) => (
-                <Link 
-                  to="/admin/leads/$leadId" 
+                <Link
+                  to="/admin/leads/$leadId"
                   params={{ leadId: item.lead.id }}
-                  key={item.lead.id} 
+                  key={item.lead.id}
                   className="p-4 hover:bg-muted/50 transition block group"
                 >
                   <div className="flex justify-between items-start mb-1">
-                    <p className="font-semibold text-sm group-hover:text-primary">{item.lead.company}</p>
-                    <p className="text-sm font-bold text-foreground">{fmtMoney(item.lead.value)} Budget</p>
+                    <p className="font-semibold text-sm group-hover:text-primary">
+                      {item.lead.company}
+                    </p>
+                    <p className="text-sm font-bold text-foreground">
+                      {fmtMoney(item.lead.value)} Budget
+                    </p>
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">
                     {item.activitiesCount} activities logged ({item.activitiesCount} est. hours)
                   </p>
                   <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
-                    <div 
-                      className="bg-purple-500 h-full rounded-full" 
-                      style={{ width: `${Math.min(item.percent, 100)}%` }} 
+                    <div
+                      className="bg-purple-500 h-full rounded-full"
+                      style={{ width: `${Math.min(item.percent, 100)}%` }}
                     />
                   </div>
                   <p className="text-xs text-right mt-1 font-medium text-purple-600">

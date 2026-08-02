@@ -37,7 +37,7 @@ function parseEstMinutes(val: any): number {
   if (num > 0 && num <= 1) {
     return Math.round(num * 24 * 60);
   }
-  return num;
+  return Math.round(num);
 }
 
 interface Props {
@@ -49,7 +49,14 @@ interface Props {
   existingContacts?: { name: string; title: string; phone: string; email: string }[];
 }
 
-export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverrideProfileId, targetProjectId, existingContacts }: Props) {
+export function ExcelImportModal({
+  type,
+  onClose,
+  ownerOverride,
+  ownerOverrideProfileId,
+  targetProjectId,
+  existingContacts,
+}: Props) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const [file, setFile] = useState<File | null>(null);
@@ -176,7 +183,8 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
       }
 
       let count = 0;
-      const myName = ownerOverride ?? (profile?.name && profile.name !== "—" ? profile.name : "Unassigned");
+      const myName =
+        ownerOverride ?? (profile?.name && profile.name !== "—" ? profile.name : "Unassigned");
 
       switch (type) {
         case "accounts":
@@ -263,8 +271,8 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
               industry: row.Industry,
               source: row.Source || "Website",
               status: settings.statuses.includes(row.Status) ? row.Status : "new",
-              value: Number(row.Value) || 0,
-              probability: Number(row.Probability) || 0,
+              value: Math.round(Number(row.Value) || 0),
+              probability: Math.round(Number(row.Probability) || 0),
               city: row.City || "Cairo",
               street: row.Street,
               owner: myName,
@@ -336,7 +344,12 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
           <div className="flex items-center gap-2 text-primary">
             <FileSpreadsheet className="h-5 w-5" />
             <h2 className="font-display text-lg font-bold text-foreground">
-              {t("importExcel")} - {type === "extraContacts" ? (isAr ? "جهات اتصال إضافية" : "Extra Contacts") : t(type === "accounts" ? "projects" : type as any)}
+              {t("importExcel")} -{" "}
+              {type === "extraContacts"
+                ? isAr
+                  ? "جهات اتصال إضافية"
+                  : "Extra Contacts"
+                : t(type === "accounts" ? "projects" : (type as any))}
             </h2>
           </div>
           <button
@@ -383,10 +396,11 @@ export function ExcelImportModal({ type, onClose, ownerOverride, ownerOverridePr
 
             <div
               onClick={() => fileInputRef.current?.click()}
-              className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${file
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50 hover:bg-accent"
-                }`}
+              className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${
+                file
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50 hover:bg-accent"
+              }`}
             >
               {file ? (
                 <>

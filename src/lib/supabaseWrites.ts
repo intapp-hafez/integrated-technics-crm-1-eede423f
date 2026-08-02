@@ -71,7 +71,7 @@ export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
     probability: l.probability ?? 0,
     expected_close_date: l.expectedCloseDate ?? null,
     project_id: (l as any).projectId ?? null,
-    
+
     created_by: currentUserId,
   } as any);
   if (error) warn("Save lead", error);
@@ -546,7 +546,10 @@ export async function sbAddLeadCatalogItem(payload: Partial<LeadCatalogItem>) {
 }
 
 export async function sbDeleteLeadCatalogItem(id: string) {
-  const { error } = await supabase.from("lead_catalog_items" as any).delete().eq("id", id);
+  const { error } = await supabase
+    .from("lead_catalog_items" as any)
+    .delete()
+    .eq("id", id);
   if (error) {
     console.error(error);
     throw new Error(error.message);
@@ -807,7 +810,10 @@ export async function sbAddAdminTask(task: any) {
 
 export async function sbUpdateAdminTaskStatus(id: string, status: string) {
   if (!isUuid(id)) return;
-  const { error } = await supabase.from("admin_tasks" as any).update({ status }).eq("id", id);
+  const { error } = await supabase
+    .from("admin_tasks" as any)
+    .update({ status })
+    .eq("id", id);
   if (error) warn("Update admin task status", error);
 }
 
@@ -837,19 +843,25 @@ export async function sbAddCatalogItem(item: any) {
 
 export async function sbUpdateCatalogItem(id: string, item: any) {
   if (!isUuid(id)) return;
-  const { error } = await supabase.from("catalog_items" as any).update({
-    name: item.name,
-    type: item.type,
-    category: item.category,
-    description: item.description,
-    cost_price: item.costPrice,
-  }).eq("id", id);
+  const { error } = await supabase
+    .from("catalog_items" as any)
+    .update({
+      name: item.name,
+      type: item.type,
+      category: item.category,
+      description: item.description,
+      cost_price: item.costPrice,
+    })
+    .eq("id", id);
   if (error) warn("Update catalog item", error);
 }
 
 export async function sbDeleteCatalogItem(id: string) {
   if (!isUuid(id)) return;
-  const { error } = await supabase.from("catalog_items" as any).delete().eq("id", id);
+  const { error } = await supabase
+    .from("catalog_items" as any)
+    .delete()
+    .eq("id", id);
   if (error) warn("Delete catalog item", error);
 }
 
@@ -858,22 +870,31 @@ export async function sbAddCatalogCategory(cat: any) {
   const { error } = await supabase.from("catalog_categories" as any).insert({
     id: cat.id,
     name: cat.name,
-    managers: cat.managers ? JSON.stringify(cat.managers) : '[]',
+    managers: cat.managers ? JSON.stringify(cat.managers) : "[]",
   });
   if (error) warn("Save catalog category", error);
 }
 
-export async function sbUpdateCatalogCategory(id: string, updates: { name?: string; managers?: any[] }) {
+export async function sbUpdateCatalogCategory(
+  id: string,
+  updates: { name?: string; managers?: any[] },
+) {
   if (!isUuid(id)) return;
   const payload: any = {};
   if (updates.name !== undefined) payload.name = updates.name;
   if (updates.managers !== undefined) payload.managers = JSON.stringify(updates.managers);
-  const { error } = await supabase.from("catalog_categories" as any).update(payload).eq("id", id);
+  const { error } = await supabase
+    .from("catalog_categories" as any)
+    .update(payload)
+    .eq("id", id);
   if (error) warn("Update catalog category", error);
 }
 
 export async function sbDeleteCatalogCategory(id: string) {
   if (!isUuid(id)) return;
-  const { error } = await supabase.from("catalog_categories" as any).delete().eq("id", id);
+  const { error } = await supabase
+    .from("catalog_categories" as any)
+    .delete()
+    .eq("id", id);
   if (error) warn("Delete catalog category", error);
 }

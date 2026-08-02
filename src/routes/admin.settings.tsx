@@ -57,7 +57,12 @@ import {
   adminDeletePosition,
 } from "@/lib/admin-api";
 import { SendEmailEditor } from "@/components/email/SendEmailEditor";
-import { StatusesTab, StagesTab, ActivityTypesTab, WorkdayTab } from "@/components/admin/settings/PipelineTabs";
+import {
+  StatusesTab,
+  StagesTab,
+  ActivityTypesTab,
+  WorkdayTab,
+} from "@/components/admin/settings/PipelineTabs";
 import { DepartmentsTab, PositionsTab } from "@/components/admin/settings/OrgTabs";
 import { ActivitiesMonitoringTab } from "@/components/admin/settings/ActivitiesMonitoringTab";
 import { Activity } from "lucide-react";
@@ -172,10 +177,15 @@ function SettingsPage() {
 
           {tab === "users" && (
             <section>
-              <Header title="Users & Permissions" hint="Manage users and configure allowed pages and CRUD operations per role." />
+              <Header
+                title="Users & Permissions"
+                hint="Manage users and configure allowed pages and CRUD operations per role."
+              />
               <UsersEditor />
               <div className="mt-8">
-                <h3 className="mb-3 font-display text-base font-bold text-foreground">Role permissions</h3>
+                <h3 className="mb-3 font-display text-base font-bold text-foreground">
+                  Role permissions
+                </h3>
                 <PermissionsMatrix />
               </div>
             </section>
@@ -185,7 +195,11 @@ function SettingsPage() {
             <section>
               <Header
                 title={lang === "ar" ? "إدارة صلاحيات المستخدمين" : "User Roles Management"}
-                hint={lang === "ar" ? "عيّن أو أزل الصلاحيات لكل مستخدم. يتم منع إزالة آخر مدير." : "Assign or remove roles per user. The last admin cannot be removed."}
+                hint={
+                  lang === "ar"
+                    ? "عيّن أو أزل الصلاحيات لكل مستخدم. يتم منع إزالة آخر مدير."
+                    : "Assign or remove roles per user. The last admin cannot be removed."
+                }
               />
               <UserRolesEditor />
             </section>
@@ -401,7 +415,9 @@ function UsersEditor() {
   const [busy, setBusy] = useState(false);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "admin" | "manager" | "employee" | "deactivated">("all");
+  const [activeTab, setActiveTab] = useState<
+    "all" | "admin" | "manager" | "employee" | "deactivated"
+  >("all");
   const upd = (patch: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...patch }));
   const departments = settings.departments ?? [];
   const positions = settings.positions ?? [];
@@ -762,13 +778,15 @@ function UsersEditor() {
 
         {/* Role tabs */}
         <div className="flex flex-wrap gap-1.5 border-b border-border pb-3">
-          {([
-            { key: "all", label: "All Active" },
-            { key: "admin", label: "Admins" },
-            { key: "manager", label: "Managers" },
-            { key: "employee", label: "Employees" },
-            { key: "deactivated", label: "Deactivated" },
-          ] as const).map(({ key, label }) => (
+          {(
+            [
+              { key: "all", label: "All Active" },
+              { key: "admin", label: "Admins" },
+              { key: "manager", label: "Managers" },
+              { key: "employee", label: "Employees" },
+              { key: "deactivated", label: "Deactivated" },
+            ] as const
+          ).map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
@@ -781,13 +799,15 @@ function UsersEditor() {
               }`}
             >
               {label}
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                activeTab === key
-                  ? "bg-white/20 text-inherit"
-                  : key === "deactivated"
-                    ? "bg-rose-100 text-rose-600"
-                    : "bg-secondary text-muted-foreground"
-              }`}>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                  activeTab === key
+                    ? "bg-white/20 text-inherit"
+                    : key === "deactivated"
+                      ? "bg-rose-100 text-rose-600"
+                      : "bg-secondary text-muted-foreground"
+                }`}
+              >
                 {tabCounts[key]}
               </span>
             </button>
@@ -988,7 +1008,6 @@ function PageBar({
     </div>
   );
 }
-
 
 const inputCls =
   "h-9 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";

@@ -107,8 +107,9 @@ export function PipelineBoard({
                 setDragId(null);
                 setOverStage(null);
               }}
-              className={`min-w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""
-                }`}
+              className={`min-w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${
+                isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""
+              }`}
               style={{
                 borderTopColor: stage.color,
                 backgroundColor: isOver
@@ -135,10 +136,7 @@ export function PipelineBoard({
                   </span>
                 </div>
                 {isActive && (
-                  <span
-                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"
-                    aria-hidden
-                  />
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden />
                 )}
               </button>
               <div className="mb-2 px-1 font-mono text-[10px] text-muted-foreground">
@@ -168,10 +166,11 @@ export function PipelineBoard({
                             : "/employee/leads/$leadId";
                       navigate({ to: targetRoute, params: { leadId: l.id } });
                     }}
-                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${dragId === l.id
+                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${
+                      dragId === l.id
                         ? "opacity-50 border-primary"
                         : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
-                      }`}
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -213,12 +212,13 @@ export function PipelineBoard({
                         <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-[10px] text-muted-foreground">
                           <span className="inline-flex items-center gap-1 font-semibold">
                             <div
-                              className={`h-1.5 w-1.5 rounded-full ${prob >= 70
+                              className={`h-1.5 w-1.5 rounded-full ${
+                                prob >= 70
                                   ? "bg-emerald-500"
                                   : prob >= 40
                                     ? "bg-amber-500"
                                     : "bg-rose-500"
-                                }`}
+                              }`}
                             />
                             {prob}% {t("probability")}
                           </span>

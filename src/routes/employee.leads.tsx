@@ -1,11 +1,17 @@
 import { formatDate } from "@/lib/utils";
-import { LeadFormModal } from '@/components/leads/LeadFormModal';
+import { LeadFormModal } from "@/components/leads/LeadFormModal";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney, type Lead, type LeadStatus } from "@/lib/mock-data";
-import { actions, useStoreState, getProbabilityForStatus, type Project, type LocationCity } from "@/lib/store";
+import {
+  actions,
+  useStoreState,
+  getProbabilityForStatus,
+  type Project,
+  type LocationCity,
+} from "@/lib/store";
 import { filterMyProjects } from "@/lib/employeeProjects";
 import { useRef, useState } from "react";
 import {
@@ -53,7 +59,8 @@ function LeadsPage() {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const { leads, settings } = useStoreState();
-  const stageLabel = (k: string) => settings.stages.find((s) => s.key === k)?.label ?? (t(k as any) ?? k);
+  const stageLabel = (k: string) =>
+    settings.stages.find((s) => s.key === k)?.label ?? t(k as any) ?? k;
   const isDetailRoute = useRouterState({
     select: (state) =>
       state.location.pathname.startsWith("/employee/leads/") &&
@@ -151,7 +158,7 @@ function LeadsPage() {
       </div>
 
       {editing && (
-      <LeadFormModal
+        <LeadFormModal
           allowOwnerChange={false}
           defaultOwner={ME}
           filteredProjects={myProjects}
@@ -168,7 +175,8 @@ function LeadsPage() {
 function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
   const { t } = useI18n();
   const { settings, projects } = useStoreState();
-  const stageLabel = (k: string) => settings.stages.find((s) => s.key === k)?.label ?? (t(k as any) ?? k);
+  const stageLabel = (k: string) =>
+    settings.stages.find((s) => s.key === k)?.label ?? t(k as any) ?? k;
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
@@ -184,7 +192,9 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
             </div>
             <div className="truncate text-xs text-muted-foreground">
               {(() => {
-                const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
+                const relatedProject = projects.find(
+                  (p) => p.id === (l as any).projectId || p.id === (l as any).project_id,
+                );
                 const displayPhone = l.phone || relatedProject?.clientPhone;
                 return (
                   <>
@@ -208,18 +218,26 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
           </a>
           <a
             href={(() => {
-              const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
+              const relatedProject = projects.find(
+                (p) => p.id === (l as any).projectId || p.id === (l as any).project_id,
+              );
               const displayPhone = l.phone || relatedProject?.clientPhone;
               return displayPhone ? `tel:${displayPhone}` : undefined;
             })()}
             onClick={(e) => {
-              const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
+              const relatedProject = projects.find(
+                (p) => p.id === (l as any).projectId || p.id === (l as any).project_id,
+              );
               const displayPhone = l.phone || relatedProject?.clientPhone;
               if (!displayPhone) e.preventDefault();
             }}
             className={`flex items-center justify-center gap-1.5 rounded-lg bg-secondary/60 px-2 py-2 text-[11px] font-semibold transition active:scale-[0.97] ${(() => {
-              const relatedProject = projects.find(p => p.id === (l as any).projectId || p.id === (l as any).project_id);
-              return l.phone || relatedProject?.clientPhone ? "text-foreground hover:bg-secondary" : "cursor-not-allowed text-muted-foreground/60";
+              const relatedProject = projects.find(
+                (p) => p.id === (l as any).projectId || p.id === (l as any).project_id,
+              );
+              return l.phone || relatedProject?.clientPhone
+                ? "text-foreground hover:bg-secondary"
+                : "cursor-not-allowed text-muted-foreground/60";
             })()}`}
           >
             <Phone className="h-3.5 w-3.5" />
@@ -246,7 +264,9 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
                 <Calendar className="h-3.5 w-3.5 text-primary" />
                 <span className="truncate">
                   Follow-up ·{" "}
-                  <span className="font-semibold text-foreground">{formatDate(l.expectedCloseDate)}</span>
+                  <span className="font-semibold text-foreground">
+                    {formatDate(l.expectedCloseDate)}
+                  </span>
                 </span>
               </>
             ) : (
@@ -266,7 +286,9 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
                   </span>
                 </>
               ) : (
-                <span className="font-mono text-sm font-bold text-foreground">{fmtMoney(l.value)}</span>
+                <span className="font-mono text-sm font-bold text-foreground">
+                  {fmtMoney(l.value)}
+                </span>
               )}
             </span>
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
@@ -277,13 +299,28 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
           const isWon = l.status === "won";
           const isLost = l.status === "lost";
           const pct = getProbabilityForStatus(l.status) ?? 0;
-          const barColor = isWon ? "bg-emerald-500" : isLost ? "bg-rose-500" : pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-sky-500";
-          const textColor = isWon ? "text-emerald-600" : isLost ? "text-rose-600" : "text-muted-foreground";
+          const barColor = isWon
+            ? "bg-emerald-500"
+            : isLost
+              ? "bg-rose-500"
+              : pct >= 70
+                ? "bg-emerald-500"
+                : pct >= 40
+                  ? "bg-amber-500"
+                  : "bg-sky-500";
+          const textColor = isWon
+            ? "text-emerald-600"
+            : isLost
+              ? "text-rose-600"
+              : "text-muted-foreground";
           return (
             <div className="mt-2">
               <div className="flex items-center gap-2">
                 <div className="h-1 flex-1 overflow-hidden rounded-full bg-secondary">
-                  <div className={`h-full transition-all duration-500 ease-out ${barColor}`} style={{ width: `${pct}%` }} />
+                  <div
+                    className={`h-full transition-all duration-500 ease-out ${barColor}`}
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
                 <span className={`text-[10px] font-semibold ${textColor}`}>{pct}%</span>
               </div>
@@ -295,4 +332,3 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
     </div>
   );
 }
-

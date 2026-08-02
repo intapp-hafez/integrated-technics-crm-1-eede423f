@@ -145,13 +145,16 @@ function ProjectDetailsPage() {
     (h) => h.target.includes(projectId) || h.target === project.name,
   );
   const timelineLimit = 6;
-  const paginatedTimeline = projectHistory.slice((timelinePage - 1) * timelineLimit, timelinePage * timelineLimit);
+  const paginatedTimeline = projectHistory.slice(
+    (timelinePage - 1) * timelineLimit,
+    timelinePage * timelineLimit,
+  );
   const totalTimelinePages = Math.ceil(projectHistory.length / timelineLimit);
   const relatedLeads = storeLeads.filter(
     (l: any) =>
       l.projectId === projectId ||
       l.project_id === projectId ||
-      (project.client && l.company === project.client)
+      (project.client && l.company === project.client),
   );
   const clientLead = relatedLeads[0];
   const memberNames = (project as any).teamMembers as string[] | undefined;
@@ -232,7 +235,8 @@ function ProjectDetailsPage() {
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1">
-                  <ActivityIcon className="h-3.5 w-3.5" /> {relatedLeads.length} Lead{relatedLeads.length === 1 ? "" : "s"}
+                  <ActivityIcon className="h-3.5 w-3.5" /> {relatedLeads.length} Lead
+                  {relatedLeads.length === 1 ? "" : "s"}
                 </span>
               </div>
             </div>
@@ -362,16 +366,19 @@ function ProjectDetailsPage() {
                             params={{ leadId: l.id }}
                             className="font-semibold text-foreground hover:text-primary transition-colors inline-flex items-center gap-1"
                           >
-                            {l.company} <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {l.company}{" "}
+                            <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </Link>
                         </td>
                         <td className="px-5 py-3">
                           <div className="font-medium text-foreground">{l.contact || "—"}</div>
-                          {( (l as any).phone || (l as any).email ) && (
+                          {((l as any).phone || (l as any).email) && (
                             <div className="text-[11px] text-muted-foreground mt-0.5">
                               {(l as any).phone && <span>{(l as any).phone}</span>}
                               {(l as any).phone && (l as any).email && <span> · </span>}
-                              {(l as any).email && <span className="break-all">{(l as any).email}</span>}
+                              {(l as any).email && (
+                                <span className="break-all">{(l as any).email}</span>
+                              )}
                             </div>
                           )}
                         </td>
@@ -584,7 +591,9 @@ function ProjectDetailsPage() {
                           {fmtTime(h.ts)} ·{" "}
                           <span className="font-semibold text-foreground">{h.actor}</span>
                         </div>
-                        <div className="mt-0.5 text-sm font-semibold text-foreground">{h.action}</div>
+                        <div className="mt-0.5 text-sm font-semibold text-foreground">
+                          {h.action}
+                        </div>
                         {h.details && (
                           <div className="mt-0.5 text-xs text-muted-foreground">{h.details}</div>
                         )}
@@ -601,7 +610,8 @@ function ProjectDetailsPage() {
                         {lang === "ar" ? "السابق" : "Previous"}
                       </button>
                       <span className="text-xs text-muted-foreground">
-                        {lang === "ar" ? "صفحة" : "Page"} {timelinePage} {lang === "ar" ? "من" : "of"} {totalTimelinePages}
+                        {lang === "ar" ? "صفحة" : "Page"} {timelinePage}{" "}
+                        {lang === "ar" ? "من" : "of"} {totalTimelinePages}
                       </span>
                       <button
                         onClick={() => setTimelinePage((p) => Math.min(totalTimelinePages, p + 1))}
@@ -619,8 +629,8 @@ function ProjectDetailsPage() {
         </div>
       </div>
       {showAddActivity && (
-        <NewActivityDialog 
-          onClose={() => setShowAddActivity(false)} 
+        <NewActivityDialog
+          onClose={() => setShowAddActivity(false)}
           defaultProjectId={project.id}
           defaultStep={2}
         />

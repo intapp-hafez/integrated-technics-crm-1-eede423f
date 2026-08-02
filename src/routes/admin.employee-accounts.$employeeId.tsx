@@ -22,16 +22,17 @@ function EmployeeAccountsPage() {
 
   // Build the per-account rollup in a single O(leads) pass, then sort.
   const accounts = useMemo(() => {
-    if (!emp) return [] as Array<{
-      key: string;
-      name: string;
-      leads: number;
-      won: number;
-      value: number;
-      email?: string;
-      phone?: string;
-      hasWon: boolean;
-    }>;
+    if (!emp)
+      return [] as Array<{
+        key: string;
+        name: string;
+        leads: number;
+        won: number;
+        value: number;
+        email?: string;
+        phone?: string;
+        hasWon: boolean;
+      }>;
     const ownerLc = emp.name.toLowerCase();
     const map = new Map<
       string,
@@ -76,9 +77,7 @@ function EmployeeAccountsPage() {
   }, [emp, leads]);
 
   const wonAccounts = accounts.filter((a) => a.hasWon).length;
-  const winRate = accounts.length
-    ? Math.round((wonAccounts / accounts.length) * 100)
-    : 0;
+  const winRate = accounts.length ? Math.round((wonAccounts / accounts.length) * 100) : 0;
 
   const user = {
     name: "",

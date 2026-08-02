@@ -29,7 +29,10 @@ function ManagerCatalogPage() {
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
 
   const user = {
-    name: lang === "ar" ? (profile?.full_name_ar ?? profile?.full_name_en ?? "") : (profile?.full_name_en ?? ""),
+    name:
+      lang === "ar"
+        ? (profile?.full_name_ar ?? profile?.full_name_en ?? "")
+        : (profile?.full_name_en ?? ""),
     role: role ? t(role as any) : t("admin"),
     initials: (profile?.full_name_en || "U")[0].toUpperCase(),
     photo: profile?.avatar_url ?? "",
@@ -59,7 +62,14 @@ function ManagerCatalogPage() {
   }, [catalogItems, q, typeFilter, categoryFilter]);
 
   const handleDelete = async (id: string) => {
-    if (await confirm({ title: isAr ? "حذف العنصر؟" : "Delete Item?", message: isAr ? "لا يمكن التراجع عن هذا الإجراء." : "This action cannot be undone.", confirmLabel: isAr ? "حذف" : "Delete", variant: "danger" })) {
+    if (
+      await confirm({
+        title: isAr ? "حذف العنصر؟" : "Delete Item?",
+        message: isAr ? "لا يمكن التراجع عن هذا الإجراء." : "This action cannot be undone.",
+        confirmLabel: isAr ? "حذف" : "Delete",
+        variant: "danger",
+      })
+    ) {
       toast.promise(sbDeleteCatalogItem(id), {
         loading: isAr ? "جاري الحذف..." : "Deleting...",
         success: isAr ? "تم الحذف بنجاح" : "Item deleted successfully",

@@ -25,7 +25,12 @@ import {
 import { employees, fmtMoney } from "@/lib/mock-data";
 import { actions, useStoreState } from "@/lib/store";
 import { TargetCountdown, TargetRefreshIndicator } from "@/components/TargetCountdown";
-import { computeTargetPeriod, fmtCairoDate, sumWonInPeriod, getKpiPeriodDates } from "@/lib/targetPeriod";
+import {
+  computeTargetPeriod,
+  fmtCairoDate,
+  sumWonInPeriod,
+  getKpiPeriodDates,
+} from "@/lib/targetPeriod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -276,13 +281,19 @@ function EmployeeDashboard() {
       addr = gps.addr;
     } else {
       const fresh = await getCurrentPosition();
-      if (fresh) { pos = fresh; addr = await reverseGeocode(fresh.lat, fresh.lng); }
-      else {
+      if (fresh) {
+        pos = fresh;
+        addr = await reverseGeocode(fresh.lat, fresh.lng);
+      } else {
         const ipPos = await getIpPosition();
-        if (ipPos) { pos = ipPos; addr = await reverseGeocode(ipPos.lat, ipPos.lng); }
+        if (ipPos) {
+          pos = ipPos;
+          addr = await reverseGeocode(ipPos.lat, ipPos.lng);
+        }
       }
     }
-    const baseLoc = addr?.label || (pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}` : profile.location);
+    const baseLoc =
+      addr?.label || (pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}` : profile.location);
     const locName = withDevice(baseLoc || "");
 
     actions.addAttendance({
@@ -309,10 +320,15 @@ function EmployeeDashboard() {
 
     let pos: GpsPosition | null = null;
     let addr: GeoAddress | null = null;
-    if (gps.status === "ready") { pos = gps.pos; addr = gps.addr; }
-    else {
+    if (gps.status === "ready") {
+      pos = gps.pos;
+      addr = gps.addr;
+    } else {
       const fresh = await getCurrentPosition();
-      if (fresh) { pos = fresh; addr = await reverseGeocode(fresh.lat, fresh.lng); }
+      if (fresh) {
+        pos = fresh;
+        addr = await reverseGeocode(fresh.lat, fresh.lng);
+      }
     }
 
     if (pos) {
@@ -334,9 +350,24 @@ function EmployeeDashboard() {
   const curYear = nowLocal.getFullYear();
   const curMonth = nowLocal.getMonth();
 
-  const tP = getKpiPeriodDates(profile.kpiTargetPeriod || "monthly", curYear, curMonth, kpiPeriodOffset);
-  const acP = getKpiPeriodDates(profile.kpiActivitiesPeriod || "monthly", curYear, curMonth, kpiPeriodOffset);
-  const atP = getKpiPeriodDates(profile.kpiAttendancePeriod || "monthly", curYear, curMonth, kpiPeriodOffset);
+  const tP = getKpiPeriodDates(
+    profile.kpiTargetPeriod || "monthly",
+    curYear,
+    curMonth,
+    kpiPeriodOffset,
+  );
+  const acP = getKpiPeriodDates(
+    profile.kpiActivitiesPeriod || "monthly",
+    curYear,
+    curMonth,
+    kpiPeriodOffset,
+  );
+  const atP = getKpiPeriodDates(
+    profile.kpiAttendancePeriod || "monthly",
+    curYear,
+    curMonth,
+    kpiPeriodOffset,
+  );
 
   // We use Target Period's label as the primary pagination label
   const kpiPeriodLabel = tP.label;
@@ -346,12 +377,15 @@ function EmployeeDashboard() {
     const d = new Date(r.date);
     return d >= atP.start && d <= atP.end;
   }).length;
-  
+
   // working days in selected period
-  const targetDay = kpiPeriodOffset === 0 && atP.start.getTime() <= nowLocal.getTime() && nowLocal.getTime() <= atP.end.getTime() 
-    ? nowLocal 
-    : atP.end;
-    
+  const targetDay =
+    kpiPeriodOffset === 0 &&
+    atP.start.getTime() <= nowLocal.getTime() &&
+    nowLocal.getTime() <= atP.end.getTime()
+      ? nowLocal
+      : atP.end;
+
   let workingDays = 0;
   for (let d = new Date(atP.start); d <= targetDay; d.setDate(d.getDate() + 1)) {
     const wd = d.getDay(); // 0=Sun..6=Sat
@@ -360,14 +394,19 @@ function EmployeeDashboard() {
   const attendanceRate = workingDays > 0 ? Math.min(100, (presentDays / workingDays) * 100) : 0;
 
   // Activities in selected period
-  const actsInMonth = myActivities.filter(a => {
+  const actsInMonth = myActivities.filter((a) => {
     if (!(a as any).dueDate) return kpiPeriodOffset === 0;
     const d = new Date((a as any).dueDate).getTime();
     return d >= acP.start.getTime() && d <= acP.end.getTime();
   });
   const totalActs = actsInMonth.length;
   const completedActs = actsInMonth.filter((a) => a.status === "done").length;
-  const activityScore = totalActs > 0 ? (completedActs / totalActs) * 100 : (kpiPeriodOffset <= 0 && totalActs === 0 ? 100 : 0);
+  const activityScore =
+    totalActs > 0
+      ? (completedActs / totalActs) * 100
+      : kpiPeriodOffset <= 0 && totalActs === 0
+        ? 100
+        : 0;
 
   // Target for selected period
   const kpiMonthlyTarget = annualTarget / tP.divisor;
@@ -377,7 +416,7 @@ function EmployeeDashboard() {
   });
   const achieveRate = kpiMonthlyTarget > 0 ? (kpiMonthlyAchieved / kpiMonthlyTarget) * 100 : 0;
   const targetScore = Math.min(100, achieveRate);
-  
+
   const periodAchieveRate = annualTarget > 0 ? (achievedTarget / annualTarget) * 100 : 0;
 
   const tW = profile.kpiTargetWeight ?? 33.33;
@@ -385,9 +424,7 @@ function EmployeeDashboard() {
   const atW = profile.kpiAttendanceWeight ?? 33.34;
 
   const overallKpi = Math.round(
-    targetScore * (tW / 100) + 
-    activityScore * (acW / 100) + 
-    attendanceRate * (atW / 100)
+    targetScore * (tW / 100) + activityScore * (acW / 100) + attendanceRate * (atW / 100),
   );
 
   return (
@@ -401,7 +438,8 @@ function EmployeeDashboard() {
           <DialogHeader>
             <DialogTitle>{(t as any)("inactiveLeadsAlert") || "Inactive Leads Alert"}</DialogTitle>
             <DialogDescription>
-              {(t as any)("inactiveLeadsMessage") || `You have ${inactiveLeads.length} lead(s) that have been inactive for 7 or more days. Please review and update them to keep your pipeline healthy.`}
+              {(t as any)("inactiveLeadsMessage") ||
+                `You have ${inactiveLeads.length} lead(s) that have been inactive for 7 or more days. Please review and update them to keep your pipeline healthy.`}
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[300px] overflow-y-auto space-y-2 py-2">
@@ -418,10 +456,15 @@ function EmployeeDashboard() {
                 }
               }
               return (
-                <div key={l.id} className="flex flex-col gap-1 rounded-md bg-secondary/30 p-3 text-sm border border-border/50">
+                <div
+                  key={l.id}
+                  className="flex flex-col gap-1 rounded-md bg-secondary/30 p-3 text-sm border border-border/50"
+                >
                   <div className="font-semibold text-foreground flex justify-between">
                     <span>{l.company || "Unknown Company"}</span>
-                    <span className="text-xs font-normal text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded-full">{diffDays} days ago</span>
+                    <span className="text-xs font-normal text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded-full">
+                      {diffDays} days ago
+                    </span>
                   </div>
                   <div className="text-muted-foreground flex justify-between text-xs">
                     <span>{l.contact || "Unknown Contact"}</span>
@@ -516,19 +559,29 @@ function EmployeeDashboard() {
           <div className="relative z-10 flex flex-col gap-2 md:items-end">
             <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur md:self-end">
               {todayRec?.lat != null ? (
-                <><Check className="h-3 w-3 text-emerald-600" /> GPS Verified</>
+                <>
+                  <Check className="h-3 w-3 text-emerald-600" /> GPS Verified
+                </>
               ) : gps.status === "locating" ? (
-                <><Loader2 className="h-3 w-3 animate-spin text-primary" /> Locating…</>
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin text-primary" /> Locating…
+                </>
               ) : gps.status === "ready" ? (
-                <><Navigation className="h-3 w-3 text-emerald-600" /> GPS Ready</>
+                <>
+                  <Navigation className="h-3 w-3 text-emerald-600" /> GPS Ready
+                </>
               ) : gps.status === "ip-fallback" ? (
-                <><Wifi className="h-3 w-3 text-amber-500" /> Approx. Location</>
+                <>
+                  <Wifi className="h-3 w-3 text-amber-500" /> Approx. Location
+                </>
               ) : gps.status === "denied" ? (
                 <button onClick={fetchGps} className="flex items-center gap-1 text-rose-600">
                   <AlertTriangle className="h-3 w-3" /> Retry GPS
                 </button>
               ) : (
-                <><MapPin className="h-3 w-3" /> GPS Pending</>
+                <>
+                  <MapPin className="h-3 w-3" /> GPS Pending
+                </>
               )}
             </div>
             {!todayRec ? (
@@ -805,13 +858,14 @@ function EmployeeDashboard() {
 
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-muted-foreground">
-                      Attendance Rate (Weight: {atW}%)
-                    </span>
+                    <span className="text-muted-foreground">Attendance Rate (Weight: {atW}%)</span>
                     <span className="text-foreground">{attendanceRate.toFixed(0)}%</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-secondary">
-                    <div className="h-full bg-emerald-500" style={{ width: `${attendanceRate}%` }} />
+                    <div
+                      className="h-full bg-emerald-500"
+                      style={{ width: `${attendanceRate}%` }}
+                    />
                   </div>
                 </div>
               </div>
@@ -836,71 +890,74 @@ function EmployeeDashboard() {
             const paginated = myLeads.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
             return (
               <>
-          <div className="mt-4 divide-y divide-border">
-                {paginated.map((l) => (
-                  <div key={l.id} className="flex items-center gap-3 py-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
-                      {l.company
-                        .split(" ")
-                        .slice(0, 2)
-                        .map((w: string) => w[0])
-                        .join("")}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold text-foreground">{l.company}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {l.contact} · {l.updatedAt}
+                <div className="mt-4 divide-y divide-border">
+                  {paginated.map((l) => (
+                    <div key={l.id} className="flex items-center gap-3 py-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                        {l.company
+                          .split(" ")
+                          .slice(0, 2)
+                          .map((w: string) => w[0])
+                          .join("")}
                       </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold text-foreground">
+                          {l.company}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {l.contact} · {l.updatedAt}
+                        </div>
+                      </div>
+                      <span className="hidden font-mono text-sm font-bold text-foreground sm:inline">
+                        {fmtMoney(l.value)}
+                      </span>
+                      <StatusBadge status={l.status} label={t(l.status as any)} />
                     </div>
-                    <span className="hidden font-mono text-sm font-bold text-foreground sm:inline">
-                      {fmtMoney(l.value)}
+                  ))}
+                  {myLeads.length === 0 && (
+                    <div className="py-8 text-center text-sm text-muted-foreground">
+                      No leads yet
+                    </div>
+                  )}
+                </div>
+                {totalPages > 1 && (
+                  <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+                    <span className="text-[11px] text-muted-foreground">
+                      {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, myLeads.length)} of{" "}
+                      {myLeads.length}
                     </span>
-                    <StatusBadge status={l.status} label={t(l.status as any)} />
-                  </div>
-                ))}
-                {myLeads.length === 0 && (
-                  <div className="py-8 text-center text-sm text-muted-foreground">
-                    No leads yet
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setLeadsPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card text-xs hover:bg-accent disabled:opacity-40"
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                      </button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => setLeadsPage(n)}
+                          className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-xs font-semibold transition ${
+                            n === page
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "border border-border bg-card hover:bg-accent"
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => setLeadsPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card text-xs hover:bg-accent disabled:opacity-40"
+                      >
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 )}
-              </div>
-              {totalPages > 1 && (
-                <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-                  <span className="text-[11px] text-muted-foreground">
-                    {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, myLeads.length)} of {myLeads.length}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setLeadsPage((p) => Math.max(1, p - 1))}
-                      disabled={page === 1}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card text-xs hover:bg-accent disabled:opacity-40"
-                    >
-                      <ChevronLeft className="h-3.5 w-3.5" />
-                    </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => setLeadsPage(n)}
-                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-xs font-semibold transition ${
-                          n === page
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "border border-border bg-card hover:bg-accent"
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setLeadsPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={page === totalPages}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card text-xs hover:bg-accent disabled:opacity-40"
-                    >
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </>
+              </>
             );
           })()}
         </div>

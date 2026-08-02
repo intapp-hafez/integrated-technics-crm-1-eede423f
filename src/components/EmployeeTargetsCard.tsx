@@ -239,7 +239,7 @@ export function EmployeeTargetsCard({
   const employeeName = useMemo(() => {
     if (!userId && !profileId) return undefined;
     const match = employees?.find(
-      (e: any) => e.id === userId || e.profileId === profileId || e.userId === userId
+      (e: any) => e.id === userId || e.profileId === profileId || e.userId === userId,
     );
     return match?.name;
   }, [userId, profileId, employees]);
@@ -419,9 +419,7 @@ export function EmployeeTargetsCard({
               }}
               className="group cursor-pointer rounded-2xl border-2 border-secondary/60 bg-card p-5 flex flex-col justify-between shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
               title={
-                isAr
-                  ? "عرض اجتماعات الأسبوع في الأنشطة"
-                  : "View Meetings this week in Activities"
+                isAr ? "عرض اجتماعات الأسبوع في الأنشطة" : "View Meetings this week in Activities"
               }
             >
               <div className="flex justify-between items-start gap-3">

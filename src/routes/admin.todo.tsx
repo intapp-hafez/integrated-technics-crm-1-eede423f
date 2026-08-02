@@ -37,10 +37,10 @@ export const Route = createFileRoute("/admin/todo")({
 const STATUSES: AdminTaskStatus[] = ["new", "in progress", "done", "delayed"];
 
 const STATUS_COLORS: Record<AdminTaskStatus, string> = {
-  "new": "bg-sky-100 text-sky-700 border-sky-200",
+  new: "bg-sky-100 text-sky-700 border-sky-200",
   "in progress": "bg-amber-100 text-amber-700 border-amber-200",
-  "done": "bg-emerald-100 text-emerald-700 border-emerald-200",
-  "delayed": "bg-rose-100 text-rose-700 border-rose-200",
+  done: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  delayed: "bg-rose-100 text-rose-700 border-rose-200",
 };
 
 function AdminTodoPage() {
@@ -51,7 +51,7 @@ function AdminTodoPage() {
 
   const filteredTasks = useMemo(
     () => adminTasks.filter((t) => inRange(t.date, dateFilter)),
-    [adminTasks, dateFilter]
+    [adminTasks, dateFilter],
   );
 
   // Group tasks by status
@@ -60,7 +60,7 @@ function AdminTodoPage() {
       acc[status] = filteredTasks.filter((t) => t.status === status);
       return acc;
     },
-    {} as Record<AdminTaskStatus, AdminTask[]>
+    {} as Record<AdminTaskStatus, AdminTask[]>,
   );
 
   return (
@@ -68,7 +68,9 @@ function AdminTodoPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="font-display text-2xl font-bold text-foreground">Admin Tasks</h2>
-          <p className="text-sm text-muted-foreground">Manage your high-level tasks and activities.</p>
+          <p className="text-sm text-muted-foreground">
+            Manage your high-level tasks and activities.
+          </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -107,7 +109,9 @@ function AdminTodoPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         {STATUSES.map((status) => (
           <div key={status} className="flex flex-col gap-3">
-            <div className={`flex items-center justify-between rounded-lg border px-3 py-2 ${STATUS_COLORS[status]}`}>
+            <div
+              className={`flex items-center justify-between rounded-lg border px-3 py-2 ${STATUS_COLORS[status]}`}
+            >
               <h3 className="font-semibold capitalize tracking-wide">{status}</h3>
               <span className="rounded-full bg-white/50 px-2 py-0.5 text-xs font-bold shadow-sm">
                 {groupedTasks[status].length}
@@ -131,7 +135,9 @@ function AdminTodoPage() {
                       <Clock4 className="h-3 w-3" />
                       {formatDate(task.date)}
                     </span>
-                    <span className="font-mono text-[10px] text-muted-foreground/60">{shortId(task.id)}</span>
+                    <span className="font-mono text-[10px] text-muted-foreground/60">
+                      {shortId(task.id)}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -169,7 +175,10 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
@@ -179,7 +188,10 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
             <ListTodo className="h-5 w-5 text-primary" />
             <h2 className="font-display text-lg font-bold text-foreground">Create New Task</h2>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent">
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -262,10 +274,13 @@ function TaskDetailsModal({ task, onClose }: { task: AdminTask; onClose: () => v
   };
 
   // Derive latest task state from store to prevent stale data
-  const latestTask = useStoreState().adminTasks.find(t => t.id === task.id) || task;
+  const latestTask = useStoreState().adminTasks.find((t) => t.id === task.id) || task;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+      onClick={onClose}
+    >
       <div
         className="flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
         style={{ maxHeight: "85vh" }}
@@ -282,7 +297,10 @@ function TaskDetailsModal({ task, onClose }: { task: AdminTask; onClose: () => v
               <span className="font-mono text-[10px] uppercase">{shortId(latestTask.id)}</span>
             </div>
           </div>
-          <button onClick={onClose} className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground">
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -336,7 +354,7 @@ function TaskDetailsModal({ task, onClose }: { task: AdminTask; onClose: () => v
                 Activities & Logs
               </h3>
             </div>
-            
+
             <div className="mb-6 space-y-3">
               {relatedActivities.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
@@ -344,7 +362,10 @@ function TaskDetailsModal({ task, onClose }: { task: AdminTask; onClose: () => v
                 </p>
               ) : (
                 relatedActivities.map((act) => (
-                  <div key={act.id} className="rounded-lg border border-border bg-background p-3 shadow-sm">
+                  <div
+                    key={act.id}
+                    className="rounded-lg border border-border bg-background p-3 shadow-sm"
+                  >
                     <div className="mb-1 flex items-center justify-between text-xs">
                       <span className="font-bold text-foreground">{act.actor}</span>
                       <span className="font-mono text-[10px] text-muted-foreground">

@@ -60,9 +60,11 @@ function ManagerEmployeeDetailsPage() {
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
+  const [activitiesDateFilter, setActivitiesDateFilter] = useState<string>("");
 
   const empLeads = emp ? leads.filter((l: any) => l.owner === emp.name) : [];
-  const empActivities = emp ? activities.filter((a) => a.owner === emp.name) : [];
+  const empActivitiesRaw = emp ? activities.filter((a) => a.owner === emp.name) : [];
+  const empActivities = empActivitiesRaw.filter((a) => !activitiesDateFilter || a.dueDate === activitiesDateFilter);
   const won = empLeads.filter((l: any) => l.status === "won").length;
 
   const sources = Array.from(
@@ -495,11 +497,21 @@ function ManagerEmployeeDetailsPage() {
 
       {/* Related Activities */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-        <div className="mb-4 flex items-center gap-2">
-          <ActivityIcon className="h-4 w-4 text-primary" />
-          <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-            {t("assignedActivities")} ({empActivities.length})
-          </h3>
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ActivityIcon className="h-4 w-4 text-primary" />
+            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+              {t("assignedActivities")} ({empActivities.length})
+            </h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={activitiesDateFilter}
+              onChange={(e) => setActivitiesDateFilter(e.target.value)}
+              className="h-8 rounded-lg border border-border bg-background px-2 text-xs"
+            />
+          </div>
         </div>
         {empActivities.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("noActivitiesOwned")}</p>

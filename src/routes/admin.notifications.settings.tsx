@@ -10,9 +10,6 @@ export const Route = createFileRoute("/admin/notifications/settings")({
 function Page() {
   const { t } = useI18n();
   return (
-    <NotificationSettingsPage
-      panel="admin"
-      user={{ name: "", role: t("admin"), initials: "HR" }}
-    />
+    <NotificationSettingsPage panel="admin" user={{ name: "", role: t("admin"), initials: "HR" }} />
   );
 }

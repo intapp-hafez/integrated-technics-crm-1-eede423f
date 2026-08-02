@@ -137,7 +137,11 @@ function PipelinePage() {
               className={`min-w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
               style={{
                 borderTopColor: stage.color,
-                backgroundColor: isOver ? `${stage.color}20` : isActive ? `${stage.color}15` : `${stage.color}05`
+                backgroundColor: isOver
+                  ? `${stage.color}20`
+                  : isActive
+                    ? `${stage.color}15`
+                    : `${stage.color}05`,
               }}
             >
               <button
@@ -180,14 +184,17 @@ function PipelinePage() {
                     onClick={() => {
                       navigate({ to: "/manager/leads/$leadId", params: { leadId: l.id } });
                     }}
-                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${dragId === l.id
+                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${
+                      dragId === l.id
                         ? "opacity-50 border-primary"
                         : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
-                      }`}
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="line-clamp-3 font-semibold text-foreground leading-snug">{l.code || l.company}</div>
+                        <div className="line-clamp-3 font-semibold text-foreground leading-snug">
+                          {l.code || l.company}
+                        </div>
                         <div className="truncate text-xs text-muted-foreground">{l.contact}</div>
                       </div>
                       <Link
@@ -204,7 +211,10 @@ function PipelinePage() {
                       <span className="font-mono text-xs font-bold text-primary">
                         {fmtMoney(l.value)}
                       </span>
-                      <div className="text-[10px] font-medium text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full truncate max-w-[120px]" title={l.owner}>
+                      <div
+                        className="text-[10px] font-medium text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full truncate max-w-[120px]"
+                        title={l.owner}
+                      >
                         {l.owner}
                       </div>
                     </div>
