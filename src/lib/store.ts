@@ -195,6 +195,15 @@ export interface AdminTask {
   date: string;
   status: AdminTaskStatus;
 }
+
+export interface RegisteredAccount {
+  id: string;
+  name: string;
+  type: string;
+  owner: string | null;
+  createdAt: string;
+}
+
 export interface AppUser {
   id: string; // auth user_id
   profileId?: string;
@@ -337,9 +346,11 @@ interface State {
   notifications: AppNotification[];
   projectRequests?: ProjectRequest[];
   onlineUserIds: string[];
-  celebrationLead?: Lead | null;
+  celebrationLead: Lead | null;
   adminTasks: AdminTask[];
   adminTaskActivities: AdminTaskActivity[];
+  registeredAccounts: RegisteredAccount[];
+  registeredAccountsPublic: boolean;
   catalogItems: CatalogItem[];
   catalogCategories: CatalogCategory[];
   leadCatalogItems: LeadCatalogItem[];
@@ -788,6 +799,8 @@ const initialState: State = {
   celebrationLead: null,
   adminTasks: [],
   adminTaskActivities: [],
+  registeredAccounts: [],
+  registeredAccountsPublic: false,
   catalogItems: [],
   catalogCategories: [],
   leadCatalogItems: [],
@@ -2190,6 +2203,25 @@ export const actions = {
     set((s) => ({ ...s, onlineUserIds: userIds }));
   },
   // ---- Admin Tasks ----
+  addRegisteredAccount(account: RegisteredAccount) {
+    set((s) => ({ ...s, registeredAccounts: [account, ...s.registeredAccounts] }));
+  },
+  updateRegisteredAccount(id: string, updates: Partial<RegisteredAccount>) {
+    set((s) => ({
+      ...s,
+      registeredAccounts: s.registeredAccounts.map((a) => (a.id === id ? { ...a, ...updates } : a)),
+    }));
+  },
+  deleteRegisteredAccount(id: string) {
+    set((s) => ({
+      ...s,
+      registeredAccounts: s.registeredAccounts.filter((a) => a.id !== id),
+    }));
+  },
+  setRegisteredAccountsPublic(isPublic: boolean) {
+    set((s) => ({ ...s, registeredAccountsPublic: isPublic }));
+    void sb.sbSetRegisteredAccountsPublic(isPublic);
+  },
   addAdminTask(task: Omit<AdminTask, "id" | "status">) {
     const newTask: AdminTask = { ...task, id: id("T"), status: "new" };
     set((s) => ({ ...s, adminTasks: [newTask, ...s.adminTasks] }));

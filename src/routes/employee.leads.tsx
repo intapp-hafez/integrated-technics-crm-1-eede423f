@@ -244,9 +244,9 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
             <span>Call</span>
           </a>
           <button
-            onClick={l.status === "won" ? undefined : onEdit}
-            disabled={l.status === "won"}
-            className={`flex items-center justify-center gap-1.5 rounded-lg bg-secondary/60 px-2 py-2 text-[11px] font-semibold transition ${l.status === "won" ? "cursor-not-allowed opacity-50 text-muted-foreground" : "text-foreground active:scale-[0.97] hover:bg-secondary"}`}
+            onClick={(l.status === "won" || l.status === "lost") ? undefined : onEdit}
+            disabled={(l.status === "won" || l.status === "lost")}
+            className={`flex items-center justify-center gap-1.5 rounded-lg bg-secondary/60 px-2 py-2 text-[11px] font-semibold transition ${(l.status === "won" || l.status === "lost") ? "cursor-not-allowed opacity-50 text-muted-foreground" : "text-foreground active:scale-[0.97] hover:bg-secondary"}`}
           >
             <Pencil className="h-3.5 w-3.5" />
             <span>{t("edit")}</span>
@@ -296,7 +296,7 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
         </Link>
 
         {(() => {
-          const isWon = l.status === "won";
+          const isWon = (l.status === "won" || l.status === "lost");
           const isLost = l.status === "lost";
           const pct = getProbabilityForStatus(l.status) ?? 0;
           const barColor = isWon

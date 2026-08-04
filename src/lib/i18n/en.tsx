@@ -19,6 +19,7 @@ export const en = {
   projects: "Accounts",
   servicesItems: "Systems",
   employees: "Employees",
+  registeredAccounts: "Registered Accounts",
   managers: "Managers",
   backToManagers: "Back to managers",
   attendance: "Attendance",

@@ -35,6 +35,7 @@ import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { RealtimeStatus } from "@/components/RealtimeStatus";
 import { GlobalSearch } from "@/components/shared/GlobalSearch";
 import { LeadWonCelebration } from "@/components/pipeline/LeadWonCelebration";
+import { useStoreState } from "@/lib/store";
 
 type NavItem = { to: string; icon: typeof Users; key: any; search?: Record<string, string> };
 
@@ -114,6 +115,8 @@ interface Props {
 export function AppShell({ panel, user, children, pageTitle }: Props) {
   const { t, dir, lang } = useI18n();
   const { signOut, role: authRole, profile } = useAuth();
+  const { registeredAccountsPublic } = useStoreState();
+  
   useSupabaseSync();
   useChatNotifications();
   // Override caller-provided user with the logged-in profile, so every page
@@ -137,7 +140,7 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
       photo: profile.avatar_url ?? undefined,
     };
   }
-  const nav =
+  let nav =
     panel === "admin"
       ? adminNav
       : panel === "manager"
@@ -145,6 +148,11 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
         : panel === "finance"
           ? financeNav
           : employeeNav;
+
+  if (registeredAccountsPublic && (panel === "employee" || panel === "manager")) {
+    nav = [...nav, { to: `/${panel}/registered-accounts`, icon: Building2, key: "registeredAccounts" as any }];
+  }
+
   const router = useRouterState();
   const pathname = router.location.pathname;
   const currentSearch = router.location.search as Record<string, any>;

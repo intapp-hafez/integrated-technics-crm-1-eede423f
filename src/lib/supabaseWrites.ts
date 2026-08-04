@@ -530,11 +530,11 @@ export function newUuid() {
 }
 
 // ---------------- Profiles / Users ----------------
-import type { AppUser, CatalogCategory, LeadCatalogItem, UserRoleKey } from "./store";
+import type { AppUser, CatalogCategory, LeadCatalogItem, UserRoleKey, RegisteredAccount } from "./store";
 
 export async function sbAddLeadCatalogItem(payload: Partial<LeadCatalogItem>) {
   const { error } = await supabase.from("lead_catalog_items" as any).insert({
-    id: payload.id || newUuid(),
+    id: payload.id || crypto.randomUUID(),
     lead_id: payload.leadId,
     catalog_item_id: payload.catalogItemId,
     quantity: payload.quantity || 1,
@@ -794,6 +794,45 @@ export async function sbPushNotification(input: {
     created_by: currentUserId,
   } as any);
   if (error) warn("Push notification", error);
+}
+
+export async function sbAddRegisteredAccount(acc: Omit<RegisteredAccount, "createdAt">) {
+  if (!currentUserId) return;
+  const { error } = await supabase.from("registered_accounts" as any).insert({
+    id: acc.id,
+    name: acc.name,
+    type: acc.type,
+    owner: acc.owner,
+  });
+  if (error) warn("add registered account", error);
+}
+
+export async function sbUpdateRegisteredAccount(id: string, updates: Partial<RegisteredAccount>) {
+  if (!currentUserId) return;
+  const payload: any = {};
+  if (updates.name !== undefined) payload.name = updates.name;
+  if (updates.type !== undefined) payload.type = updates.type;
+  if (updates.owner !== undefined) payload.owner = updates.owner;
+  
+  if (Object.keys(payload).length > 0) {
+    const { error } = await supabase.from("registered_accounts").update(payload).eq("id", id);
+    if (error) warn("update registered account", error);
+  }
+}
+
+export async function sbDeleteRegisteredAccount(id: string) {
+  if (!currentUserId) return;
+  const { error } = await supabase.from("registered_accounts" as any).delete().eq("id", id);
+  if (error) warn("delete registered account", error);
+}
+
+export async function sbSetRegisteredAccountsPublic(isPublic: boolean) {
+  if (!currentUserId) return;
+  const { error } = await supabase.from("system_settings" as any).upsert({
+    key: "registered_accounts_public",
+    value: isPublic,
+  });
+  if (error) warn("set registered accounts public", error);
 }
 
 // ---------------- Admin Tasks ----------------

@@ -21,6 +21,7 @@ export const ar: Dict = {
   projects: "الحسابات",
   servicesItems: "الأنظمة",
   employees: "الموظفون",
+  registeredAccounts: "الحسابات المسجلة",
   managers: "المديرون",
   backToManagers: "العودة إلى المديرين",
   attendance: "الحضور والانصراف",

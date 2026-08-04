@@ -37,10 +37,11 @@ import { PhoneInput } from "@/components/shared/PhoneInput";
 import { supabase } from "@/integrations/supabase/client";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
 import { useConfirm } from "@/components/shared/ConfirmDialog";
+import { isProjectMemberOf, getProjectOwner } from "@/lib/employeeProjects";
 
 export const Route = createFileRoute("/admin/projects")({
   component: ProjectsPage,
-  head: () => ({ meta: [{ title: "Projects · INT-CRM" }] }),
+  head: () => ({ meta: [{ title: "Accounts · INT-CRM" }] }),
 });
 
 const STATUSES = ["On Track", "At Risk", "Delayed", "Completed"];
@@ -50,31 +51,7 @@ function ProjectsPage() {
   const isAr = lang === "ar";
   const { projects, employees, leads, activities, users } = useStoreState();
 
-  const getOwner = (p: Project) => {
-    if (p.createdByName && !p.createdByName.includes("-")) {
-      return p.createdByName;
-    }
-    if (p.createdBy) {
-      const u = users?.find((usr: any) => usr.id === p.createdBy || usr.profileId === p.createdBy);
-      if (u?.name && !u.name.includes("-")) return u.name;
-      const e = employees?.find(
-        (emp: any) => emp.id === p.createdBy || emp.profileId === p.createdBy,
-      );
-      if (e?.name && !e.name.includes("-")) return e.name;
-    }
-    if (p.createdByName) return p.createdByName;
-    if (p.teamMembers && p.teamMembers.length > 0) {
-      const tm = p.teamMembers[0];
-      const e = employees?.find(
-        (emp: any) => emp.id === tm || emp.profileId === tm || emp.name === tm,
-      );
-      if (e?.name && !e.name.includes("-")) return e.name;
-      const u = users?.find((usr: any) => usr.id === tm || usr.profileId === tm || usr.name === tm);
-      if (u?.name && !u.name.includes("-")) return u.name;
-      if (!tm.includes("-")) return tm;
-    }
-    return employees.slice(0, p.team || 1)[0]?.name || "—";
-  };
+  const getOwner = (p: Project) => getProjectOwner(p, users, employees);
 
   const getOwnerPhoto = (name?: string) => {
     if (!name || name === "—") return undefined;

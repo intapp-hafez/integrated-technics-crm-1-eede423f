@@ -3,7 +3,8 @@ import { shortId, formatDate } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
-import { computeEmployeeKpis } from "@/lib/employeeTargets";
+import { computeEmployeeKpis, isLeadRelatedToEmployee } from "@/lib/employeeTargets";
+import { isAssignedToEmployee } from "@/lib/activityFilters";
 import { filterMyProjects } from "@/lib/employeeProjects";
 import {
   Clock4,
@@ -121,38 +122,28 @@ function EmployeesPage() {
   // Precompute per-owner stats using the same logic as the employee details page.
   // Accounts are counted via filterMyProjects (memberProfileIds / memberUserIds / teamMembers),
   // not by counting unique company names from leads.
-  const leadStatsByOwner = useMemo(() => {
-    const map = new Map<string, { leads: number; won: number; wonAccounts: Set<string> }>();
-    for (const l of leads) {
-      const owner = (l.owner || "").toLowerCase();
-      if (!owner) continue;
-      let s = map.get(owner);
-      if (!s) {
-        s = { leads: 0, won: 0, wonAccounts: new Set() };
-        map.set(owner, s);
-      }
-      s.leads += 1;
-      const acct = (l.company || "").trim().toLowerCase();
-      if (l.status === "won" && acct) {
-        s.won += 1;
-        s.wonAccounts.add(acct);
-      }
-    }
-    return map;
-  }, [leads]);
-
   const getStats = (e: (typeof employees)[number]) => {
     // Mirror the detail page: use filterMyProjects for account count
     const empIdentity = { profileId: e.id, userId: (e as any).userId, name: e.name };
     const accounts = filterMyProjects(projects as any, empIdentity as any).length;
-    const s = leadStatsByOwner.get((e.name || "").toLowerCase());
-    const wonAccounts = s?.wonAccounts.size ?? 0;
+    
+    const empLeads = leads.filter((l) => isLeadRelatedToEmployee(l, empIdentity));
+    let won = 0;
+    const wonAccounts = new Set<string>();
+    for (const l of empLeads) {
+      if (l.status === "won") {
+        won++;
+        const acct = (l.company || "").trim().toLowerCase();
+        if (acct) wonAccounts.add(acct);
+      }
+    }
+    
     return {
-      leads: s?.leads ?? 0,
-      won: s?.won ?? 0,
+      leads: empLeads.length,
+      won: won,
       accounts,
-      wonAccounts,
-      accountWinRate: accounts ? Math.round((wonAccounts / accounts) * 100) : 0,
+      wonAccounts: wonAccounts.size,
+      accountWinRate: accounts ? Math.round((wonAccounts.size / accounts) * 100) : 0,
     };
   };
 
@@ -265,7 +256,8 @@ function EmployeesPage() {
       return;
     }
     const rows = filtered.map((e) => {
-      const myLeads = leads.filter((l) => l.owner === e.name);
+      const empIdentity = { name: e.name, profileId: e.id, userId: (e as any).userId };
+      const myLeads = leads.filter((l) => isLeadRelatedToEmployee(l, empIdentity));
       const won = myLeads.filter((l) => l.status === "won").length;
       return {
         ID: shortId(e.id),
@@ -473,11 +465,10 @@ function EmployeesPage() {
       {view === "card" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((e) => {
+            const empIdentity = { name: e.name, profileId: e.id, userId: (e as any).userId };
             const stats = getStats(e);
-            const empActivities = activities.filter((a) => a.owner === e.name);
-            const empLeads = leads.filter(
-              (l) => l.owner === e.name || (e.id && l.owner === e.id),
-            );
+            const empActivities = activities.filter((a) => isAssignedToEmployee(a as any, empIdentity));
+            const empLeads = leads.filter((l) => isLeadRelatedToEmployee(l, empIdentity));
             const kpi = computeEmployeeKpis(e, empActivities, empLeads, attendance);
             const goToAccounts = (ev: React.MouseEvent) => {
               ev.preventDefault();
@@ -666,12 +657,11 @@ function EmployeesPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {sorted.slice((page - 1) * pageSize, page * pageSize).map((e) => {
-                  const empActivities = activities.filter((a) => a.owner === e.name);
-                  const empLeads = leads.filter(
-                    (l) => l.owner === e.name || (e.id && l.owner === e.id),
-                  );
+                  const empIdentity = { name: e.name, profileId: e.id, userId: (e as any).userId };
+                  const empActivities = activities.filter((a) => isAssignedToEmployee(a as any, empIdentity));
+                  const empLeads = leads.filter((l) => isLeadRelatedToEmployee(l, empIdentity));
                   const kpi = computeEmployeeKpis(e, empActivities, empLeads, attendance);
-                  const myLeads = leads.filter((l) => l.owner === e.name);
+                  const myLeads = empLeads;
                   const won = myLeads.filter((l) => l.status === "won").length;
                   return (
                     <tr key={e.id} className="transition hover:bg-primary/5">

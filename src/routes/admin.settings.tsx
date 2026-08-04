@@ -65,7 +65,8 @@ import {
 } from "@/components/admin/settings/PipelineTabs";
 import { DepartmentsTab, PositionsTab } from "@/components/admin/settings/OrgTabs";
 import { ActivitiesMonitoringTab } from "@/components/admin/settings/ActivitiesMonitoringTab";
-import { Activity } from "lucide-react";
+import { BackupRestoreTab } from "@/components/admin/settings/BackupRestoreTab";
+import { Activity, Database } from "lucide-react";
 
 export const Route = createFileRoute("/admin/settings")({
   component: SettingsPage,
@@ -87,6 +88,7 @@ const TABS = [
   { key: "templates", label: "Notification Templates", icon: MessageSquare },
   { key: "send", label: "Send Email", icon: Mail },
   { key: "smtp", label: "SMTP / Email", icon: Mail },
+  { key: "backup", label: "Backup & Restore", icon: Database },
 ] as const;
 
 function SettingsPage() {
@@ -209,6 +211,7 @@ function SettingsPage() {
           {tab === "templates" && <TemplatesEditor />}
           {tab === "send" && <SendEmailEditor />}
           {tab === "smtp" && <SmtpEditor />}
+          {tab === "backup" && <BackupRestoreTab />}
         </div>
       </div>
     </AppShell>

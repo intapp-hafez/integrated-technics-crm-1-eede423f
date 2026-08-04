@@ -21,6 +21,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ManagerServicesItemsRouteImport } from './routes/manager.services-items'
 import { Route as ManagerSendEmailRouteImport } from './routes/manager.send-email'
 import { Route as ManagerReportsRouteImport } from './routes/manager.reports'
+import { Route as ManagerRegisteredAccountsRouteImport } from './routes/manager.registered-accounts'
 import { Route as ManagerProjectsRouteImport } from './routes/manager.projects'
 import { Route as ManagerPipelineRouteImport } from './routes/manager.pipeline'
 import { Route as ManagerOffersRouteImport } from './routes/manager.offers'
@@ -35,6 +36,7 @@ import { Route as FinanceSendEmailRouteImport } from './routes/finance.send-emai
 import { Route as FinanceNotificationsRouteImport } from './routes/finance.notifications'
 import { Route as FinanceEmailInboxRouteImport } from './routes/finance.email-inbox'
 import { Route as EmployeeSendEmailRouteImport } from './routes/employee.send-email'
+import { Route as EmployeeRegisteredAccountsRouteImport } from './routes/employee.registered-accounts'
 import { Route as EmployeeProjectsRouteImport } from './routes/employee.projects'
 import { Route as EmployeeProfileRouteImport } from './routes/employee.profile'
 import { Route as EmployeePipelineRouteImport } from './routes/employee.pipeline'
@@ -152,6 +154,12 @@ const ManagerReportsRoute = ManagerReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => ManagerRoute,
 } as any)
+const ManagerRegisteredAccountsRoute =
+  ManagerRegisteredAccountsRouteImport.update({
+    id: '/registered-accounts',
+    path: '/registered-accounts',
+    getParentRoute: () => ManagerRoute,
+  } as any)
 const ManagerProjectsRoute = ManagerProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
@@ -222,6 +230,12 @@ const EmployeeSendEmailRoute = EmployeeSendEmailRouteImport.update({
   path: '/send-email',
   getParentRoute: () => EmployeeRoute,
 } as any)
+const EmployeeRegisteredAccountsRoute =
+  EmployeeRegisteredAccountsRouteImport.update({
+    id: '/registered-accounts',
+    path: '/registered-accounts',
+    getParentRoute: () => EmployeeRoute,
+  } as any)
 const EmployeeProjectsRoute = EmployeeProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
@@ -556,6 +570,7 @@ export interface FileRoutesByFullPath {
   '/employee/pipeline': typeof EmployeePipelineRoute
   '/employee/profile': typeof EmployeeProfileRoute
   '/employee/projects': typeof EmployeeProjectsRouteWithChildren
+  '/employee/registered-accounts': typeof EmployeeRegisteredAccountsRoute
   '/employee/send-email': typeof EmployeeSendEmailRoute
   '/finance/email-inbox': typeof FinanceEmailInboxRoute
   '/finance/notifications': typeof FinanceNotificationsRouteWithChildren
@@ -570,6 +585,7 @@ export interface FileRoutesByFullPath {
   '/manager/offers': typeof ManagerOffersRouteWithChildren
   '/manager/pipeline': typeof ManagerPipelineRoute
   '/manager/projects': typeof ManagerProjectsRouteWithChildren
+  '/manager/registered-accounts': typeof ManagerRegisteredAccountsRoute
   '/manager/reports': typeof ManagerReportsRouteWithChildren
   '/manager/send-email': typeof ManagerSendEmailRoute
   '/manager/services-items': typeof ManagerServicesItemsRoute
@@ -635,6 +651,7 @@ export interface FileRoutesByTo {
   '/employee/pipeline': typeof EmployeePipelineRoute
   '/employee/profile': typeof EmployeeProfileRoute
   '/employee/projects': typeof EmployeeProjectsRouteWithChildren
+  '/employee/registered-accounts': typeof EmployeeRegisteredAccountsRoute
   '/employee/send-email': typeof EmployeeSendEmailRoute
   '/finance/email-inbox': typeof FinanceEmailInboxRoute
   '/finance/notifications': typeof FinanceNotificationsRouteWithChildren
@@ -649,6 +666,7 @@ export interface FileRoutesByTo {
   '/manager/offers': typeof ManagerOffersRouteWithChildren
   '/manager/pipeline': typeof ManagerPipelineRoute
   '/manager/projects': typeof ManagerProjectsRouteWithChildren
+  '/manager/registered-accounts': typeof ManagerRegisteredAccountsRoute
   '/manager/reports': typeof ManagerReportsRouteWithChildren
   '/manager/send-email': typeof ManagerSendEmailRoute
   '/manager/services-items': typeof ManagerServicesItemsRoute
@@ -720,6 +738,7 @@ export interface FileRoutesById {
   '/employee/pipeline': typeof EmployeePipelineRoute
   '/employee/profile': typeof EmployeeProfileRoute
   '/employee/projects': typeof EmployeeProjectsRouteWithChildren
+  '/employee/registered-accounts': typeof EmployeeRegisteredAccountsRoute
   '/employee/send-email': typeof EmployeeSendEmailRoute
   '/finance/email-inbox': typeof FinanceEmailInboxRoute
   '/finance/notifications': typeof FinanceNotificationsRouteWithChildren
@@ -734,6 +753,7 @@ export interface FileRoutesById {
   '/manager/offers': typeof ManagerOffersRouteWithChildren
   '/manager/pipeline': typeof ManagerPipelineRoute
   '/manager/projects': typeof ManagerProjectsRouteWithChildren
+  '/manager/registered-accounts': typeof ManagerRegisteredAccountsRoute
   '/manager/reports': typeof ManagerReportsRouteWithChildren
   '/manager/send-email': typeof ManagerSendEmailRoute
   '/manager/services-items': typeof ManagerServicesItemsRoute
@@ -806,6 +826,7 @@ export interface FileRouteTypes {
     | '/employee/pipeline'
     | '/employee/profile'
     | '/employee/projects'
+    | '/employee/registered-accounts'
     | '/employee/send-email'
     | '/finance/email-inbox'
     | '/finance/notifications'
@@ -820,6 +841,7 @@ export interface FileRouteTypes {
     | '/manager/offers'
     | '/manager/pipeline'
     | '/manager/projects'
+    | '/manager/registered-accounts'
     | '/manager/reports'
     | '/manager/send-email'
     | '/manager/services-items'
@@ -885,6 +907,7 @@ export interface FileRouteTypes {
     | '/employee/pipeline'
     | '/employee/profile'
     | '/employee/projects'
+    | '/employee/registered-accounts'
     | '/employee/send-email'
     | '/finance/email-inbox'
     | '/finance/notifications'
@@ -899,6 +922,7 @@ export interface FileRouteTypes {
     | '/manager/offers'
     | '/manager/pipeline'
     | '/manager/projects'
+    | '/manager/registered-accounts'
     | '/manager/reports'
     | '/manager/send-email'
     | '/manager/services-items'
@@ -969,6 +993,7 @@ export interface FileRouteTypes {
     | '/employee/pipeline'
     | '/employee/profile'
     | '/employee/projects'
+    | '/employee/registered-accounts'
     | '/employee/send-email'
     | '/finance/email-inbox'
     | '/finance/notifications'
@@ -983,6 +1008,7 @@ export interface FileRouteTypes {
     | '/manager/offers'
     | '/manager/pipeline'
     | '/manager/projects'
+    | '/manager/registered-accounts'
     | '/manager/reports'
     | '/manager/send-email'
     | '/manager/services-items'
@@ -1111,6 +1137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerReportsRouteImport
       parentRoute: typeof ManagerRoute
     }
+    '/manager/registered-accounts': {
+      id: '/manager/registered-accounts'
+      path: '/registered-accounts'
+      fullPath: '/manager/registered-accounts'
+      preLoaderRoute: typeof ManagerRegisteredAccountsRouteImport
+      parentRoute: typeof ManagerRoute
+    }
     '/manager/projects': {
       id: '/manager/projects'
       path: '/projects'
@@ -1207,6 +1240,13 @@ declare module '@tanstack/react-router' {
       path: '/send-email'
       fullPath: '/employee/send-email'
       preLoaderRoute: typeof EmployeeSendEmailRouteImport
+      parentRoute: typeof EmployeeRoute
+    }
+    '/employee/registered-accounts': {
+      id: '/employee/registered-accounts'
+      path: '/registered-accounts'
+      fullPath: '/employee/registered-accounts'
+      preLoaderRoute: typeof EmployeeRegisteredAccountsRouteImport
       parentRoute: typeof EmployeeRoute
     }
     '/employee/projects': {
@@ -1824,6 +1864,7 @@ interface EmployeeRouteChildren {
   EmployeePipelineRoute: typeof EmployeePipelineRoute
   EmployeeProfileRoute: typeof EmployeeProfileRoute
   EmployeeProjectsRoute: typeof EmployeeProjectsRouteWithChildren
+  EmployeeRegisteredAccountsRoute: typeof EmployeeRegisteredAccountsRoute
   EmployeeSendEmailRoute: typeof EmployeeSendEmailRoute
   EmployeeIndexRoute: typeof EmployeeIndexRoute
 }
@@ -1840,6 +1881,7 @@ const EmployeeRouteChildren: EmployeeRouteChildren = {
   EmployeePipelineRoute: EmployeePipelineRoute,
   EmployeeProfileRoute: EmployeeProfileRoute,
   EmployeeProjectsRoute: EmployeeProjectsRouteWithChildren,
+  EmployeeRegisteredAccountsRoute: EmployeeRegisteredAccountsRoute,
   EmployeeSendEmailRoute: EmployeeSendEmailRoute,
   EmployeeIndexRoute: EmployeeIndexRoute,
 }
@@ -1950,6 +1992,7 @@ interface ManagerRouteChildren {
   ManagerOffersRoute: typeof ManagerOffersRouteWithChildren
   ManagerPipelineRoute: typeof ManagerPipelineRoute
   ManagerProjectsRoute: typeof ManagerProjectsRouteWithChildren
+  ManagerRegisteredAccountsRoute: typeof ManagerRegisteredAccountsRoute
   ManagerReportsRoute: typeof ManagerReportsRouteWithChildren
   ManagerSendEmailRoute: typeof ManagerSendEmailRoute
   ManagerServicesItemsRoute: typeof ManagerServicesItemsRoute
@@ -1969,6 +2012,7 @@ const ManagerRouteChildren: ManagerRouteChildren = {
   ManagerOffersRoute: ManagerOffersRouteWithChildren,
   ManagerPipelineRoute: ManagerPipelineRoute,
   ManagerProjectsRoute: ManagerProjectsRouteWithChildren,
+  ManagerRegisteredAccountsRoute: ManagerRegisteredAccountsRoute,
   ManagerReportsRoute: ManagerReportsRouteWithChildren,
   ManagerSendEmailRoute: ManagerSendEmailRoute,
   ManagerServicesItemsRoute: ManagerServicesItemsRoute,

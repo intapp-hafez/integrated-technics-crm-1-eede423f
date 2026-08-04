@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { useStoreState, actions, AdminTask, AdminTaskStatus, AdminTaskActivity } from "@/lib/store";
+import { useStoreState, actions, AdminTask, AdminTaskStatus, AdminTaskActivity, RegisteredAccount } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { useState, useMemo } from "react";
-import { Plus, X, ListTodo, MessageSquare, Clock4, CheckCircle2, CalendarDays } from "lucide-react";
+import { Plus, X, ListTodo, MessageSquare, Clock4, CheckCircle2, CalendarDays, Building2, Trash2, Edit2, Shield, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { shortId, formatDate } from "@/lib/utils";
 
@@ -44,27 +44,64 @@ const STATUS_COLORS: Record<AdminTaskStatus, string> = {
 };
 
 function AdminTodoPage() {
+  const [activeTab, setActiveTab] = useState<"tasks" | "accounts">("tasks");
+
+  return (
+    <AppShell panel="admin" user={{ name: "", role: "", initials: "" }} pageTitle="To-Do List">
+      <div className="mb-6 flex gap-4 border-b border-border">
+        <button
+          onClick={() => setActiveTab("tasks")}
+          className={`border-b-2 px-4 py-2 text-sm font-semibold transition-colors ${activeTab === "tasks"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+        >
+          To-Do Tasks
+        </button>
+        <button
+          onClick={() => setActiveTab("accounts")}
+          className={`border-b-2 px-4 py-2 text-sm font-semibold transition-colors ${activeTab === "accounts"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+        >
+          Registered Accounts
+        </button>
+      </div>
+
+      {activeTab === "tasks" && <TasksTab />}
+      {activeTab === "accounts" && <RegisteredAccountsTab />}
+    </AppShell>
+  );
+}
+
+function TasksTab() {
   const { adminTasks } = useStoreState();
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<AdminTask | null>(null);
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
 
   const filteredTasks = useMemo(
     () => adminTasks.filter((t) => inRange(t.date, dateFilter)),
     [adminTasks, dateFilter],
   );
 
+  const totalPages = Math.ceil(filteredTasks.length / ITEMS_PER_PAGE) || 1;
+  const paginatedTasks = filteredTasks.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
   // Group tasks by status
   const groupedTasks = STATUSES.reduce(
     (acc, status) => {
-      acc[status] = filteredTasks.filter((t) => t.status === status);
+      acc[status] = paginatedTasks.filter((t) => t.status === status);
       return acc;
     },
     {} as Record<AdminTaskStatus, AdminTask[]>,
   );
 
   return (
-    <AppShell panel="admin" user={{ name: "", role: "", initials: "" }} pageTitle="To-Do List">
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="font-display text-2xl font-bold text-foreground">Admin Tasks</h2>
@@ -88,12 +125,11 @@ function AdminTodoPage() {
           {DATE_FILTERS.map((f) => (
             <button
               key={f.key}
-              onClick={() => setDateFilter(f.key)}
-              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                dateFilter === f.key
+              onClick={() => { setDateFilter(f.key); setPage(1); }}
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${dateFilter === f.key
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
-              }`}
+                }`}
             >
               {f.label}
             </button>
@@ -151,11 +187,42 @@ function AdminTodoPage() {
         ))}
       </div>
 
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground">
+            Showing <span className="font-medium text-foreground">{(page - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
+            <span className="font-medium text-foreground">
+              {Math.min(page * ITEMS_PER_PAGE, filteredTasks.length)}
+            </span>{" "}
+            of <span className="font-medium text-foreground">{filteredTasks.length}</span> results
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="text-sm font-medium text-foreground">
+              Page {page} of {totalPages}
+            </div>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {showAddModal && <CreateTaskModal onClose={() => setShowAddModal(false)} />}
       {selectedTask && (
         <TaskDetailsModal task={selectedTask} onClose={() => setSelectedTask(null)} />
       )}
-    </AppShell>
+    </div>
   );
 }
 
@@ -329,11 +396,10 @@ function TaskDetailsModal({ task, onClose }: { task: AdminTask; onClose: () => v
                     <button
                       key={status}
                       onClick={() => changeStatus(status)}
-                      className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold capitalize transition-all ${
-                        isActive
+                      className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold capitalize transition-all ${isActive
                           ? STATUS_COLORS[status] + " ring-2 ring-primary/20"
                           : "border-border bg-background text-muted-foreground hover:bg-accent"
-                      }`}
+                        }`}
                     >
                       {isActive && <CheckCircle2 className="h-3.5 w-3.5" />}
                       {status}
@@ -395,6 +461,300 @@ function TaskDetailsModal({ task, onClose }: { task: AdminTask; onClose: () => v
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RegisteredAccountsTab() {
+  const { registeredAccounts, registeredAccountsPublic } = useStoreState();
+  const [showModal, setShowModal] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<RegisteredAccount | null>(null);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
+
+  const totalPages = Math.ceil(registeredAccounts.length / ITEMS_PER_PAGE) || 1;
+  const paginatedAccounts = registeredAccounts.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure you want to delete this account?")) {
+      import("@/lib/supabaseWrites").then((sb) => sb.sbDeleteRegisteredAccount(id));
+      actions.deleteRegisteredAccount(id);
+      toast.success("Account deleted");
+    }
+  };
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-foreground">Registered Accounts</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage your internal directory of accounts.
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 shadow-sm hover:bg-accent transition-colors">
+            <input
+              type="checkbox"
+              checked={registeredAccountsPublic}
+              onChange={(e) => actions.setRegisteredAccountsPublic(e.target.checked)}
+              className="h-4 w-4 rounded border-input text-primary focus:ring-primary/20"
+            />
+            <span className="text-sm font-semibold text-foreground">Public to Team</span>
+          </label>
+          <button
+            onClick={() => {
+              setEditingAccount(null);
+              setShowModal(true);
+            }}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            Add Account
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+        <table className="w-full text-left text-sm text-muted-foreground">
+          <thead className="bg-muted/50 text-xs uppercase text-foreground">
+            <tr>
+              <th className="px-6 py-4 font-bold">Account Name</th>
+              <th className="px-6 py-4 font-bold">Type</th>
+              <th className="px-6 py-4 font-bold">Owner</th>
+              <th className="px-6 py-4 text-right font-bold">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {paginatedAccounts.map((acc) => (
+              <tr key={acc.id} className="hover:bg-muted/50">
+                <td className="px-6 py-4 font-medium text-foreground">{acc.name}</td>
+                <td className="px-6 py-4">
+                  <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                    {acc.type}
+                  </span>
+                </td>
+                <td className="px-6 py-4">{acc.owner || "—"}</td>
+                <td className="px-6 py-4 text-right">
+                  <button
+                    onClick={() => {
+                      setEditingAccount(acc);
+                      setShowModal(true);
+                    }}
+                    className="mr-3 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(acc.id)}
+                    className="text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {registeredAccounts.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-6 py-8 text-center">
+                  No accounts found. Click "Add Account" to create one.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground">
+            Showing <span className="font-medium text-foreground">{(page - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
+            <span className="font-medium text-foreground">
+              {Math.min(page * ITEMS_PER_PAGE, registeredAccounts.length)}
+            </span>{" "}
+            of <span className="font-medium text-foreground">{registeredAccounts.length}</span> results
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card 
+text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="text-sm font-medium text-foreground">
+              Page {page} of {totalPages}
+            </div>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card 
+text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showModal && (
+        <RegisteredAccountModal
+          account={editingAccount}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+const ACCOUNT_TYPES = [
+  "Bank",
+  "Company",
+  "Factory",
+  "School",
+  "University",
+  "Mall",
+  "Hotel",
+  "Building",
+  "Other"
+];
+
+function RegisteredAccountModal({
+  account,
+  onClose,
+}: {
+  account: RegisteredAccount | null;
+  onClose: () => void;
+}) {
+  const isCustomType = account ? !ACCOUNT_TYPES.includes(account.type) : false;
+  const [name, setName] = useState(account?.name || "");
+  const [typeSelection, setTypeSelection] = useState(isCustomType ? "Other" : (account?.type || "Company"));
+  const [customType, setCustomType] = useState(isCustomType ? account!.type : "");
+  const [owner, setOwner] = useState(account?.owner || "");
+
+  const submit = () => {
+    const finalType = typeSelection === "Other" ? customType.trim() : typeSelection;
+    if (!name.trim() || !finalType) {
+      toast.error("Account name and type are required");
+      return;
+    }
+
+    if (account) {
+      import("@/lib/supabaseWrites").then((sb) =>
+        sb.sbUpdateRegisteredAccount(account.id, { name: name.trim(), type: finalType, owner: owner.trim() })
+      );
+      actions.updateRegisteredAccount(account.id, { name: name.trim(), type: finalType, owner: owner.trim() });
+      toast.success("Account updated");
+    } else {
+      const tempId = crypto.randomUUID();
+      const payload = {
+        id: tempId,
+        name: name.trim(),
+        type: finalType,
+        owner: owner.trim(),
+      };
+      import("@/lib/supabaseWrites").then((sb) => sb.sbAddRegisteredAccount(payload));
+      actions.addRegisteredAccount({ ...payload, createdAt: new Date().toISOString() });
+      toast.success("Account created");
+    }
+    onClose();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-6 flex items-center justify-between border-b border-border pb-4">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg font-bold text-foreground">
+              {account ? "Edit Account" : "Add Account"}
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Account Name <span className="text-destructive">*</span>
+            </label>
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Type <span className="text-destructive">*</span>
+            </label>
+            <select
+              value={typeSelection}
+              onChange={(e) => setTypeSelection(e.target.value)}
+              className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              {ACCOUNT_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+          {typeSelection === "Other" && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Custom Type Name <span className="text-destructive">*</span>
+              </label>
+              <input
+                autoFocus
+                value={customType}
+                onChange={(e) => setCustomType(e.target.value)}
+                placeholder="e.g. Agency"
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+          )}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Owner
+            </label>
+            <input
+              value={owner}
+              onChange={(e) => setOwner(e.target.value)}
+              placeholder="e.g. Hafez Rahim"
+              className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3 border-t border-border pt-4">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-accent transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:opacity-90 transition-opacity"
+          >
+            {account ? "Save Changes" : "Create Account"}
+          </button>
         </div>
       </div>
     </div>

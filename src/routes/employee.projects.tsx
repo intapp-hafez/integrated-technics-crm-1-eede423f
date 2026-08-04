@@ -23,7 +23,7 @@ import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState, type Project } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
-import { filterMyProjects, isProjectMemberOf } from "@/lib/employeeProjects";
+import { filterMyProjects, isProjectMemberOf, getProjectOwner } from "@/lib/employeeProjects";
 import { ProjectRequestDialog } from "@/components/ProjectRequestDialog";
 import { ProjectRequestsPanel } from "@/components/ProjectRequestsPanel";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
@@ -53,31 +53,7 @@ function ProjectsPage() {
   const [displayView, setDisplayView] = useState<"table" | "grid" | "contacts">("table");
   const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
 
-  const getOwner = (p: Project) => {
-    if (p.createdByName && !p.createdByName.includes("-")) {
-      return p.createdByName;
-    }
-    if (p.createdBy) {
-      const u = users?.find((usr: any) => usr.id === p.createdBy || usr.profileId === p.createdBy);
-      if (u?.name && !u.name.includes("-")) return u.name;
-      const e = employees?.find(
-        (emp: any) => emp.id === p.createdBy || emp.profileId === p.createdBy,
-      );
-      if (e?.name && !e.name.includes("-")) return e.name;
-    }
-    if (p.createdByName) return p.createdByName;
-    if (p.teamMembers && p.teamMembers.length > 0) {
-      const tm = p.teamMembers[0];
-      const e = employees?.find(
-        (emp: any) => emp.id === tm || emp.profileId === tm || emp.name === tm,
-      );
-      if (e?.name && !e.name.includes("-")) return e.name;
-      const u = users?.find((usr: any) => usr.id === tm || usr.profileId === tm || usr.name === tm);
-      if (u?.name && !u.name.includes("-")) return u.name;
-      if (!tm.includes("-")) return tm;
-    }
-    return employees.slice(0, p.team || 1)[0]?.name || "—";
-  };
+  const getOwner = (p: Project) => getProjectOwner(p, users, employees);
 
   const getOwnerPhoto = (name?: string) => {
     if (!name || name === "—") return undefined;

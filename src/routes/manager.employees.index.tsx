@@ -3,7 +3,8 @@ import { shortId } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
-import { computeEmployeeKpis } from "@/lib/employeeTargets";
+import { computeEmployeeKpis, isLeadRelatedToEmployee } from "@/lib/employeeTargets";
+import { isAssignedToEmployee } from "@/lib/activityFilters";
 import { useMyTeam } from "@/lib/useMyTeam";
 import { LayoutGrid, List, TrendingUp, Clock4, Phone, Mail } from "lucide-react";
 import logo from "@/assets/logo.png";
@@ -80,7 +81,7 @@ function ManagerEmployeesPage() {
     [dept, employees],
   );
 
-  const empLeads = (name: string) => leads.filter((l) => l.owner === name);
+    const getEmpLeads = (e: any) => leads.filter((l) => isLeadRelatedToEmployee(l, { name: e.name, profileId: e.id, userId: e.userId }));
   const hoursToday = (name: string) => {
     const mins = activities
       .filter((a) => a.owner === name && a.dueDate === today)
@@ -135,9 +136,9 @@ function ManagerEmployeesPage() {
       {view === "card" && (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((e) => {
-            const myLeads = empLeads(e.name);
+            const myLeads = getEmpLeads(e);
             const won = myLeads.filter((l) => l.status === "won").length;
-            const empActivities = activities.filter((a) => a.owner === e.name);
+            const empActivities = activities.filter((a) => isAssignedToEmployee(a as any, { name: e.name, profileId: e.id, userId: (e as any).userId }));
             const kpi = computeEmployeeKpis(e, empActivities, myLeads, attendance);
             const targetPerc = kpi.overallKpi;
             const perfColor =
@@ -373,9 +374,9 @@ function ManagerEmployeesPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.map((e) => {
-                  const myLeads = empLeads(e.name);
+                  const myLeads = getEmpLeads(e);
                   const won = myLeads.filter((l) => l.status === "won").length;
-                  const empActivities = activities.filter((a) => a.owner === e.name);
+                  const empActivities = activities.filter((a) => isAssignedToEmployee(a as any, { name: e.name, profileId: e.id, userId: (e as any).userId }));
                   const kpi = computeEmployeeKpis(e, empActivities, myLeads, attendance);
                   return (
                     <tr key={e.id} className="transition hover:bg-primary/5">

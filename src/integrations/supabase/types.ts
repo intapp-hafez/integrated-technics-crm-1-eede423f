@@ -1632,6 +1632,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      registered_accounts: {
+        Row: {
+          id: string;
+          name: string;
+          type: string;
+          owner: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          type: string;
+          owner?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          type?: string;
+          owner?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       role_permissions: {
         Row: {
           can_create: boolean | null;

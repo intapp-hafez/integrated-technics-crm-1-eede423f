@@ -166,11 +166,17 @@ function PipelinePage() {
                 {fmtMoney(totalValue)}
               </div>
               <div className="min-h-[80px] space-y-2">
-                {stageLeads.map((l) => (
+                {stageLeads.map((l) => {
+                  const isWonOrLost = l.status === "won" || l.status === "lost";
+                  return (
                   <div
                     key={l.id}
-                    draggable
+                    draggable={!isWonOrLost}
                     onDragStart={(e) => {
+                      if (isWonOrLost) {
+                        e.preventDefault();
+                        return;
+                      }
                       setDragId(l.id);
                       e.dataTransfer.effectAllowed = "move";
                       e.dataTransfer.setData("text/lead-id", l.id);
@@ -182,7 +188,7 @@ function PipelinePage() {
                     onClick={() => {
                       navigate({ to: "/employee/leads/$leadId", params: { leadId: l.id } });
                     }}
-                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition active:cursor-grabbing ${dragId === l.id ? "opacity-50 border-primary" : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"}`}
+                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition ${!isWonOrLost ? "active:cursor-grabbing" : ""} ${dragId === l.id ? "opacity-50 border-primary" : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -229,7 +235,8 @@ function PipelinePage() {
                       );
                     })()}
                   </div>
-                ))}
+                );
+                })}
                 {stageLeads.length === 0 && (
                   <div className="rounded-lg border border-dashed border-border py-6 text-center text-[11px] text-muted-foreground">
                     {t("dropLeadsHere")}

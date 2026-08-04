@@ -5,6 +5,7 @@ import { actions } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { setProfileMap } from "@/lib/supabaseWrites";
+import { isLeadRelatedToEmployee } from "@/lib/employeeTargets";
 
 // Maps Supabase rows to the local store shape so existing pages render real data.
 export function useSupabaseSync() {
@@ -41,6 +42,8 @@ export function useSupabaseSync() {
         catalogCategoriesRes,
         leadCatalogItemsRes,
         activityTypesRes,
+        registeredAccountsRes,
+        systemSettingsRes,
       ] = await Promise.all([
         supabase.from("leads").select("*").order("created_at", { ascending: false }),
         supabase.from("projects").select("*").order("created_at", { ascending: false }),
@@ -111,6 +114,8 @@ export function useSupabaseSync() {
           .select("*")
           .order("created_at", { ascending: false }),
         supabase.from("activity_types_config").select("*").order("label_en"),
+        supabase.from("registered_accounts").select("*").order("created_at", { ascending: false }),
+        supabase.from("system_settings").select("*").eq("key", "registered_accounts_public").maybeSingle(),
       ]);
       return {
         leads: leadsRes.data ?? [],
@@ -137,6 +142,8 @@ export function useSupabaseSync() {
         catalogCategories: (catalogCategoriesRes as any)?.data ?? [],
         leadCatalogItems: (leadCatalogItemsRes as any)?.data ?? [],
         activityTypesConfig: (activityTypesRes as any)?.data ?? [],
+        registeredAccounts: (registeredAccountsRes as any)?.data ?? [],
+        systemSettings: systemSettingsRes?.data,
       };
     },
   });
@@ -168,6 +175,8 @@ export function useSupabaseSync() {
       "catalog_categories",
       "lead_catalog_items",
       "activity_types_config",
+      "registered_accounts",
+      "system_settings",
     ];
     const channel = supabase.channel("app-sync");
     for (const table of tables) {
@@ -570,7 +579,8 @@ export function useSupabaseSync() {
     const employees = employeeProfiles.map((p) => {
       // Employee name must always be English — used as filter key matching lead.owner
       const name = p.full_name_en || p.full_name_ar || "—";
-      const myLeads = leads.filter((l) => l.owner === name);
+      const empIdentity = { name, profileId: p.id, userId: p.user_id };
+      const myLeads = leads.filter((l: any) => isLeadRelatedToEmployee(l, empIdentity));
       const won = myLeads.filter((l: any) => l.status === "won");
       const achieved = won.reduce((s, l: any) => s + Number(l.value ?? 0), 0);
       const perf = myLeads.length ? Math.round((won.length / myLeads.length) * 100) : 0;
@@ -588,7 +598,7 @@ export function useSupabaseSync() {
         photo: p.avatar_url ?? "",
         email: p.email ?? "",
         phone: p.phone ?? "",
-        annualTarget: Number(p.target_value ?? 0),
+        annualTarget: Number(p.annual_target ?? p.target_value ?? 0),
         targetType: (p.target_type ?? "yearly") as "yearly" | "quarterly" | "monthly",
         achievedTarget: achieved,
         kpiTargetWeight: Number(p.kpi_target_weight ?? 33.33),
@@ -623,7 +633,7 @@ export function useSupabaseSync() {
       locationAr: p?.location_ar ?? "",
       avatarUrl: p?.avatar_url ?? "",
       targetType: (p?.target_type ?? "yearly") as any,
-      targetValue: Number(p?.target_value ?? 0),
+      targetValue: Number(p?.annual_target ?? p?.target_value ?? 0),
       skills: (p?.skills ?? []) as string[],
       managerId: p?.manager_id ?? undefined,
     });
@@ -657,7 +667,7 @@ export function useSupabaseSync() {
           skills: (meProfile.skills ?? []) as string[],
           manager: meProfile.manager_id ? nameOf(meProfile.manager_id) : undefined,
           avatarUrl: meProfile.avatar_url ?? undefined,
-          targetValue: Number(meProfile.target_value ?? 0),
+          targetValue: Number(meProfile.annual_target ?? meProfile.target_value ?? 0),
           targetType: (meProfile.target_type ?? "yearly") as any,
           kpiTargetWeight: Number(meProfile.kpi_target_weight ?? 33.33),
           kpiActivitiesWeight: Number(meProfile.kpi_activities_weight ?? 33.33),
@@ -714,6 +724,14 @@ export function useSupabaseSync() {
         actor: a.actor,
         details: a.details,
       })),
+      registeredAccounts: ((data as any).registeredAccounts ?? []).map((a: any) => ({
+        id: a.id,
+        name: a.name,
+        type: a.type,
+        owner: a.owner,
+        createdAt: a.created_at,
+      })),
+      registeredAccountsPublic: (data as any).systemSettings?.value === true,
       catalogItems: ((data as any).catalogItems ?? []).map((i: any) => ({
         id: i.id,
         name: i.name,

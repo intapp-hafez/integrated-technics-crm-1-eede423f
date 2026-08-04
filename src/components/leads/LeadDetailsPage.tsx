@@ -136,6 +136,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
   const persistable = isUuid(leadId);
+  const isFrozen = panel === "employee" && (lead?.status === "won" || lead?.status === "lost");
 
   const notesQuery = useQuery({
     queryKey: ["lead-notes", leadId],
@@ -693,20 +694,21 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
           </Section>
 
           <Section
-            title={isAr ? "???????" : "Systems"}
+            title={isAr ? "الأنظمة" : "Systems"}
             icon={Box}
             action={
               <button
                 onClick={() => setShowCatalogModal(true)}
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+                disabled={isFrozen}
+                className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-colors ${isFrozen ? "bg-secondary text-muted-foreground cursor-not-allowed opacity-60" : "bg-primary/10 text-primary hover:bg-primary/20"}`}
               >
-                <Plus className="h-3.5 w-3.5" /> {isAr ? "????? ?????" : "Add Systems"}
+                <Plus className="h-3.5 w-3.5" /> {isAr ? "إضافة أنظمة" : "Add Systems"}
               </button>
             }
           >
             {leadItems.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-4">
-                {isAr ? "?? ??? ????? ?????." : "No systems added yet."}
+                {isAr ? "لا توجد أنظمة مضافة." : "No systems added yet."}
               </p>
             ) : (
               <div className="overflow-x-auto rounded-xl border border-border">
@@ -714,19 +716,19 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                   <thead className="bg-secondary/50 text-muted-foreground">
                     <tr>
                       <th className="px-4 py-3 text-start font-semibold uppercase tracking-wider text-[11px]">
-                        {isAr ? "?????" : "Name"}
+                        {isAr ? "الاسم" : "Name"}
                       </th>
                       <th className="px-4 py-3 text-start font-semibold uppercase tracking-wider text-[11px]">
-                        {isAr ? "???????" : "Category"}
+                        {isAr ? "التصنيف" : "Category"}
                       </th>
                       <th className="px-4 py-3 text-end font-semibold uppercase tracking-wider text-[11px]">
-                        {isAr ? "??????" : "Quantity"}
+                        {isAr ? "الكمية" : "Quantity"}
                       </th>
                       <th className="px-4 py-3 text-end font-semibold uppercase tracking-wider text-[11px]">
-                        {isAr ? "?????" : "Price"}
+                        {isAr ? "السعر" : "Price"}
                       </th>
                       <th className="px-4 py-3 text-end font-semibold uppercase tracking-wider text-[11px]">
-                        {isAr ? "????????" : "Total"}
+                        {isAr ? "الإجمالي" : "Total"}
                       </th>
                       <th className="px-4 py-3 w-10"></th>
                     </tr>
@@ -756,17 +758,18 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                           </td>
                           <td className="px-4 py-3 text-end">
                             <button
+                              disabled={isFrozen}
                               onClick={async () => {
-                                if (confirm(isAr ? "??? ???????" : "Delete item?")) {
+                                if (confirm(isAr ? "حذف العنصر؟" : "Delete item?")) {
                                   try {
                                     await sbDeleteLeadCatalogItem(item.id);
-                                    toast.success(isAr ? "?? ????? ?????" : "Item removed");
+                                    toast.success(isAr ? "تم حذف العنصر" : "Item removed");
                                   } catch (e: any) {
                                     toast.error(e.message || "Error removing item");
                                   }
                                 }
                               }}
-                              className="text-muted-foreground hover:text-red-500 transition-colors"
+                              className={`inline-flex items-center justify-center rounded-lg p-2 transition-colors ${isFrozen ? "text-muted-foreground/30 cursor-not-allowed" : "text-rose-500 hover:bg-rose-50 hover:text-rose-700"}`}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -796,6 +799,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
             <div className="mb-3 flex gap-2">
               <input
                 value={noteText}
+                disabled={isFrozen}
                 onChange={(e) => setNoteText(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleAddNote();
@@ -804,7 +808,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                 className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
               <button
-                disabled={savingNote || !noteText.trim()}
+                disabled={isFrozen || savingNote || !noteText.trim()}
                 onClick={handleAddNote}
                 className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
@@ -856,7 +860,8 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                     <span>{fmtTime(n.created_at)}</span>
                     <button
                       onClick={() => handleDeleteNote(n.id)}
-                      className="font-semibold text-rose-600 opacity-0 hover:underline group-hover:opacity-100"
+                      disabled={isFrozen}
+                      className={`font-semibold opacity-0 hover:underline group-hover:opacity-100 ${isFrozen ? "text-muted-foreground/50 cursor-not-allowed" : "text-rose-600"}`}
                     >
                       Delete
                     </button>
@@ -880,7 +885,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
               }}
             />
             <button
-              disabled={uploading || !persistable}
+              disabled={isFrozen || uploading || !persistable}
               onClick={() => fileInputRef.current?.click()}
               className="mb-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-background py-6 text-sm font-semibold text-muted-foreground transition hover:border-primary hover:text-primary disabled:opacity-50"
             >
@@ -984,7 +989,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                 <div className="flex-1 relative inline-flex">
                   <select
                     value={lead.status}
-                    disabled={changingStatus}
+                    disabled={isFrozen || changingStatus}
                     onChange={(e) => {
                       const next = e.target.value as any;
                       if (next === lead.status) return;

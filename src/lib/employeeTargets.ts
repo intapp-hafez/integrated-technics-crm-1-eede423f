@@ -19,10 +19,11 @@ export function isLeadRelatedToEmployee(
   if (employee.profileId && lead.ownerId === employee.profileId) return true;
   if (employee.userId && lead.createdBy === employee.userId) return true;
 
-  const name = employee.name;
+  const name = (employee.name || "").trim().toLowerCase();
   if (!name) return false;
-  if (!lead.ownerId && lead.owner === name) return true;
-  if (!lead.createdBy && lead.createdByName === name) return true;
+  
+  if (lead.owner && lead.owner.trim().toLowerCase() === name) return true;
+  if (lead.createdByName && lead.createdByName.trim().toLowerCase() === name) return true;
   return false;
 }
 
@@ -83,6 +84,17 @@ export function computeEmployeeKpis(
   const overallKpi = Math.round(
     targetScore * (tW / 100) + activityScore * (acW / 100) + attendanceRate * (atW / 100),
   );
+
+  if (emp?.name === 'Sabah Sobhi') {
+    console.log("SABAH KPI CALC:", {
+      annualTarget, kpiMonthlyTarget, kpiMonthlyAchieved, achieveRate, targetScore,
+      activityScore, attendanceRate, overallKpi,
+      tW, acW, atW, empLeadsCount: empLeads.length, wonInPeriod: sumWonInPeriod(empLeads as any, {
+        periodStartMs: tP.start.getTime(),
+        periodEndMs: tP.end.getTime(),
+      })
+    });
+  }
 
   return {
     targetScore: Math.round(targetScore),

@@ -19,6 +19,7 @@ import { useI18n } from "@/lib/i18n";
 import { useRole } from "@/lib/role";
 import { useMyTeam } from "@/lib/useMyTeam";
 import { shortId, formatDate } from "@/lib/utils";
+import { getProjectOwner } from "@/lib/employeeProjects";
 
 const ACT_I18N: Record<string, any> = {
   Call: "actCall",
@@ -49,31 +50,7 @@ export function NewActivityDialog({ onClose, defaultProjectId, defaultStep }: Pr
   const [owner, setOwner] = useState<string>(canAssignOthers ? "" : myName);
   const [accountSearch, setAccountSearch] = useState("");
 
-  const getOwner = (p: any) => {
-    if (p.createdByName && !p.createdByName.includes("-")) {
-      return p.createdByName;
-    }
-    if (p.createdBy) {
-      const u = users?.find((usr: any) => usr.id === p.createdBy || usr.profileId === p.createdBy);
-      if (u?.name && !u.name.includes("-")) return u.name;
-      const e = employees?.find(
-        (emp: any) => emp.id === p.createdBy || emp.profileId === p.createdBy,
-      );
-      if (e?.name && !e.name.includes("-")) return e.name;
-    }
-    if (p.createdByName) return p.createdByName;
-    if (p.teamMembers && p.teamMembers.length > 0) {
-      const tm = p.teamMembers[0];
-      const e = employees?.find(
-        (emp: any) => emp.id === tm || emp.profileId === tm || emp.name === tm,
-      );
-      if (e?.name && !e.name.includes("-")) return e.name;
-      const u = users?.find((usr: any) => usr.id === tm || usr.profileId === tm || usr.name === tm);
-      if (u?.name && !u.name.includes("-")) return u.name;
-      if (!tm.includes("-")) return tm;
-    }
-    return employees.slice(0, p.team || 1)[0]?.name || "—";
-  };
+  const getOwner = (p: any) => getProjectOwner(p, users, employees);
 
   const visibleProjects = useMemo(() => {
     if (isAdmin && !isManagerContext) return projects;
@@ -163,7 +140,7 @@ export function NewActivityDialog({ onClose, defaultProjectId, defaultStep }: Pr
     if (!canAssignOthers && myName && owner !== myName) setOwner(myName);
   }, [canAssignOthers, myName, owner]);
 
-  const canNext1 = !!projectId;
+  const canNext1 = true; // allow proceeding without an account
   const canNext2 = step === 2; // lead optional (general project activity)
   const canNext3 = !!owner;
   const canSave = !!form.title.trim() && !!form.dueDate && !!form.time;
@@ -576,7 +553,7 @@ export function NewActivityDialog({ onClose, defaultProjectId, defaultStep }: Pr
                 <Field label={dir === "rtl" ? "التاريخ" : "Due date"} icon={Calendar}>
                   <input
                     type="date"
-                    value={formatDate(form.dueDate)}
+                    value={form.dueDate}
                     onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
                     className="input"
                   />
