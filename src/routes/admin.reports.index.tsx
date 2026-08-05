@@ -49,7 +49,9 @@ function AdminReportsPage() {
   const activeEmployees = useMemo(() => {
     return employees.filter((e) => {
       const u = users.find((user) => user.profileId === e.id || user.id === (e as any).userId);
-      return (u as any)?.status !== "inactive";
+      if (u?.active === false || (u as any)?.status === "inactive") return false;
+      if (u?.role === "admin") return false;
+      return true;
     });
   }, [employees, users]);
 

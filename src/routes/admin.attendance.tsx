@@ -4,9 +4,9 @@ import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import { useStoreState } from "@/lib/store";
-import { CheckCircle2, AlertTriangle, XCircle, MapPin, Clock4 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, MapPin, Clock4, ChevronLeft, ChevronRight } from "lucide-react";
 import { cairoIsoDate } from "@/lib/cairoTime";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/admin/attendance")({
   component: AttendancePage,
@@ -79,6 +79,14 @@ function AttendancePage() {
   }, [attendance]);
 
   const totalAllHours = useMemo(() => records.reduce((s, r) => s + r.hoursNum, 0), [records]);
+
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(records.length / itemsPerPage);
+  const paginatedRecords = useMemo(() => {
+    const start = (page - 1) * itemsPerPage;
+    return records.slice(start, start + itemsPerPage);
+  }, [records, page]);
 
   const stats = [
     {
@@ -181,7 +189,7 @@ function AttendancePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {records.map((r) => {
+              {paginatedRecords.map((r) => {
                 const emp = employees.find((e) => e.name === r.name);
                 return (
                   <tr
@@ -263,6 +271,32 @@ function AttendancePage() {
             )}
           </table>
         </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-border px-5 py-3">
+            <span className="text-sm text-muted-foreground">
+              Showing {(page - 1) * itemsPerPage + 1} to {Math.min(page * itemsPerPage, records.length)} of {records.length} entries
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-foreground hover:bg-accent disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="text-sm font-semibold">
+                {page} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-foreground hover:bg-accent disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );
