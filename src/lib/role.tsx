@@ -12,7 +12,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
 }
 
 export function useRole() {
-  const { role, isAdmin, isManager, isFinance } = useAuth();
+  const { role, isAdmin, isManager, isFinance, isPresales } = useAuth();
   // Default to "employee" if no role yet so legacy components don't crash before auth resolves
   const r: Role = role ?? "employee";
   return {
@@ -21,5 +21,6 @@ export function useRole() {
     isAdmin,
     isManager,
     isFinance,
+    isPresales,
   };
 }

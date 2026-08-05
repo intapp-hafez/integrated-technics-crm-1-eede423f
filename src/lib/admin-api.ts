@@ -19,7 +19,7 @@ export type CreateUserInput = {
   full_name_en: string;
   full_name_ar?: string | null;
   phone?: string | null;
-  role: "admin" | "manager" | "hr" | "finance" | "employee";
+  role: "admin" | "manager" | "presales" | "hr" | "finance" | "employee";
   title_en?: string | null;
   title_ar?: string | null;
   department_en?: string | null;

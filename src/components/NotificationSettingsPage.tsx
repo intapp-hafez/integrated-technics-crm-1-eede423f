@@ -5,7 +5,7 @@ import { categoriesForRole, useNotifPrefs } from "@/lib/notificationPrefs";
 import { useAuth } from "@/lib/auth";
 import { Bell, ArrowLeft } from "lucide-react";
 
-type Panel = "admin" | "manager" | "employee" | "finance";
+type Panel = "admin" | "manager" | "employee" | "finance" | "presales";
 
 export function NotificationSettingsPage({
   panel,

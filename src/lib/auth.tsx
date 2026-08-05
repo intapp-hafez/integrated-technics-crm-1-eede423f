@@ -3,16 +3,17 @@ import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
-export type Role = "admin" | "manager" | "finance" | "employee";
+export type Role = "admin" | "manager" | "finance" | "presales" | "employee";
 export type Panel = Role;
 // All roles in DB enum (including `hr`) that we surface as raw strings
 export type DbRole = Role | "hr";
 
-export const ROLE_PRIORITY: Role[] = ["admin", "manager", "finance", "employee"];
+export const ROLE_PRIORITY: Role[] = ["admin", "manager", "finance", "presales", "employee"];
 export const PANEL_PATH: Record<Panel, string> = {
   admin: "/admin",
   manager: "/manager",
   finance: "/finance",
+  presales: "/presales",
   employee: "/employee",
 };
 
@@ -51,6 +52,7 @@ interface AuthCtx {
   isAdmin: boolean;
   isManager: boolean;
   isFinance: boolean;
+  isPresales: boolean;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -134,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin: role === "admin",
         isManager: role === "manager",
         isFinance: role === "finance",
+        isPresales: role === "presales",
         refresh,
         signOut,
       }}

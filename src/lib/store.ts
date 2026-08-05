@@ -129,8 +129,8 @@ export interface LocationCity {
   districtsAr?: Record<string, string>;
 }
 
-export type UserRoleKey = "admin" | "manager" | "hr" | "finance" | "employee";
-export const USER_ROLES: UserRoleKey[] = ["admin", "manager", "hr", "finance", "employee"];
+export type UserRoleKey = "admin" | "manager" | "presales" | "hr" | "finance" | "employee";
+export const USER_ROLES: UserRoleKey[] = ["admin", "manager", "presales", "hr", "finance", "employee"];
 export const APP_PAGES = [
   "dashboard",
   "leads",
@@ -508,6 +508,27 @@ function defaultPermissions(): Record<UserRoleKey, RolePermission> {
         quotations: allCrud(),
         projects: ["read", "update"],
         reports: ["read"],
+        notifications: ["read", "update"],
+        chat: ["create", "read"],
+        profile: ["read", "update"],
+      },
+    ),
+    presales: mk(
+      [
+        "dashboard",
+        "leads",
+        "offers",
+        "quotations",
+        "projects",
+        "notifications",
+        "chat",
+        "profile",
+      ],
+      {
+        leads: ["read"],
+        offers: allCrud(),
+        quotations: allCrud(),
+        projects: ["read"],
         notifications: ["read", "update"],
         chat: ["create", "read"],
         profile: ["read", "update"],

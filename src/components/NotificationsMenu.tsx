@@ -20,7 +20,7 @@ import { useAuth } from "@/lib/auth";
 
 import { formatDatesInText } from "@/lib/utils";
 
-type Panel = "admin" | "manager" | "employee" | "finance";
+type Panel = "admin" | "manager" | "employee" | "finance" | "presales";
 
 const ICONS: Record<AppNotification["type"], typeof Bell> = {
   lead: Users,
@@ -33,8 +33,8 @@ const ICONS: Record<AppNotification["type"], typeof Bell> = {
 
 const TONE: Record<AppNotification["type"], string> = {
   lead: "bg-blue-100 text-blue-600",
-  chat: "bg-violet-100 text-violet-600",
-  activity: "bg-emerald-100 text-emerald-600",
+  chat: "bg-emerald-100 text-emerald-600",
+  activity: "bg-purple-100 text-purple-600",
   attendance: "bg-amber-100 text-amber-600",
   quotation: "bg-rose-100 text-rose-600",
   project: "bg-indigo-100 text-indigo-600",
@@ -58,6 +58,9 @@ function rewriteHref(href: string | undefined, panel: Panel): string | undefined
     return `/${panel}/chat`;
   }
   if (panel === "admin") return href;
+  if (panel === "presales") {
+    return "/presales";
+  }
   if (panel === "finance") {
     if (href.startsWith("/admin/offers/"))
       return href.replace("/admin/offers/", "/finance/quotations/");

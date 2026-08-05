@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-type Panel = "admin" | "manager" | "employee" | "finance";
+type Panel = "admin" | "manager" | "employee" | "finance" | "presales";
 
 interface Props {
   quotationId: string;

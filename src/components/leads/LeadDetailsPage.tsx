@@ -56,7 +56,10 @@ import {
   Globe,
   ChevronDown,
   Box,
+  ClipboardList,
 } from "lucide-react";
+import { supabase as rawSupabase } from "@/integrations/supabase/client";
+const supabase = rawSupabase as any;
 
 import { sbDeleteLeadCatalogItem } from "@/lib/supabaseWrites";
 import { LeadCatalogModal } from "./LeadCatalogModal";
@@ -149,14 +152,91 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
     enabled: persistable,
   });
 
+  const { data: presalesCase, refetch: refetchPresalesCase } = useQuery({
+    queryKey: ["presales_case_for_lead", leadId],
+    queryFn: async () => {
+      if (panel !== "presales") return null;
+      const { data, error } = await supabase
+        .from("presales_cases")
+        .select("id,code,status,priority,title_en,title_ar")
+        .eq("lead_id", leadId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) return null;
+      return data as {
+        id: string;
+        code: string;
+        status: string;
+        priority: string;
+        title_en?: string;
+        title_ar?: string;
+      } | null;
+    },
+    enabled: panel === "presales" && Boolean(leadId),
+  });
+
+  const [creatingCase, setCreatingCase] = useState(false);
+
+  const handleCreatePresalesCase = async () => {
+    if (!lead) return;
+    setCreatingCase(true);
+    try {
+      const code = `PSC-${String(Date.now()).slice(-4)}`;
+      const { data, error } = await supabase
+        .from("presales_cases")
+        .insert({
+          code,
+          title_en: lead.company ? `Technical Review - ${lead.company}` : `Presales Case ${code}`,
+          title_ar: lead.company ? `دراسة فنية - ${lead.company}` : `دراسة فنية ${code}`,
+          status: "new",
+          priority: "medium",
+          lead_id: lead.id,
+          technical_notes: `Initiated from CRM Lead ${lead.code || ""}. Stage: ${lead.status}`,
+        })
+        .select()
+        .single();
+
+      if (!error && data) {
+        toast.success(lang === "ar" ? `تم إنشاء دراسة فنية (${code})` : `Technical study ${code} created`);
+        await refetchPresalesCase();
+        router.navigate({
+          to: "/presales/cases/$caseId",
+          params: { caseId: data.id },
+        } as any);
+      } else if (error) {
+        toast.error(error.message || "Failed to create technical case");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to create technical case");
+    } finally {
+      setCreatingCase(false);
+    }
+  };
+
   if (!lead) {
+    const backTo =
+      panel === "presales"
+        ? "/presales"
+        : panel === "manager"
+          ? "/manager/leads"
+          : panel === "employee"
+            ? "/employee/leads"
+            : panel === "finance"
+              ? "/finance"
+              : "/admin/leads";
+
     return (
       <AppShell panel={panel} user={user} pageTitle="Lead">
         <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
           <p className="text-sm text-muted-foreground">
             Lead <span className="font-mono">{leadId}</span> not found.
           </p>
-          <Link to="/admin/leads" className="mt-3 inline-block text-sm font-semibold text-primary">
+          <Link
+            to={backTo as any}
+            search={panel === "presales" ? ({ tab: "crm" } as any) : undefined}
+            className="mt-3 inline-block text-sm font-semibold text-primary"
+          >
             {t("backToLeads")}
           </Link>
         </div>
@@ -455,8 +535,26 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
   return (
     <AppShell panel={panel} user={user} pageTitle={lead.code || lead.company}>
       <button
-        onClick={() => router.history.back()}
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary"
+        onClick={() => {
+          if (window.history.length > 1) {
+            router.history.back();
+          } else {
+            router.navigate({
+              to:
+                panel === "presales"
+                  ? "/presales"
+                  : panel === "manager"
+                    ? "/manager/leads"
+                    : panel === "employee"
+                      ? "/employee/leads"
+                      : panel === "finance"
+                        ? "/finance"
+                        : "/admin/leads",
+              search: panel === "presales" ? ({ tab: "crm" } as any) : undefined,
+            } as any);
+          }
+        }}
+        className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" /> {t("backToLeads")}
       </button>
@@ -490,13 +588,10 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
         </div>
       )}
 
-      {/* Header card */}
+      {/* Hero Header */}
       <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-        <div className="flex flex-wrap items-start gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Building2 className="h-6 w-6" />
-          </div>
-          <div className="min-w-0 flex-1">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
             <div className="flex items-center gap-3">
               <h2 className="font-display text-2xl font-extrabold text-foreground">
                 {lead.code || lead.company}
@@ -525,13 +620,54 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                 <CopyIdButton value={lead.id} />
               </span>
             </div>
-            <LocationPicker
-              cities={settings.locations}
-              city={lead.city}
-              district={leadDistricts[lead.id] ?? ""}
-              onChange={(city, district) => actions.setLeadLocation(lead.id, city, district)}
-            />
+            {panel !== "presales" && (
+              <LocationPicker
+                cities={settings.locations}
+                city={lead.city}
+                district={leadDistricts[lead.id] ?? ""}
+                onChange={(city, district) => actions.setLeadLocation(lead.id, city, district)}
+              />
+            )}
           </div>
+
+          {/* Header Action Buttons: Technical Study for Presales Panel */}
+          {panel === "presales" && (
+            <div className="flex flex-wrap items-center gap-2.5">
+              {presalesCase ? (
+                <button
+                  onClick={() => {
+                    router.navigate({
+                      to: "/presales/cases/$caseId",
+                      params: { caseId: presalesCase.id },
+                    } as any);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-800 shadow-sm hover:bg-emerald-100 hover:border-emerald-400 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60 transition"
+                  title={lang === "ar" ? `الانتقال إلى الدراسة الفنية (${presalesCase.code || ""})` : `Go to Technical Study (${presalesCase.code || ""})`}
+                >
+                  <ClipboardList className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>
+                    {lang === "ar"
+                      ? `الدراسة الفنية (${presalesCase.code || "PSC"})`
+                      : `Technical Study (${presalesCase.code || "PSC"})`}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleCreatePresalesCase}
+                  disabled={creatingCase}
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground shadow-[var(--shadow-brand)] hover:bg-primary/90 transition disabled:opacity-50"
+                  title={lang === "ar" ? "إنشاء دراسة فنية / حالة لهذه الصفقة" : "Create Technical Study / Case"}
+                >
+                  {creatingCase ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  <span>{lang === "ar" ? "إنشاء دراسة فنية" : "Create Technical Study"}</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -694,7 +830,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
           </Section>
 
           <Section
-            title={isAr ? "الأنظمة" : "Systems"}
+            title={isAr ? "الأنظمة المطلوبة" : "Required Systems"}
             icon={Box}
             action={
               <button
@@ -980,43 +1116,87 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
               </h3>
             </div>
             <div className="space-y-0">
-              {/* Pipeline Status — inline dropdown */}
+              {/* Pipeline Status */}
               <div className="flex items-start gap-3 py-2.5 border-b border-border">
                 <div className="flex items-center gap-1.5 w-32 shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground pt-0.5">
                   <Workflow className="h-3.5 w-3.5" />
                   Stage
                 </div>
-                <div className="flex-1 relative inline-flex">
-                  <select
-                    value={lead.status}
-                    disabled={isFrozen || changingStatus}
-                    onChange={(e) => {
-                      const next = e.target.value as any;
-                      if (next === lead.status) return;
-                      setTransitionPayload({
-                        lead,
-                        toStage: next,
-                        toLabel: settings.stages.find((s) => s.key === next)?.label ?? next,
-                        actor: user.name,
-                      });
-                    }}
-                    className="h-8 w-full appearance-none rounded-lg border bg-card pe-7 ps-3 text-xs font-semibold shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-primary/50 disabled:opacity-60"
-                    style={{
-                      borderColor:
-                        (settings.stages.find((s) => s.key === lead.status)?.color ?? "#64748b") +
-                        "99",
-                      color: settings.stages.find((s) => s.key === lead.status)?.color ?? "inherit",
-                    }}
-                  >
-                    {settings.stages.map((s) => (
-                      <option key={s.key} value={s.key} style={{ color: s.color }}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute end-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                </div>
+                {panel === "presales" ? (
+                  <div className="flex-1 py-0.5">
+                    <StatusBadge
+                      status={lead.status}
+                      label={settings.stages.find((s) => s.key === lead.status)?.label ?? t(lead.status as any)}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex-1 relative inline-flex">
+                    <select
+                      value={lead.status}
+                      disabled={isFrozen || changingStatus}
+                      onChange={(e) => {
+                        const next = e.target.value as any;
+                        if (next === lead.status) return;
+                        setTransitionPayload({
+                          lead,
+                          toStage: next,
+                          toLabel: settings.stages.find((s) => s.key === next)?.label ?? next,
+                          actor: user.name,
+                        });
+                      }}
+                      className="h-8 w-full appearance-none rounded-lg border bg-card pe-7 ps-3 text-xs font-semibold shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-primary/50 disabled:opacity-60"
+                      style={{
+                        borderColor:
+                          (settings.stages.find((s) => s.key === lead.status)?.color ?? "#64748b") +
+                          "99",
+                        color: settings.stages.find((s) => s.key === lead.status)?.color ?? "inherit",
+                      }}
+                    >
+                      {settings.stages.map((s) => (
+                        <option key={s.key} value={s.key} style={{ color: s.color }}>
+                          {s.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute end-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
+                )}
               </div>
+              {panel === "presales" && (
+                <InfoRow label={lang === "ar" ? "الدراسة الفنية" : "Technical Study"} icon={ClipboardList}>
+                  {presalesCase ? (
+                    <button
+                      onClick={() => {
+                        router.navigate({
+                          to: "/presales/cases/$caseId",
+                          params: { caseId: presalesCase.id },
+                        } as any);
+                      }}
+                      className="font-mono text-xs font-bold text-primary hover:underline inline-flex items-center gap-1.5"
+                    >
+                      <span>{presalesCase.code || "PSC"}</span>
+                      <span className="text-[10px] text-muted-foreground font-sans uppercase">
+                        ({presalesCase.status})
+                      </span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleCreatePresalesCase}
+                      disabled={creatingCase}
+                      className="text-xs text-primary font-semibold hover:underline inline-flex items-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span>{lang === "ar" ? "إنشاء دراسة فنية" : "Create Study"}</span>
+                    </button>
+                  )}
+                </InfoRow>
+              )}
+              <InfoRow label="Account" icon={Building2}>
+                {relatedProject?.name || lead.company || "—"}
+              </InfoRow>
+              <InfoRow label="Contact Person" icon={User}>
+                {relatedProject?.client || lead.contact || "—"}
+              </InfoRow>
               <InfoRow label="Owner" icon={User}>
                 {lead.owner || "—"}
               </InfoRow>

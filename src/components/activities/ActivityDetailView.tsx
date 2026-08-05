@@ -59,7 +59,7 @@ export function ActivityDetailView({
   panel,
 }: {
   activityId: string;
-  panel: "admin" | "employee" | "manager" | "finance";
+  panel: "admin" | "employee" | "manager" | "finance" | "presales";
 }) {
   const { t } = useI18n();
   const { activities, leads, history, users, employees } = useStoreState();

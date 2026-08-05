@@ -24,6 +24,11 @@ import {
   StickyNote,
   Box,
   AlertTriangle,
+  Layers,
+  Calculator,
+  DollarSign,
+  PackageCheck,
+  ClipboardList,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { LangToggle, useI18n } from "@/lib/i18n";
@@ -105,8 +110,21 @@ const financeNav: NavItem[] = [
   { to: "/finance", icon: UserCircle2, key: "profile", search: { tab: "profile" } },
 ];
 
+const presalesNav: NavItem[] = [
+  { to: "/presales", icon: LayoutDashboard, key: "dashboard", search: { tab: "dashboard" } },
+  { to: "/presales", icon: Users, key: "crmLeads" as any, search: { tab: "crm" } },
+  { to: "/presales", icon: ClipboardList, key: "presalesCases" as any, search: { tab: "cases" } },
+  { to: "/presales", icon: Layers, key: "boq" as any, search: { tab: "boq" } },
+  { to: "/presales", icon: Calculator, key: "costEstimation" as any, search: { tab: "cost" } },
+  { to: "/presales", icon: DollarSign, key: "financialOffers" as any, search: { tab: "offers" } },
+  { to: "/presales", icon: PackageCheck, key: "handover" as any, search: { tab: "handover" } },
+  { to: "/presales/send-email", icon: Mail, key: "sendEmail" as any },
+  { to: "/presales/email-inbox", icon: Inbox, key: "emailInbox" as any },
+  { to: "/presales", icon: UserCircle2, key: "profile", search: { tab: "profile" } },
+];
+
 interface Props {
-  panel: "admin" | "employee" | "manager" | "finance";
+  panel: "admin" | "employee" | "manager" | "finance" | "presales";
   user: { name: string; role: string; initials: string; photo?: string };
   children: ReactNode;
   pageTitle: string;
@@ -147,7 +165,9 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
         ? managerNav
         : panel === "finance"
           ? financeNav
-          : employeeNav;
+          : panel === "presales"
+            ? presalesNav
+            : employeeNav;
 
   if (registeredAccountsPublic && (panel === "employee" || panel === "manager")) {
     nav = [...nav, { to: `/${panel}/registered-accounts`, icon: Building2, key: "registeredAccounts" as any }];
@@ -164,7 +184,9 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
         ? t("managerPanel")
         : panel === "finance"
           ? t("financePanel")
-          : t("employeePanel");
+          : panel === "presales"
+            ? t("presalesPanel" as any)
+            : t("employeePanel");
   const roleLabel = authRole ? t(authRole as any) || authRole : user.role;
 
   return (
@@ -189,7 +211,9 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
                   ? t("managerPanel")
                   : panel === "finance"
                     ? t("financePanel")
-                    : t("employeePanel")}
+                    : panel === "presales"
+                      ? t("presalesPanel" as any)
+                      : t("employeePanel")}
             </div>
           </div>
         </div>

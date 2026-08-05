@@ -2582,8 +2582,8 @@ function SmtpEditor() {
 // ============== Send Email (queue + scheduling) ==============
 
 // ============== User Roles Editor (moved from /admin/users) ==============
-type AppRoleKey = "admin" | "manager" | "finance" | "hr" | "employee";
-const ALL_APP_ROLES: AppRoleKey[] = ["admin", "manager", "finance", "hr", "employee"];
+type AppRoleKey = "admin" | "manager" | "finance" | "presales" | "hr" | "employee";
+const ALL_APP_ROLES: AppRoleKey[] = ["admin", "manager", "finance", "presales", "hr", "employee"];
 
 interface AdminUserRow {
   user_id: string;

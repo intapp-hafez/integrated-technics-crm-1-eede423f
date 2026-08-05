@@ -9,15 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PresalesRouteImport } from './routes/presales'
 import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PresalesIndexRouteImport } from './routes/presales.index'
 import { Route as ManagerIndexRouteImport } from './routes/manager.index'
 import { Route as FinanceIndexRouteImport } from './routes/finance.index'
 import { Route as EmployeeIndexRouteImport } from './routes/employee.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as PresalesSendEmailRouteImport } from './routes/presales.send-email'
+import { Route as PresalesNotificationsRouteImport } from './routes/presales.notifications'
+import { Route as PresalesEmailInboxRouteImport } from './routes/presales.email-inbox'
 import { Route as ManagerServicesItemsRouteImport } from './routes/manager.services-items'
 import { Route as ManagerSendEmailRouteImport } from './routes/manager.send-email'
 import { Route as ManagerReportsRouteImport } from './routes/manager.reports'
@@ -70,6 +75,8 @@ import { Route as AdminAttendanceRouteImport } from './routes/admin.attendance'
 import { Route as AdminActivitiesRouteImport } from './routes/admin.activities'
 import { Route as ManagerEmployeesIndexRouteImport } from './routes/manager.employees.index'
 import { Route as AdminReportsIndexRouteImport } from './routes/admin.reports.index'
+import { Route as PresalesLeadsLeadIdRouteImport } from './routes/presales.leads.$leadId'
+import { Route as PresalesCasesCaseIdRouteImport } from './routes/presales.cases.$caseId'
 import { Route as ManagerReportsInactiveLeadsRouteImport } from './routes/manager.reports.inactive-leads'
 import { Route as ManagerProjectsProjectIdRouteImport } from './routes/manager.projects.$projectId'
 import { Route as ManagerOffersQuotationIdRouteImport } from './routes/manager.offers.$quotationId'
@@ -94,6 +101,11 @@ import { Route as AdminEmployeesEmployeeIdRouteImport } from './routes/admin.emp
 import { Route as AdminEmployeeAccountsEmployeeIdRouteImport } from './routes/admin.employee-accounts.$employeeId'
 import { Route as AdminActivitiesActivityIdRouteImport } from './routes/admin.activities.$activityId'
 
+const PresalesRoute = PresalesRouteImport.update({
+  id: '/presales',
+  path: '/presales',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManagerRoute = ManagerRouteImport.update({
   id: '/manager',
   path: '/manager',
@@ -119,6 +131,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PresalesIndexRoute = PresalesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PresalesRoute,
+} as any)
 const ManagerIndexRoute = ManagerIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -138,6 +155,21 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const PresalesSendEmailRoute = PresalesSendEmailRouteImport.update({
+  id: '/send-email',
+  path: '/send-email',
+  getParentRoute: () => PresalesRoute,
+} as any)
+const PresalesNotificationsRoute = PresalesNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => PresalesRoute,
+} as any)
+const PresalesEmailInboxRoute = PresalesEmailInboxRouteImport.update({
+  id: '/email-inbox',
+  path: '/email-inbox',
+  getParentRoute: () => PresalesRoute,
 } as any)
 const ManagerServicesItemsRoute = ManagerServicesItemsRouteImport.update({
   id: '/services-items',
@@ -401,6 +433,16 @@ const AdminReportsIndexRoute = AdminReportsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminReportsRoute,
 } as any)
+const PresalesLeadsLeadIdRoute = PresalesLeadsLeadIdRouteImport.update({
+  id: '/leads/$leadId',
+  path: '/leads/$leadId',
+  getParentRoute: () => PresalesRoute,
+} as any)
+const PresalesCasesCaseIdRoute = PresalesCasesCaseIdRouteImport.update({
+  id: '/cases/$caseId',
+  path: '/cases/$caseId',
+  getParentRoute: () => PresalesRoute,
+} as any)
 const ManagerReportsInactiveLeadsRoute =
   ManagerReportsInactiveLeadsRouteImport.update({
     id: '/inactive-leads',
@@ -539,6 +581,7 @@ export interface FileRoutesByFullPath {
   '/employee': typeof EmployeeRouteWithChildren
   '/finance': typeof FinanceRouteWithChildren
   '/manager': typeof ManagerRouteWithChildren
+  '/presales': typeof PresalesRouteWithChildren
   '/admin/activities': typeof AdminActivitiesRouteWithChildren
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/chat': typeof AdminChatRoute
@@ -589,10 +632,14 @@ export interface FileRoutesByFullPath {
   '/manager/reports': typeof ManagerReportsRouteWithChildren
   '/manager/send-email': typeof ManagerSendEmailRoute
   '/manager/services-items': typeof ManagerServicesItemsRoute
+  '/presales/email-inbox': typeof PresalesEmailInboxRoute
+  '/presales/notifications': typeof PresalesNotificationsRoute
+  '/presales/send-email': typeof PresalesSendEmailRoute
   '/admin/': typeof AdminIndexRoute
   '/employee/': typeof EmployeeIndexRoute
   '/finance/': typeof FinanceIndexRoute
   '/manager/': typeof ManagerIndexRoute
+  '/presales/': typeof PresalesIndexRoute
   '/admin/activities/$activityId': typeof AdminActivitiesActivityIdRoute
   '/admin/employee-accounts/$employeeId': typeof AdminEmployeeAccountsEmployeeIdRoute
   '/admin/employees/$employeeId': typeof AdminEmployeesEmployeeIdRoute
@@ -616,6 +663,8 @@ export interface FileRoutesByFullPath {
   '/manager/offers/$quotationId': typeof ManagerOffersQuotationIdRoute
   '/manager/projects/$projectId': typeof ManagerProjectsProjectIdRoute
   '/manager/reports/inactive-leads': typeof ManagerReportsInactiveLeadsRoute
+  '/presales/cases/$caseId': typeof PresalesCasesCaseIdRoute
+  '/presales/leads/$leadId': typeof PresalesLeadsLeadIdRoute
   '/admin/reports/': typeof AdminReportsIndexRoute
   '/manager/employees/': typeof ManagerEmployeesIndexRoute
 }
@@ -670,10 +719,14 @@ export interface FileRoutesByTo {
   '/manager/reports': typeof ManagerReportsRouteWithChildren
   '/manager/send-email': typeof ManagerSendEmailRoute
   '/manager/services-items': typeof ManagerServicesItemsRoute
+  '/presales/email-inbox': typeof PresalesEmailInboxRoute
+  '/presales/notifications': typeof PresalesNotificationsRoute
+  '/presales/send-email': typeof PresalesSendEmailRoute
   '/admin': typeof AdminIndexRoute
   '/employee': typeof EmployeeIndexRoute
   '/finance': typeof FinanceIndexRoute
   '/manager': typeof ManagerIndexRoute
+  '/presales': typeof PresalesIndexRoute
   '/admin/activities/$activityId': typeof AdminActivitiesActivityIdRoute
   '/admin/employee-accounts/$employeeId': typeof AdminEmployeeAccountsEmployeeIdRoute
   '/admin/employees/$employeeId': typeof AdminEmployeesEmployeeIdRoute
@@ -697,6 +750,8 @@ export interface FileRoutesByTo {
   '/manager/offers/$quotationId': typeof ManagerOffersQuotationIdRoute
   '/manager/projects/$projectId': typeof ManagerProjectsProjectIdRoute
   '/manager/reports/inactive-leads': typeof ManagerReportsInactiveLeadsRoute
+  '/presales/cases/$caseId': typeof PresalesCasesCaseIdRoute
+  '/presales/leads/$leadId': typeof PresalesLeadsLeadIdRoute
   '/admin/reports': typeof AdminReportsIndexRoute
   '/manager/employees': typeof ManagerEmployeesIndexRoute
 }
@@ -707,6 +762,7 @@ export interface FileRoutesById {
   '/employee': typeof EmployeeRouteWithChildren
   '/finance': typeof FinanceRouteWithChildren
   '/manager': typeof ManagerRouteWithChildren
+  '/presales': typeof PresalesRouteWithChildren
   '/admin/activities': typeof AdminActivitiesRouteWithChildren
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/chat': typeof AdminChatRoute
@@ -757,10 +813,14 @@ export interface FileRoutesById {
   '/manager/reports': typeof ManagerReportsRouteWithChildren
   '/manager/send-email': typeof ManagerSendEmailRoute
   '/manager/services-items': typeof ManagerServicesItemsRoute
+  '/presales/email-inbox': typeof PresalesEmailInboxRoute
+  '/presales/notifications': typeof PresalesNotificationsRoute
+  '/presales/send-email': typeof PresalesSendEmailRoute
   '/admin/': typeof AdminIndexRoute
   '/employee/': typeof EmployeeIndexRoute
   '/finance/': typeof FinanceIndexRoute
   '/manager/': typeof ManagerIndexRoute
+  '/presales/': typeof PresalesIndexRoute
   '/admin/activities/$activityId': typeof AdminActivitiesActivityIdRoute
   '/admin/employee-accounts/$employeeId': typeof AdminEmployeeAccountsEmployeeIdRoute
   '/admin/employees/$employeeId': typeof AdminEmployeesEmployeeIdRoute
@@ -784,6 +844,8 @@ export interface FileRoutesById {
   '/manager/offers/$quotationId': typeof ManagerOffersQuotationIdRoute
   '/manager/projects/$projectId': typeof ManagerProjectsProjectIdRoute
   '/manager/reports/inactive-leads': typeof ManagerReportsInactiveLeadsRoute
+  '/presales/cases/$caseId': typeof PresalesCasesCaseIdRoute
+  '/presales/leads/$leadId': typeof PresalesLeadsLeadIdRoute
   '/admin/reports/': typeof AdminReportsIndexRoute
   '/manager/employees/': typeof ManagerEmployeesIndexRoute
 }
@@ -795,6 +857,7 @@ export interface FileRouteTypes {
     | '/employee'
     | '/finance'
     | '/manager'
+    | '/presales'
     | '/admin/activities'
     | '/admin/attendance'
     | '/admin/chat'
@@ -845,10 +908,14 @@ export interface FileRouteTypes {
     | '/manager/reports'
     | '/manager/send-email'
     | '/manager/services-items'
+    | '/presales/email-inbox'
+    | '/presales/notifications'
+    | '/presales/send-email'
     | '/admin/'
     | '/employee/'
     | '/finance/'
     | '/manager/'
+    | '/presales/'
     | '/admin/activities/$activityId'
     | '/admin/employee-accounts/$employeeId'
     | '/admin/employees/$employeeId'
@@ -872,6 +939,8 @@ export interface FileRouteTypes {
     | '/manager/offers/$quotationId'
     | '/manager/projects/$projectId'
     | '/manager/reports/inactive-leads'
+    | '/presales/cases/$caseId'
+    | '/presales/leads/$leadId'
     | '/admin/reports/'
     | '/manager/employees/'
   fileRoutesByTo: FileRoutesByTo
@@ -926,10 +995,14 @@ export interface FileRouteTypes {
     | '/manager/reports'
     | '/manager/send-email'
     | '/manager/services-items'
+    | '/presales/email-inbox'
+    | '/presales/notifications'
+    | '/presales/send-email'
     | '/admin'
     | '/employee'
     | '/finance'
     | '/manager'
+    | '/presales'
     | '/admin/activities/$activityId'
     | '/admin/employee-accounts/$employeeId'
     | '/admin/employees/$employeeId'
@@ -953,6 +1026,8 @@ export interface FileRouteTypes {
     | '/manager/offers/$quotationId'
     | '/manager/projects/$projectId'
     | '/manager/reports/inactive-leads'
+    | '/presales/cases/$caseId'
+    | '/presales/leads/$leadId'
     | '/admin/reports'
     | '/manager/employees'
   id:
@@ -962,6 +1037,7 @@ export interface FileRouteTypes {
     | '/employee'
     | '/finance'
     | '/manager'
+    | '/presales'
     | '/admin/activities'
     | '/admin/attendance'
     | '/admin/chat'
@@ -1012,10 +1088,14 @@ export interface FileRouteTypes {
     | '/manager/reports'
     | '/manager/send-email'
     | '/manager/services-items'
+    | '/presales/email-inbox'
+    | '/presales/notifications'
+    | '/presales/send-email'
     | '/admin/'
     | '/employee/'
     | '/finance/'
     | '/manager/'
+    | '/presales/'
     | '/admin/activities/$activityId'
     | '/admin/employee-accounts/$employeeId'
     | '/admin/employees/$employeeId'
@@ -1039,6 +1119,8 @@ export interface FileRouteTypes {
     | '/manager/offers/$quotationId'
     | '/manager/projects/$projectId'
     | '/manager/reports/inactive-leads'
+    | '/presales/cases/$caseId'
+    | '/presales/leads/$leadId'
     | '/admin/reports/'
     | '/manager/employees/'
   fileRoutesById: FileRoutesById
@@ -1049,10 +1131,18 @@ export interface RootRouteChildren {
   EmployeeRoute: typeof EmployeeRouteWithChildren
   FinanceRoute: typeof FinanceRouteWithChildren
   ManagerRoute: typeof ManagerRouteWithChildren
+  PresalesRoute: typeof PresalesRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/presales': {
+      id: '/presales'
+      path: '/presales'
+      fullPath: '/presales'
+      preLoaderRoute: typeof PresalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manager': {
       id: '/manager'
       path: '/manager'
@@ -1088,6 +1178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/presales/': {
+      id: '/presales/'
+      path: '/'
+      fullPath: '/presales/'
+      preLoaderRoute: typeof PresalesIndexRouteImport
+      parentRoute: typeof PresalesRoute
+    }
     '/manager/': {
       id: '/manager/'
       path: '/'
@@ -1115,6 +1212,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/presales/send-email': {
+      id: '/presales/send-email'
+      path: '/send-email'
+      fullPath: '/presales/send-email'
+      preLoaderRoute: typeof PresalesSendEmailRouteImport
+      parentRoute: typeof PresalesRoute
+    }
+    '/presales/notifications': {
+      id: '/presales/notifications'
+      path: '/notifications'
+      fullPath: '/presales/notifications'
+      preLoaderRoute: typeof PresalesNotificationsRouteImport
+      parentRoute: typeof PresalesRoute
+    }
+    '/presales/email-inbox': {
+      id: '/presales/email-inbox'
+      path: '/email-inbox'
+      fullPath: '/presales/email-inbox'
+      preLoaderRoute: typeof PresalesEmailInboxRouteImport
+      parentRoute: typeof PresalesRoute
     }
     '/manager/services-items': {
       id: '/manager/services-items'
@@ -1479,6 +1597,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/reports/'
       preLoaderRoute: typeof AdminReportsIndexRouteImport
       parentRoute: typeof AdminReportsRoute
+    }
+    '/presales/leads/$leadId': {
+      id: '/presales/leads/$leadId'
+      path: '/leads/$leadId'
+      fullPath: '/presales/leads/$leadId'
+      preLoaderRoute: typeof PresalesLeadsLeadIdRouteImport
+      parentRoute: typeof PresalesRoute
+    }
+    '/presales/cases/$caseId': {
+      id: '/presales/cases/$caseId'
+      path: '/cases/$caseId'
+      fullPath: '/presales/cases/$caseId'
+      preLoaderRoute: typeof PresalesCasesCaseIdRouteImport
+      parentRoute: typeof PresalesRoute
     }
     '/manager/reports/inactive-leads': {
       id: '/manager/reports/inactive-leads'
@@ -2024,12 +2156,35 @@ const ManagerRouteChildren: ManagerRouteChildren = {
 const ManagerRouteWithChildren =
   ManagerRoute._addFileChildren(ManagerRouteChildren)
 
+interface PresalesRouteChildren {
+  PresalesEmailInboxRoute: typeof PresalesEmailInboxRoute
+  PresalesNotificationsRoute: typeof PresalesNotificationsRoute
+  PresalesSendEmailRoute: typeof PresalesSendEmailRoute
+  PresalesIndexRoute: typeof PresalesIndexRoute
+  PresalesCasesCaseIdRoute: typeof PresalesCasesCaseIdRoute
+  PresalesLeadsLeadIdRoute: typeof PresalesLeadsLeadIdRoute
+}
+
+const PresalesRouteChildren: PresalesRouteChildren = {
+  PresalesEmailInboxRoute: PresalesEmailInboxRoute,
+  PresalesNotificationsRoute: PresalesNotificationsRoute,
+  PresalesSendEmailRoute: PresalesSendEmailRoute,
+  PresalesIndexRoute: PresalesIndexRoute,
+  PresalesCasesCaseIdRoute: PresalesCasesCaseIdRoute,
+  PresalesLeadsLeadIdRoute: PresalesLeadsLeadIdRoute,
+}
+
+const PresalesRouteWithChildren = PresalesRoute._addFileChildren(
+  PresalesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   EmployeeRoute: EmployeeRouteWithChildren,
   FinanceRoute: FinanceRouteWithChildren,
   ManagerRoute: ManagerRouteWithChildren,
+  PresalesRoute: PresalesRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

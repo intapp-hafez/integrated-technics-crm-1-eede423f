@@ -23,7 +23,7 @@ import {
 import { useMemo, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-type Panel = "admin" | "manager" | "employee" | "finance";
+type Panel = "admin" | "manager" | "employee" | "finance" | "presales";
 const ITEMS_PER_PAGE = 20;
 
 const ICONS: Record<AppNotification["type"], typeof Bell> = {

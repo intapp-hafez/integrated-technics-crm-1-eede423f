@@ -5,8 +5,7 @@ import { useRole } from "@/lib/role";
 export const Route = createFileRoute("/admin/activities/$activityId")({
   component: () => {
     const { activityId } = Route.useParams();
-    const { role } = useRole();
-    return <ActivityDetailView activityId={activityId} panel={role} />;
+    return <ActivityDetailView activityId={activityId} panel="admin" />;
   },
   head: ({ params }) => ({ meta: [{ title: `${params.activityId} · Activity` }] }),
 });

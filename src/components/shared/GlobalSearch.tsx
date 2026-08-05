@@ -4,7 +4,7 @@ import { Search, Users, Briefcase, FileBadge, UserCircle2, CalendarCheck } from 
 import { useStoreState } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 
-type Panel = "admin" | "manager" | "employee" | "finance";
+type Panel = "admin" | "manager" | "employee" | "finance" | "presales";
 
 function highlight(text: string, term: string) {
   const t = term.trim();
