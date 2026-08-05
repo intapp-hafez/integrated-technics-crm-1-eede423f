@@ -6,8 +6,9 @@ import { useStoreState } from "@/lib/store";
 import { computeEmployeeKpis, isLeadRelatedToEmployee } from "@/lib/employeeTargets";
 import { isAssignedToEmployee } from "@/lib/activityFilters";
 import { useMyTeam } from "@/lib/useMyTeam";
-import { LayoutGrid, List, TrendingUp, Clock4, Phone, Mail } from "lucide-react";
+import { LayoutGrid, List, TrendingUp, Clock4, Phone, Mail, HelpCircle } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { PerformanceGuideModal } from "@/components/PerformanceGuideModal";
 import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/manager/employees/")({
@@ -72,6 +73,7 @@ function ManagerEmployeesPage() {
   const { teamEmployees: employees } = useMyTeam();
   const [view, setView] = useState<"card" | "table">("card");
   const [dept, setDept] = useState("all");
+  const [perfGuideEmp, setPerfGuideEmp] = useState<null | { kpi: ReturnType<typeof computeEmployeeKpis>; tW: number; acW: number; atW: number }>(null);
   const today = new Date().toISOString().slice(0, 10);
 
   const depts = ["all", ...Array.from(new Set(employees.map((e) => e.department)))];
@@ -99,6 +101,7 @@ function ManagerEmployeesPage() {
   };
 
   return (
+    <>
     <AppShell panel="manager" user={user} pageTitle={t("myTeam")}>
       {/* Toolbar */}
       <div className="mb-5 flex flex-wrap items-center gap-3">
@@ -277,6 +280,13 @@ function ManagerEmployeesPage() {
                     <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
                       {t("performance")}
                     </div>
+                    <button
+                      onClick={(ev) => { ev.stopPropagation(); setPerfGuideEmp({ kpi, tW: e.kpiTargetWeight ?? 75, acW: e.kpiActivitiesWeight ?? 15, atW: e.kpiAttendanceWeight ?? 10 }); }}
+                      className="mt-0.5 inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold text-primary hover:bg-primary hover:text-white transition"
+                      title="How is this calculated?"
+                    >
+                      <HelpCircle className="h-2.5 w-2.5" /> Guide
+                    </button>
                   </div>
                 </div>
 
@@ -296,8 +306,15 @@ function ManagerEmployeesPage() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-purple-500/80"></span>
-                      {t("tasks") ?? "Tasks"}:{" "}
+                      {t("activities") ?? "Activities"}:{" "}
                       <span className="text-foreground">{kpi.activityScore}%</span>
+                      <button
+                        onClick={(ev) => { ev.stopPropagation(); setPerfGuideEmp({ kpi, tW: e.kpiTargetWeight ?? 75, acW: e.kpiActivitiesWeight ?? 15, atW: e.kpiAttendanceWeight ?? 10 }); }}
+                        className="inline-flex items-center text-muted-foreground hover:text-primary transition"
+                        title="Guide"
+                      >
+                        <HelpCircle className="h-3 w-3" />
+                      </button>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-orange-500/80"></span>
@@ -436,5 +453,23 @@ function ManagerEmployeesPage() {
         </div>
       )}
     </AppShell>
+
+    {perfGuideEmp && (
+      <PerformanceGuideModal
+        isManagerView={true}
+        open={!!perfGuideEmp}
+        onClose={() => setPerfGuideEmp(null)}
+        liveData={{
+          targetScore: perfGuideEmp.kpi.targetScore,
+          activityScore: perfGuideEmp.kpi.activityScore,
+          attendanceRate: perfGuideEmp.kpi.attendanceRate,
+          overallKpi: perfGuideEmp.kpi.overallKpi,
+          tW: perfGuideEmp.tW,
+          acW: perfGuideEmp.acW,
+          atW: perfGuideEmp.atW,
+        }}
+      />
+    )}
+  </>
   );
 }

@@ -534,7 +534,7 @@ function ManagerDetailsPage() {
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-purple-500/80"></span>
-            {t("tasks") ?? "Tasks"}:{" "}
+            {t("activities") ?? "Activities"}:{" "}
             <span className="text-foreground">{Math.round(activityScore)}%</span>
           </div>
           <div className="flex items-center gap-1.5">

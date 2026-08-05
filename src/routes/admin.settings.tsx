@@ -419,7 +419,7 @@ function UsersEditor() {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<
-    "all" | "admin" | "manager" | "employee" | "deactivated"
+    "all" | "admin" | "manager" | "employee" | "presales" | "deactivated"
   >("all");
   const upd = (patch: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...patch }));
   const departments = settings.departments ?? [];
@@ -435,13 +435,14 @@ function UsersEditor() {
   };
   const selectedDeptId = departments.find((d) => d.nameEn === draft.departmentEn)?.id ?? "";
   const selectedPosId = positions.find((p) => p.nameEn === draft.titleEn)?.id ?? "";
-  const managers = users.filter((u) => u.role === "manager");
+  const managers = users.filter((u) => u.role === "manager" && u.active !== false);
 
   const tabCounts = {
     all: users.filter((u) => u.active !== false).length,
     admin: users.filter((u) => u.role === "admin" && u.active !== false).length,
     manager: users.filter((u) => u.role === "manager" && u.active !== false).length,
     employee: users.filter((u) => u.role === "employee" && u.active !== false).length,
+    presales: users.filter((u) => u.role === "presales" && u.active !== false).length,
     deactivated: users.filter((u) => u.active === false).length,
   };
 
@@ -452,6 +453,7 @@ function UsersEditor() {
       if (activeTab === "admin") return u.role === "admin";
       if (activeTab === "manager") return u.role === "manager";
       if (activeTab === "employee") return u.role === "employee";
+      if (activeTab === "presales") return u.role === "presales";
       return true;
     })
     .filter(
@@ -787,6 +789,7 @@ function UsersEditor() {
               { key: "admin", label: "Admins" },
               { key: "manager", label: "Managers" },
               { key: "employee", label: "Employees" },
+              { key: "presales", label: "Presales" },
               { key: "deactivated", label: "Deactivated" },
             ] as const
           ).map(({ key, label }) => (
@@ -1046,7 +1049,7 @@ function UserRow({ user }: { user: AppUser }) {
   const positions = settings.positions ?? [];
   const selectedDeptId = departments.find((d) => d.nameEn === draft.departmentEn)?.id ?? "";
   const selectedPosId = positions.find((p) => p.nameEn === draft.titleEn)?.id ?? "";
-  const managers = users.filter((u) => u.role === "manager" && u.id !== user.id);
+  const managers = users.filter((u) => u.role === "manager" && u.active !== false && u.id !== user.id);
 
   if (edit) {
     return (
@@ -2711,7 +2714,10 @@ function UserRolesEditor() {
                     ? u.full_name_ar || u.full_name_en || u.email || "—"
                     : u.full_name_en || u.email || "—";
                 return (
-                  <tr key={u.user_id} className="align-top hover:bg-accent/30">
+                  <tr 
+                    key={u.user_id} 
+                    className={`align-top hover:bg-accent/30 ${u.active === false ? "bg-rose-50/50 opacity-60" : ""}`}
+                  >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {u.avatar_url ? (

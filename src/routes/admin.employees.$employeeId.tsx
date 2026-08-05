@@ -28,6 +28,7 @@ import {
   AlertTriangle,
   Workflow,
   Search,
+  HelpCircle,
 } from "lucide-react";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
 import { PipelineBoard } from "@/components/pipeline/PipelineBoard";
@@ -56,6 +57,7 @@ import {
   CAIRO_TZ,
 } from "@/lib/cairoTime";
 import { EmployeeTargetsCard } from "@/components/EmployeeTargetsCard";
+import { PerformanceGuideModal } from "@/components/PerformanceGuideModal";
 
 const ACTIVE_KEY = "int-crm:emp-active";
 function loadActive(): Record<string, boolean> {
@@ -131,6 +133,7 @@ function EmployeeDetailsPage() {
   const [filterNext7Days, setFilterNext7Days] = useState(false);
   const [filterNext15Days, setFilterNext15Days] = useState(false);
   const [activitiesDateFilter, setActivitiesDateFilter] = useState("");
+  const [showPerfGuide, setShowPerfGuide] = useState(false);
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>({});
   useEffect(() => {
@@ -654,7 +657,7 @@ function EmployeeDetailsPage() {
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-purple-500/80"></span>
-            {t("tasks") ?? "Tasks"}:{" "}
+            {t("activities") ?? "Activities"}:{" "}
             <span className="text-foreground">{Math.round(activityScore)}%</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -1346,8 +1349,18 @@ function EmployeeDetailsPage() {
 
               {/* KPI Weightage & Breakdown */}
               <div className="rounded-lg bg-secondary/30 p-4 col-span-1 md:col-span-2">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                  {t("overallPerfIndex")}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t("overallPerfIndex")}
+                  </div>
+                  <button
+                    onClick={() => setShowPerfGuide(true)}
+                    className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary transition hover:bg-primary hover:text-white"
+                    title="Performance Guide"
+                  >
+                    <HelpCircle className="h-3.5 w-3.5" />
+                    Guide
+                  </button>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                   {/* Overall KPI Gauge */}
@@ -1388,8 +1401,15 @@ function EmployeeDetailsPage() {
 
                     <div>
                       <div className="flex justify-between text-xs font-semibold mb-1">
-                        <span className="text-muted-foreground">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
                           Activity Performance (Weight: {acW}%)
+                          <button
+                            onClick={() => setShowPerfGuide(true)}
+                            className="inline-flex items-center text-muted-foreground hover:text-primary transition"
+                            title="Guide"
+                          >
+                            <HelpCircle className="h-3.5 w-3.5" />
+                          </button>
                         </span>
                         <span className="text-foreground">{activityScore.toFixed(0)}%</span>
                       </div>
@@ -1640,6 +1660,21 @@ function EmployeeDetailsPage() {
           onClose={() => setShowImport(null)}
         />
       )}
+
+      <PerformanceGuideModal
+        isManagerView={true}
+        open={showPerfGuide}
+        onClose={() => setShowPerfGuide(false)}
+        liveData={{
+          targetScore: Math.round(Math.min(100, achieveRate)),
+          activityScore: Math.round(activityScore),
+          attendanceRate: Math.round(attendanceRate),
+          overallKpi,
+          tW,
+          acW,
+          atW,
+        }}
+      />
     </AppShell>
   );
 }

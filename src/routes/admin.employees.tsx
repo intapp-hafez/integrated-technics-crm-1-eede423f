@@ -18,7 +18,9 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  HelpCircle,
 } from "lucide-react";
+import { PerformanceGuideModal } from "@/components/PerformanceGuideModal";
 import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
@@ -101,6 +103,7 @@ function EmployeesPage() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [minPerf, setMinPerf] = useState<string>("");
   const [maxPerf, setMaxPerf] = useState<string>("");
+  const [perfGuideEmp, setPerfGuideEmp] = useState<null | { kpi: ReturnType<typeof computeEmployeeKpis>; tW: number; acW: number; atW: number }>(null);
 
   const activeEmployees = useMemo(() => {
     return employees.filter((e) => {
@@ -297,6 +300,7 @@ function EmployeesPage() {
   if (isDetailRoute) return <Outlet />;
 
   return (
+    <>
     <AppShell panel="admin" user={user} pageTitle={t("employees")}>
       {/* Toolbar */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -530,8 +534,15 @@ function EmployeesPage() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-purple-500/80"></span>
-                      {t("tasks") ?? "Tasks"}:{" "}
+                      {t("activities") ?? "Activities"}:{" "}
                       <span className="text-foreground">{kpi.activityScore}%</span>
+                      <button
+                        onClick={(ev) => { ev.stopPropagation(); setPerfGuideEmp({ kpi, tW: e.kpiTargetWeight ?? 75, acW: e.kpiActivitiesWeight ?? 15, atW: e.kpiAttendanceWeight ?? 10 }); }}
+                        className="inline-flex items-center text-muted-foreground hover:text-primary transition"
+                        title="Guide"
+                      >
+                        <HelpCircle className="h-3 w-3" />
+                      </button>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-orange-500/80"></span>
@@ -764,6 +775,24 @@ function EmployeesPage() {
 
       {exportOpen && <ExportHoursDialog onClose={() => setExportOpen(false)} />}
     </AppShell>
+
+    {perfGuideEmp && (
+      <PerformanceGuideModal
+        isManagerView={true}
+        open={!!perfGuideEmp}
+        onClose={() => setPerfGuideEmp(null)}
+        liveData={{
+          targetScore: perfGuideEmp.kpi.targetScore,
+          activityScore: perfGuideEmp.kpi.activityScore,
+          attendanceRate: perfGuideEmp.kpi.attendanceRate,
+          overallKpi: perfGuideEmp.kpi.overallKpi,
+          tW: perfGuideEmp.tW,
+          acW: perfGuideEmp.acW,
+          atW: perfGuideEmp.atW,
+        }}
+      />
+    )}
+    </>
   );
 }
 

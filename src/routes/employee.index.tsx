@@ -13,6 +13,7 @@ import {
   Award,
   Plus,
   Clock4,
+  HelpCircle,
   FileBadge,
   Loader2,
   Check,
@@ -35,6 +36,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PerformanceGuideModal } from "@/components/PerformanceGuideModal";
 import { isLeadRelatedToEmployee } from "@/lib/employeeTargets";
 import { filterMyProjects } from "@/lib/employeeProjects";
 import { EmployeeTargetsCard } from "@/components/EmployeeTargetsCard";
@@ -106,6 +108,7 @@ function EmployeeDashboard() {
   }, [myLeads]);
 
   const [showInactiveModal, setShowInactiveModal] = useState(false);
+  const [showPerfGuide, setShowPerfGuide] = useState(false);
 
   useEffect(() => {
     if (inactiveLeads.length > 0) {
@@ -808,8 +811,18 @@ function EmployeeDashboard() {
 
           {/* KPI Weightage & Breakdown */}
           <div className="rounded-lg bg-secondary/30 p-4 col-span-1 md:col-span-2">
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              Overall Performance Index
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Overall Performance Index
+              </div>
+              <button
+                onClick={() => setShowPerfGuide(true)}
+                className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary transition hover:bg-primary hover:text-white"
+                title="Performance Guide"
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                Guide
+              </button>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-6">
               {/* Overall KPI Gauge */}
@@ -845,10 +858,17 @@ function EmployeeDashboard() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-muted-foreground">
-                      Activity Performance (Weight: {acW}%)
-                    </span>
+                      <div className="flex justify-between text-xs font-semibold mb-1">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          Activity Performance (Weight: {acW}%)
+                          <button
+                            onClick={() => setShowPerfGuide(true)}
+                            className="inline-flex items-center text-muted-foreground hover:text-primary transition"
+                            title="Guide"
+                          >
+                            <HelpCircle className="h-3.5 w-3.5" />
+                          </button>
+                        </span>
                     <span className="text-foreground">{activityScore.toFixed(0)}%</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-secondary">
@@ -1029,6 +1049,20 @@ function EmployeeDashboard() {
           </div>
         </div>
       </div>
+
+      <PerformanceGuideModal
+        open={showPerfGuide}
+        onClose={() => setShowPerfGuide(false)}
+        liveData={{
+          targetScore: Math.round(Math.min(100, achieveRate)),
+          activityScore: Math.round(activityScore),
+          attendanceRate: Math.round(attendanceRate),
+          overallKpi,
+          tW,
+          acW,
+          atW,
+        }}
+      />
     </AppShell>
   );
 }
