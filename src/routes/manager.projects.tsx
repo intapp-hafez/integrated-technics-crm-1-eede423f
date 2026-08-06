@@ -1189,6 +1189,7 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
                     <option value="End User">End User</option>
                     <option value="Contractor">Contractor</option>
                     <option value="System Integrator">System Integrator</option>
+                    <option value="Consultant">Consultant</option>
                     <option value="Other">Other</option>
                   </select>
                 </label>

@@ -116,6 +116,7 @@ export function ProjectRequestDialog({
     endUser: isAr ? "مستخدم نهائي" : "End User",
     contractor: isAr ? "مقاول" : "Contractor",
     systemIntegrator: isAr ? "متكامل أنظمة" : "System Integrator",
+    consultant: isAr ? "استشاري" : "Consultant",
     other: isAr ? "أخرى" : "Other",
     specifyType: isAr ? "حدد نوع الحساب" : "Specify Account Type",
     specifyPh: isAr ? "يرجى التحديد…" : "Please specify…",
@@ -411,6 +412,7 @@ export function ProjectRequestDialog({
               <option value="End User">{L.endUser}</option>
               <option value="Contractor">{L.contractor}</option>
               <option value="System Integrator">{L.systemIntegrator}</option>
+              <option value="Consultant">{L.consultant}</option>
               <option value="Other">{L.other}</option>
             </select>
           </label>
