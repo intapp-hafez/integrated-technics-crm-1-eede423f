@@ -228,6 +228,8 @@ export async function sbAddProject(id: string, p: Project) {
     street_en: (p as any).street ?? null,
     start_date: (p as any).startDate || null,
     end_date: (p as any).endDate || null,
+    description_en: p.description || null,
+    contact_name: p.contactName || null,
     account_type: (p as any).accountType || null,
     other_account_type: (p as any).otherAccountType || null,
     website: p.website || null,
@@ -273,6 +275,8 @@ export async function sbUpdateProject(id: string, patch: Partial<Project>) {
   if (patch.accountType !== undefined) row.account_type = patch.accountType;
   if (patch.otherAccountType !== undefined) row.other_account_type = patch.otherAccountType;
   if (patch.website !== undefined) row.website = patch.website;
+  if (patch.description !== undefined) row.description_en = patch.description;
+  if (patch.contactName !== undefined) row.contact_name = patch.contactName;
   if (patch.extraContacts !== undefined)
     row.extra_contacts = patch.extraContacts?.length ? patch.extraContacts : null;
   if (patch.client !== undefined) row.client_name = patch.client;

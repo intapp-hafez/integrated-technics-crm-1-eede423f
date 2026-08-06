@@ -521,7 +521,7 @@ function RegisteredAccountsTab() {
         <table className="w-full text-left text-sm text-muted-foreground">
           <thead className="bg-muted/50 text-xs uppercase text-foreground">
             <tr>
-              <th className="px-6 py-4 font-bold">Account Name</th>
+              <th className="px-6 py-4 font-bold">Title</th>
               <th className="px-6 py-4 font-bold">Type</th>
               <th className="px-6 py-4 font-bold">Owner</th>
               <th className="px-6 py-4 text-right font-bold">Actions</th>
@@ -638,7 +638,7 @@ function RegisteredAccountModal({
   const submit = () => {
     const finalType = typeSelection === "Other" ? customType.trim() : typeSelection;
     if (!name.trim() || !finalType) {
-      toast.error("Account name and type are required");
+      toast.error("Title and type are required");
       return;
     }
 
@@ -690,7 +690,7 @@ function RegisteredAccountModal({
         <div className="space-y-4">
           <div>
             <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Account Name <span className="text-destructive">*</span>
+              Title <span className="text-destructive">*</span>
             </label>
             <input
               autoFocus

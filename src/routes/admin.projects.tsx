@@ -616,7 +616,10 @@ function ProjectsPage() {
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="font-semibold tracking-wide text-foreground">
-                            {p.client || "—"}
+                            {p.contactName || p.client || "—"}
+                            {p.contactName && p.client && p.contactName !== p.client && (
+                              <div className="text-[11px] text-muted-foreground opacity-70 mt-0.5">{p.client}</div>
+                            )}
                           </div>
                           <div className="text-xs text-muted-foreground">{p.clientPhone}</div>
                         </td>
@@ -777,7 +780,10 @@ function ProjectsPage() {
 
                           {/* Main Contact */}
                           <td className="align-top px-4 py-4">
-                            <div className="font-semibold text-foreground text-sm">{p.client}</div>
+                            <div className="font-semibold text-foreground text-sm">{p.contactName || p.client || "—"}</div>
+                            {p.contactName && p.client && p.contactName !== p.client && (
+                              <div className="text-[11px] text-muted-foreground">{p.client}</div>
+                            )}
                             {p.clientPhone && (
                               <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                                 <Phone className="h-3 w-3 text-primary/70" />
@@ -963,7 +969,12 @@ function ProjectsPage() {
                           <div className="text-sm font-semibold tracking-wide text-foreground">
                             {p.clientPhone || "—"}
                           </div>
-                          <p className="text-xs text-muted-foreground">{p.client}</p>
+                          <div className="text-xs text-muted-foreground">
+                            {p.contactName || p.client}
+                            {p.contactName && p.client && p.contactName !== p.client && (
+                              <span className="block opacity-70 mt-0.5">{p.client}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -1117,8 +1128,13 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
   const [budget, setBudget] = useState(initial?.budget ?? 0);
   const [startDate, setStartDate] = useState<string>((initial as any)?.startDate ?? "");
   const [endDate, setEndDate] = useState<string>((initial as any)?.endDate ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [competitorsText, setCompetitorsText] = useState(
+    initial?.competitors ? initial.competitors.join(", ") : "",
+  );
 
   const [clientName, setClientName] = useState(initial?.client ?? "");
+  const [contactName, setContactName] = useState(initial?.contactName ?? "");
   const [clientEmail, setClientEmail] = useState(initial?.clientEmail ?? "");
   const [clientPhone, setClientPhone] = useState(initial?.clientPhone ?? "");
   const [city, setCity] = useState(initial?.city ?? "");
@@ -1175,6 +1191,12 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
       endDate: endDate || undefined,
       accountType,
       otherAccountType: accountType === "Other" ? otherAccountType : undefined,
+      description: description || undefined,
+      competitors: competitorsText
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean),
+      contactName: contactName || undefined,
       extraContacts: extraContacts.filter((c) => c.name.trim()),
     };
     if (initial) {
@@ -1185,7 +1207,6 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
         progress: 0,
         status: "On Track",
         offeredValue: 0,
-        competitors: [],
         category: projectType,
         lastUpdate: new Date().toISOString().slice(0, 10),
       });
@@ -1246,12 +1267,12 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
           <div className="space-y-5">
             <div>
               <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-primary">
-                {t("projects")}
+                {isAr ? "معلومات الحساب" : "Account Info"}
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="block">
                   <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    {t("name")}
+                    {isAr ? "العنوان *" : "Title *"}
                   </span>
                   <input
                     value={name}
@@ -1261,7 +1282,7 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Account Type
+                    {isAr ? "نوع الحساب" : "Account Type"}
                   </span>
                   <select
                     value={accountType}
@@ -1279,7 +1300,7 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
                 {accountType === "Other" && (
                   <label className="block sm:col-span-2 mt-[-4px]">
                     <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Specify Account Type
+                      {isAr ? "حدد نوع الحساب" : "Specify Account Type"}
                     </span>
                     <input
                       value={otherAccountType}
@@ -1289,6 +1310,29 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
                     />
                   </label>
                 )}
+                <label className="block sm:col-span-2">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {isAr ? "الوصف" : "Description"}
+                  </span>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={2}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                    placeholder={isAr ? "وصف مختصر..." : "Brief description..."}
+                  />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {isAr ? "المنافسون (مفصولين بفاصلة)" : "Competitors (comma-separated)"}
+                  </span>
+                  <input
+                    value={competitorsText}
+                    onChange={(e) => setCompetitorsText(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
+                    placeholder="Competitor A, Competitor B..."
+                  />
+                </label>
                 <div className="hidden sm:col-span-2">
                   <input
                     type="number"
@@ -1311,41 +1355,11 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
               </div>
             </div>
 
-            <div>
+            <div className="mt-5">
               <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-primary">
-                {t("clientInfo")}
+                {isAr ? "الموقع" : "Location"}
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    {t("fullName")}
-                  </span>
-                  <input
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    {t("email")}
-                  </span>
-                  <input
-                    type="email"
-                    value={clientEmail}
-                    onChange={(e) => setClientEmail(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-                  />
-                </label>
-                <div className="block">
-                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    {t("phone")}
-                  </span>
-                  <PhoneInput
-                    value={clientPhone || "+20"}
-                    onChange={(val) => setClientPhone(val)}
-                  />
-                </div>
                 <label className="block">
                   <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                     {t("city")}
@@ -1384,7 +1398,6 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
                     ))}
                   </select>
                 </label>
-
                 <label className="block sm:col-span-2">
                   <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                     {t("street")}
@@ -1395,18 +1408,68 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
                     className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
                   />
                 </label>
-                <label className="block sm:col-span-2">
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-primary">
+                {t("clientInfo")}
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="block">
                   <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Website
+                    {isAr ? "الاسم الكامل *" : "Full Name *"}
+                  </span>
+                  <input
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {isAr ? "العنوان *" : "Title *"}
+                  </span>
+                  <input
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {isAr ? "الموقع الإلكتروني" : "Website"}
                   </span>
                   <input
                     type="url"
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
                     placeholder="https://example.com"
+                    dir="ltr"
                     className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
                   />
                 </label>
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {t("email")} *
+                  </span>
+                  <input
+                    type="email"
+                    value={clientEmail}
+                    onChange={(e) => setClientEmail(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
+                    dir="ltr"
+                  />
+                </label>
+                <div className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {t("phone")} *
+                  </span>
+                  <PhoneInput
+                    value={clientPhone || "+20"}
+                    onChange={(val) => setClientPhone(val)}
+                  />
+                </div>
               </div>
             </div>
 

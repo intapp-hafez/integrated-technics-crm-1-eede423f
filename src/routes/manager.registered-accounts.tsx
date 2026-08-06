@@ -28,7 +28,7 @@ function ManagerRegisteredAccountsPage() {
           <table className="w-full text-left text-sm text-muted-foreground">
             <thead className="bg-muted/50 text-xs uppercase text-foreground">
               <tr>
-                <th className="px-6 py-4 font-bold">Account Name</th>
+                <th className="px-6 py-4 font-bold">Title</th>
                 <th className="px-6 py-4 font-bold">Type</th>
                 <th className="px-6 py-4 font-bold">Owner</th>
               </tr>

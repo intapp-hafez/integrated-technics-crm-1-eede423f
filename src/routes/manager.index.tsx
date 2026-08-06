@@ -9,8 +9,17 @@ import { useStoreState } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
 import { SmartInsights } from "@/components/dashboard/SmartInsights";
 import { PipelineFunnel } from "@/components/dashboard/PipelineFunnel";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Users, TrendingUp, CheckCircle2, Clock, Target, ArrowRight } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/manager/")({
   component: ManagerDashboard,
@@ -40,6 +49,40 @@ function ManagerDashboard() {
 
   const managerEmployee = employees.find((e: any) => e.name === meName || e.id === profile?.id);
   const myEmployees = employees.filter((e: any) => e !== managerEmployee);
+
+  const inactiveTeamMembers = useMemo(() => {
+    return myEmployees.filter((emp: any) => {
+      const empActs = storeActivities.filter((a: any) => {
+        return a.owner === emp.name || a.ownerId === emp.id || 
+               a.presalesTeam?.includes(emp.name) || 
+               a.presalesIds?.includes(emp.id);
+      });
+      if (empActs.length === 0) return true;
+
+      const hasRecentActivity = empActs.some((act: any) => {
+        const rawDate = act.date || act.createdAt;
+        if (!rawDate) return false;
+        const tMs = new Date(rawDate).getTime();
+        if (isNaN(tMs)) return false;
+        const diffDays = Math.floor((Date.now() - tMs) / (1000 * 60 * 60 * 24));
+        return diffDays <= 7;
+      });
+
+      return !hasRecentActivity;
+    });
+  }, [myEmployees, storeActivities]);
+
+  const [showInactiveModal, setShowInactiveModal] = useState(false);
+
+  useEffect(() => {
+    if (inactiveTeamMembers.length > 0) {
+      const hasShown = sessionStorage.getItem("shownInactiveTeamAlert");
+      if (!hasShown) {
+        setShowInactiveModal(true);
+        sessionStorage.setItem("shownInactiveTeamAlert", "true");
+      }
+    }
+  }, [inactiveTeamMembers.length]);
 
   const managerTarget = managerEmployee?.annualTarget || 0;
   const managerAchieved = managerEmployee?.achievedTarget || 0;
@@ -302,6 +345,41 @@ function ManagerDashboard() {
           ))}
         </div>
       </div>
+
+      <Dialog open={showInactiveModal} onOpenChange={setShowInactiveModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{dir === "rtl" ? "تنبيه: أعضاء الفريق غير النشطين" : "Alert: Inactive Team Members"}</DialogTitle>
+            <DialogDescription>
+              {dir === "rtl"
+                ? "أعضاء الفريق التالين لم يقموا بأي نشاطات خلال الـ 7 أيام الماضية."
+                : "The following team members have no logged activities in the past 7 days."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3 max-h-[60vh] overflow-y-auto">
+            {inactiveTeamMembers.map((emp: any) => (
+              <div key={emp.id || emp.name} className="flex items-center gap-3 rounded-lg border border-border p-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+                  {emp.name
+                    ?.split(" ")
+                    .map((w: string) => w[0])
+                    .join("")
+                    .slice(0, 2) || "?"}
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground">{emp.name}</div>
+                  <div className="text-xs text-muted-foreground">{emp.role || (dir === "rtl" ? "موظف" : "Employee")}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowInactiveModal(false)}>
+              {dir === "rtl" ? "حسناً" : "Got it"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

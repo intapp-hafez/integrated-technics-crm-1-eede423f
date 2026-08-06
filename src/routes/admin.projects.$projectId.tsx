@@ -221,7 +221,7 @@ function ProjectDetailsPage() {
                 </span>
                 {project.client && (
                   <span>
-                    Client: <b className="text-foreground">{project.client}</b>
+                    Client: <b className="text-foreground">{(project as any).contactName || project.client}</b>
                   </span>
                 )}
                 {(project as any).startDate && (
@@ -271,8 +271,8 @@ function ProjectDetailsPage() {
               </h2>
             </div>
             <div className="p-5 space-y-0.5">
-              <InfoRow label="Company">
-                {project.client || <span className="text-muted-foreground">—</span>}
+              <InfoRow label="Client">
+                {(project as any).contactName || project.client || <span className="text-muted-foreground">—</span>}
               </InfoRow>
               {clientLead?.contact && <InfoRow label="Contact">{clientLead.contact}</InfoRow>}
               <InfoRow label="Email">

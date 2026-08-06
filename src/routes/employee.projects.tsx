@@ -306,7 +306,12 @@ function ProjectsPage() {
                       <div className="font-semibold tracking-wide text-foreground">
                         {p.clientPhone || "—"}
                       </div>
-                      <div className="text-xs text-muted-foreground">{p.client}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {p.contactName || p.client}
+                        {p.contactName && p.client && p.contactName !== p.client && (
+                          <span className="block opacity-70">{p.client}</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">
                       {p.clientEmail || "—"}
@@ -406,7 +411,10 @@ function ProjectsPage() {
 
                       {/* Main Contact */}
                       <td className="align-top px-4 py-4">
-                        <div className="font-semibold text-foreground text-sm">{p.client}</div>
+                        <div className="font-semibold text-foreground text-sm">{p.contactName || p.client || "—"}</div>
+                        {p.contactName && p.client && p.contactName !== p.client && (
+                          <div className="text-[11px] text-muted-foreground">{p.client}</div>
+                        )}
                         {p.clientPhone && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                             <Phone className="h-3 w-3 text-primary/70" />
@@ -550,7 +558,12 @@ function ProjectsPage() {
                   <div className="inline-block rounded-full bg-secondary/50 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-muted-foreground">
                     {p.clientPhone || "—"}
                   </div>
-                  <div className="mt-1 pr-1 text-[11px] text-muted-foreground">{p.client}</div>
+                  <div className="mt-1 pr-1 text-[11px] text-muted-foreground">
+                    {p.contactName || p.client}
+                    {p.contactName && p.client && p.contactName !== p.client && (
+                      <span className="block opacity-70 mt-0.5">{p.client}</span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="mt-4">

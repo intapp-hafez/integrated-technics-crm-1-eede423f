@@ -244,6 +244,8 @@ export interface Project {
   competitors: string[];
   lastUpdate: string;
   projectType?: string;
+  description?: string;
+  contactName?: string;
   clientEmail?: string;
   clientPhone?: string;
   city?: string;

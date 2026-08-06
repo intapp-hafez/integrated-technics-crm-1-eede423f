@@ -769,7 +769,10 @@ function ManagerDetailsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold text-foreground">{p.name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {p.client} {p.category ? `· ${p.category}` : ""}
+                    {(p as any).contactName || p.client} {p.category ? `· ${p.category}` : ""}
+                    {(p as any).contactName && p.client && (p as any).contactName !== p.client && (
+                      <span className="block opacity-70 mt-0.5">{p.client}</span>
+                    )}
                   </div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">
                     Owner:{" "}

@@ -358,6 +358,8 @@ export function useSupabaseSync() {
         competitors: p.competitors ?? [],
         lastUpdate: p.updated_at?.slice(0, 10) ?? "",
         projectType: pick(p.project_type_en, p.project_type_ar) || undefined,
+        description: pick(p.description_en, p.description_ar) || undefined,
+        contactName: p.contact_name ?? undefined,
         city: city || undefined,
         district: district || undefined,
         street: pick(p.street_en, p.street_ar) || undefined,

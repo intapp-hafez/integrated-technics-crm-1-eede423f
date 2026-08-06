@@ -1185,7 +1185,12 @@ function EmployeeDetailsPage() {
                       {shortId(p.id)}
                     </td>
                     <td className="px-3 py-2 font-semibold text-foreground">{p.name}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{p.client}</td>
+                    <td className="px-3 py-2 text-muted-foreground">
+                      {p.contactName || p.client}
+                      {p.contactName && p.client && p.contactName !== p.client && (
+                        <div className="text-[10px] opacity-70 mt-0.5">{p.client}</div>
+                      )}
+                    </td>
                     <td className="px-3 py-2 text-[11px] space-y-0.5">
                       {p.clientPhone && (
                         <div className="flex items-center gap-1.5 text-muted-foreground">
