@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { useState, useMemo } from "react";
 import { Plus, X, ListTodo, MessageSquare, Clock4, CheckCircle2, CalendarDays, Building2, Trash2, Edit2, Shield, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { shortId, formatDate } from "@/lib/utils";
+import { shortId, formatDate, safeUUID } from "@/lib/utils";
 
 type DateFilter = "today" | "week" | "month" | "all";
 const DATE_FILTERS: { key: DateFilter; label: string }[] = [
@@ -649,7 +649,7 @@ function RegisteredAccountModal({
       actions.updateRegisteredAccount(account.id, { name: name.trim(), type: finalType, owner: owner.trim() });
       toast.success("Account updated");
     } else {
-      const tempId = crypto.randomUUID();
+      const tempId = safeUUID();
       const payload = {
         id: tempId,
         name: name.trim(),

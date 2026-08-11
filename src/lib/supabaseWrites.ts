@@ -538,7 +538,7 @@ import type { AppUser, CatalogCategory, LeadCatalogItem, UserRoleKey, Registered
 
 export async function sbAddLeadCatalogItem(payload: Partial<LeadCatalogItem>) {
   const { error } = await supabase.from("lead_catalog_items" as any).insert({
-    id: payload.id || crypto.randomUUID(),
+    id: payload.id || newUuid(),
     lead_id: payload.leadId,
     catalog_item_id: payload.catalogItemId,
     quantity: payload.quantity || 1,
