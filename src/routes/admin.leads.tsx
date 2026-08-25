@@ -963,7 +963,20 @@ function LeadsPage() {
                         ) : (
                           <>
                             <button
-                              onClick={() => setEditing(l)}
+                              onClick={() => {
+                                const linkedPid = getLinkedProjectId(l);
+                                const relProj = projects.find(
+                                  (p) =>
+                                    p.id === linkedPid ||
+                                    p.id === (l as any).projectId ||
+                                    p.id === (l as any).project_id,
+                                );
+                                setEditing({
+                                  ...l,
+                                  projectId: linkedPid || l.projectId,
+                                  phone: l.phone || relProj?.clientPhone || "",
+                                });
+                              }}
                               aria-label={t("edit")}
                               className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
                             >

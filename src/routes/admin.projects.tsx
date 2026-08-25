@@ -1133,8 +1133,8 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
     initial?.competitors ? initial.competitors.join(", ") : "",
   );
 
-  const [clientName, setClientName] = useState(initial?.client ?? "");
   const [contactName, setContactName] = useState(initial?.contactName ?? "");
+  const [contactTitle, setContactTitle] = useState(initial?.contactTitle ?? "");
   const [clientEmail, setClientEmail] = useState(initial?.clientEmail ?? "");
   const [clientPhone, setClientPhone] = useState(initial?.clientPhone ?? "");
   const [city, setCity] = useState(initial?.city ?? "");
@@ -1172,11 +1172,11 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
   };
 
   const submit = () => {
-    if (!name.trim() || !clientName.trim()) return;
+    if (!name.trim()) return;
     if (startDate && endDate && endDate < startDate) return;
     const payload = {
       name,
-      client: clientName,
+      client: name,
       clientEmail,
       clientPhone,
       city,
@@ -1197,6 +1197,7 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
         .map((c) => c.trim())
         .filter(Boolean),
       contactName: contactName || undefined,
+      contactTitle: contactTitle || undefined,
       extraContacts: extraContacts.filter((c) => c.name.trim()),
     };
     if (initial) {
@@ -1312,6 +1313,19 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
                 )}
                 <label className="block sm:col-span-2">
                   <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {isAr ? "الموقع الإلكتروني" : "Website"}
+                  </span>
+                  <input
+                    type="url"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    placeholder="https://example.com"
+                    dir="ltr"
+                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
+                  />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                     {isAr ? "الوصف" : "Description"}
                   </span>
                   <textarea
@@ -1418,7 +1432,7 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="block">
                   <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    {isAr ? "الاسم الكامل *" : "Full Name *"}
+                    {isAr ? "اسم مسؤول الاتصال *" : "Contact Person *"}
                   </span>
                   <input
                     value={contactName}
@@ -1428,25 +1442,13 @@ function ProjectFormModal({ initial, onClose }: { initial: Project | null; onClo
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    {isAr ? "العنوان *" : "Title *"}
+                    {isAr ? "المسمى الوظيفي / الدور" : "Job Title / Role"}
                   </span>
                   <input
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
+                    value={contactTitle}
+                    onChange={(e) => setContactTitle(e.target.value)}
                     className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    {isAr ? "الموقع الإلكتروني" : "Website"}
-                  </span>
-                  <input
-                    type="url"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                    placeholder="https://example.com"
-                    dir="ltr"
-                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
+                    placeholder={isAr ? "مثال: مدير تطوير التطبيقات" : "e.g. Application Development Manager"}
                   />
                 </label>
                 <label className="block">

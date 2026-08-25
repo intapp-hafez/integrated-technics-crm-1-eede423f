@@ -148,7 +148,24 @@ function LeadsPage() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filtered.map((l) => (
-          <LeadCard key={l.id} lead={l} onEdit={() => setEditing(l)} />
+          <LeadCard
+            key={l.id}
+            lead={l}
+            onEdit={() => {
+              const relProj = projects.find(
+                (p) =>
+                  p.id === (l as any).projectId ||
+                  p.id === (l as any).project_id ||
+                  p.name === l.company ||
+                  p.client === l.company,
+              );
+              setEditing({
+                ...l,
+                projectId: l.projectId || relProj?.id,
+                phone: l.phone || relProj?.clientPhone || "",
+              });
+            }}
+          />
         ))}
         {filtered.length === 0 && (
           <div className="col-span-full rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">

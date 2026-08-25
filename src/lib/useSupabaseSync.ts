@@ -91,8 +91,8 @@ export function useSupabaseSync() {
         supabase.from("quotation_items").select("*").order("sort_order"),
         supabase.from("role_permissions").select("*"),
         supabase
-          .from("project_requests")
-          .select("id, status, created_project_id, requested_by, name_en, website"),
+          .from("project_requests" as any)
+          .select("id, status, created_project_id, requested_by, name_en, website, client_name_en, contact_name_en, contact_title, email, phone"),
         supabase
           .from("admin_tasks" as any)
           .select("*")
@@ -135,8 +135,8 @@ export function useSupabaseSync() {
         projectMembers: projectMembersRes.data ?? [],
         quotationItems: quotationItemsRes.data ?? [],
         rolePerms: (rolePermsRes as any)?.data ?? [],
-        projectRequests: projectRequestsRes?.data ?? [],
-        adminTasks: adminTasksRes?.data ?? [],
+        projectRequests: (projectRequestsRes as any)?.data ?? [],
+        adminTasks: (adminTasksRes as any)?.data ?? [],
         adminTaskActivities: adminTaskActivitiesRes?.data ?? [],
         catalogItems: (catalogItemsRes as any)?.data ?? [],
         catalogCategories: (catalogCategoriesRes as any)?.data ?? [],
@@ -297,6 +297,7 @@ export function useSupabaseSync() {
         lat: Number(l.lat ?? 30.0444),
         lng: Number(l.lng ?? 31.2357),
         email: l.email ?? undefined,
+        phone: l.phone ?? undefined,
         street: pick(l.street_en, l.street_ar) || undefined,
         probability: l.probability ?? undefined,
         expectedCloseDate: l.expected_close_date ?? undefined,
@@ -340,12 +341,31 @@ export function useSupabaseSync() {
       const creatorProfile: any =
         profileById.get(actualCreatorId) || profileByCreatedUserId.get(actualCreatorId);
 
+      const clientName =
+        p.client_name ??
+        (client ? pick(client.name_en, client.name_ar) : undefined) ??
+        req?.client_name_en ??
+        "";
+      const contactName =
+        p.contact_name ??
+        (client ? pick(client.contact_name_en, client.contact_name_ar) : undefined) ??
+        req?.contact_name_en ??
+        undefined;
+      const contactTitle =
+        p.contact_title ??
+        client?.contact_title ??
+        req?.contact_title ??
+        undefined;
+      const clientEmail = p.client_email ?? client?.email ?? req?.email ?? undefined;
+      const clientPhone = p.client_phone ?? client?.phone ?? req?.phone ?? undefined;
+      const website = p.website ?? client?.website ?? req?.website ?? undefined;
+
       return {
         id: p.id,
         name: pick(p.name_en, p.name_ar),
-        client: p.client_name ?? (client ? pick(client.name_en, client.name_ar) : ""),
-        clientEmail: p.client_email ?? client?.email ?? undefined,
-        clientPhone: p.client_phone ?? client?.phone ?? undefined,
+        client: clientName,
+        clientEmail: clientEmail,
+        clientPhone: clientPhone,
         progress: p.progress ?? 0,
         budget: Number(p.budget ?? 0),
         offeredValue: Number(p.offered_value ?? 0),
@@ -359,7 +379,8 @@ export function useSupabaseSync() {
         lastUpdate: p.updated_at?.slice(0, 10) ?? "",
         projectType: pick(p.project_type_en, p.project_type_ar) || undefined,
         description: pick(p.description_en, p.description_ar) || undefined,
-        contactName: p.contact_name ?? undefined,
+        contactName: contactName,
+        contactTitle: contactTitle,
         city: city || undefined,
         district: district || undefined,
         street: pick(p.street_en, p.street_ar) || undefined,
@@ -367,7 +388,7 @@ export function useSupabaseSync() {
         endDate: p.end_date ?? undefined,
         accountType: p.account_type ?? undefined,
         otherAccountType: p.other_account_type ?? undefined,
-        website: p.website ?? undefined,
+        website: website,
         extraContacts: (() => {
           let raw: any = p.extra_contacts;
           if (!raw) return undefined;

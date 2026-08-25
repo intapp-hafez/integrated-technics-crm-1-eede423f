@@ -23,8 +23,9 @@ const schema = z.object({
   start_date: z.string().optional().or(z.literal("")),
   end_date: z.string().optional().or(z.literal("")),
   competitors: z.string().max(500).optional().or(z.literal("")),
-  client_name_en: z.string().trim().min(2).max(120),
+  client_name_en: z.string().trim().max(120).optional().or(z.literal("")),
   contact_name_en: z.string().trim().min(2).max(120),
+  contact_title: z.string().trim().max(120).optional().or(z.literal("")),
   email: z.string().trim().email().max(255),
   phone: z
     .string()
@@ -140,10 +141,12 @@ export function ProjectRequestDialog({
     street: isAr ? "الشارع / العنوان" : "Street / Address",
     streetPh: isAr ? "اسم المبنى / الشارع…" : "Building / Street name…",
     clientInfo: isAr ? "معلومات العميل" : "Client Info",
-    fullName: isAr ? "الاسم الكامل *" : "Full Name *",
-    fullNamePh: isAr ? "اسم مسؤول الاتصال" : "Contact person name",
-    company: isAr ? "العنوان *" : "Title *",
-    companyPh: isAr ? "العنوان" : "Title",
+    contactPerson: isAr ? "اسم مسؤول الاتصال *" : "Contact Person *",
+    contactPersonPh: isAr ? "مثال: م. سارة مفيد" : "e.g. Eng. Sarah Mofed",
+    contactTitle: isAr ? "المسمى الوظيفي لمسؤول الاتصال" : "Job Title / Role",
+    contactTitlePh: isAr ? "مثال: مدير تطوير التطبيقات" : "e.g. Application Development Manager",
+    company: isAr ? "اسم الشركة / المؤسسة" : "Company / Client Name",
+    companyPh: isAr ? "اتركه فارغاً لاستخدام عنوان الحساب" : "Leave blank to use Account Title",
     website: isAr ? "الموقع الإلكتروني" : "Website",
     websitePh: "https://example.com",
     email: isAr ? "البريد الإلكتروني *" : "Email *",
@@ -197,6 +200,7 @@ export function ProjectRequestDialog({
         competitors: existingRequest.competitors?.join(", ") || "",
         client_name_en: existingRequest.client_name_en || "",
         contact_name_en: existingRequest.contact_name_en || "",
+        contact_title: existingRequest.contact_title || "",
         email: existingRequest.email || "",
         account_type: existingRequest.account_type || "",
         other_account_type: existingRequest.other_account_type || "",
@@ -327,8 +331,9 @@ export function ProjectRequestDialog({
             .map((s) => s.trim())
             .filter(Boolean)
         : [],
-      client_name_en: d.client_name_en,
+      client_name_en: d.client_name_en || d.name_en,
       contact_name_en: d.contact_name_en,
+      contact_title: d.contact_title || null,
       email: d.email,
       phone: d.phone,
       website: d.website || null,
@@ -427,6 +432,17 @@ export function ProjectRequestDialog({
               />
             </label>
           )}
+          <label className="block sm:col-span-2">
+            <span className={labelCls}>{L.website}</span>
+            <input
+              type="url"
+              value={v.website ?? ""}
+              onChange={set("website")}
+              className={inputCls}
+              placeholder={L.websitePh}
+              dir="ltr"
+            />
+          </label>
           <div className="hidden">
             <label className="block">
               <span className={labelCls}>{L.category}</span>
@@ -564,32 +580,21 @@ export function ProjectRequestDialog({
         <div className={`${sectionCls} mt-5`}>{L.clientInfo}</div>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className={labelCls}>{L.fullName}</span>
+            <span className={labelCls}>{L.contactPerson}</span>
             <input
               value={v.contact_name_en ?? ""}
               onChange={set("contact_name_en")}
               className={inputCls}
-              placeholder={L.fullNamePh}
+              placeholder={L.contactPersonPh}
             />
           </label>
           <label className="block">
-            <span className={labelCls}>{L.company}</span>
+            <span className={labelCls}>{L.contactTitle}</span>
             <input
-              value={v.client_name_en ?? ""}
-              onChange={set("client_name_en")}
+              value={v.contact_title ?? ""}
+              onChange={set("contact_title")}
               className={inputCls}
-              placeholder={L.companyPh}
-            />
-          </label>
-          <label className="block">
-            <span className={labelCls}>{L.website}</span>
-            <input
-              type="url"
-              value={v.website ?? ""}
-              onChange={set("website")}
-              className={inputCls}
-              placeholder={L.websitePh}
-              dir="ltr"
+              placeholder={L.contactTitlePh}
             />
           </label>
           <label className="block">

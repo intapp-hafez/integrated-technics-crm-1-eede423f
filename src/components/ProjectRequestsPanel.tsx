@@ -18,6 +18,7 @@ type Req = {
   name_en: string;
   client_name_en: string;
   contact_name_en: string;
+  contact_title?: string | null;
   email: string;
   phone: string;
   budget: number | null;
@@ -28,6 +29,7 @@ type Req = {
   requester?: { full_name_en: string | null } | null;
   account_type?: string | null;
   other_account_type?: string | null;
+  website?: string | null;
   category_en?: string | null;
   extra_contacts?: string | null;
 };
@@ -214,10 +216,27 @@ export function ProjectRequestsPanel({ mode }: { mode: "approver" | "mine" }) {
                           : r.category_en}
                       </div>
                     )}
+                    {r.website && (
+                      <div className="text-[11px] text-primary mt-0.5">
+                        <a
+                          href={r.website.startsWith("http") ? r.website : `https://${r.website}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:underline font-mono"
+                        >
+                          {r.website}
+                        </a>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 align-top text-muted-foreground">
-                    <div className="font-medium text-foreground">{r.client_name_en}</div>
-                    <div>{r.contact_name_en}</div>
+                    <div className="font-medium text-foreground">{r.client_name_en || r.name_en}</div>
+                    <div className="text-foreground/90 font-medium">
+                      {r.contact_name_en}
+                      {r.contact_title && (
+                        <span className="text-muted-foreground font-normal text-[11px]"> ({r.contact_title})</span>
+                      )}
+                    </div>
                     <div className="mt-1 flex flex-col gap-0.5 text-[11px]">
                       {r.email && <span>{r.email}</span>}
                       {r.phone && <span>{r.phone}</span>}

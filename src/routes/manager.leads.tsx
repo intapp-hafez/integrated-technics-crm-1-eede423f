@@ -361,7 +361,20 @@ function ManagerLeadsListPage() {
                         </div>
                       </div>
                       <button
-                        onClick={() => setEditing(l)}
+                        onClick={() => {
+                          const relProj = projects.find(
+                            (p) =>
+                              p.id === (l as any).projectId ||
+                              p.id === (l as any).project_id ||
+                              p.name === l.company ||
+                              p.client === l.company,
+                          );
+                          setEditing({
+                            ...l,
+                            projectId: l.projectId || relProj?.id,
+                            phone: l.phone || relProj?.clientPhone || "",
+                          });
+                        }}
                         className="text-muted-foreground hover:text-primary ms-auto"
                         aria-label="Edit"
                       >

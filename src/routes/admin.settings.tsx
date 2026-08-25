@@ -41,6 +41,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
 import { useConfirm } from "@/components/shared/ConfirmDialog";
+import { AvatarUploadInput } from "@/components/shared/AvatarUploadInput";
 import {
   APP_PAGES,
   USER_ROLES,
@@ -653,13 +654,12 @@ function UsersEditor() {
                   className={inputCls}
                 />
               </Field>
-              <Field label="Avatar URL">
-                <input
+              <div className="sm:col-span-2">
+                <AvatarUploadInput
                   value={draft.avatarUrl ?? ""}
-                  onChange={(e) => upd({ avatarUrl: e.target.value })}
-                  className={inputCls}
+                  onChange={(url) => upd({ avatarUrl: url })}
                 />
-              </Field>
+              </div>
               <Field label="Target type">
                 <select
                   value={draft.targetType ?? "yearly"}
@@ -1175,13 +1175,12 @@ function UserRow({ user }: { user: AppUser }) {
                 className={inputCls}
               />
             </Field>
-            <Field label="Avatar URL">
-              <input
+            <div className="sm:col-span-2">
+              <AvatarUploadInput
                 value={draft.avatarUrl ?? ""}
-                onChange={(e) => upd({ avatarUrl: e.target.value })}
-                className={inputCls}
+                onChange={(url) => upd({ avatarUrl: url })}
               />
-            </Field>
+            </div>
             <Field label="Target type">
               <select
                 value={draft.targetType ?? "yearly"}

@@ -1,0 +1,70 @@
+| **Name**                              | **Category**            | **Description**                                                                                                                    |
+| ------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **CCTV, IP CCTV**                     | Security & Surveillance | CCTV and IP-based surveillance systems for monitoring, recording, and securing facilities.                                         |
+| **Video Management**                  | Security & Surveillance | Centralized video management platforms for monitoring, recording, storing, and managing surveillance footage.                      |
+| **Video Analytics**                   | Security & Surveillance | Intelligent video analysis for detecting events, movements, objects, and security incidents.                                       |
+| **Face Recognition**                  | Security & Surveillance | Facial recognition solutions for identification, verification, and security monitoring.                                            |
+| **ANPR**                              | Security & Surveillance | Automatic Number Plate Recognition systems for identifying and monitoring vehicle license plates.                                  |
+| **Access Control**                    | Access & Security       | Electronic systems for controlling and managing access to buildings, rooms, and restricted areas.                                  |
+| **Key Card Systems**                  | Access & Security       | Card-based access systems for secure and controlled entry to authorized areas.                                                     |
+| **Biometrics**                        | Access & Security       | Biometric authentication using fingerprints, facial recognition, or other unique physical characteristics.                         |
+| **Intercom**                          | Access & Security       | Communication and visitor management systems for controlled entry and internal communication.                                      |
+| **Security Gates**                    | Access & Security       | Automated and controlled security gates for restricting and managing access.                                                       |
+| **Gate Barriers**                     | Gate & Vehicle Security | Automatic barriers for controlling vehicle entry and exit at gates, parking areas, and facilities.                                 |
+| **Bollards**                          | Gate & Vehicle Security | Fixed or automatic security bollards designed to control vehicle access and protect buildings and restricted areas.                |
+| **Turnstiles**                        | Gate & Vehicle Security | Controlled pedestrian entry systems for managing and monitoring access to facilities.                                              |
+| **Speed Gates**                       | Gate & Vehicle Security | High-speed pedestrian gates designed for secure and efficient access control.                                                      |
+| **Vehicle Scanners**                  | Gate & Vehicle Security | Security scanning systems for inspecting vehicles and detecting unauthorized or suspicious objects.                                |
+| **UVSS**                              | Gate & Vehicle Security | Under Vehicle Surveillance Systems for inspecting vehicle undersides and detecting concealed objects or threats.                   |
+| **X-Ray Scanners**                    | Screening & Inspection  | X-ray inspection systems for screening baggage, packages, and objects for security threats.                                        |
+| **Car Scanners**                      | Screening & Inspection  | Specialized scanning systems for detailed security inspection of passenger vehicles.                                               |
+| **Truck Scanners**                    | Screening & Inspection  | Large-scale scanning systems for inspecting trucks, containers, and commercial vehicles.                                           |
+| **Baggage Scanners**                  | Screening & Inspection  | X-ray-based systems for screening luggage and baggage for prohibited or dangerous items.                                           |
+| **Body Scanners**                     | Screening & Inspection  | Security screening systems designed to detect concealed objects or threats on individuals.                                         |
+| **Fire Alarm Systems**                | Fire & Safety           | Fire detection and alarm systems for identifying fires and providing early warning.                                                |
+| **Voice Evacuation**                  | Fire & Safety           | Voice-based emergency notification and evacuation systems for communicating instructions during emergencies.                       |
+| **Fire-related Security Systems**     | Fire & Safety           | Integrated security and safety solutions supporting fire detection, emergency response, and evacuation.                            |
+| **Structured Cabling**                | Network Infrastructure  | Structured network cabling solutions for reliable data, voice, and communication infrastructure.                                   |
+| **Routing & Switching**               | Network Infrastructure  | Enterprise routing and switching solutions for connecting and managing network infrastructure.                                     |
+| **Wireless**                          | Network Infrastructure  | Enterprise wireless networking solutions providing secure and reliable Wi-Fi connectivity.                                         |
+| **Enterprise Networks**               | Network Infrastructure  | Scalable network infrastructure solutions designed for enterprise environments and large organizations.                            |
+| **Data Centers**                      | Network Infrastructure  | Data center infrastructure solutions for secure, reliable, and high-performance IT environments.                                   |
+| **Enterprise Security**               | Cyber Security          | Enterprise-level cybersecurity solutions designed to protect organizational systems, users, and data.                              |
+| **Network Security**                  | Cyber Security          | Security solutions for protecting networks against unauthorized access, attacks, and cyber threats.                                |
+| **Cyber Security Solutions**          | Cyber Security          | Comprehensive cybersecurity technologies and services for protecting digital infrastructure and information.                       |
+| **Public Address**                    | Audio / Video           | Audio distribution systems for announcements, paging, and public communication.                                                    |
+| **Voice Evacuation**                  | Audio / Video           | Emergency voice communication systems for delivering clear evacuation instructions.                                                |
+| **IPTV**                              | Audio / Video           | IP-based television distribution systems for delivering television and multimedia content across networks.                         |
+| **Digital Signage**                   | Audio / Video           | Digital display systems for delivering information, announcements, advertisements, and visual content.                             |
+| **Video Walls**                       | Audio / Video           | Multi-display visual systems for presenting large-scale information, monitoring, and multimedia content.                           |
+| **AV Systems**                        | Audio / Video           | Professional audio and video solutions for meeting rooms, venues, presentations, and multimedia environments.                      |
+| **Management & Crisis Control Rooms** | Control Rooms           | Centralized control room solutions for monitoring operations, security events, and emergency situations.                           |
+| **Video Wall Control**                | Control Rooms           | Systems for managing and controlling multiple displays and video sources within control rooms.                                     |
+| **Mission-Critical Environments**     | Control Rooms           | Specialized technology infrastructure for environments requiring continuous operation, high availability, and reliable monitoring. |
+| **Building Management Systems**       | Building Automation     | Centralized systems for monitoring and controlling building facilities, equipment, and operational functions.                      |
+| **Room Management**                   | Building Automation     | Intelligent room control solutions for managing lighting, climate, occupancy, and other room functions.                            |
+| **Automation**                        | Building Automation     | Automated control and management solutions for improving building efficiency, comfort, and operational performance.                |
+| **Parking Management**                | Parking Solutions       | Systems for managing vehicle parking operations, access, occupancy, and payment processes.                                         |
+| **Parking Guidance**                  | Parking Solutions       | Intelligent systems that guide drivers to available parking spaces and improve parking efficiency.                                 |
+| **ANPR**                              | Parking Solutions       | Automatic Number Plate Recognition for vehicle identification, parking access, monitoring, and management.                         |
+| **Barriers**                          | Parking Solutions       | Automated parking barriers for controlling vehicle entry and exit.                                                                 |
+| **IPTV**                              | Hospitality Technology  | IPTV solutions designed for hotels and hospitality environments to deliver television and multimedia services.                     |
+| **Hotel Electronic Card Key Systems** | Hospitality Technology  | Electronic hotel access systems using cards or credentials to provide secure room and facility access.                             |
+| **Room Management Systems**           | Hospitality Technology  | Integrated hotel room systems for controlling room services, comfort, automation, and guest functions.                             |
+| **Intercom**                          | Communication           | Intercom systems for internal communication, visitor management, and controlled access.                                            |
+| **Unified Communications**            | Communication           | Integrated communication platforms combining voice, messaging, conferencing, and collaboration services.                           |
+| **Collaboration**                     | Communication           | Digital collaboration solutions that enable teams to communicate, share information, and work together efficiently.                |
+| **Video Conferencing**                | Communication           | Professional video communication systems for remote meetings, presentations, and collaboration.                                    |
+| **LED Video Walls**                   | Professional Displays   | Large-format LED display systems for high-impact visual presentations, advertising, monitoring, and information display.           |
+| **LCD Video Walls**                   | Professional Displays   | Multi-screen LCD display solutions for control rooms, presentations, monitoring, and digital content.                              |
+| **Interactive Displays**              | Professional Displays   | Interactive touchscreen displays for presentations, collaboration, education, meetings, and digital engagement.                    |
+| **Digital Signage**                   | Professional Displays   | Professional digital display solutions for delivering dynamic information, advertising, announcements, and multimedia content.     |
+| **Multi-System Integration**          | Integration             | Integration of multiple security, IT, building automation, and communication systems into a unified environment.                   |
+| **Security System Integration**       | Integration             | Integration of different security technologies to provide centralized monitoring, management, and control.                         |
+| **IT & Building Systems Integration** | Integration             | Connecting IT infrastructure with building management, automation, security, and operational systems.                              |
+| **Consultation**                      | Professional Services   | Professional technical consultation for evaluating requirements and defining suitable technology solutions.                        |
+| **Project Management**                | Professional Services   | Planning, coordinating, supervising, and managing technology projects from initiation through completion.                          |
+| **Integration & Customization**       | Professional Services   | Custom integration and configuration of technology systems according to project-specific requirements.                             |
+| **Design**                            | Professional Services   | Technical system design, architecture, planning, and engineering documentation.                                                    |
+| **Implementation**                    | Professional Services   | Installation, configuration, commissioning, and deployment of integrated technology systems.                                       |
+| **Support**                           | Professional Services   | Technical support, maintenance, troubleshooting, monitoring, and ongoing system assistance.                                        |

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { fmtMoney } from "@/lib/mock-data";
 import { ChangePasswordModal } from "@/components/ChangePasswordModal";
+import { AvatarUploadInput } from "@/components/shared/AvatarUploadInput";
 
 export const Route = createFileRoute("/employee/profile")({
   component: ProfilePage,
@@ -537,17 +538,13 @@ function ProfileEditModal({
               {form.location}
             </div>
           </label>
-          <label className="block sm:col-span-2">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Employee Image URL
-            </span>
-            <input
+          <div className="sm:col-span-2">
+            <AvatarUploadInput
               value={form.avatarUrl || ""}
-              onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })}
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-              placeholder="https://images.unsplash.com/..."
+              onChange={(url) => setForm({ ...form, avatarUrl: url })}
+              label="Employee Image URL"
             />
-          </label>
+          </div>
           <label className="block">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Annual Target

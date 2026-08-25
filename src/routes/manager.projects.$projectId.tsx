@@ -30,6 +30,7 @@ import {
   Plus,
   Trash2,
   FileSpreadsheet,
+  Globe,
 } from "lucide-react";
 import { useState } from "react";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
@@ -219,7 +220,28 @@ function ProjectDetailsPage() {
                 </span>
                 {project.client && (
                   <span>
-                    Client: <b className="text-foreground">{(project as any).contactName || project.client}</b>
+                    Client: <b className="text-foreground">{project.client}</b>
+                  </span>
+                )}
+                {(project as any).website && (
+                  <span className="inline-flex items-center gap-1">
+                    <Globe className="h-3.5 w-3.5 text-primary" />
+                    <a
+                      href={(project as any).website.startsWith("http") ? (project as any).website : `https://${(project as any).website}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:underline font-mono text-primary"
+                    >
+                      {(project as any).website}
+                    </a>
+                  </span>
+                )}
+                {(project as any).contactName && (
+                  <span>
+                    Contact: <b className="text-foreground">{(project as any).contactName}</b>
+                    {(project as any).contactTitle && (
+                      <span className="opacity-75"> ({(project as any).contactTitle})</span>
+                    )}
                   </span>
                 )}
                 {(project as any).startDate && (
@@ -269,9 +291,16 @@ function ProjectDetailsPage() {
             </div>
             <div className="p-5 space-y-0.5">
               <InfoRow label="Client">
-                {(project as any).contactName || project.client || <span className="text-muted-foreground">—</span>}
+                {project.client || <span className="text-muted-foreground">—</span>}
               </InfoRow>
-              {clientLead?.contact && <InfoRow label="Contact">{clientLead.contact}</InfoRow>}
+              <InfoRow label="Contact Person">
+                {(project as any).contactName || clientLead?.contact || <span className="text-muted-foreground">—</span>}
+              </InfoRow>
+              {(project as any).contactTitle && (
+                <InfoRow label="Role / Title">
+                  {(project as any).contactTitle}
+                </InfoRow>
+              )}
               <InfoRow label="Email">
                 {clientEmail ? (
                   <a
@@ -296,6 +325,18 @@ function ProjectDetailsPage() {
                   <span className="text-muted-foreground">—</span>
                 )}
               </InfoRow>
+              {(project as any).website && (
+                <InfoRow label="Website">
+                  <a
+                    href={(project as any).website.startsWith("http") ? (project as any).website : `https://${(project as any).website}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:underline font-mono"
+                  >
+                    {(project as any).website}
+                  </a>
+                </InfoRow>
+              )}
               <InfoRow label="Location">
                 {street || clientDistrict || clientCity ? (
                   <span>{[street, clientDistrict, clientCity].filter(Boolean).join(", ")}</span>

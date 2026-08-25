@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState, getProbabilityForStatus } from "@/lib/store";
@@ -60,10 +60,22 @@ export function LeadFormModal({
     { value: "Social Media", key: "sourceSocialMedia" },
     { value: "Partner", key: "sourcePartner" },
   ];
-  const [projectId, setProjectId] = useState(() => {
+  const initialResolvedProjectId = (() => {
     if (!initial) return "";
-    if (initial.projectId && projects.some((p) => p.id === initial.projectId))
-      return initial.projectId;
+    const rawPid = initial.projectId || (initial as any)?.project_id;
+    if (rawPid && projects.some((p) => p.id === rawPid))
+      return rawPid;
+
+    // Match exact by company name or project client/name
+    const co = (initial.company || "").trim().toLowerCase();
+    const exact = projects.find(
+      (p) =>
+        (p.name || "").trim().toLowerCase() === co ||
+        (p.client || "").trim().toLowerCase() === co,
+    );
+    if (exact) return exact.id;
+
+    // Match by lead activities
     const latest = activities
       .filter((a) => a.leadId === initial.id && a.projectId)
       .sort(
@@ -73,19 +85,38 @@ export function LeadFormModal({
       )[0];
     if (latest?.projectId && projects.some((p) => p.id === latest.projectId))
       return latest.projectId;
-    const co = (initial.company || "").trim().toLowerCase();
-    const byName = projects.find((p) => (p.name || "").trim().toLowerCase() === co);
-    if (byName) return byName.id;
+
+    // Match if company name contains project name or client name (e.g. "Central Park - Atrium - TMG")
+    const partial = projects.find((p) => {
+      const pName = (p.name || "").trim().toLowerCase();
+      const pClient = (p.client || "").trim().toLowerCase();
+      return (pName && co.includes(pName)) || (pClient && co.includes(pClient));
+    });
+    if (partial) return partial.id;
+
+    const contactLower = (initial.contact || "").trim().toLowerCase();
     const byClient = projects.find(
-      (p) => (p.client || "").trim().toLowerCase() === (initial.contact || "").trim().toLowerCase(),
+      (p) =>
+        (p.client || "").trim().toLowerCase() === contactLower ||
+        (p.contactName || "").trim().toLowerCase() === contactLower,
     );
     return byClient?.id ?? "";
-  });
+  })();
+
+  const [projectId, setProjectId] = useState<string>(initialResolvedProjectId);
   const [code, setCode] = useState<string>((initial as any)?.code ?? "");
   const [company, setCompany] = useState(initial?.company ?? "");
   const [contact, setContact] = useState(initial?.contact ?? "");
-  const [phone, setPhone] = useState(initial?.phone ?? "");
-  const [email, setEmail] = useState(initial?.email ?? "");
+  const [phone, setPhone] = useState(() => {
+    if (initial?.phone) return initial.phone;
+    const p = projects.find((x) => x.id === initialResolvedProjectId);
+    return p?.clientPhone ?? "";
+  });
+  const [email, setEmail] = useState(() => {
+    if (initial?.email) return initial.email;
+    const p = projects.find((x) => x.id === initialResolvedProjectId);
+    return p?.clientEmail ?? "";
+  });
   const [industry, setIndustry] = useState(initial?.industry ?? "");
   const [source, setSource] = useState(initial?.source ?? "Website");
   const [status, setStatus] = useState<LeadStatus>(initial?.status ?? "new");
@@ -107,17 +138,40 @@ export function LeadFormModal({
 
   const selectedProject = projects.find((p) => p.id === projectId);
 
+  // Synchronize when initial lead or projects change
+  useEffect(() => {
+    if (!initial) return;
+    if (initialResolvedProjectId && (!projectId || !projects.some((p) => p.id === projectId))) {
+      setProjectId(initialResolvedProjectId);
+    }
+    const resolvedPid = projectId || initialResolvedProjectId;
+    const matchedP = projects.find((x) => x.id === resolvedPid);
+    if (!phone) {
+      if (initial.phone) setPhone(initial.phone);
+      else if (matchedP?.clientPhone) setPhone(matchedP.clientPhone);
+    }
+    if (!email) {
+      if (initial.email) setEmail(initial.email);
+      else if (matchedP?.clientEmail) setEmail(matchedP.clientEmail);
+    }
+  }, [initial, projects, initialResolvedProjectId, projectId, phone, email]);
+
   const onProjectChange = (pid: string) => {
     setProjectId(pid);
     const p = projects.find((x) => x.id === pid);
     if (p) {
-      setCompany(p.name);
-      setContact(p.client);
-      setIndustry(p.category || "");
-      setValue(p.offeredValue ?? p.budget ?? 0);
-      if (p.clientEmail) setEmail(p.clientEmail);
-    } else {
-      setCompany("");
+      if (!initial) {
+        setCompany(p.name);
+        setContact(p.contactName || p.client);
+        setIndustry(p.category || "");
+        setValue(p.offeredValue ?? p.budget ?? 0);
+      }
+      if (p.clientEmail && (!email || email === "info@company.com" || email.includes("@ex.com"))) {
+        setEmail(p.clientEmail);
+      }
+      if (p.clientPhone && !phone) {
+        setPhone(p.clientPhone);
+      }
     }
   };
 

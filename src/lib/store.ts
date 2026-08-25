@@ -246,6 +246,7 @@ export interface Project {
   projectType?: string;
   description?: string;
   contactName?: string;
+  contactTitle?: string;
   clientEmail?: string;
   clientPhone?: string;
   city?: string;

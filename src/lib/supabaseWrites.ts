@@ -58,6 +58,7 @@ export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
     company_en: l.company,
     contact_name_en: l.contact,
     email: l.email ?? null,
+    phone: l.phone ?? null,
     source_en: l.source,
     industry_en: l.industry,
     status: l.status as any,
@@ -84,6 +85,7 @@ export async function sbUpdateLead(id: string, patch: Partial<Lead>) {
   if (patch.company !== undefined) row.company_en = patch.company;
   if (patch.contact !== undefined) row.contact_name_en = patch.contact;
   if (patch.email !== undefined) row.email = patch.email;
+  if (patch.phone !== undefined) row.phone = patch.phone;
   if (patch.source !== undefined) row.source_en = patch.source;
   if (patch.industry !== undefined) row.industry_en = patch.industry;
   if (patch.status !== undefined) row.status = patch.status;
@@ -230,6 +232,7 @@ export async function sbAddProject(id: string, p: Project) {
     end_date: (p as any).endDate || null,
     description_en: p.description || null,
     contact_name: p.contactName || null,
+    contact_title: (p as any).contactTitle || null,
     account_type: (p as any).accountType || null,
     other_account_type: (p as any).otherAccountType || null,
     website: p.website || null,
@@ -277,6 +280,7 @@ export async function sbUpdateProject(id: string, patch: Partial<Project>) {
   if (patch.website !== undefined) row.website = patch.website;
   if (patch.description !== undefined) row.description_en = patch.description;
   if (patch.contactName !== undefined) row.contact_name = patch.contactName;
+  if ((patch as any).contactTitle !== undefined) row.contact_title = (patch as any).contactTitle;
   if (patch.extraContacts !== undefined)
     row.extra_contacts = patch.extraContacts?.length ? patch.extraContacts : null;
   if (patch.client !== undefined) row.client_name = patch.client;
@@ -470,6 +474,45 @@ export async function sbSignedAttachmentUrl(storagePath: string) {
     return null;
   }
   return data.signedUrl;
+}
+
+// ---------------- Avatars (storage) ----------------
+export const AVATAR_BUCKET = "avatars";
+export const MAX_AVATAR_SIZE = 1 * 1024 * 1024; // 1 MB
+
+export function validateAvatarFile(file: File): string | null {
+  const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+  const ext = file.name.split(".").pop()?.toLowerCase();
+  const validExt = ["png", "jpg", "jpeg", "webp"].includes(ext || "");
+  if (!allowed.includes(file.type) && !validExt) {
+    return "Invalid format. Allowed formats: PNG, JPG, JPEG, WEBP.";
+  }
+  if (file.size > MAX_AVATAR_SIZE) {
+    return "File size must not exceed 1 MB.";
+  }
+  return null;
+}
+
+export async function sbUploadAvatar(file: File): Promise<string> {
+  const invalid = validateAvatarFile(file);
+  if (invalid) {
+    toast.error(invalid);
+    throw new Error(invalid);
+  }
+  const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+  const ext = safeName.split(".").pop() || "jpg";
+  const path = `${currentUserId || "public"}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  
+  const up = await supabase.storage.from(AVATAR_BUCKET).upload(path, file, {
+    contentType: file.type || `image/${ext}`,
+    upsert: true,
+  });
+  if (up.error) {
+    warn("Upload avatar", up.error);
+    throw up.error;
+  }
+  const { data } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
 }
 
 // ---------------- Attendance ----------------

@@ -606,11 +606,11 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
             <div className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <span className="font-semibold text-foreground">Account:</span>{" "}
-                {relatedProject?.name || lead.company}
+                {relatedProject?.name || lead.company || "—"}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span className="font-semibold text-foreground">Contact Person:</span>{" "}
-                {relatedProject?.client || lead.contact} {displayPhone ? `- ${displayPhone}` : ""}
+                {lead.contact || relatedProject?.contactName || "—"} {displayPhone ? `- ${displayPhone}` : ""}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <DollarSign className="h-3.5 w-3.5" /> {fmtMoney(lead.value)}
@@ -1195,7 +1195,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                 {relatedProject?.name || lead.company || "—"}
               </InfoRow>
               <InfoRow label="Contact Person" icon={User}>
-                {relatedProject?.client || lead.contact || "—"}
+                {lead.contact || relatedProject?.contactName || "—"}
               </InfoRow>
               <InfoRow label="Owner" icon={User}>
                 {lead.owner || "—"}
