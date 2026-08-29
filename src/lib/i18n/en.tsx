@@ -531,6 +531,8 @@ export const en = {
     "The system checks the last activity on each lead. If no activity is found within the defined threshold, notifications will be sent based on the escalation rules above.",
   inactiveLeadsReport: "Inactive Leads Report",
   inactiveLeadsReportDesc: "Leads that have no activity within the selected period.",
+  inactiveStaff: "Inactive Staff",
+  inactiveStaffDesc: "Employees with no activities recorded today, yesterday, or this 5 working days.",
   scheduleReport: "Schedule Report",
   activityAge: "Activity Age",
   inactiveFor: "Inactive For",

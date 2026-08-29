@@ -66,6 +66,7 @@ import { Route as AdminNotificationsRouteImport } from './routes/admin.notificat
 import { Route as AdminManagersRouteImport } from './routes/admin.managers'
 import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 import { Route as AdminKpisRouteImport } from './routes/admin.kpis'
+import { Route as AdminInactiveStaffRouteImport } from './routes/admin.inactive-staff'
 import { Route as AdminHistoryRouteImport } from './routes/admin.history'
 import { Route as AdminEmployeesRouteImport } from './routes/admin.employees'
 import { Route as AdminEmailInboxRouteImport } from './routes/admin.email-inbox'
@@ -388,6 +389,11 @@ const AdminKpisRoute = AdminKpisRouteImport.update({
   path: '/kpis',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminInactiveStaffRoute = AdminInactiveStaffRouteImport.update({
+  id: '/inactive-staff',
+  path: '/inactive-staff',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminHistoryRoute = AdminHistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -589,6 +595,7 @@ export interface FileRoutesByFullPath {
   '/admin/email-inbox': typeof AdminEmailInboxRoute
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/inactive-staff': typeof AdminInactiveStaffRoute
   '/admin/kpis': typeof AdminKpisRoute
   '/admin/leads': typeof AdminLeadsRouteWithChildren
   '/admin/managers': typeof AdminManagersRouteWithChildren
@@ -677,6 +684,7 @@ export interface FileRoutesByTo {
   '/admin/email-inbox': typeof AdminEmailInboxRoute
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/inactive-staff': typeof AdminInactiveStaffRoute
   '/admin/kpis': typeof AdminKpisRoute
   '/admin/leads': typeof AdminLeadsRouteWithChildren
   '/admin/managers': typeof AdminManagersRouteWithChildren
@@ -770,6 +778,7 @@ export interface FileRoutesById {
   '/admin/email-inbox': typeof AdminEmailInboxRoute
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/inactive-staff': typeof AdminInactiveStaffRoute
   '/admin/kpis': typeof AdminKpisRoute
   '/admin/leads': typeof AdminLeadsRouteWithChildren
   '/admin/managers': typeof AdminManagersRouteWithChildren
@@ -865,6 +874,7 @@ export interface FileRouteTypes {
     | '/admin/email-inbox'
     | '/admin/employees'
     | '/admin/history'
+    | '/admin/inactive-staff'
     | '/admin/kpis'
     | '/admin/leads'
     | '/admin/managers'
@@ -953,6 +963,7 @@ export interface FileRouteTypes {
     | '/admin/email-inbox'
     | '/admin/employees'
     | '/admin/history'
+    | '/admin/inactive-staff'
     | '/admin/kpis'
     | '/admin/leads'
     | '/admin/managers'
@@ -1045,6 +1056,7 @@ export interface FileRouteTypes {
     | '/admin/email-inbox'
     | '/admin/employees'
     | '/admin/history'
+    | '/admin/inactive-staff'
     | '/admin/kpis'
     | '/admin/leads'
     | '/admin/managers'
@@ -1535,6 +1547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKpisRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/inactive-staff': {
+      id: '/admin/inactive-staff'
+      path: '/inactive-staff'
+      fullPath: '/admin/inactive-staff'
+      preLoaderRoute: typeof AdminInactiveStaffRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/history': {
       id: '/admin/history'
       path: '/history'
@@ -1881,6 +1900,7 @@ interface AdminRouteChildren {
   AdminEmailInboxRoute: typeof AdminEmailInboxRoute
   AdminEmployeesRoute: typeof AdminEmployeesRouteWithChildren
   AdminHistoryRoute: typeof AdminHistoryRoute
+  AdminInactiveStaffRoute: typeof AdminInactiveStaffRoute
   AdminKpisRoute: typeof AdminKpisRoute
   AdminLeadsRoute: typeof AdminLeadsRouteWithChildren
   AdminManagersRoute: typeof AdminManagersRouteWithChildren
@@ -1906,6 +1926,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminEmailInboxRoute: AdminEmailInboxRoute,
   AdminEmployeesRoute: AdminEmployeesRouteWithChildren,
   AdminHistoryRoute: AdminHistoryRoute,
+  AdminInactiveStaffRoute: AdminInactiveStaffRoute,
   AdminKpisRoute: AdminKpisRoute,
   AdminLeadsRoute: AdminLeadsRouteWithChildren,
   AdminManagersRoute: AdminManagersRouteWithChildren,

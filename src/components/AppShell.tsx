@@ -29,6 +29,7 @@ import {
   DollarSign,
   PackageCheck,
   ClipboardList,
+  UserX,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { LangToggle, useI18n } from "@/lib/i18n";
@@ -60,6 +61,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/history", icon: History, key: "history" },
   { to: "/admin/reports", icon: History, key: "reports" },
   { to: "/admin/reports/inactive-leads", icon: AlertTriangle, key: "inactiveLeadsReport" as any },
+  { to: "/admin/inactive-staff", icon: UserX, key: "inactiveStaff" as any },
   { to: "/admin/chat", icon: MessageSquare, key: "chat" as any },
   { to: "/admin/email-inbox", icon: Inbox, key: "emailInbox" as any },
   { to: "/admin/security", icon: ShieldCheck, key: "securityCenter" as any },
