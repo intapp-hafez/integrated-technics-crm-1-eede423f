@@ -91,7 +91,22 @@ function EmployeeDashboard() {
 
   const inactiveLeads = useMemo(() => {
     return myLeads.filter((l: any) => {
-      if (l.status === "won" || l.status === "lost") return false;
+      const s = (l.status || "").toLowerCase().trim();
+      const stage = (l.stage || "").toLowerCase().trim();
+      if (
+        s === "won" ||
+        s === "lost" ||
+        s === "achieved" ||
+        s === "archived" ||
+        s === "closed" ||
+        stage === "won" ||
+        stage === "lost" ||
+        stage === "achieved" ||
+        stage === "archived" ||
+        stage === "closed"
+      ) {
+        return false;
+      }
       let diffDays = 0;
       const rawDate = l.updatedAtIso || l.updatedAt || l.createdAt;
       if (typeof rawDate === "string" && rawDate.includes("d ago")) {

@@ -10,7 +10,7 @@ import { useMyTeam } from "@/lib/useMyTeam";
 import { SmartInsights } from "@/components/dashboard/SmartInsights";
 import { PipelineFunnel } from "@/components/dashboard/PipelineFunnel";
 import { useMemo, useState, useEffect } from "react";
-import { Users, TrendingUp, CheckCircle2, Clock, Target, ArrowRight } from "lucide-react";
+import { Users, TrendingUp, CheckCircle2, Clock, Target, ArrowRight, AlertTriangle, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -72,17 +72,59 @@ function ManagerDashboard() {
     });
   }, [myEmployees, storeActivities]);
 
+  const teamLeads = useMemo(
+    () => storeLeads.filter((l) => includesLead(l)),
+    [storeLeads, includesLead],
+  );
+  const teamActivities = useMemo(
+    () => storeActivities.filter((a) => includesActivity(a)),
+    [storeActivities, includesActivity],
+  );
+
+  const inactiveTeamLeads = useMemo(() => {
+    return teamLeads.filter((l: any) => {
+      const s = (l.status || "").toLowerCase().trim();
+      const stage = (l.stage || "").toLowerCase().trim();
+      if (
+        s === "won" ||
+        s === "lost" ||
+        s === "achieved" ||
+        s === "archived" ||
+        s === "closed" ||
+        stage === "won" ||
+        stage === "lost" ||
+        stage === "achieved" ||
+        stage === "archived" ||
+        stage === "closed"
+      ) {
+        return false;
+      }
+      let diffDays = 0;
+      const rawDate = l.updatedAtIso || l.updatedAt || l.createdAt;
+      if (typeof rawDate === "string" && rawDate.includes("d ago")) {
+        const m = rawDate.match(/(\d+)d\s*ago/);
+        if (m) diffDays = parseInt(m[1], 10);
+      } else if (rawDate) {
+        const tMs = new Date(rawDate).getTime();
+        if (!isNaN(tMs)) {
+          diffDays = Math.floor((Date.now() - tMs) / (1000 * 60 * 60 * 24));
+        }
+      }
+      return diffDays >= 7;
+    });
+  }, [teamLeads]);
+
   const [showInactiveModal, setShowInactiveModal] = useState(false);
 
   useEffect(() => {
-    if (inactiveTeamMembers.length > 0) {
+    if (inactiveTeamMembers.length > 0 || inactiveTeamLeads.length > 0) {
       const hasShown = sessionStorage.getItem("shownInactiveTeamAlert");
       if (!hasShown) {
         setShowInactiveModal(true);
         sessionStorage.setItem("shownInactiveTeamAlert", "true");
       }
     }
-  }, [inactiveTeamMembers.length]);
+  }, [inactiveTeamMembers.length, inactiveTeamLeads.length]);
 
   const managerTarget = managerEmployee?.annualTarget || 0;
   const managerAchieved = managerEmployee?.achievedTarget || 0;
@@ -94,15 +136,6 @@ function ManagerDashboard() {
 
   const totalTarget = managerTarget + teamTarget;
   const totalAchieved = managerAchieved + teamAchieved;
-
-  const teamLeads = useMemo(
-    () => storeLeads.filter((l) => includesLead(l)),
-    [storeLeads, includesLead],
-  );
-  const teamActivities = useMemo(
-    () => storeActivities.filter((a) => includesActivity(a)),
-    [storeActivities, includesActivity],
-  );
 
   const totalLeads = teamLeads.length;
   const wonLeads = teamLeads.filter((l) => l.status === "won").length;
@@ -158,6 +191,34 @@ function ManagerDashboard() {
           accent="success"
         />
       </div>
+
+      {/* Inactive Leads Team Alert Banner */}
+      {inactiveTeamLeads.length > 0 && (
+        <Link
+          to="/manager/reports/inactive-leads"
+          className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 transition hover:bg-amber-500/15 hover:border-amber-500/50 cursor-pointer block group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="font-display font-bold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                {dir === "rtl" ? "تنبيه: عملاء غير نشطين في فريقك" : "Alert: Team Inactive Leads"} ({inactiveTeamLeads.length})
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {dir === "rtl"
+                  ? `يوجد ${inactiveTeamLeads.length} عميل محتمل لدى أعضاء فريقك لم يتم تسجيل أي نشاط عليهم منذ 7 أيام أو أكثر.`
+                  : `${inactiveTeamLeads.length} leads assigned to your team members have no activity in 7+ days.`}
+              </div>
+            </div>
+          </div>
+          <div className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition group-hover:bg-amber-700">
+            <span>{dir === "rtl" ? "فتح تقرير العملاء غير النشطين" : "Open Inactive Leads Report"}</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </div>
+        </Link>
+      )}
 
       <div className="mt-6">
         <SmartInsights leads={teamLeads} employees={myEmployees} activities={teamActivities} />
@@ -347,33 +408,80 @@ function ManagerDashboard() {
       </div>
 
       <Dialog open={showInactiveModal} onOpenChange={setShowInactiveModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{dir === "rtl" ? "تنبيه: أعضاء الفريق غير النشطين" : "Alert: Inactive Team Members"}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="h-5 w-5" />
+              {dir === "rtl" ? "تنبيه: متابعة أداء الفريق والعملاء" : "Team Performance & Inactivity Alert"}
+            </DialogTitle>
             <DialogDescription>
               {dir === "rtl"
-                ? "أعضاء الفريق التالين لم يقموا بأي نشاطات خلال الـ 7 أيام الماضية."
-                : "The following team members have no logged activities in the past 7 days."}
+                ? "يوجد عملاء أو أعضاء فريق غير نشطين يحتاجون إلى متابعتك."
+                : "There are inactive leads or team members requiring your attention."}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-3 max-h-[60vh] overflow-y-auto">
-            {inactiveTeamMembers.map((emp: any) => (
-              <div key={emp.id || emp.name} className="flex items-center gap-3 rounded-lg border border-border p-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
-                  {emp.name
-                    ?.split(" ")
-                    .map((w: string) => w[0])
-                    .join("")
-                    .slice(0, 2) || "?"}
+          <div className="py-2 space-y-4 max-h-[60vh] overflow-y-auto">
+            {inactiveTeamLeads.length > 0 && (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-xs text-foreground">
+                    {dir === "rtl" ? "العملاء غير النشطين (7+ أيام)" : "Inactive Team Leads (7+ Days)"} ({inactiveTeamLeads.length})
+                  </span>
+                  <Link
+                    to="/manager/reports/inactive-leads"
+                    onClick={() => setShowInactiveModal(false)}
+                    className="text-xs font-bold text-amber-700 dark:text-amber-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    {dir === "rtl" ? "عرض الكل" : "View Report"} <ArrowRight className="h-3 w-3" />
+                  </Link>
                 </div>
-                <div>
-                  <div className="font-semibold text-foreground">{emp.name}</div>
-                  <div className="text-xs text-muted-foreground">{emp.role || (dir === "rtl" ? "موظف" : "Employee")}</div>
+                <div className="space-y-1.5">
+                  {inactiveTeamLeads.slice(0, 3).map((l: any) => (
+                    <div key={l.id} className="flex items-center justify-between rounded-lg bg-background/80 px-2.5 py-1.5 text-xs">
+                      <div>
+                        <div className="font-semibold text-foreground">{l.code || l.company}</div>
+                        <div className="text-[10px] text-muted-foreground">{l.owner || "Team Member"}</div>
+                      </div>
+                      <span className="font-mono font-bold text-primary">{fmtMoney(l.value)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
+
+            {inactiveTeamMembers.length > 0 && (
+              <div className="rounded-xl border border-border p-3.5 space-y-2">
+                <div className="font-semibold text-xs text-foreground">
+                  {dir === "rtl" ? "أعضاء الفريق بدون نشاط في الـ 7 أيام الماضية" : "Team Members with No Recent Activities (7 Days)"} ({inactiveTeamMembers.length})
+                </div>
+                <div className="space-y-2">
+                  {inactiveTeamMembers.map((emp: any) => (
+                    <div key={emp.id || emp.name} className="flex items-center gap-3 rounded-lg border border-border bg-background p-2.5">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                        {emp.name
+                          ?.split(" ")
+                          .map((w: string) => w[0])
+                          .join("")
+                          .slice(0, 2) || "?"}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-semibold text-xs text-foreground">{emp.name}</div>
+                        <div className="text-[10px] text-muted-foreground">{emp.role || (dir === "rtl" ? "موظف" : "Employee")}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
+            {inactiveTeamLeads.length > 0 && (
+              <Button asChild variant="outline" className="border-amber-500/50 text-amber-700 dark:text-amber-400">
+                <Link to="/manager/reports/inactive-leads" onClick={() => setShowInactiveModal(false)}>
+                  {dir === "rtl" ? "فتح تقرير العملاء غير النشطين" : "Open Inactive Leads"}
+                </Link>
+              </Button>
+            )}
             <Button onClick={() => setShowInactiveModal(false)}>
               {dir === "rtl" ? "حسناً" : "Got it"}
             </Button>

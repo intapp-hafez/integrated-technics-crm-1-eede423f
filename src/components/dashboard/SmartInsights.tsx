@@ -49,7 +49,20 @@ export function SmartInsights({ leads, employees, activities }: Props) {
     // 3. Inactive Leads Warning
     let inactiveCount = 0;
     leads.forEach((l) => {
-      if (l.status !== "won" && l.status !== "lost" && l.status !== "archived") {
+      const s = (l.status || "").toLowerCase().trim();
+      const stage = ((l as any).stage || "").toLowerCase().trim();
+      if (
+        s !== "won" &&
+        s !== "lost" &&
+        s !== "achieved" &&
+        s !== "archived" &&
+        s !== "closed" &&
+        stage !== "won" &&
+        stage !== "lost" &&
+        stage !== "achieved" &&
+        stage !== "archived" &&
+        stage !== "closed"
+      ) {
         let diffDays = 0;
         const rawDate = (l as any).updatedAtIso || l.updatedAt || (l as any).createdAt;
         if (typeof rawDate === "string" && rawDate.includes("d ago")) {

@@ -706,12 +706,36 @@ function EditActivityCard({
           onChange={(e) => setLeadId(e.target.value)}
           className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
         >
-          <option value="">No lead</option>
-          {leads.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.company}
-            </option>
-          ))}
+          <option value="">{t("noLead") || "No lead"}</option>
+          {leads
+            .filter((l) => {
+              if (l.id === activity.leadId) return true;
+              const s = (l.status || "").toLowerCase().trim();
+              const stage = ((l as any).stage || "").toLowerCase().trim();
+              return (
+                s !== "won" &&
+                s !== "lost" &&
+                s !== "achieved" &&
+                s !== "archived" &&
+                s !== "closed" &&
+                stage !== "won" &&
+                stage !== "lost" &&
+                stage !== "achieved" &&
+                stage !== "archived" &&
+                stage !== "closed"
+              );
+            })
+            .map((l) => {
+              const label = [l.code, l.contact, l.company]
+                .filter(Boolean)
+                .filter((item, idx, arr) => arr.indexOf(item) === idx)
+                .join(" , ");
+              return (
+                <option key={l.id} value={l.id}>
+                  {label || l.company || "Lead"}
+                </option>
+              );
+            })}
         </select>
         <input
           type="number"
@@ -890,7 +914,7 @@ function NewQuickActivity({ owner }: { owner: string }) {
   const [title, setTitle] = useState("");
   const [type, setType] = useState(settings.activityTypes[0]);
   const [mins, setMins] = useState(30);
-  const [leadId, setLeadId] = useState(leads[0]?.id ?? "");
+  const [leadId, setLeadId] = useState("");
   const [dueDate, setDueDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const submit = () => {
@@ -946,11 +970,34 @@ function NewQuickActivity({ owner }: { owner: string }) {
           className="h-9 rounded-lg border border-border bg-background px-2 text-xs focus:border-primary focus:outline-none"
         >
           <option value="">{t("noLead")}</option>
-          {leads.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.company}
-            </option>
-          ))}
+          {leads
+            .filter((l) => {
+              const s = (l.status || "").toLowerCase().trim();
+              const stage = ((l as any).stage || "").toLowerCase().trim();
+              return (
+                s !== "won" &&
+                s !== "lost" &&
+                s !== "achieved" &&
+                s !== "archived" &&
+                s !== "closed" &&
+                stage !== "won" &&
+                stage !== "lost" &&
+                stage !== "achieved" &&
+                stage !== "archived" &&
+                stage !== "closed"
+              );
+            })
+            .map((l) => {
+              const label = [l.code, l.contact, l.company]
+                .filter(Boolean)
+                .filter((item, idx, arr) => arr.indexOf(item) === idx)
+                .join(" , ");
+              return (
+                <option key={l.id} value={l.id}>
+                  {label || l.company || "Lead"}
+                </option>
+              );
+            })}
         </select>
         <input
           type="date"

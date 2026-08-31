@@ -6,7 +6,7 @@ import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState, getProbabilityForStatus, type LeadStatus } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { MultiSelect } from "@/components/pipeline/PipelineFilters";
-import { GripVertical, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { GripVertical, ExternalLink, ChevronLeft, ChevronRight, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +31,7 @@ function PipelinePage() {
     initials: "HR",
     photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
   };
+  const [view, setView] = useState<"board" | "table">("board");
   const [dragId, setDragId] = useState<string | null>(null);
   const [overStage, setOverStage] = useState<LeadStatus | null>(null);
   const [activeStage, setActiveStage] = useState<string | null>(null);
@@ -71,10 +72,34 @@ function PipelinePage() {
     <AppShell panel={panel} user={user} pageTitle={t("pipeline")}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <GripVertical className="h-3.5 w-3.5" />
-          {t("dragCardHint")}
+          {view === "board" && (
+            <>
+              <GripVertical className="h-3.5 w-3.5" />
+              {t("dragCardHint")}
+            </>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <div className="inline-flex rounded-lg border border-border bg-card p-1">
+            <button
+              type="button"
+              onClick={() => setView("board")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition ${view === "board" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              title={(t("board" as any) as string) || "Board"}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{(t("board" as any) as string) || "Board"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("table")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition ${view === "table" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              title={(t("table" as any) as string) || "Table"}
+            >
+              <TableIcon className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{(t("table" as any) as string) || "Table"}</span>
+            </button>
+          </div>
           <MultiSelect
             label={(t("employee") as string) ?? "Employee"}
             options={employeeOptions}
@@ -87,28 +112,131 @@ function PipelinePage() {
             selected={stageFilter}
             onChange={setStageFilter}
           />
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => scrollBy(-1)}
-              aria-label="Scroll stages left"
-            >
-              <ChevronLeft />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => scrollBy(1)}
-              aria-label="Scroll stages right"
-            >
-              <ChevronRight />
-            </Button>
-          </div>
+          {view === "board" && (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => scrollBy(-1)}
+                aria-label="Scroll stages left"
+              >
+                <ChevronLeft />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => scrollBy(1)}
+                aria-label="Scroll stages right"
+              >
+                <ChevronRight />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-2 scroll-smooth">
+      {view === "table" ? (
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px] text-sm">
+              <thead className="bg-secondary/60">
+                <tr className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th className="px-4 py-3 text-start">{(t("lead" as any) as string) || "Lead"}</th>
+                  <th className="px-4 py-3 text-start">{(t("contact" as any) as string) || "Contact"}</th>
+                  <th className="px-4 py-3 text-start">{t("owner") || "Owner"}</th>
+                  <th className="px-4 py-3 text-start">{t("stage") || "Stage"}</th>
+                  <th className="px-4 py-3 text-start">{t("value") || "Value"}</th>
+                  <th className="px-4 py-3 text-start">{t("probability") || "Probability"}</th>
+                  <th className="px-4 py-3 text-start">{(t("expectedClose" as any) as string) || "Expected Close"}</th>
+                  <th className="px-4 py-3 text-end">{(t("actions" as any) as string) || "Actions"}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {stages.flatMap((stage) =>
+                  visibleLeads
+                    .filter((l) => l.status === stage.key)
+                    .map((l) => {
+                      const prob = getProbabilityForStatus(l.status) ?? 0;
+                      return (
+                        <tr
+                          key={l.id}
+                          onClick={() =>
+                            navigate({ to: "/admin/leads/$leadId", params: { leadId: l.id } })
+                          }
+                          className="cursor-pointer hover:bg-primary/5 transition-colors"
+                        >
+                          <td className="px-4 py-3">
+                            <div className="font-semibold text-foreground hover:text-primary">
+                              {l.code || l.company}
+                            </div>
+                            <div className="text-xs text-muted-foreground">{l.company}</div>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs">
+                            <div>{l.contact || "—"}</div>
+                            {l.phone && <div className="text-[11px] opacity-75">{l.phone}</div>}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-foreground">
+                              {l.owner || "Unassigned"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            <span
+                              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                              style={{
+                                backgroundColor: `${stage.color}20`,
+                                color: stage.color,
+                                border: `1px solid ${stage.color}40`,
+                              }}
+                            >
+                              <span
+                                className="h-1.5 w-1.5 rounded-full"
+                                style={{ backgroundColor: stage.color }}
+                              />
+                              {t(stage.key as any) ?? stage.label}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-mono font-bold text-primary text-xs">
+                            {fmtMoney(l.value)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                              <span
+                                className={`h-2 w-2 rounded-full ${prob >= 70 ? "bg-emerald-500" : prob >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
+                              />
+                              {prob}%
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                            {l.expectedCloseDate ? formatDate(l.expectedCloseDate) : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-end" onClick={(e) => e.stopPropagation()}>
+                            <Link
+                              to="/admin/leads/$leadId"
+                              params={{ leadId: l.id }}
+                              className="inline-flex items-center gap-1 rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-primary transition"
+                              title={t("openLead") || "Open Lead"}
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    }),
+                )}
+                {visibleLeads.filter((l) => stages.some((s) => s.key === l.status)).length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                      {t("noLeadsYet") || "No leads to show"}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-2 scroll-smooth">
         {stages.map((stage) => {
           const stageLeads = visibleLeads.filter((l) => l.status === stage.key);
           const totalValue = stageLeads.reduce((sum, l) => sum + l.value, 0);
@@ -138,7 +266,7 @@ function PipelinePage() {
                 setDragId(null);
                 setOverStage(null);
               }}
-              className={`w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
+              className={`w-[310px] min-w-[310px] max-w-[310px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
               style={{
                 borderTopColor: stage.color,
                 backgroundColor: isOver
@@ -260,6 +388,7 @@ function PipelinePage() {
           );
         })}
       </div>
+      )}
       <StageTransitionDialog open={!!pending} payload={pending} onClose={() => setPending(null)} />
     </AppShell>
   );

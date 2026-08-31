@@ -357,8 +357,19 @@ function useDashboardData(range: RangeKey) {
       });
       const fourteenAgo = new Date();
       fourteenAgo.setDate(fourteenAgo.getDate() - 14);
+      const isInactiveLead = (status?: string | null) => {
+        const s = (status || "").toLowerCase().trim();
+        return (
+          s !== "won" &&
+          s !== "lost" &&
+          s !== "achieved" &&
+          s !== "archived" &&
+          s !== "closed"
+        );
+      };
+
       const overdue = allLeads
-        .filter((l) => l.status !== "won" && l.status !== "lost")
+        .filter((l) => isInactiveLead(l.status))
         .map((l) => {
           const last = lastTouch.get(l.id) ?? l.updated_at ?? l.created_at;
           return { ...l, lastTouch: last, ownerDetails: getOwner(l.owner_id) };
@@ -377,7 +388,7 @@ function useDashboardData(range: RangeKey) {
       const sevenAgo = new Date();
       sevenAgo.setDate(sevenAgo.getDate() - 7);
       const idleLeads = allLeads
-        .filter((l) => l.status !== "won" && l.status !== "lost")
+        .filter((l) => isInactiveLead(l.status))
         .map((l) => {
           const last = lastTouch.get(l.id) ?? l.updated_at ?? l.created_at;
           return { ...l, lastTouch: last };
@@ -514,7 +525,7 @@ function useDashboardData(range: RangeKey) {
       const nowMs = Date.now();
 
       allLeads.forEach((l) => {
-        if (l.status !== "won" && l.status !== "lost" && l.status !== "archived") {
+        if (isInactiveLead(l.status)) {
           const tMs = new Date(l.updated_at).getTime();
           if (!isNaN(tMs)) {
             const diffDays = Math.floor((nowMs - tMs) / (1000 * 60 * 60 * 24));

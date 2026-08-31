@@ -70,7 +70,7 @@ const STATUS_TONE: Record<ActivityStatus, string> = {
 function ManagerActivitiesPage() {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
-  const { activities, leads, employees, users } = useStoreState();
+  const { activities, leads, projects, employees, users } = useStoreState();
 
   const getOwnerPhoto = (name?: string, fallbackPhoto?: string) => {
     if (fallbackPhoto) return fallbackPhoto;
@@ -85,7 +85,8 @@ function ManagerActivitiesPage() {
   const [view, setView] = useState<"table" | "cards">("table");
   const [owner, setOwner] = useState("all");
   const [status, setStatus] = useState<"all" | ActivityStatus>("all");
-  const [timeTab, setTimeTab] = useState<"today" | "upcoming" | "past">("today");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [timeTab, setTimeTab] = useState<"today" | "working5" | "thisMonth" | "upcoming" | "past" | "all">("today");
 
   const searchParams = (useSearch({ strict: false }) || {}) as {
     type?: string;
@@ -95,14 +96,15 @@ function ManagerActivitiesPage() {
 
   useEffect(() => {
     if (searchParams.owner) setOwner(searchParams.owner);
+    if (searchParams.type) setTypeFilter(searchParams.type);
     if (
       searchParams.period === "week" ||
       searchParams.period === "upcoming" ||
       searchParams.period === "all"
     ) {
-      setTimeTab("upcoming");
+      setTimeTab(searchParams.period as any);
     }
-  }, [searchParams.owner, searchParams.period]);
+  }, [searchParams.owner, searchParams.period, searchParams.type]);
   const [open, setOpen] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -116,6 +118,37 @@ function ManagerActivitiesPage() {
   const canApprove = isAdmin || isManager;
   const today = cairoIsoDate();
   const { teamEmployees, teamNames } = useMyTeam({ forceTeam: true });
+
+  const working5Days = useMemo(() => {
+    const dates = new Set<string>();
+    const cur = new Date(today + "T12:00:00");
+    let guard = 0;
+    while (dates.size < 5 && guard < 15) {
+      const day = cur.getDay(); // 5 = Friday, 6 = Saturday (weekend)
+      if (day !== 5 && day !== 6) {
+        const iso = cur.toISOString().slice(0, 10);
+        dates.add(iso);
+      }
+      cur.setDate(cur.getDate() - 1);
+      guard++;
+    }
+    return dates;
+  }, [today]);
+
+  const currentMonth = today.slice(0, 7);
+
+  const matchesActivityType = (actualType: string, selectedFilter: string): boolean => {
+    if (selectedFilter === "all") return true;
+    const a = (actualType || "").toLowerCase().trim();
+    const f = selectedFilter.toLowerCase().trim();
+    if (f === "call") return a.includes("call");
+    if (f === "meeting") return a.includes("meet");
+    if (f === "visit" || f === "site visit") return a.includes("visit");
+    if (f === "follow-up" || f === "followup") return a.includes("follow");
+    if (f === "inspection") return a.includes("inspect");
+    if (f === "email") return a.includes("email");
+    return a.includes(f);
+  };
 
   const teamProfileIds = useMemo(
     () => new Set(teamEmployees.map((e: any) => e.id)),
@@ -153,20 +186,23 @@ function ManagerActivitiesPage() {
       cancelled: 3,
     };
     return teamActivities
-      .filter(
-        (a) => (owner === "all" || a.owner === owner) && (status === "all" || a.status === status),
-      )
       .filter((a) => {
+        if (owner !== "all" && a.owner !== owner) return false;
+        if (status !== "all" && a.status !== status) return false;
+        if (typeFilter !== "all" && !matchesActivityType(a.type, typeFilter)) return false;
         if (timeTab === "today") return a.dueDate === today;
+        if (timeTab === "working5") return working5Days.has(a.dueDate);
+        if (timeTab === "thisMonth") return a.dueDate.startsWith(currentMonth);
         if (timeTab === "upcoming") return a.dueDate > today;
-        return a.dueDate < today;
+        if (timeTab === "past") return a.dueDate < today;
+        return true;
       })
       .sort((a, b) => {
         const ord = (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9);
         if (ord !== 0) return ord;
         return (a.dueDate + a.time).localeCompare(b.dueDate + b.time);
       });
-  }, [teamActivities, owner, status, timeTab, today]);
+  }, [teamActivities, owner, status, typeFilter, timeTab, today, working5Days, currentMonth]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, typeof filtered>();
@@ -196,18 +232,23 @@ function ManagerActivitiesPage() {
       pageTitle={t("activities")}
     >
       {/* Time tabs */}
-      <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-1 shadow-[var(--shadow-soft)]">
-        {(
-          [
-            { id: "today", label: "Today" },
-            { id: "upcoming", label: "Upcoming" },
-            { id: "past", label: "Past" },
-          ] as const
-        ).map((tab) => (
+      <div className="mb-4 flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-card p-1 shadow-[var(--shadow-soft)]">
+        {[
+          { id: "today", label: isAr ? "اليوم" : "Today" },
+          { id: "working5", label: isAr ? "آخر 5 أيام عمل" : "Last 5 Working Days" },
+          { id: "thisMonth", label: isAr ? "هذا الشهر" : "This Month" },
+          { id: "upcoming", label: isAr ? "القادمة" : "Upcoming" },
+          { id: "past", label: isAr ? "السابقة" : "Past" },
+          { id: "all", label: isAr ? "كل الأوقات" : "All Time" },
+        ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setTimeTab(tab.id)}
-            className={`rounded-md px-4 py-1.5 text-xs font-semibold transition ${timeTab === tab.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"}`}
+            onClick={() => setTimeTab(tab.id as any)}
+            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
+              timeTab === tab.id
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            }`}
           >
             {tab.label}
           </button>
@@ -243,10 +284,25 @@ function ManagerActivitiesPage() {
             </button>
           ))}
         </div>
+        {/* Kind of Activity Filter */}
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs font-medium focus:border-primary focus:outline-none"
+        >
+          <option value="all">{isAr ? "نوع النشاط: الكل" : "Activity Type: All"}</option>
+          <option value="Call">{isAr ? "مكالمة (Call)" : "Call"}</option>
+          <option value="Meeting">{isAr ? "اجتماع (Meeting)" : "Meeting"}</option>
+          <option value="Site Visit">{isAr ? "زيارة موقع (Site Visit)" : "Site Visit"}</option>
+          <option value="Follow-up">{isAr ? "متابعة (Follow-up)" : "Follow-up"}</option>
+          <option value="Inspection">{isAr ? "معاينة (Inspection)" : "Inspection"}</option>
+          <option value="Email">{isAr ? "بريد إلكتروني (Email)" : "Email"}</option>
+        </select>
+        {/* Status Filter */}
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as any)}
-          className="h-9 rounded-lg border border-border bg-card px-2 text-xs focus:border-primary focus:outline-none"
+          className="h-9 rounded-lg border border-border bg-card px-2.5 text-xs font-medium focus:border-primary focus:outline-none"
         >
           <option value="all">
             {t("status")}: {t("all")}
@@ -262,8 +318,8 @@ function ManagerActivitiesPage() {
             disabled
             title={
               isAr
-                ? "Ù†Ø¹ØªØ°Ø± â€” Ù‡Ø°Ø§ Ø§Ù„Ø®ÙŠØ§Ø± ØºÙŠØ± Ù…ØªØ§Ø­ Ø­Ø§Ù„ÙŠØ§Ù‹. Ø´ÙƒØ±Ø§Ù‹ Ù„ØªÙÙ‡Ù…ÙƒÙ…."
-                : "We apologise â€” this option is currently not working. Thanks for your understanding."
+                ? "نعتذر – هذا الخيار غير متاح حالياً. شكراً لتفهمكم."
+                : "We apologise – this option is currently not working. Thanks for your understanding."
             }
             className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-xs font-medium opacity-40"
           >
@@ -282,9 +338,17 @@ function ManagerActivitiesPage() {
       <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
         {(["pending", "in_progress", "done", "cancelled", "delayed"] as ActivityStatus[]).map(
           (s) => {
-            const count = teamActivities.filter(
-              (a) => a.status === s && (owner === "all" || a.owner === owner),
-            ).length;
+            const count = teamActivities.filter((a) => {
+              if (a.status !== s) return false;
+              if (owner !== "all" && a.owner !== owner) return false;
+              if (typeFilter !== "all" && !matchesActivityType(a.type, typeFilter)) return false;
+              if (timeTab === "today") return a.dueDate === today;
+              if (timeTab === "working5") return working5Days.has(a.dueDate);
+              if (timeTab === "thisMonth") return a.dueDate.startsWith(currentMonth);
+              if (timeTab === "upcoming") return a.dueDate > today;
+              if (timeTab === "past") return a.dueDate < today;
+              return true;
+            }).length;
             return (
               <div
                 key={s}
@@ -323,6 +387,8 @@ function ManagerActivitiesPage() {
                   const Icon = ICONS[a.type] ?? Circle;
                   const SIcon = STATUS_ICON[a.status];
                   const lead = leads.find((l) => l.id === a.leadId);
+                  const project = projects.find((p) => p.id === a.projectId);
+                  const leadDisplayName = lead?.company || lead?.code || project?.name || "-";
                   const isOpen = expanded.has(a.id);
                   return (
                     <React.Fragment key={a.id}>
@@ -367,7 +433,7 @@ function ManagerActivitiesPage() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{a.time}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {lead?.company ?? "â€”"}
+                          {leadDisplayName}
                         </TableCell>
                         <TableCell>
                           <div
@@ -443,8 +509,7 @@ function ManagerActivitiesPage() {
                   {date}
                 </h3>
                 <span className="text-xs text-muted-foreground">
-                  {items.length} item(s) Â·{" "}
-                  {fmtH(items.reduce((s, a) => s + (a.estMinutes ?? 0), 0))}
+                  {items.length} item(s) · {fmtH(items.reduce((s, a) => s + (a.estMinutes ?? 0), 0))}
                 </span>
                 <div className="h-px flex-1 bg-border" />
               </div>

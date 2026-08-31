@@ -3,7 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
 import { getProbabilityForStatus, type LeadStatus, useStoreState } from "@/lib/store";
-import { GripVertical, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { GripVertical, ExternalLink, ChevronLeft, ChevronRight, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/pipeline/PipelineFilters";
 import { formatDate } from "@/lib/utils";
@@ -23,6 +23,7 @@ export function PipelineBoard({
   const navigate = useNavigate();
   const { settings } = useStoreState();
 
+  const [view, setView] = useState<"board" | "table">("board");
   const [dragId, setDragId] = useState<string | null>(null);
   const [overStage, setOverStage] = useState<LeadStatus | null>(null);
   const [activeStage, setActiveStage] = useState<string | null>(null);
@@ -42,42 +43,176 @@ export function PipelineBoard({
     label: (t(s.key as any) as string) ?? s.label,
   }));
 
+  const getLeadDetailRoute = (leadId: string) => {
+    if (role === "admin") return { to: "/admin/leads/$leadId", params: { leadId } };
+    if (role === "manager") return { to: "/manager/leads/$leadId", params: { leadId } };
+    return { to: "/employee/leads/$leadId", params: { leadId } };
+  };
+
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <GripVertical className="h-3.5 w-3.5" />
-          {t("dragCardHint")}
+          {view === "board" && (
+            <>
+              <GripVertical className="h-3.5 w-3.5" />
+              {t("dragCardHint")}
+            </>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <div className="inline-flex rounded-lg border border-border bg-card p-1">
+            <button
+              type="button"
+              onClick={() => setView("board")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition ${view === "board" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              title={(t("board" as any) as string) || "Board"}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{(t("board" as any) as string) || "Board"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("table")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition ${view === "table" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              title={(t("table" as any) as string) || "Table"}
+            >
+              <TableIcon className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{(t("table" as any) as string) || "Table"}</span>
+            </button>
+          </div>
           <MultiSelect
             label={(t("stage") as string) ?? "Stage"}
             options={stageOptions}
             selected={stageFilter}
             onChange={setStageFilter}
           />
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => scrollBy(-1)}
-              aria-label="Scroll stages left"
-            >
-              <ChevronLeft />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => scrollBy(1)}
-              aria-label="Scroll stages right"
-            >
-              <ChevronRight />
-            </Button>
-          </div>
+          {view === "board" && (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => scrollBy(-1)}
+                aria-label="Scroll stages left"
+              >
+                <ChevronLeft />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => scrollBy(1)}
+                aria-label="Scroll stages right"
+              >
+                <ChevronRight />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-2 scroll-smooth">
+      {view === "table" ? (
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px] text-sm">
+              <thead className="bg-secondary/60">
+                <tr className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th className="px-4 py-3 text-start">{(t("lead" as any) as string) || "Lead"}</th>
+                  <th className="px-4 py-3 text-start">{(t("contact" as any) as string) || "Contact"}</th>
+                  {role !== "employee" && <th className="px-4 py-3 text-start">{t("owner") || "Owner"}</th>}
+                  <th className="px-4 py-3 text-start">{t("stage") || "Stage"}</th>
+                  <th className="px-4 py-3 text-start">{t("value") || "Value"}</th>
+                  <th className="px-4 py-3 text-start">{t("probability") || "Probability"}</th>
+                  <th className="px-4 py-3 text-start">{(t("expectedClose" as any) as string) || "Expected Close"}</th>
+                  <th className="px-4 py-3 text-end">{(t("actions" as any) as string) || "Actions"}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {stages.flatMap((stage) =>
+                  leads
+                    .filter((l) => l.status === stage.key)
+                    .map((l) => {
+                      const prob = getProbabilityForStatus(l.status) ?? 0;
+                      const target = getLeadDetailRoute(l.id);
+                      return (
+                        <tr
+                          key={l.id}
+                          onClick={() => navigate(target as any)}
+                          className="cursor-pointer hover:bg-primary/5 transition-colors"
+                        >
+                          <td className="px-4 py-3">
+                            <div className="font-semibold text-foreground hover:text-primary">
+                              {l.code || l.company}
+                            </div>
+                            <div className="text-xs text-muted-foreground">{l.company}</div>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs">
+                            <div>{l.contact || "—"}</div>
+                            {l.phone && <div className="text-[11px] opacity-75">{l.phone}</div>}
+                          </td>
+                          {role !== "employee" && (
+                            <td className="px-4 py-3">
+                              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-foreground">
+                                {l.owner || "Unassigned"}
+                              </span>
+                            </td>
+                          )}
+                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            <span
+                              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                              style={{
+                                backgroundColor: `${stage.color}20`,
+                                color: stage.color,
+                                border: `1px solid ${stage.color}40`,
+                              }}
+                            >
+                              <span
+                                className="h-1.5 w-1.5 rounded-full"
+                                style={{ backgroundColor: stage.color }}
+                              />
+                              {t(stage.key as any) ?? stage.label}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-mono font-bold text-primary text-xs">
+                            {fmtMoney(l.value)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                              <span
+                                className={`h-2 w-2 rounded-full ${prob >= 70 ? "bg-emerald-500" : prob >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
+                              />
+                              {prob}%
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                            {l.expectedCloseDate ? formatDate(l.expectedCloseDate) : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-end" onClick={(e) => e.stopPropagation()}>
+                            <Link
+                              to={target.to as any}
+                              params={target.params as any}
+                              className="inline-flex items-center gap-1 rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-primary transition"
+                              title={t("openLead") || "Open Lead"}
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    }),
+                )}
+                {leads.filter((l) => stages.some((s) => s.key === l.status)).length === 0 && (
+                  <tr>
+                    <td colSpan={role !== "employee" ? 8 : 7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                      {t("noLeadsYet") || "No leads to show"}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-2 scroll-smooth">
         {stages.map((stage) => {
           const stageLeads = leads.filter((l) => l.status === stage.key);
           const totalValue = stageLeads.reduce((sum, l) => sum + l.value, 0);
@@ -107,7 +242,7 @@ export function PipelineBoard({
                 setDragId(null);
                 setOverStage(null);
               }}
-              className={`min-w-[240px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${
+              className={`w-[310px] min-w-[310px] max-w-[310px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${
                 isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""
               }`}
               style={{
@@ -173,8 +308,8 @@ export function PipelineBoard({
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="line-clamp-3 font-semibold text-foreground leading-snug">
+                      <div className="min-w-0 flex-1 overflow-hidden">
+                        <div className="line-clamp-3 font-semibold text-foreground leading-snug break-words">
                           {l.code || l.company}
                         </div>
                         <div className="truncate text-xs text-muted-foreground">{l.contact}</div>
@@ -240,6 +375,7 @@ export function PipelineBoard({
           );
         })}
       </div>
+      )}
       <StageTransitionDialog open={!!pending} payload={pending} onClose={() => setPending(null)} />
     </>
   );

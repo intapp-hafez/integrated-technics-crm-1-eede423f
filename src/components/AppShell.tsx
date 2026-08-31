@@ -96,6 +96,7 @@ const managerNav: NavItem[] = [
   { to: "/manager/offers", icon: FileBadge, key: "offers" },
   { to: "/manager/attendance", icon: Clock4, key: "attendance" },
   { to: "/manager/reports", icon: History, key: "reports" },
+  { to: "/manager/reports/inactive-leads", icon: AlertTriangle, key: "inactiveLeadsReport" as any },
   { to: "/manager/chat", icon: MessageSquare, key: "chat" as any },
   { to: "/manager/send-email", icon: Mail, key: "sendEmail" as any },
   { to: "/manager/email-inbox", icon: Inbox, key: "emailInbox" as any },

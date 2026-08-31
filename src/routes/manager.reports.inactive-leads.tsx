@@ -34,6 +34,7 @@ interface InactiveLeadItem {
   id: string;
   name: string;
   account: string;
+  contact?: string;
   assignedTo: string;
   assignedPhoto?: string;
   lastActivityDate: string;
@@ -120,7 +121,22 @@ export function InactiveLeadsReportPage() {
     const result: InactiveLeadItem[] = [];
 
     leads.forEach((l, idx) => {
-      if (l.status === "won" || l.status === "lost" || l.status === "archived") return;
+      const s = (l.status || "").toLowerCase().trim();
+      const stage = ((l as any).stage || "").toLowerCase().trim();
+      if (
+        s === "won" ||
+        s === "lost" ||
+        s === "achieved" ||
+        s === "archived" ||
+        s === "closed" ||
+        stage === "won" ||
+        stage === "lost" ||
+        stage === "achieved" ||
+        stage === "archived" ||
+        stage === "closed"
+      ) {
+        return;
+      }
       let diffDays = 0;
       const rawDate = (l as any).updatedAtIso || l.updatedAt || (l as any).createdAt;
 
@@ -139,14 +155,9 @@ export function InactiveLeadsReportPage() {
       }
 
       const actDate = getPastDate(diffDays);
-      const leadName =
-        (l as any).title ||
-        (l as any).name ||
-        l.code ||
-        l.company ||
-        l.contact ||
-        `Lead #${l.id.slice(0, 5)}`;
-      const accountName = l.company || (l as any).account || "Standard Account";
+      const leadName = (l.code || (l as any).title || (l as any).name || l.company || `Lead #${l.id.slice(0, 5)}`).trim();
+      const accountName = (l.company || (l as any).account || "Standard Account").trim();
+      const contactName = (l.contact || "").trim();
       const initials = leadName
         .split(" ")
         .map((n: string) => n[0])
@@ -154,19 +165,20 @@ export function InactiveLeadsReportPage() {
         .slice(0, 2)
         .toUpperCase();
 
-      const resolvedOwner = (l.owner || "hafez Rahim").trim().toLowerCase();
-      const matchedEmp = employees.find((e: any) => e.name?.trim().toLowerCase() === resolvedOwner);
-      const matchedUser = users.find((u: any) => u.name?.trim().toLowerCase() === resolvedOwner);
+      const resolvedOwner = (l.owner || "").trim();
+      const resolvedOwnerLower = resolvedOwner.toLowerCase();
+      const matchedEmp = employees.find((e: any) => e.name?.trim().toLowerCase() === resolvedOwnerLower);
+      const matchedUser = users.find((u: any) => u.name?.trim().toLowerCase() === resolvedOwnerLower);
 
-      // Filter out if user is inactive, or if they are entirely deleted from the system
+      // Filter out if user is explicitly deactivated
       if (matchedUser && !matchedUser.active) return;
-      if (!matchedUser && !matchedEmp) return;
 
       result.push({
         id: l.id,
         name: leadName,
         account: accountName,
-        assignedTo: l.owner || "hafez Rahim",
+        contact: contactName,
+        assignedTo: l.owner || matchedEmp?.name || "Team Member",
         assignedPhoto: matchedEmp?.photo,
         lastActivityDate: actDate,
         inactiveDays: diffDays,

@@ -3,10 +3,12 @@ import { shortId, formatDate } from "@/lib/utils";
 import { CopyIdButton } from "@/components/shared/CopyIdButton";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { RealChat } from "@/components/chat/RealChat";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
 import { actions, useStoreState } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
+import { useAuth } from "@/lib/auth";
 import {
   ArrowLeft,
   Mail,
@@ -21,6 +23,12 @@ import {
   History as HistoryIcon,
   Search,
   Filter as FilterIcon,
+  LayoutDashboard,
+  MessageCircle,
+  TrendingUp,
+  CheckCircle2,
+  Layers,
+  ArrowRight,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -31,30 +39,52 @@ export const Route = createFileRoute("/manager/employees/$employeeId")({
 });
 
 const DEPT_COLORS: Record<string, string> = {
-  Sales: "bg-sky-100 text-sky-700",
-  Technical: "bg-violet-100 text-violet-700",
-  Operations: "bg-amber-100 text-amber-700",
-  HR: "bg-rose-100 text-rose-700",
-  Projects: "bg-emerald-100 text-emerald-700",
+  Sales: "bg-sky-100 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400",
+  Technical: "bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400",
+  Operations: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400",
+  HR: "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400",
+  Projects: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
 };
+
+type TabKey = "overview" | "leads" | "activities" | "timeline" | "chat";
 
 function ManagerEmployeeDetailsPage() {
   const { employeeId } = Route.useParams();
-  const { t } = useI18n();
+  const { t, lang, dir } = useI18n();
+  const isAr = lang === "ar";
   const router = useRouter();
   const { leads, activities, settings, history } = useStoreState();
   const { teamEmployees: employees } = useMyTeam();
   const emp = employees.find((e) => e.id === employeeId);
+  const { profile } = useAuth();
+
+  const meName =
+    (isAr ? profile?.full_name_ar : profile?.full_name_en) ||
+    profile?.full_name_en ||
+    "Manager";
+  const mePhoto = profile?.avatar_url ?? undefined;
+  const meInitials =
+    (meName || "")
+      .split(" ")
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "MG";
+
   const user = {
-    name: "",
+    name: meName,
     role: t("manager"),
-    initials: "HR",
-    photo: "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
+    initials: meInitials,
+    photo: mePhoto || "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
   };
+
+  // Tabs state
+  const [tab, setTab] = useState<TabKey>("overview");
   const [showAddLead, setShowAddLead] = useState(false);
   const [reassignFor, setReassignFor] = useState<string | null>(null);
 
-  // Filters
+  // Filters state
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
@@ -62,21 +92,53 @@ function ManagerEmployeeDetailsPage() {
   const [toDate, setToDate] = useState<string>("");
   const [activitiesDateFilter, setActivitiesDateFilter] = useState<string>("");
 
-  const empLeads = emp ? leads.filter((l: any) => l.owner === emp.name) : [];
-  const empActivitiesRaw = emp ? activities.filter((a) => a.owner === emp.name) : [];
-  const empActivities = empActivitiesRaw.filter((a) => !activitiesDateFilter || a.dueDate === activitiesDateFilter);
-  const won = empLeads.filter((l: any) => l.status === "won").length;
+  const empLeads = useMemo(() => {
+    if (!emp) return [];
+    return leads.filter((l: any) => l.owner === emp.name || l.ownerId === emp.id);
+  }, [leads, emp]);
 
-  const sources = Array.from(
-    new Set(empLeads.map((l: any) => l.source).filter(Boolean)),
-  ) as string[];
+  const empActivitiesRaw = useMemo(() => {
+    if (!emp) return [];
+    return activities.filter((a) => a.owner === emp.name || a.ownerId === emp.id);
+  }, [activities, emp]);
+
+  const empActivities = useMemo(() => {
+    return empActivitiesRaw.filter(
+      (a) => !activitiesDateFilter || a.dueDate === activitiesDateFilter,
+    );
+  }, [empActivitiesRaw, activitiesDateFilter]);
+
+  const wonLeads = useMemo(
+    () => empLeads.filter((l: any) => l.status === "won"),
+    [empLeads],
+  );
+  const wonCount = wonLeads.length;
+  const totalPipelineValue = useMemo(
+    () => empLeads.reduce((s, l: any) => s + (l.value || 0), 0),
+    [empLeads],
+  );
+  const wonRevenue = useMemo(
+    () => wonLeads.reduce((s, l: any) => s + (l.value || 0), 0),
+    [wonLeads],
+  );
+  const doneActivitiesCount = useMemo(
+    () => empActivitiesRaw.filter((a) => a.status === "done").length,
+    [empActivitiesRaw],
+  );
+
+  const sources = useMemo(
+    () =>
+      Array.from(new Set(empLeads.map((l: any) => l.source).filter(Boolean))) as string[],
+    [empLeads],
+  );
+
   const filteredLeads = useMemo(() => {
     const q = search.trim().toLowerCase();
     return empLeads.filter((l: any) => {
       if (statusFilter !== "all" && l.status !== statusFilter) return false;
       if (sourceFilter !== "all" && l.source !== sourceFilter) return false;
       if (q) {
-        const blob = `${l.company} ${l.contact} ${l.industry} ${l.city} ${l.id}`.toLowerCase();
+        const blob = `${l.code || ""} ${l.company || ""} ${l.contact || ""} ${l.industry || ""} ${l.city || ""} ${l.id}`.toLowerCase();
         if (!blob.includes(q)) return false;
       }
       const refDate = (l as any).expectedCloseDate as string | undefined;
@@ -88,7 +150,11 @@ function ManagerEmployeeDetailsPage() {
 
   // Timeline: lead reassignments / status changes + activities for this member
   const empName = emp?.name ?? "";
-  const empLeadCompanies = new Set(empLeads.map((l: any) => l.company));
+  const empLeadCompanies = useMemo(
+    () => new Set(empLeads.map((l: any) => l.company)),
+    [empLeads],
+  );
+
   const timeline = useMemo(() => {
     return history
       .filter(
@@ -101,7 +167,7 @@ function ManagerEmployeeDetailsPage() {
       .slice(0, 40);
   }, [history, empName, empLeadCompanies]);
 
-  // Structured audit rows: reassignments + status moves, with prev/new owners/values
+  // Structured audit rows
   type AuditRow = {
     id: string;
     ts: string;
@@ -112,6 +178,7 @@ function ManagerEmployeeDetailsPage() {
     to: string;
     actor: string;
   };
+
   const auditRows = useMemo<AuditRow[]>(() => {
     const companyToLead = new Map(leads.map((l: any) => [l.company, l.id]));
     return history
@@ -180,372 +247,657 @@ function ManagerEmployeeDetailsPage() {
     setToDate("");
   };
 
+  const tabs: { id: TabKey; label: string; icon: any; count?: number }[] = [
+    {
+      id: "overview",
+      label: isAr ? "نظرة عامة" : "Overview",
+      icon: LayoutDashboard,
+    },
+    {
+      id: "leads",
+      label: isAr ? "العملاء المحتملين" : "Leads",
+      icon: Users2,
+      count: empLeads.length,
+    },
+    {
+      id: "activities",
+      label: isAr ? "الأنشطة" : "Activities",
+      icon: ActivityIcon,
+      count: empActivitiesRaw.length,
+    },
+    {
+      id: "timeline",
+      label: isAr ? "سجل العمليات والتدقيق" : "Timeline & Audit",
+      icon: HistoryIcon,
+      count: timeline.length + auditRows.length,
+    },
+    {
+      id: "chat",
+      label: isAr ? "المحادثة" : "Chat",
+      icon: MessageCircle,
+    },
+  ];
+
   return (
     <AppShell panel="manager" user={user} pageTitle={emp.name}>
+      {/* Back button */}
       <button
         onClick={() => router.history.back()}
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" /> {t("backToEmployees")}
       </button>
 
-      {/* Member Info */}
+      {/* Member Info Profile Card */}
       <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-        <div className="flex flex-wrap items-center gap-5">
-          {emp.photo ? (
-            <img
-              src={emp.photo}
-              alt={emp.name}
-              loading="lazy"
-              className="h-20 w-20 shrink-0 rounded-2xl object-cover ring-2 ring-primary/30 shadow-[var(--shadow-brand)]"
+        <div className="flex flex-wrap items-center justify-between gap-5">
+          <div className="flex flex-wrap items-center gap-5">
+            {emp.photo ? (
+              <img
+                src={emp.photo}
+                alt={emp.name}
+                loading="lazy"
+                className="h-20 w-20 shrink-0 rounded-2xl object-cover ring-2 ring-primary/30 shadow-[var(--shadow-brand)]"
+              />
+            ) : (
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-orange-600 text-2xl font-bold text-primary-foreground shadow-[var(--shadow-brand)]">
+                {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h2 className="font-display text-2xl font-extrabold text-foreground">{emp.name}</h2>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                    DEPT_COLORS[emp.department] ?? "bg-secondary text-foreground"
+                  }`}
+                >
+                  {emp.department}
+                </span>
+              </div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                {emp.role} · {emp.department}
+              </div>
+              <div className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                {shortId(emp.id)}
+                <CopyIdButton value={emp.id} />
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                {emp.email && (
+                  <a
+                    href={`mailto:${emp.email}`}
+                    className="inline-flex items-center gap-1.5 text-primary hover:underline font-mono"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    <span>{emp.email}</span>
+                  </a>
+                )}
+                {emp.phone && (
+                  <a
+                    href={`tel:${emp.phone.replace(/\s/g, "")}`}
+                    className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground font-mono"
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                    <span>{emp.phone}</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Header Stats */}
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 border-t sm:border-t-0 sm:border-s border-border pt-4 sm:pt-0 sm:ps-6">
+            <Stat label={t("leads")} value={empLeads.length} />
+            <Stat label={t("won")} value={wonCount} tone="text-emerald-600 dark:text-emerald-400" />
+            <Stat
+              label={t("performance")}
+              value={`${emp.perf}%`}
+              tone="text-primary"
             />
-          ) : (
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-orange-600 text-2xl font-bold text-primary-foreground shadow-[var(--shadow-brand)]">
-              {emp.avatar}
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <h2 className="font-display text-2xl font-extrabold text-foreground">{emp.name}</h2>
-            <div className="mt-1 text-sm text-muted-foreground">
-              {emp.role} · {emp.department}
-            </div>
-            <div className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-              {shortId(emp.id)}
-              <CopyIdButton value={emp.id} />
-            </div>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-              {emp.email && (
-                <a
-                  href={`mailto:${emp.email}`}
-                  className="inline-flex items-center gap-1.5 text-primary hover:underline"
-                >
-                  <Mail className="h-3.5 w-3.5" />
-                  <span className="font-mono">{emp.email}</span>
-                </a>
-              )}
-              {emp.phone && (
-                <a
-                  href={`tel:${emp.phone.replace(/\s/g, "")}`}
-                  className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
-                >
-                  <Phone className="h-3.5 w-3.5" />
-                  <span className="font-mono">{emp.phone}</span>
-                </a>
-              )}
-            </div>
-            <span
-              className={`mt-3 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                DEPT_COLORS[emp.department] ?? "bg-secondary text-foreground"
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs Navigation Bar */}
+      <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-border pb-1">
+        {tabs.map((tb) => {
+          const active = tab === tb.id;
+          const Icon = tb.icon;
+          return (
+            <button
+              key={tb.id}
+              onClick={() => setTab(tb.id)}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition cursor-pointer ${
+                active
+                  ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]"
+                  : "bg-card text-muted-foreground hover:bg-accent hover:text-foreground border border-border"
               }`}
             >
-              {emp.department}
-            </span>
-          </div>
-          <div className="grid grid-cols-3 gap-6 text-center">
-            <Stat label={t("leads")} value={empLeads.length} />
-            <Stat label={t("won")} value={won} />
-            <Stat label={t("performance")} value={`${emp.perf}%`} />
-          </div>
-        </div>
+              <Icon className="h-4 w-4" />
+              <span>{tb.label}</span>
+              {tb.count != null && (
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                    active
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-secondary text-foreground"
+                  }`}
+                >
+                  {tb.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Related Leads */}
-      <div className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Users2 className="h-4 w-4 text-primary" />
-            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-              {t("relatedLeads")} ({filteredLeads.length}/{empLeads.length})
-            </h3>
-          </div>
-          <button
-            onClick={() => setShowAddLead(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:opacity-90"
-          >
-            <Plus className="h-3.5 w-3.5" /> {t("addLead")}
-          </button>
-        </div>
+      {/* TAB 1: OVERVIEW */}
+      {tab === "overview" && (
+        <div className="space-y-6">
+          {/* Key Metrics Grid */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <Users2 className="h-4 w-4 text-sky-600" />
+                <span>{isAr ? "إجمالي الصفقات" : "Total Leads"}</span>
+              </div>
+              <div className="mt-2 font-mono text-2xl font-bold text-foreground">
+                {empLeads.length}
+              </div>
+            </div>
 
-        {/* Filters bar */}
-        <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-6">
-          <div className="relative sm:col-span-2">
-            <Search className="absolute start-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search company, contact, city..."
-              className="h-9 w-full rounded-lg border border-border bg-background ps-8 pe-3 text-sm"
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
-          >
-            <option value="all">All statuses</option>
-            {settings.statuses.map((s: string) => {
-              const stage = settings.stages.find((st) => st.key === s);
-              return (
-                <option key={s} value={s}>
-                  {stage?.label ?? s}
-                </option>
-              );
-            })}
-          </select>
-          <select
-            value={sourceFilter}
-            onChange={(e) => setSourceFilter(e.target.value)}
-            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
-          >
-            <option value="all">All sources</option>
-            {sources.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
-          />
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
-          />
-        </div>
-        {(search || statusFilter !== "all" || sourceFilter !== "all" || fromDate || toDate) && (
-          <button
-            onClick={resetFilters}
-            className="mb-3 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
-          >
-            <FilterIcon className="h-3 w-3" /> Reset filters
-          </button>
-        )}
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span>{isAr ? "صفقات مغلقة (فوز)" : "Won Deals"}</span>
+              </div>
+              <div className="mt-2 font-mono text-2xl font-bold text-emerald-600">
+                {wonCount}
+              </div>
+            </div>
 
-        {filteredLeads.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {empLeads.length === 0 ? t("noLeadsAssigned") : "No leads match the filters."}
-          </p>
-        ) : (
-          <div className="divide-y divide-border">
-            {filteredLeads.map((l: any) => (
-              <div key={l.id} className="flex flex-wrap items-center gap-3 py-3 hover:bg-primary/5">
-                <Link
-                  to="/manager/leads/$leadId"
-                  params={{ leadId: l.id }}
-                  className="flex min-w-0 flex-1 items-center gap-3"
-                >
-                  <span className="w-20 font-mono text-xs text-muted-foreground">
-                    {shortId(l.id)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-semibold text-foreground">{l.company}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {l.contact} · {l.industry} · {l.city}
-                    </div>
-                  </div>
-                  <StatusBadge status={l.status} label={t(l.status as any)} />
-                  <span className="ms-3 font-mono text-sm font-bold text-foreground">
-                    {fmtMoney(l.value)}
-                  </span>
-                </Link>
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <ActivityIcon className="h-4 w-4 text-amber-600" />
+                <span>{isAr ? "الأنشطة المنجزة" : "Done Activities"}</span>
+              </div>
+              <div className="mt-2 font-mono text-2xl font-bold text-amber-600">
+                {doneActivitiesCount} / {empActivitiesRaw.length}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <span>{isAr ? "الإيرادات المحققة" : "Won Revenue"}</span>
+              </div>
+              <div className="mt-2 font-mono text-2xl font-bold text-primary">
+                {fmtMoney(wonRevenue)}
+              </div>
+            </div>
+          </div>
+
+          {/* Performance Target Bar */}
+          {emp.annualTarget ? (
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+              <div className="flex items-center justify-between text-xs font-bold text-foreground mb-2">
+                <span>{isAr ? "الهدف السنوي المحقق" : "Annual Target Achievement"}</span>
+                <span className="font-mono text-primary font-bold">
+                  {Math.round(((emp.achievedTarget ?? 0) / emp.annualTarget) * 100)}%
+                </span>
+              </div>
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full bg-gradient-to-r from-primary to-orange-500 rounded-full"
+                  style={{
+                    width: `${Math.min(
+                      Math.round(((emp.achievedTarget ?? 0) / emp.annualTarget) * 100),
+                      100,
+                    )}%`,
+                  }}
+                />
+              </div>
+              <div className="mt-2 flex items-center justify-between font-mono text-[11px] text-muted-foreground">
+                <span>{isAr ? "المحقق: " : "Achieved: "}{fmtMoney(emp.achievedTarget ?? 0)}</span>
+                <span>{isAr ? "الهدف: " : "Target: "}{fmtMoney(emp.annualTarget)}</span>
+              </div>
+            </div>
+          ) : null}
+
+          {/* 2-Column Previews */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Recent Leads Preview */}
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] flex flex-col">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users2 className="h-4 w-4 text-primary" />
+                  <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                    {isAr ? "أحدث العملاء" : "Recent Leads"}
+                  </h3>
+                </div>
                 <button
-                  onClick={() => setReassignFor(l.id)}
-                  className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:border-primary hover:text-primary"
+                  onClick={() => setTab("leads")}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline cursor-pointer"
                 >
-                  <UserCog className="h-3 w-3" /> Reassign
+                  <span>{isAr ? "عرض الكل" : "View All"}</span>
+                  <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Assignment & Status Changes Timeline */}
-      <div className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-        <div className="mb-4 flex items-center gap-2">
-          <HistoryIcon className="h-4 w-4 text-primary" />
-          <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-            Lead assignment & status timeline ({timeline.length})
-          </h3>
-        </div>
-        {timeline.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No assignment or status changes recorded yet.
-          </p>
-        ) : (
-          <ol className="relative space-y-3 border-s-2 border-border ps-4">
-            {timeline.map((h) => {
-              const relLead = leads.find((l: any) => l.company === h.target);
-              return (
-                <li key={h.id} className="relative">
-                  <span className="absolute -start-[22px] top-2 h-3 w-3 rounded-full bg-primary ring-2 ring-card" />
-                  <div className="rounded-lg border border-border bg-background px-3 py-2 transition hover:border-primary/50 hover:bg-primary/5">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <span className="text-sm font-semibold text-foreground">{h.action}</span>
-                      <span className="font-mono text-[10px] uppercase text-muted-foreground">
-                        {h.ts.slice(0, 16).replace("T", " ")}
-                      </span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {relLead ? (
+              {empLeads.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-6 text-center">{t("noLeadsAssigned")}</p>
+              ) : (
+                <div className="divide-y divide-border flex-1">
+                  {empLeads.slice(0, 5).map((l: any) => (
+                    <div key={l.id} className="py-2.5 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
                         <Link
                           to="/manager/leads/$leadId"
-                          params={{ leadId: relLead.id }}
-                          className="font-semibold text-primary hover:underline"
+                          params={{ leadId: l.id }}
+                          className="font-semibold text-foreground hover:text-primary text-xs truncate block"
                         >
-                          {h.target}
-                          <span className="ms-1 font-mono text-[10px] text-muted-foreground">
-                            ({shortId(relLead.id)})
-                          </span>
+                          {l.code || l.company}
                         </Link>
-                      ) : (
-                        <span className="font-semibold text-foreground">{h.target}</span>
-                      )}
-                      {h.details ? <> · {h.details}</> : null}
-                      <> · by {h.actor}</>
+                        <div className="text-[11px] text-muted-foreground">
+                          {l.contact || l.company} · {l.city}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <StatusBadge status={l.status} label={t(l.status as any)} />
+                        <span className="font-mono text-xs font-bold text-foreground">
+                          {fmtMoney(l.value)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        )}
-      </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-      {/* Audit Trail — Reassignments & Status Changes (actor, ts, prev/new) */}
-      <div className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-        <div className="mb-4 flex items-center gap-2">
-          <UserCog className="h-4 w-4 text-primary" />
-          <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-            Audit trail ({auditRows.length})
-          </h3>
-        </div>
-        {auditRows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No reassignments or status changes recorded.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-secondary/60">
-                <tr>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    When
-                  </th>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Type
-                  </th>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Lead
-                  </th>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    From
-                  </th>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    To
-                  </th>
-                  <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Actor
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {auditRows.map((r) => (
-                  <tr key={r.id} className="hover:bg-primary/5">
-                    <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
-                      {r.ts.slice(0, 16).replace("T", " ")}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                          r.kind === "reassign"
-                            ? "bg-violet-50 text-violet-700"
-                            : "bg-sky-50 text-sky-700"
-                        }`}
-                      >
-                        {r.kind === "reassign" ? "Reassignment" : "Status"}
+            {/* Recent Activities Preview */}
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] flex flex-col">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ActivityIcon className="h-4 w-4 text-primary" />
+                  <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                    {isAr ? "أحدث الأنشطة" : "Recent Activities"}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setTab("activities")}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline cursor-pointer"
+                >
+                  <span>{isAr ? "عرض الكل" : "View All"}</span>
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+              {empActivitiesRaw.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-6 text-center">{t("noActivitiesOwned")}</p>
+              ) : (
+                <div className="divide-y divide-border flex-1">
+                  {empActivitiesRaw.slice(0, 5).map((a) => (
+                    <div key={a.id} className="py-2.5 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-foreground text-xs truncate">{a.title}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          <span className="font-medium text-primary me-1.5">{a.type}</span>
+                          <Clock4 className="inline h-3 w-3 me-1" />
+                          {formatDate(a.dueDate)} {a.time}
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-bold capitalize px-2 py-0.5 rounded-md bg-secondary text-foreground shrink-0">
+                        {a.status.replace("_", " ")}
                       </span>
-                    </td>
-                    <td className="px-3 py-2">
-                      {r.leadId ? (
-                        <Link
-                          to="/manager/leads/$leadId"
-                          params={{ leadId: r.leadId }}
-                          className="font-semibold text-primary hover:underline"
-                        >
-                          {r.target}
-                        </Link>
-                      ) : (
-                        <span className="font-semibold text-foreground">{r.target}</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2 text-muted-foreground">{r.from || "—"}</td>
-                    <td className="px-3 py-2 font-semibold text-foreground">{r.to || "—"}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{r.actor}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Related Activities */}
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ActivityIcon className="h-4 w-4 text-primary" />
-            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-              {t("assignedActivities")} ({empActivities.length})
-            </h3>
+      {/* TAB 2: LEADS */}
+      {tab === "leads" && (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Users2 className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                {t("relatedLeads")} ({filteredLeads.length}/{empLeads.length})
+              </h3>
+            </div>
+            <button
+              onClick={() => setShowAddLead(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:opacity-90 cursor-pointer"
+            >
+              <Plus className="h-3.5 w-3.5" /> {t("addLead")}
+            </button>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Filters bar */}
+          <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-6">
+            <div className="relative sm:col-span-2">
+              <Search className="absolute start-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search lead, company, contact..."
+                className="h-9 w-full rounded-lg border border-border bg-background ps-8 pe-3 text-sm focus:border-primary focus:outline-none"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="h-9 rounded-lg border border-border bg-background px-2 text-sm focus:border-primary focus:outline-none"
+            >
+              <option value="all">All statuses</option>
+              {settings.statuses.map((s: string) => {
+                const stage = settings.stages.find((st) => st.key === s);
+                return (
+                  <option key={s} value={s}>
+                    {stage?.label ?? s}
+                  </option>
+                );
+              })}
+            </select>
+            <select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="h-9 rounded-lg border border-border bg-background px-2 text-sm focus:border-primary focus:outline-none"
+            >
+              <option value="all">All sources</option>
+              {sources.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
             <input
               type="date"
-              value={activitiesDateFilter}
-              onChange={(e) => setActivitiesDateFilter(e.target.value)}
-              className="h-8 rounded-lg border border-border bg-background px-2 text-xs"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="h-9 rounded-lg border border-border bg-background px-2 text-sm focus:border-primary focus:outline-none"
+            />
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="h-9 rounded-lg border border-border bg-background px-2 text-sm focus:border-primary focus:outline-none"
+            />
+          </div>
+          {(search || statusFilter !== "all" || sourceFilter !== "all" || fromDate || toDate) && (
+            <button
+              onClick={resetFilters}
+              className="mb-3 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+            >
+              <FilterIcon className="h-3 w-3" /> Reset filters
+            </button>
+          )}
+
+          {filteredLeads.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              {empLeads.length === 0 ? t("noLeadsAssigned") : "No leads match the filters."}
+            </p>
+          ) : (
+            <div className="divide-y divide-border">
+              {filteredLeads.map((l: any) => (
+                <div key={l.id} className="flex flex-wrap items-center gap-3 py-3 hover:bg-primary/5 transition-colors">
+                  <Link
+                    to="/manager/leads/$leadId"
+                    params={{ leadId: l.id }}
+                    className="flex min-w-0 flex-1 items-center gap-3"
+                  >
+                    <span className="w-20 font-mono text-xs text-muted-foreground">
+                      {shortId(l.id)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-foreground">{l.code || l.company}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {l.contact ? `${l.contact} · ` : ""}{l.company} · {l.industry} · {l.city}
+                      </div>
+                    </div>
+                    <StatusBadge status={l.status} label={t(l.status as any)} />
+                    <span className="ms-3 font-mono text-sm font-bold text-foreground">
+                      {fmtMoney(l.value)}
+                    </span>
+                  </Link>
+                  <button
+                    onClick={() => setReassignFor(l.id)}
+                    className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-semibold text-muted-foreground hover:border-primary hover:text-primary transition-colors cursor-pointer"
+                  >
+                    <UserCog className="h-3 w-3" /> Reassign
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: ACTIVITIES */}
+      {tab === "activities" && (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <ActivityIcon className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                {t("assignedActivities")} ({empActivities.length})
+              </h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={activitiesDateFilter}
+                onChange={(e) => setActivitiesDateFilter(e.target.value)}
+                className="h-8 rounded-lg border border-border bg-background px-2 text-xs focus:border-primary focus:outline-none"
+              />
+              {activitiesDateFilter && (
+                <button
+                  onClick={() => setActivitiesDateFilter("")}
+                  className="text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                >
+                  Clear date
+                </button>
+              )}
+            </div>
+          </div>
+          {empActivities.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">{t("noActivitiesOwned")}</p>
+          ) : (
+            <div className="space-y-2">
+              {empActivities.map((a) => (
+                <div
+                  key={a.id}
+                  className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3.5 hover:bg-primary/5 transition-colors"
+                >
+                  <span className="rounded-lg bg-primary/10 text-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+                    {a.type}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-foreground text-sm">{a.title}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      <Clock4 className="me-1 inline h-3.5 w-3.5 text-muted-foreground" />
+                      {formatDate(a.dueDate)} {a.time}
+                    </div>
+                  </div>
+                  {a.estMinutes != null && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold text-primary ring-1 ring-primary/20">
+                      <Timer className="h-3 w-3" /> {fmtH(a.estMinutes)}
+                    </span>
+                  )}
+                  <span className="text-xs font-bold capitalize px-2.5 py-1 rounded-lg bg-secondary text-foreground">
+                    {a.status.replace("_", " ")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 4: TIMELINE & AUDIT */}
+      {tab === "timeline" && (
+        <div className="space-y-6">
+          {/* Assignment & Status Changes Timeline */}
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+            <div className="mb-4 flex items-center gap-2">
+              <HistoryIcon className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                Lead assignment & status timeline ({timeline.length})
+              </h3>
+            </div>
+            {timeline.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                No assignment or status changes recorded yet.
+              </p>
+            ) : (
+              <ol className="relative space-y-3 border-s-2 border-border ps-4">
+                {timeline.map((h) => {
+                  const relLead = leads.find((l: any) => l.company === h.target || l.code === h.target);
+                  return (
+                    <li key={h.id} className="relative">
+                      <span className="absolute -start-[22px] top-2 h-3 w-3 rounded-full bg-primary ring-2 ring-card" />
+                      <div className="rounded-lg border border-border bg-background px-3 py-2 transition hover:border-primary/50 hover:bg-primary/5">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <span className="text-sm font-semibold text-foreground">{h.action}</span>
+                          <span className="font-mono text-[10px] uppercase text-muted-foreground">
+                            {h.ts.slice(0, 16).replace("T", " ")}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {relLead ? (
+                            <Link
+                              to="/manager/leads/$leadId"
+                              params={{ leadId: relLead.id }}
+                              className="font-semibold text-primary hover:underline"
+                            >
+                              {h.target}
+                              <span className="ms-1 font-mono text-[10px] text-muted-foreground">
+                                ({shortId(relLead.id)})
+                              </span>
+                            </Link>
+                          ) : (
+                            <span className="font-semibold text-foreground">{h.target}</span>
+                          )}
+                          {h.details ? <> · {h.details}</> : null}
+                          <> · by {h.actor}</>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+
+          {/* Audit Trail — Structured Table */}
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+            <div className="mb-4 flex items-center gap-2">
+              <UserCog className="h-4 w-4 text-primary" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                Audit trail ({auditRows.length})
+              </h3>
+            </div>
+            {auditRows.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                No reassignments or status changes recorded.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-secondary/60">
+                    <tr>
+                      <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        When
+                      </th>
+                      <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Type
+                      </th>
+                      <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Lead
+                      </th>
+                      <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        From
+                      </th>
+                      <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        To
+                      </th>
+                      <th className="px-3 py-2 text-start text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Actor
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {auditRows.map((r) => (
+                      <tr key={r.id} className="hover:bg-primary/5 transition-colors">
+                        <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
+                          {r.ts.slice(0, 16).replace("T", " ")}
+                        </td>
+                        <td className="px-3 py-2">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                              r.kind === "reassign"
+                                ? "bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400"
+                                : "bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400"
+                            }`}
+                          >
+                            {r.kind === "reassign" ? "Reassignment" : "Status"}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2">
+                          {r.leadId ? (
+                            <Link
+                              to="/manager/leads/$leadId"
+                              params={{ leadId: r.leadId }}
+                              className="font-semibold text-primary hover:underline"
+                            >
+                              {r.target}
+                            </Link>
+                          ) : (
+                            <span className="font-semibold text-foreground">{r.target}</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-muted-foreground">{r.from || "—"}</td>
+                        <td className="px-3 py-2 font-semibold text-foreground">{r.to || "—"}</td>
+                        <td className="px-3 py-2 text-muted-foreground">{r.actor}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: CHAT */}
+      {tab === "chat" && (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4">
+            <h3 className="font-display text-base font-bold text-foreground">
+              {isAr ? `محادثة مباشرة مع ${emp.name}` : `Direct Chat with ${emp.name}`}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {isAr
+                ? "إرسال واستقبال الرسائل المباشرة في الوقت الفعلي."
+                : "Real-time direct messaging with this team employee."}
+            </p>
+          </div>
+          <div className="h-[600px] rounded-xl overflow-hidden border border-border">
+            <RealChat
+              peerProfileId={emp.id}
+              peerName={emp.name}
+              peerPhoto={emp.photo}
+              peerInitials={emp.avatar || emp.name.slice(0, 2).toUpperCase()}
+              meName={meName}
+              mePhoto={mePhoto}
+              meInitials={meInitials}
             />
           </div>
         </div>
-        {empActivities.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("noActivitiesOwned")}</p>
-        ) : (
-          <div className="space-y-2">
-            {empActivities.map((a) => (
-              <div
-                key={a.id}
-                className="flex items-center gap-3 rounded-lg border border-border p-3"
-              >
-                <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  {a.type}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-foreground">{a.title}</div>
-                  <div className="text-xs text-muted-foreground">
-                    <Clock4 className="me-1 inline h-3 w-3" />
-                    {formatDate(a.dueDate)} {a.time}
-                  </div>
-                </div>
-                {a.estMinutes != null && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary ring-1 ring-primary/20">
-                    <Timer className="h-3 w-3" /> {fmtH(a.estMinutes)}
-                  </span>
-                )}
-                <span className="text-xs font-semibold capitalize text-muted-foreground">
-                  {a.status.replace("_", " ")}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
 
+      {/* MODALS */}
       {showAddLead && (
         <QuickLeadModal
           owner={emp.name}
@@ -648,9 +1000,9 @@ function ReassignLeadModal({
           <button
             onClick={submit}
             disabled={!newOwner || newOwner === currentOwner}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:opacity-90 disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:opacity-90 disabled:opacity-40"
           >
-            Reassign & notify
+            Reassign
           </button>
         </div>
       </div>
@@ -667,58 +1019,27 @@ function QuickLeadModal({
   cities: string[];
   onClose: () => void;
 }) {
-  const { t } = useI18n();
-  const { projects } = useStoreState();
-  const [projectId, setProjectId] = useState("");
+  const [code, setCode] = useState("");
   const [company, setCompany] = useState("");
   const [contact, setContact] = useState("");
-  const [email, setEmail] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [value, setValue] = useState(0);
-  const [city, setCity] = useState(cities[0] ?? "");
-  const [street, setStreet] = useState("");
-  const [errors, setErrors] = useState<{ company?: string; email?: string; city?: string }>({});
-
-  const selectedProject = projects.find((p) => p.id === projectId);
-
-  const onProjectChange = (pid: string) => {
-    setProjectId(pid);
-    const p = projects.find((x) => x.id === pid);
-    if (p) {
-      setCompany(p.name);
-      setContact(p.client);
-      setIndustry(p.category);
-      setValue(p.offeredValue ?? p.budget ?? 0);
-      if (p.clientEmail) setEmail(p.clientEmail);
-      setErrors((prev) => ({ ...prev, company: undefined }));
-    }
-  };
-
-  const validate = () => {
-    const e: typeof errors = {};
-    if (!company.trim()) e.company = "Project is required";
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = "Invalid email format";
-    if (!city.trim()) e.city = "City is required";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+  const [city, setCity] = useState(cities[0] ?? "Cairo");
+  const [value, setValue] = useState(100000);
+  const [industry, setIndustry] = useState("Commercial");
 
   const submit = () => {
-    if (!validate()) return;
+    if (!company.trim()) return;
     actions.addLead({
+      code: code.trim() || undefined,
       company: company.trim(),
-      contact: contact.trim(),
-      email: email.trim(),
-      industry: industry.trim(),
-      source: "Website",
-      status: "new",
-      value,
-      city,
-      street,
+      contact: contact.trim() || "Main Contact",
       owner,
-      lat: 30.0444,
-      lng: 31.2357,
-    } as any);
+      status: "new",
+      value: Number(value) || 0,
+      industry,
+      city,
+      source: "Manual",
+    });
+    toast.success(`Lead created and assigned to ${owner}`);
     onClose();
   };
 
@@ -732,13 +1053,7 @@ function QuickLeadModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="font-display text-lg font-bold text-foreground">{t("addLead")}</h2>
-            <p className="text-xs text-muted-foreground">
-              {t("owner") ?? "Owner"}:{" "}
-              <span className="font-semibold text-foreground">{owner}</span>
-            </p>
-          </div>
+          <h2 className="font-display text-lg font-bold text-foreground">Add lead for {owner}</h2>
           <button
             onClick={onClose}
             className="rounded-lg p-1 text-muted-foreground hover:bg-accent"
@@ -746,126 +1061,98 @@ function QuickLeadModal({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Account" error={errors.company} required>
-            <select
-              value={projectId}
-              onChange={(e) => onProjectChange(e.target.value)}
-              className={`h-9 w-full rounded-lg border bg-background px-2 text-sm ${errors.company ? "border-destructive" : "border-border"}`}
-            >
-              <option value="">Select account…</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Client">
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Lead Name / Title
+            </label>
             <input
-              value={contact}
-              readOnly={!!selectedProject}
-              onChange={(e) => setContact(e.target.value)}
-              placeholder={selectedProject ? "" : "Auto-filled from account"}
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm read-only:bg-muted/40 read-only:text-muted-foreground"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="e.g. Cairo Office Renovation"
+              className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
             />
-          </Field>
-          <Field label={t("companyEmail") ?? "Email"} error={errors.email}>
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Company *
+            </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
-              }}
-              className={`h-9 w-full rounded-lg border bg-background px-3 text-sm ${errors.email ? "border-destructive" : "border-border"}`}
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="e.g. Al Marasem"
+              className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
             />
-          </Field>
-          <div className="hidden">
-            <Field label={t("industry")}>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Contact Person
+              </label>
+              <input
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+                placeholder="e.g. Eng. Ahmed"
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                City
+              </label>
+              <select
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
+              >
+                {cities.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Estimated Value (EGP)
+              </label>
+              <input
+                type="number"
+                value={value}
+                onChange={(e) => setValue(Number(e.target.value))}
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Industry
+              </label>
               <input
                 value={industry}
-                readOnly={!!selectedProject}
                 onChange={(e) => setIndustry(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm read-only:bg-muted/40 read-only:text-muted-foreground"
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
               />
-            </Field>
-          </div>
-          <Field label={`${t("value")} ($)`}>
-            <input
-              type="number"
-              value={value}
-              onChange={(e) => setValue(Number(e.target.value))}
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-            />
-          </Field>
-          <Field label={t("city") ?? "City"} error={errors.city} required>
-            <select
-              value={city}
-              onChange={(e) => {
-                setCity(e.target.value);
-                if (errors.city) setErrors((p) => ({ ...p, city: undefined }));
-              }}
-              className={`h-9 w-full rounded-lg border bg-background px-2 text-sm ${errors.city ? "border-destructive" : "border-border"}`}
-            >
-              <option value="">— Select city —</option>
-              {cities.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <div className="sm:col-span-2">
-            <Field label={t("streetName") ?? "Street"}>
-              <input
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
-              />
-            </Field>
+            </div>
           </div>
         </div>
-        <div className="mt-5 flex justify-end gap-2">
+        <div className="mt-6 flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-accent"
+            className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-accent cursor-pointer"
           >
-            {t("cancel") ?? "Cancel"}
+            Cancel
           </button>
           <button
             onClick={submit}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:opacity-90"
+            disabled={!company.trim()}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-brand)] hover:opacity-90 disabled:opacity-40 cursor-pointer"
           >
-            {t("save") ?? "Save"}
+            Create & Assign
           </button>
         </div>
       </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  children,
-  error,
-  required,
-}: {
-  label: string;
-  children: React.ReactNode;
-  error?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-        {required && <span className="ms-1 text-destructive">*</span>}
-      </span>
-      {children}
-      {error && (
-        <span className="mt-1 block text-[11px] font-medium text-destructive">{error}</span>
-      )}
-    </label>
   );
 }

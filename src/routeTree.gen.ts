@@ -74,6 +74,7 @@ import { Route as AdminClientsRouteImport } from './routes/admin.clients'
 import { Route as AdminChatRouteImport } from './routes/admin.chat'
 import { Route as AdminAttendanceRouteImport } from './routes/admin.attendance'
 import { Route as AdminActivitiesRouteImport } from './routes/admin.activities'
+import { Route as ManagerReportsIndexRouteImport } from './routes/manager.reports.index'
 import { Route as ManagerEmployeesIndexRouteImport } from './routes/manager.employees.index'
 import { Route as AdminReportsIndexRouteImport } from './routes/admin.reports.index'
 import { Route as PresalesLeadsLeadIdRouteImport } from './routes/presales.leads.$leadId'
@@ -429,6 +430,11 @@ const AdminActivitiesRoute = AdminActivitiesRouteImport.update({
   path: '/activities',
   getParentRoute: () => AdminRoute,
 } as any)
+const ManagerReportsIndexRoute = ManagerReportsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ManagerReportsRoute,
+} as any)
 const ManagerEmployeesIndexRoute = ManagerEmployeesIndexRouteImport.update({
   id: '/employees/',
   path: '/employees/',
@@ -674,6 +680,7 @@ export interface FileRoutesByFullPath {
   '/presales/leads/$leadId': typeof PresalesLeadsLeadIdRoute
   '/admin/reports/': typeof AdminReportsIndexRoute
   '/manager/employees/': typeof ManagerEmployeesIndexRoute
+  '/manager/reports/': typeof ManagerReportsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -724,7 +731,6 @@ export interface FileRoutesByTo {
   '/manager/pipeline': typeof ManagerPipelineRoute
   '/manager/projects': typeof ManagerProjectsRouteWithChildren
   '/manager/registered-accounts': typeof ManagerRegisteredAccountsRoute
-  '/manager/reports': typeof ManagerReportsRouteWithChildren
   '/manager/send-email': typeof ManagerSendEmailRoute
   '/manager/services-items': typeof ManagerServicesItemsRoute
   '/presales/email-inbox': typeof PresalesEmailInboxRoute
@@ -762,6 +768,7 @@ export interface FileRoutesByTo {
   '/presales/leads/$leadId': typeof PresalesLeadsLeadIdRoute
   '/admin/reports': typeof AdminReportsIndexRoute
   '/manager/employees': typeof ManagerEmployeesIndexRoute
+  '/manager/reports': typeof ManagerReportsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -857,6 +864,7 @@ export interface FileRoutesById {
   '/presales/leads/$leadId': typeof PresalesLeadsLeadIdRoute
   '/admin/reports/': typeof AdminReportsIndexRoute
   '/manager/employees/': typeof ManagerEmployeesIndexRoute
+  '/manager/reports/': typeof ManagerReportsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -953,6 +961,7 @@ export interface FileRouteTypes {
     | '/presales/leads/$leadId'
     | '/admin/reports/'
     | '/manager/employees/'
+    | '/manager/reports/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1003,7 +1012,6 @@ export interface FileRouteTypes {
     | '/manager/pipeline'
     | '/manager/projects'
     | '/manager/registered-accounts'
-    | '/manager/reports'
     | '/manager/send-email'
     | '/manager/services-items'
     | '/presales/email-inbox'
@@ -1041,6 +1049,7 @@ export interface FileRouteTypes {
     | '/presales/leads/$leadId'
     | '/admin/reports'
     | '/manager/employees'
+    | '/manager/reports'
   id:
     | '__root__'
     | '/'
@@ -1135,6 +1144,7 @@ export interface FileRouteTypes {
     | '/presales/leads/$leadId'
     | '/admin/reports/'
     | '/manager/employees/'
+    | '/manager/reports/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1602,6 +1612,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/activities'
       preLoaderRoute: typeof AdminActivitiesRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/manager/reports/': {
+      id: '/manager/reports/'
+      path: '/'
+      fullPath: '/manager/reports/'
+      preLoaderRoute: typeof ManagerReportsIndexRouteImport
+      parentRoute: typeof ManagerReportsRoute
     }
     '/manager/employees/': {
       id: '/manager/employees/'
@@ -2124,10 +2141,12 @@ const ManagerProjectsRouteWithChildren = ManagerProjectsRoute._addFileChildren(
 
 interface ManagerReportsRouteChildren {
   ManagerReportsInactiveLeadsRoute: typeof ManagerReportsInactiveLeadsRoute
+  ManagerReportsIndexRoute: typeof ManagerReportsIndexRoute
 }
 
 const ManagerReportsRouteChildren: ManagerReportsRouteChildren = {
   ManagerReportsInactiveLeadsRoute: ManagerReportsInactiveLeadsRoute,
+  ManagerReportsIndexRoute: ManagerReportsIndexRoute,
 }
 
 const ManagerReportsRouteWithChildren = ManagerReportsRoute._addFileChildren(
