@@ -4,6 +4,7 @@ import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
+import { getLeadLastActivity } from "@/lib/utils";
 import { useMemo } from "react";
 import { TrendingUp, Users, CheckCircle2, Clock, Download, AlertTriangle, ArrowRight } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/manager/reports/")({
 
 function ManagerReportsPage() {
   const { t, dir } = useI18n();
-  const { activities, leads } = useStoreState();
+  const { activities, leads, history } = useStoreState();
   const { teamEmployees: employees, includesLead } = useMyTeam();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -42,20 +43,10 @@ function ManagerReportsPage() {
       ) {
         return false;
       }
-      let diffDays = 0;
-      const rawDate = l.updatedAtIso || l.updatedAt || l.createdAt;
-      if (typeof rawDate === "string" && rawDate.includes("d ago")) {
-        const m = rawDate.match(/(\d+)d\s*ago/);
-        if (m) diffDays = parseInt(m[1], 10);
-      } else if (rawDate) {
-        const tMs = new Date(rawDate).getTime();
-        if (!isNaN(tMs)) {
-          diffDays = Math.floor((Date.now() - tMs) / (1000 * 60 * 60 * 24));
-        }
-      }
-      return diffDays >= 7;
+      const { inactiveDays } = getLeadLastActivity(l, activities, history);
+      return inactiveDays >= 7;
     }).length;
-  }, [teamLeads]);
+  }, [teamLeads, activities, history]);
 
   const report = useMemo(
     () =>

@@ -5,7 +5,7 @@ import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
 import { useAuth } from "@/lib/auth";
-import { formatDate, getEmailTemplate } from "@/lib/utils";
+import { formatDate, getEmailTemplate, getLeadLastActivity } from "@/lib/utils";
 import { toast } from "sonner";
 import {
   Upload,
@@ -47,18 +47,11 @@ interface InactiveLeadItem {
   ownerId?: string;
 }
 
-function getPastDate(daysAgo: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
 export function InactiveLeadsReportPage() {
   const { t, lang } = useI18n();
   const { user } = useAuth();
   const isAr = lang === "ar";
-  const { leads: storeLeads, employees: storeEmployees, users } = useStoreState();
+  const { leads: storeLeads, employees: storeEmployees, users, activities, history } = useStoreState();
   const { teamEmployees, includesLead } = useMyTeam();
   const { profile } = useAuth();
   const meName = profile?.full_name_en || profile?.full_name_ar || "";
@@ -116,7 +109,7 @@ export function InactiveLeadsReportPage() {
     "bg-teal-100 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400",
   ];
 
-  // 100% Real Store Leads Dataset
+  // 100% Real Store Leads Dataset with true latest activities
   const inactiveLeads = useMemo<InactiveLeadItem[]>(() => {
     const result: InactiveLeadItem[] = [];
 
@@ -137,24 +130,9 @@ export function InactiveLeadsReportPage() {
       ) {
         return;
       }
-      let diffDays = 0;
-      const rawDate = (l as any).updatedAtIso || l.updatedAt || (l as any).createdAt;
 
-      if (typeof rawDate === "string" && rawDate.includes("d ago")) {
-        const m = rawDate.match(/(\d+)d\s*ago/);
-        if (m) diffDays = parseInt(m[1], 10);
-      } else if (rawDate) {
-        const tMs = new Date(rawDate).getTime();
-        if (!isNaN(tMs)) {
-          diffDays = Math.floor((Date.now() - tMs) / (1000 * 60 * 60 * 24));
-        }
-      }
+      const { lastActivityDate, inactiveDays } = getLeadLastActivity(l, activities, history);
 
-      if (diffDays <= 0) {
-        diffDays = (idx % 12) + 7;
-      }
-
-      const actDate = getPastDate(diffDays);
       const leadName = (l.code || (l as any).title || (l as any).name || l.company || `Lead #${l.id.slice(0, 5)}`).trim();
       const accountName = (l.company || (l as any).account || "Standard Account").trim();
       const contactName = (l.contact || "").trim();
@@ -180,8 +158,8 @@ export function InactiveLeadsReportPage() {
         contact: contactName,
         assignedTo: l.owner || matchedEmp?.name || "Team Member",
         assignedPhoto: matchedEmp?.photo,
-        lastActivityDate: actDate,
-        inactiveDays: diffDays,
+        lastActivityDate,
+        inactiveDays,
         stage:
           (l as any).stage ||
           (l.status === "contacted" ? "Proposal" : l.status === "new" ? "New" : "Qualification"),
@@ -194,7 +172,7 @@ export function InactiveLeadsReportPage() {
     });
 
     return result;
-  }, [leads, employees, users]);
+  }, [leads, employees, users, activities, history]);
 
   // Real store derived options for filters (only real system employees)
   const availableEmployees = useMemo(() => {
@@ -624,26 +602,26 @@ export function InactiveLeadsReportPage() {
                           className="h-4 w-4 rounded-sm border-border text-primary focus:ring-primary"
                         />
                       </th>
-                      <th className="px-4 py-3 text-start font-bold">
+                      <th className="px-4 py-3 text-start font-bold whitespace-nowrap">
                         {isAr ? "اسم العميل" : "Lead Name"}
                       </th>
-                      <th className="px-4 py-3 text-start font-bold">
+                      <th className="px-4 py-3 text-start font-bold whitespace-nowrap">
                         {isAr ? "الحساب" : "Account"}
                       </th>
-                      <th className="px-4 py-3 text-start font-bold">
+                      <th className="px-4 py-3 text-start font-bold whitespace-nowrap">
                         {isAr ? "مسند إلى" : "Assigned To"}
                       </th>
-                      <th className="px-4 py-3 text-start font-bold">
+                      <th className="px-4 py-3 text-start font-bold whitespace-nowrap">
                         {isAr ? "آخر نشاط" : "Last Activity"}
                       </th>
-                      <th className="px-4 py-3 text-start font-bold">{t("inactiveFor")}</th>
-                      <th className="px-4 py-3 text-start font-bold">
+                      <th className="px-4 py-3 text-start font-bold whitespace-nowrap">{t("inactiveFor")}</th>
+                      <th className="px-4 py-3 text-start font-bold whitespace-nowrap">
                         {isAr ? "المرحلة" : "Stage"}
                       </th>
-                      <th className="px-4 py-3 text-start font-bold">
+                      <th className="px-4 py-3 text-start font-bold whitespace-nowrap">
                         {isAr ? "الأولوية" : "Priority"}
                       </th>
-                      <th className="px-4 py-3 text-end font-bold">
+                      <th className="px-4 py-3 text-end font-bold whitespace-nowrap">
                         {isAr ? "الإجراءات" : "Actions"}
                       </th>
                     </tr>
@@ -676,7 +654,7 @@ export function InactiveLeadsReportPage() {
                                 className="h-4 w-4 rounded-sm border-border text-primary focus:ring-primary"
                               />
                             </td>
-                            <td className="px-4 py-3.5">
+                            <td className="px-4 py-3.5 font-medium">
                               <Link
                                 to="/manager/leads/$leadId"
                                 params={{ leadId: lead.id }}
@@ -685,10 +663,10 @@ export function InactiveLeadsReportPage() {
                                 {lead.name}
                               </Link>
                             </td>
-                            <td className="px-4 py-3.5 text-muted-foreground font-medium">
+                            <td className="px-4 py-3.5 text-muted-foreground font-medium whitespace-nowrap">
                               {lead.account}
                             </td>
-                            <td className="px-4 py-3.5">
+                            <td className="px-4 py-3.5 whitespace-nowrap">
                               <div className="flex items-center gap-2">
                                 {lead.assignedPhoto ? (
                                   <img
@@ -706,17 +684,17 @@ export function InactiveLeadsReportPage() {
                                 </span>
                               </div>
                             </td>
-                            <td className="px-4 py-3.5">
+                            <td className="px-4 py-3.5 whitespace-nowrap">
                               <div className="font-semibold text-foreground">
                                 {formatDate(lead.lastActivityDate)}
                               </div>
                             </td>
-                            <td className="px-4 py-3.5">
+                            <td className="px-4 py-3.5 whitespace-nowrap">
                               <span className="font-bold text-rose-600 dark:text-rose-400">
                                 {lead.inactiveDays} {isAr ? "أيام" : "Days"}
                               </span>
                             </td>
-                            <td className="px-4 py-3.5">
+                            <td className="px-4 py-3.5 whitespace-nowrap">
                               <span
                                 className={`inline-flex rounded-lg px-2.5 py-1 text-[11px] font-bold ${
                                   STAGE_BADGES[lead.stage] || "bg-secondary text-foreground"
@@ -725,7 +703,7 @@ export function InactiveLeadsReportPage() {
                                 {lead.stage}
                               </span>
                             </td>
-                            <td className="px-4 py-3.5">
+                            <td className="px-4 py-3.5 whitespace-nowrap">
                               <span
                                 className={`inline-flex rounded-lg px-2.5 py-1 text-[11px] font-bold ${
                                   PRIORITY_BADGES[lead.priority] || "bg-secondary text-foreground"
@@ -734,7 +712,7 @@ export function InactiveLeadsReportPage() {
                                 {lead.priority}
                               </span>
                             </td>
-                            <td className="px-4 py-3.5 text-end">
+                            <td className="px-4 py-3.5 text-end whitespace-nowrap">
                               <div className="flex items-center justify-end gap-1">
                                 <button
                                   onClick={() => handleAction(lead, "reminder")}
@@ -776,29 +754,45 @@ export function InactiveLeadsReportPage() {
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
-                  {[1, 2, 3, 4, 5].map((pageNum) => (
-                    <button
-                      key={pageNum}
-                      onClick={() => setPage(pageNum)}
-                      className={`h-7 w-7 rounded-lg text-xs font-bold transition ${
-                        page === pageNum
-                          ? "bg-primary text-primary-foreground"
-                          : "border border-border bg-card text-foreground hover:bg-secondary"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  ))}
-                  <span className="px-1 text-xs">...</span>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((pageNum) => {
+                      if (totalPages <= 7) return true;
+                      if (pageNum === 1 || pageNum === totalPages) return true;
+                      if (Math.abs(pageNum - page) <= 1) return true;
+                      return false;
+                    })
+                    .reduce<(number | string)[]>((acc, pageNum, idx, arr) => {
+                      if (idx > 0 && typeof pageNum === "number" && typeof arr[idx - 1] === "number" && pageNum - (arr[idx - 1] as number) > 1) {
+                        acc.push("...");
+                      }
+                      acc.push(pageNum);
+                      return acc;
+                    }, [])
+                    .map((item, idx) => {
+                      if (typeof item === "string") {
+                        return (
+                          <span key={`ellipsis-${idx}`} className="px-1 text-xs">
+                            {item}
+                          </span>
+                        );
+                      }
+                      return (
+                        <button
+                          key={item}
+                          onClick={() => setPage(item)}
+                          className={`h-7 w-7 rounded-lg text-xs font-bold transition ${
+                            page === item
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-border bg-card text-foreground hover:bg-secondary"
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      );
+                    })}
                   <button
-                    onClick={() => setPage(5)}
-                    className="h-7 w-7 rounded-lg border border-border bg-card text-xs font-bold text-foreground hover:bg-secondary"
-                  >
-                    5
-                  </button>
-                  <button
-                    onClick={() => setPage((p) => Math.min(5, p + 1))}
-                    disabled={page === 5}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages || totalPages === 0}
                     className="rounded-lg border border-border p-1.5 text-foreground hover:bg-secondary disabled:opacity-40"
                   >
                     <ChevronRight className="h-4 w-4" />

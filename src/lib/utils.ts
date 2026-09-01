@@ -111,3 +111,90 @@ export function getEmailTemplate(typeText: string, content: string, isWarning: b
 </html>
   `;
 }
+
+export function getLeadLastActivity(
+  lead: any,
+  activities: any[] = [],
+  history: any[] = [],
+): { lastActivityDate: string; inactiveDays: number; timestamp: number } {
+  let maxTimestamp = 0;
+
+  // 1. Check activities for this lead
+  if (activities && activities.length > 0) {
+    const leadId = lead.id;
+    const leadCompany = lead.company?.trim().toLowerCase();
+    for (const a of activities) {
+      const matchLeadId = a.leadId && a.leadId === leadId;
+      const matchTitle = leadCompany && a.title && a.title.toLowerCase().includes(leadCompany);
+      if (matchLeadId || matchTitle) {
+        let tMs = 0;
+        if (a.dueDate) {
+          const timePart = a.time && a.time !== "—" ? `T${a.time}:00` : "T00:00:00";
+          tMs = new Date(`${a.dueDate}${timePart.startsWith("T") ? timePart : `T${timePart}`}`).getTime();
+        }
+        if (isNaN(tMs) || tMs <= 0) {
+          if (a.createdAt) {
+            tMs = new Date(a.createdAt).getTime();
+          }
+        }
+        if (!isNaN(tMs) && tMs > maxTimestamp) {
+          maxTimestamp = tMs;
+        }
+      }
+    }
+  }
+
+  // 2. Check history logs
+  if (history && history.length > 0) {
+    const leadCompany = lead.company?.trim().toLowerCase();
+    const leadId = lead.id;
+    for (const h of history) {
+      const matchCompany = leadCompany && h.target && h.target.toLowerCase() === leadCompany;
+      const matchTargetId = h.targetId && h.targetId === leadId;
+      if (matchCompany || matchTargetId) {
+        if (h.ts) {
+          const tMs = new Date(h.ts).getTime();
+          if (!isNaN(tMs) && tMs > maxTimestamp) {
+            maxTimestamp = tMs;
+          }
+        }
+      }
+    }
+  }
+
+  // 3. Check lead raw date fields
+  const rawDate = lead.updatedAtIso || lead.updated_at || lead.updatedAt || lead.created_at || lead.createdAt;
+  if (typeof rawDate === "string" && rawDate.includes("ago")) {
+    const m = rawDate.match(/(\d+)\s*(d|h|m|s)\s*ago/);
+    if (m) {
+      const val = parseInt(m[1], 10);
+      const unit = m[2];
+      const msAgo = unit === "d" ? val * 86400000 : unit === "h" ? val * 3600000 : unit === "m" ? val * 60000 : val * 1000;
+      const tMs = Date.now() - msAgo;
+      if (tMs > maxTimestamp) maxTimestamp = tMs;
+    }
+  } else if (rawDate) {
+    const tMs = new Date(rawDate).getTime();
+    if (!isNaN(tMs) && tMs > maxTimestamp) {
+      maxTimestamp = tMs;
+    }
+  }
+
+  const now = Date.now();
+  if (maxTimestamp > 0) {
+    const diffDays = Math.max(0, Math.floor((now - maxTimestamp) / (1000 * 60 * 60 * 24)));
+    const d = new Date(maxTimestamp);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const lastActivityDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return { lastActivityDate, inactiveDays: diffDays, timestamp: maxTimestamp };
+  }
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const d = new Date();
+  return {
+    lastActivityDate: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    inactiveDays: 0,
+    timestamp: now,
+  };
+}
+

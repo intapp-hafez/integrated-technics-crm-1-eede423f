@@ -40,6 +40,7 @@ import { PerformanceGuideModal } from "@/components/PerformanceGuideModal";
 import { isLeadRelatedToEmployee } from "@/lib/employeeTargets";
 import { filterMyProjects } from "@/lib/employeeProjects";
 import { EmployeeTargetsCard } from "@/components/EmployeeTargetsCard";
+import { getLeadLastActivity } from "@/lib/utils";
 import {
   getCurrentPosition,
   getIpPosition,
@@ -66,7 +67,7 @@ function EmployeeDashboard() {
   const { t } = useI18n();
   const { user: authUser } = useAuth();
   const queryClient = useQueryClient();
-  const { leads, activities, projects, attendance, profile } = useStoreState();
+  const { leads, activities, projects, attendance, profile, history } = useStoreState();
   const user = {
     name: profile.name,
     role: t("employee"),
@@ -90,37 +91,32 @@ function EmployeeDashboard() {
   });
 
   const inactiveLeads = useMemo(() => {
-    return myLeads.filter((l: any) => {
-      const s = (l.status || "").toLowerCase().trim();
-      const stage = (l.stage || "").toLowerCase().trim();
-      if (
-        s === "won" ||
-        s === "lost" ||
-        s === "achieved" ||
-        s === "archived" ||
-        s === "closed" ||
-        stage === "won" ||
-        stage === "lost" ||
-        stage === "achieved" ||
-        stage === "archived" ||
-        stage === "closed"
-      ) {
-        return false;
-      }
-      let diffDays = 0;
-      const rawDate = l.updatedAtIso || l.updatedAt || l.createdAt;
-      if (typeof rawDate === "string" && rawDate.includes("d ago")) {
-        const m = rawDate.match(/(\d+)d\s*ago/);
-        if (m) diffDays = parseInt(m[1], 10);
-      } else if (rawDate) {
-        const tMs = new Date(rawDate).getTime();
-        if (!isNaN(tMs)) {
-          diffDays = Math.floor((Date.now() - tMs) / (1000 * 60 * 60 * 24));
+    return myLeads
+      .filter((l: any) => {
+        const s = (l.status || "").toLowerCase().trim();
+        const stage = (l.stage || "").toLowerCase().trim();
+        if (
+          s === "won" ||
+          s === "lost" ||
+          s === "achieved" ||
+          s === "archived" ||
+          s === "closed" ||
+          stage === "won" ||
+          stage === "lost" ||
+          stage === "achieved" ||
+          stage === "archived" ||
+          stage === "closed"
+        ) {
+          return false;
         }
-      }
-      return diffDays >= 7; // Inactive for 7 days or more
-    });
-  }, [myLeads]);
+        return true;
+      })
+      .map((l: any) => {
+        const { inactiveDays, lastActivityDate } = getLeadLastActivity(l, activities, history);
+        return { ...l, inactiveDays, lastActivityDate };
+      })
+      .filter((l: any) => l.inactiveDays >= 7);
+  }, [myLeads, activities, history]);
 
   const [showInactiveModal, setShowInactiveModal] = useState(false);
   const [showPerfGuide, setShowPerfGuide] = useState(false);
@@ -462,17 +458,7 @@ function EmployeeDashboard() {
           </DialogHeader>
           <div className="max-h-[300px] overflow-y-auto space-y-2 py-2">
             {inactiveLeads.map((l: any) => {
-              let diffDays = 0;
-              const rawDate = l.updatedAtIso || l.updatedAt || l.createdAt;
-              if (typeof rawDate === "string" && rawDate.includes("d ago")) {
-                const m = rawDate.match(/(\d+)d\s*ago/);
-                if (m) diffDays = parseInt(m[1], 10);
-              } else if (rawDate) {
-                const tMs = new Date(rawDate).getTime();
-                if (!isNaN(tMs)) {
-                  diffDays = Math.floor((Date.now() - tMs) / (1000 * 60 * 60 * 24));
-                }
-              }
+              const diffDays = l.inactiveDays || 7;
               return (
                 <div
                   key={l.id}

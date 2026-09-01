@@ -34,6 +34,7 @@ import { Route as ManagerNotificationsRouteImport } from './routes/manager.notif
 import { Route as ManagerNotesRouteImport } from './routes/manager.notes'
 import { Route as ManagerLeadsRouteImport } from './routes/manager.leads'
 import { Route as ManagerEmailInboxRouteImport } from './routes/manager.email-inbox'
+import { Route as ManagerConsultantsRouteImport } from './routes/manager.consultants'
 import { Route as ManagerChatRouteImport } from './routes/manager.chat'
 import { Route as ManagerAttendanceRouteImport } from './routes/manager.attendance'
 import { Route as ManagerActivitiesRouteImport } from './routes/manager.activities'
@@ -70,6 +71,7 @@ import { Route as AdminInactiveStaffRouteImport } from './routes/admin.inactive-
 import { Route as AdminHistoryRouteImport } from './routes/admin.history'
 import { Route as AdminEmployeesRouteImport } from './routes/admin.employees'
 import { Route as AdminEmailInboxRouteImport } from './routes/admin.email-inbox'
+import { Route as AdminConsultantsRouteImport } from './routes/admin.consultants'
 import { Route as AdminClientsRouteImport } from './routes/admin.clients'
 import { Route as AdminChatRouteImport } from './routes/admin.chat'
 import { Route as AdminAttendanceRouteImport } from './routes/admin.attendance'
@@ -227,6 +229,11 @@ const ManagerLeadsRoute = ManagerLeadsRouteImport.update({
 const ManagerEmailInboxRoute = ManagerEmailInboxRouteImport.update({
   id: '/email-inbox',
   path: '/email-inbox',
+  getParentRoute: () => ManagerRoute,
+} as any)
+const ManagerConsultantsRoute = ManagerConsultantsRouteImport.update({
+  id: '/consultants',
+  path: '/consultants',
   getParentRoute: () => ManagerRoute,
 } as any)
 const ManagerChatRoute = ManagerChatRouteImport.update({
@@ -408,6 +415,11 @@ const AdminEmployeesRoute = AdminEmployeesRouteImport.update({
 const AdminEmailInboxRoute = AdminEmailInboxRouteImport.update({
   id: '/email-inbox',
   path: '/email-inbox',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminConsultantsRoute = AdminConsultantsRouteImport.update({
+  id: '/consultants',
+  path: '/consultants',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminClientsRoute = AdminClientsRouteImport.update({
@@ -598,6 +610,7 @@ export interface FileRoutesByFullPath {
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/consultants': typeof AdminConsultantsRoute
   '/admin/email-inbox': typeof AdminEmailInboxRoute
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
@@ -634,6 +647,7 @@ export interface FileRoutesByFullPath {
   '/manager/activities': typeof ManagerActivitiesRoute
   '/manager/attendance': typeof ManagerAttendanceRoute
   '/manager/chat': typeof ManagerChatRoute
+  '/manager/consultants': typeof ManagerConsultantsRoute
   '/manager/email-inbox': typeof ManagerEmailInboxRoute
   '/manager/leads': typeof ManagerLeadsRouteWithChildren
   '/manager/notes': typeof ManagerNotesRoute
@@ -688,6 +702,7 @@ export interface FileRoutesByTo {
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/consultants': typeof AdminConsultantsRoute
   '/admin/email-inbox': typeof AdminEmailInboxRoute
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
@@ -723,6 +738,7 @@ export interface FileRoutesByTo {
   '/manager/activities': typeof ManagerActivitiesRoute
   '/manager/attendance': typeof ManagerAttendanceRoute
   '/manager/chat': typeof ManagerChatRoute
+  '/manager/consultants': typeof ManagerConsultantsRoute
   '/manager/email-inbox': typeof ManagerEmailInboxRoute
   '/manager/leads': typeof ManagerLeadsRouteWithChildren
   '/manager/notes': typeof ManagerNotesRoute
@@ -782,6 +798,7 @@ export interface FileRoutesById {
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/consultants': typeof AdminConsultantsRoute
   '/admin/email-inbox': typeof AdminEmailInboxRoute
   '/admin/employees': typeof AdminEmployeesRouteWithChildren
   '/admin/history': typeof AdminHistoryRoute
@@ -818,6 +835,7 @@ export interface FileRoutesById {
   '/manager/activities': typeof ManagerActivitiesRoute
   '/manager/attendance': typeof ManagerAttendanceRoute
   '/manager/chat': typeof ManagerChatRoute
+  '/manager/consultants': typeof ManagerConsultantsRoute
   '/manager/email-inbox': typeof ManagerEmailInboxRoute
   '/manager/leads': typeof ManagerLeadsRouteWithChildren
   '/manager/notes': typeof ManagerNotesRoute
@@ -879,6 +897,7 @@ export interface FileRouteTypes {
     | '/admin/attendance'
     | '/admin/chat'
     | '/admin/clients'
+    | '/admin/consultants'
     | '/admin/email-inbox'
     | '/admin/employees'
     | '/admin/history'
@@ -915,6 +934,7 @@ export interface FileRouteTypes {
     | '/manager/activities'
     | '/manager/attendance'
     | '/manager/chat'
+    | '/manager/consultants'
     | '/manager/email-inbox'
     | '/manager/leads'
     | '/manager/notes'
@@ -969,6 +989,7 @@ export interface FileRouteTypes {
     | '/admin/attendance'
     | '/admin/chat'
     | '/admin/clients'
+    | '/admin/consultants'
     | '/admin/email-inbox'
     | '/admin/employees'
     | '/admin/history'
@@ -1004,6 +1025,7 @@ export interface FileRouteTypes {
     | '/manager/activities'
     | '/manager/attendance'
     | '/manager/chat'
+    | '/manager/consultants'
     | '/manager/email-inbox'
     | '/manager/leads'
     | '/manager/notes'
@@ -1062,6 +1084,7 @@ export interface FileRouteTypes {
     | '/admin/attendance'
     | '/admin/chat'
     | '/admin/clients'
+    | '/admin/consultants'
     | '/admin/email-inbox'
     | '/admin/employees'
     | '/admin/history'
@@ -1098,6 +1121,7 @@ export interface FileRouteTypes {
     | '/manager/activities'
     | '/manager/attendance'
     | '/manager/chat'
+    | '/manager/consultants'
     | '/manager/email-inbox'
     | '/manager/leads'
     | '/manager/notes'
@@ -1331,6 +1355,13 @@ declare module '@tanstack/react-router' {
       path: '/email-inbox'
       fullPath: '/manager/email-inbox'
       preLoaderRoute: typeof ManagerEmailInboxRouteImport
+      parentRoute: typeof ManagerRoute
+    }
+    '/manager/consultants': {
+      id: '/manager/consultants'
+      path: '/consultants'
+      fullPath: '/manager/consultants'
+      preLoaderRoute: typeof ManagerConsultantsRouteImport
       parentRoute: typeof ManagerRoute
     }
     '/manager/chat': {
@@ -1583,6 +1614,13 @@ declare module '@tanstack/react-router' {
       path: '/email-inbox'
       fullPath: '/admin/email-inbox'
       preLoaderRoute: typeof AdminEmailInboxRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/consultants': {
+      id: '/admin/consultants'
+      path: '/consultants'
+      fullPath: '/admin/consultants'
+      preLoaderRoute: typeof AdminConsultantsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/clients': {
@@ -1914,6 +1952,7 @@ interface AdminRouteChildren {
   AdminAttendanceRoute: typeof AdminAttendanceRoute
   AdminChatRoute: typeof AdminChatRoute
   AdminClientsRoute: typeof AdminClientsRoute
+  AdminConsultantsRoute: typeof AdminConsultantsRoute
   AdminEmailInboxRoute: typeof AdminEmailInboxRoute
   AdminEmployeesRoute: typeof AdminEmployeesRouteWithChildren
   AdminHistoryRoute: typeof AdminHistoryRoute
@@ -1940,6 +1979,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAttendanceRoute: AdminAttendanceRoute,
   AdminChatRoute: AdminChatRoute,
   AdminClientsRoute: AdminClientsRoute,
+  AdminConsultantsRoute: AdminConsultantsRoute,
   AdminEmailInboxRoute: AdminEmailInboxRoute,
   AdminEmployeesRoute: AdminEmployeesRouteWithChildren,
   AdminHistoryRoute: AdminHistoryRoute,
@@ -2157,6 +2197,7 @@ interface ManagerRouteChildren {
   ManagerActivitiesRoute: typeof ManagerActivitiesRoute
   ManagerAttendanceRoute: typeof ManagerAttendanceRoute
   ManagerChatRoute: typeof ManagerChatRoute
+  ManagerConsultantsRoute: typeof ManagerConsultantsRoute
   ManagerEmailInboxRoute: typeof ManagerEmailInboxRoute
   ManagerLeadsRoute: typeof ManagerLeadsRouteWithChildren
   ManagerNotesRoute: typeof ManagerNotesRoute
@@ -2177,6 +2218,7 @@ const ManagerRouteChildren: ManagerRouteChildren = {
   ManagerActivitiesRoute: ManagerActivitiesRoute,
   ManagerAttendanceRoute: ManagerAttendanceRoute,
   ManagerChatRoute: ManagerChatRoute,
+  ManagerConsultantsRoute: ManagerConsultantsRoute,
   ManagerEmailInboxRoute: ManagerEmailInboxRoute,
   ManagerLeadsRoute: ManagerLeadsRouteWithChildren,
   ManagerNotesRoute: ManagerNotesRoute,

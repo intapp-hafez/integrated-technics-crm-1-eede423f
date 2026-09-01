@@ -72,6 +72,8 @@ export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
     probability: l.probability ?? 0,
     expected_close_date: l.expectedCloseDate ?? null,
     project_id: (l as any).projectId ?? null,
+    consultant_id: (l as any).consultantId ?? null,
+    deadline_date: (l as any).deadlineDate ?? null,
 
     created_by: currentUserId,
   } as any);
@@ -99,6 +101,8 @@ export async function sbUpdateLead(id: string, patch: Partial<Lead>) {
   if (patch.probability !== undefined) row.probability = patch.probability;
   if (patch.expectedCloseDate !== undefined) row.expected_close_date = patch.expectedCloseDate;
   if (patch.projectId !== undefined) row.project_id = patch.projectId ?? null;
+  if ((patch as any).consultantId !== undefined) row.consultant_id = (patch as any).consultantId ?? null;
+  if ((patch as any).deadlineDate !== undefined) row.deadline_date = (patch as any).deadlineDate ?? null;
   if (patch.tag !== undefined) row.tag = patch.tag ?? null;
   if (patch.pendingWonApproval !== undefined) row.pending_won_approval = patch.pendingWonApproval;
   if (Object.keys(row).length === 0) return;
@@ -984,3 +988,42 @@ export async function sbDeleteCatalogCategory(id: string) {
     .eq("id", id);
   if (error) warn("Delete catalog category", error);
 }
+
+// ---------------- Consultants ----------------
+export async function sbAddConsultant(consultant: any) {
+  const { error } = await supabase.from("consultants" as any).insert({
+    id: consultant.id,
+    full_name: consultant.fullName,
+    phone: consultant.phone ?? null,
+    email: consultant.email ?? null,
+    address: consultant.address ?? null,
+    status: consultant.status ?? "active",
+  });
+  if (error) warn("Save consultant", error);
+}
+
+export async function sbUpdateConsultant(id: string, updates: any) {
+  if (!isUuid(id)) return;
+  const payload: any = { updated_at: new Date().toISOString() };
+  if (updates.fullName !== undefined) payload.full_name = updates.fullName;
+  if (updates.phone !== undefined) payload.phone = updates.phone;
+  if (updates.email !== undefined) payload.email = updates.email;
+  if (updates.address !== undefined) payload.address = updates.address;
+  if (updates.status !== undefined) payload.status = updates.status;
+
+  const { error } = await supabase
+    .from("consultants" as any)
+    .update(payload)
+    .eq("id", id);
+  if (error) warn("Update consultant", error);
+}
+
+export async function sbDeleteConsultant(id: string) {
+  if (!isUuid(id)) return;
+  const { error } = await supabase
+    .from("consultants" as any)
+    .delete()
+    .eq("id", id);
+  if (error) warn("Delete consultant", error);
+}
+

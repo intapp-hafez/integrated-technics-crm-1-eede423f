@@ -55,6 +55,8 @@ export interface Lead {
   expectedCloseDate?: string;
   projectId?: string;
   tag?: string;
+  consultantId?: string;
+  deadlineDate?: string;
   pendingWonApproval?: boolean;
 }
 

@@ -44,6 +44,7 @@ export function useSupabaseSync() {
         activityTypesRes,
         registeredAccountsRes,
         systemSettingsRes,
+        consultantsRes,
       ] = await Promise.all([
         supabase.from("leads").select("*").order("created_at", { ascending: false }),
         supabase.from("projects").select("*").order("created_at", { ascending: false }),
@@ -116,6 +117,7 @@ export function useSupabaseSync() {
         supabase.from("activity_types_config").select("*").order("label_en"),
         supabase.from("registered_accounts").select("*").order("created_at", { ascending: false }),
         supabase.from("system_settings").select("*").eq("key", "registered_accounts_public").maybeSingle(),
+        supabase.from("consultants" as any).select("*").order("created_at", { ascending: false }),
       ]);
       return {
         leads: leadsRes.data ?? [],
@@ -144,6 +146,7 @@ export function useSupabaseSync() {
         activityTypesConfig: (activityTypesRes as any)?.data ?? [],
         registeredAccounts: (registeredAccountsRes as any)?.data ?? [],
         systemSettings: systemSettingsRes?.data,
+        consultants: (consultantsRes as any)?.data ?? [],
       };
     },
   });
@@ -177,6 +180,7 @@ export function useSupabaseSync() {
       "activity_types_config",
       "registered_accounts",
       "system_settings",
+      "consultants",
     ];
     const channel = supabase.channel("app-sync");
     for (const table of tables) {
@@ -304,6 +308,8 @@ export function useSupabaseSync() {
         pendingWonApproval: l.pending_won_approval ?? false,
         projectId: l.project_id ?? undefined,
         tag: l.tag ?? undefined,
+        consultantId: l.consultant_id ?? undefined,
+        deadlineDate: l.deadline_date ?? undefined,
       };
     });
 
@@ -786,6 +792,16 @@ export function useSupabaseSync() {
         catalogItemId: l.catalog_item_id,
         quantity: l.quantity,
         createdAt: l.created_at,
+      })),
+      consultants: ((data as any).consultants ?? []).map((c: any) => ({
+        id: c.id,
+        fullName: c.full_name,
+        phone: c.phone || undefined,
+        email: c.email || undefined,
+        address: c.address || undefined,
+        status: (c.status || "active") as "active" | "inactive",
+        createdAt: c.created_at,
+        updatedAt: c.updated_at,
       })),
     });
   }, [data, lang, user?.id]);

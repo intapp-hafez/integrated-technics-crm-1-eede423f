@@ -1,4 +1,4 @@
-import { formatDate } from "@/lib/utils";
+import { formatDate, getLeadLastActivity } from "@/lib/utils";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/manager/")({
 
 function ManagerDashboard() {
   const { t, dir } = useI18n();
-  const { activities: storeActivities, leads: storeLeads } = useStoreState();
+  const { activities: storeActivities, leads: storeLeads, history } = useStoreState();
   const { teamEmployees: employees, includesLead, includesActivity } = useMyTeam();
   const { profile } = useAuth();
   const meName = profile?.full_name_en || profile?.full_name_ar || "";
@@ -47,30 +47,31 @@ function ManagerDashboard() {
       "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
   };
 
-  const managerEmployee = employees.find((e: any) => e.name === meName || e.id === profile?.id);
-  const myEmployees = employees.filter((e: any) => e !== managerEmployee);
+  const activeEmployees = useMemo(
+    () => employees.filter((e: any) => e.status === "active"),
+    [employees],
+  );
 
   const inactiveTeamMembers = useMemo(() => {
-    return myEmployees.filter((emp: any) => {
-      const empActs = storeActivities.filter((a: any) => {
-        return a.owner === emp.name || a.ownerId === emp.id || 
-               a.presalesTeam?.includes(emp.name) || 
-               a.presalesIds?.includes(emp.id);
-      });
-      if (empActs.length === 0) return true;
+    return activeEmployees.filter((emp: any) => {
+      const empName = emp.name.toLowerCase();
+      const hasRecentActivity = storeActivities.some((act: any) => {
+        if (!act.dueDate) return false;
+        const isOwner = (act.owner || "").toLowerCase() === empName;
+        const isPresales = (act.presalesTeam || []).some(
+          (p: string) => p.toLowerCase() === empName,
+        );
+        if (!isOwner && !isPresales) return false;
 
-      const hasRecentActivity = empActs.some((act: any) => {
-        const rawDate = act.date || act.createdAt;
-        if (!rawDate) return false;
-        const tMs = new Date(rawDate).getTime();
-        if (isNaN(tMs)) return false;
-        const diffDays = Math.floor((Date.now() - tMs) / (1000 * 60 * 60 * 24));
-        return diffDays <= 7;
+        const actDate = new Date(act.dueDate);
+        const diffDays = Math.floor(
+          (Date.now() - actDate.getTime()) / (1000 * 60 * 60 * 24),
+        );
+        return diffDays < 7;
       });
-
       return !hasRecentActivity;
     });
-  }, [myEmployees, storeActivities]);
+  }, [activeEmployees, storeActivities]);
 
   const teamLeads = useMemo(
     () => storeLeads.filter((l) => includesLead(l)),
@@ -99,20 +100,10 @@ function ManagerDashboard() {
       ) {
         return false;
       }
-      let diffDays = 0;
-      const rawDate = l.updatedAtIso || l.updatedAt || l.createdAt;
-      if (typeof rawDate === "string" && rawDate.includes("d ago")) {
-        const m = rawDate.match(/(\d+)d\s*ago/);
-        if (m) diffDays = parseInt(m[1], 10);
-      } else if (rawDate) {
-        const tMs = new Date(rawDate).getTime();
-        if (!isNaN(tMs)) {
-          diffDays = Math.floor((Date.now() - tMs) / (1000 * 60 * 60 * 24));
-        }
-      }
-      return diffDays >= 7;
+      const { inactiveDays } = getLeadLastActivity(l, storeActivities, history);
+      return inactiveDays >= 7;
     });
-  }, [teamLeads]);
+  }, [teamLeads, storeActivities, history]);
 
   const [showInactiveModal, setShowInactiveModal] = useState(false);
 

@@ -34,6 +34,7 @@ export function LeadFormModal({
     settings,
     activities,
     leadCatalogItems,
+    consultants,
   } = useStoreState();
   const { isAdmin } = useRole();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -127,6 +128,12 @@ export function LeadFormModal({
   );
   const [description, setDescription] = useState<string>((initial as any)?.description ?? "");
   const [tag, setTag] = useState<string>((initial as any)?.tag ?? "");
+  const [consultantId, setConsultantId] = useState<string>(
+    initial?.consultantId ?? (initial as any)?.consultant_id ?? "",
+  );
+  const [deadlineDate, setDeadlineDate] = useState<string>(
+    initial?.deadlineDate ?? (initial as any)?.deadline_date ?? "",
+  );
   const [country, setCountry] = useState<string>((initial as any)?.country ?? "Egypt");
   const [city, setCity] = useState(initial?.city ?? cities[0] ?? "Cairo");
   const [district, setDistrict] = useState(initial ? (leadDistricts[initial.id] ?? "") : "");
@@ -236,6 +243,8 @@ export function LeadFormModal({
         lat: coords[0],
         lng: coords[1],
         tag: tag || undefined,
+        consultantId: consultantId || undefined,
+        deadlineDate: deadlineDate || undefined,
       } as any);
       leadId = initial.id;
     } else {
@@ -260,6 +269,8 @@ export function LeadFormModal({
         expectedCloseDate: expectedCloseDate || undefined,
         description: description || undefined,
         tag: tag || undefined,
+        consultantId: consultantId || undefined,
+        deadlineDate: deadlineDate || undefined,
       } as any);
       const latest = (
         typeof window !== "undefined"
@@ -339,18 +350,40 @@ export function LeadFormModal({
             />
           </Field>
 
-          {/* Row 1.5: Email (and maybe others later) */}
-          <div className="col-span-3">
-            <Field label={t("companyEmail")}>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="info@company.com"
-                className="h-9 w-1/3 rounded-lg border border-border bg-background px-3 text-sm"
-              />
-            </Field>
-          </div>
+          {/* Row 1.5: Email, Consultant, Deadline Date */}
+          <Field label={t("companyEmail")}>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="info@company.com"
+              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
+            />
+          </Field>
+          <Field label={t("consultant")}>
+            <select
+              value={consultantId}
+              onChange={(e) => setConsultantId(e.target.value)}
+              className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
+            >
+              <option value="">{isAr ? "اختر الاستشاري..." : "Select Consultant..."}</option>
+              {consultants
+                .filter((c) => c.status === "active" || c.id === consultantId)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.fullName}
+                  </option>
+                ))}
+            </select>
+          </Field>
+          <Field label={t("deadlineDate")}>
+            <input
+              type="date"
+              value={deadlineDate}
+              onChange={(e) => setDeadlineDate(e.target.value)}
+              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
+            />
+          </Field>
 
           {/* Hidden fields */}
           <div className="hidden">
@@ -488,7 +521,7 @@ export function LeadFormModal({
             </select>
           </Field>
 
-          {/* Row 5: District */}
+          {/* Row 5: District & Street in one row */}
           <Field label={t("district")}>
             <select
               value={district}
@@ -503,10 +536,7 @@ export function LeadFormModal({
               ))}
             </select>
           </Field>
-          {!allowOwnerChange && <div className="col-span-2" />}
-
-          {/* Full-width: Street */}
-          <label className="col-span-3 block">
+          <label className="col-span-2 block">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               {t("street")}
             </span>

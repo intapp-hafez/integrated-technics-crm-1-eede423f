@@ -30,6 +30,7 @@ import {
   PackageCheck,
   ClipboardList,
   UserX,
+  UserCheck,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { LangToggle, useI18n } from "@/lib/i18n";
@@ -49,6 +50,7 @@ const adminNav: NavItem[] = [
   { to: "/admin", icon: LayoutDashboard, key: "dashboard" },
   { to: "/admin/leads", icon: Users, key: "leads" },
   { to: "/admin/clients", icon: Building2, key: "clients" as any },
+  { to: "/admin/consultants", icon: UserCheck, key: "consultants" as any },
   { to: "/admin/pipeline", icon: Workflow, key: "pipeline" },
   { to: "/admin/activities", icon: CalendarCheck, key: "activities" },
   { to: "/admin/projects", icon: Briefcase, key: "projects" },
@@ -89,6 +91,7 @@ const managerNav: NavItem[] = [
   { to: "/manager", icon: LayoutDashboard, key: "dashboard" },
   { to: "/manager/employees", icon: UserCircle2, key: "myTeam" },
   { to: "/manager/leads", icon: Workflow, key: "ourLeads" as any },
+  { to: "/manager/consultants", icon: UserCheck, key: "consultants" as any },
   { to: "/manager/pipeline", icon: Workflow, key: "pipeline" },
   { to: "/manager/activities", icon: CalendarCheck, key: "activities" },
   { to: "/manager/projects", icon: Briefcase, key: "projects" },

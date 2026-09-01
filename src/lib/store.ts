@@ -357,6 +357,18 @@ interface State {
   catalogItems: CatalogItem[];
   catalogCategories: CatalogCategory[];
   leadCatalogItems: LeadCatalogItem[];
+  consultants: Consultant[];
+}
+
+export interface Consultant {
+  id: string;
+  fullName: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  status: "active" | "inactive";
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 import * as sb from "./supabaseWrites";
@@ -828,6 +840,7 @@ const initialState: State = {
   catalogItems: [],
   catalogCategories: [],
   leadCatalogItems: [],
+  consultants: [],
 };
 
 let state: State = initialState;
@@ -876,6 +889,7 @@ function persist() {
     localStorage.setItem("int-crm:permissions", JSON.stringify(state.settings.permissions));
     localStorage.setItem("int-crm:workdayHours", JSON.stringify(state.settings.workdayHours));
     localStorage.setItem("int-crm:notifications", JSON.stringify(state.notifications));
+    localStorage.setItem("int-crm:consultants", JSON.stringify(state.consultants));
   } catch {
     /* quota or serialization issue â€” ignore */
   }
@@ -910,6 +924,7 @@ function hydrateFromStorage() {
     // profile intentionally not hydrated from storage (Supabase is source of truth)
     users: loadPersisted("int-crm:users", state.users),
     notifications: loadPersisted("int-crm:notifications", state.notifications),
+    consultants: loadPersisted("int-crm:consultants", state.consultants),
   };
   emit();
 }
@@ -2285,6 +2300,87 @@ export const actions = {
     set((s) => ({ ...s, adminTaskActivities: [act, ...s.adminTaskActivities] }));
     void sb.sbAddAdminTaskActivity(act);
   },
+  addConsultant(consultant: Omit<Consultant, "id" | "createdAt" | "updatedAt">) {
+    const newConsultant: Consultant = {
+      ...consultant,
+      id: id("CONS"),
+      status: consultant.status || "active",
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    set((s) => ({ ...s, consultants: [newConsultant, ...s.consultants] }));
+    const actor: string = state.profile?.name ?? "System";
+    logHistory({
+      module: "settings",
+      actor,
+      target: newConsultant.fullName,
+      action: "Added Consultant",
+    });
+    void sb.sbAddConsultant(newConsultant);
+  },
+  updateConsultant(id: string, updates: Partial<Omit<Consultant, "id">>) {
+    let consultantName = "";
+    set((s) => ({
+      ...s,
+      consultants: s.consultants.map((c) => {
+        if (c.id === id) {
+          consultantName = updates.fullName || c.fullName;
+          return { ...c, ...updates, updatedAt: now() };
+        }
+        return c;
+      }),
+    }));
+    const actor: string = state.profile?.name ?? "System";
+    logHistory({
+      module: "settings",
+      actor,
+      target: consultantName || id,
+      action: "Updated Consultant Details",
+    });
+    void sb.sbUpdateConsultant(id, updates);
+  },
+  toggleConsultantStatus(id: string) {
+    let newStatus: "active" | "inactive" = "active";
+    let consultantName = "";
+    set((s) => ({
+      ...s,
+      consultants: s.consultants.map((c) => {
+        if (c.id === id) {
+          newStatus = c.status === "active" ? "inactive" : "active";
+          consultantName = c.fullName;
+          return { ...c, status: newStatus, updatedAt: now() };
+        }
+        return c;
+      }),
+    }));
+    const actor: string = state.profile?.name ?? "System";
+    logHistory({
+      module: "settings",
+      actor,
+      target: consultantName || id,
+      action: `Changed Consultant Status to ${newStatus}`,
+    });
+    void sb.sbUpdateConsultant(id, { status: newStatus });
+  },
+  deleteConsultant(id: string) {
+    let consultantName = "";
+    set((s) => ({
+      ...s,
+      consultants: s.consultants.filter((c) => {
+        if (c.id === id) consultantName = c.fullName;
+        return c.id !== id;
+      }),
+    }));
+    const actor: string = state.profile?.name ?? "System";
+    logHistory({
+      module: "settings",
+      actor,
+      target: consultantName || id,
+      action: "Deleted Consultant",
+    });
+    void sb.sbDeleteConsultant(id);
+  },
 };
 
 export type { Lead, LeadStatus };
+
