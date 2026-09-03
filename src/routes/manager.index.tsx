@@ -29,7 +29,7 @@ export const Route = createFileRoute("/manager/")({
 function ManagerDashboard() {
   const { t, dir } = useI18n();
   const { activities: storeActivities, leads: storeLeads, history } = useStoreState();
-  const { teamEmployees: employees, includesLead, includesActivity } = useMyTeam();
+  const { teamEmployees: employees, includesLead, includesActivity, myProfileId } = useMyTeam();
   const { profile } = useAuth();
   const meName = profile?.full_name_en || profile?.full_name_ar || "";
   const user = {
@@ -47,9 +47,25 @@ function ManagerDashboard() {
       "https://cdn.pixabay.com/photo/2022/03/11/06/14/indian-man-7061278_1280.jpg",
   };
 
+  const managerEmployee = useMemo(
+    () =>
+      employees.find(
+        (e: any) =>
+          (myProfileId && e.id === myProfileId) ||
+          (profile?.id && (e.id === profile.id || e.userId === profile.id)) ||
+          (meName && (e.name === meName || e.nameEn === meName || e.nameAr === meName)),
+      ),
+    [employees, myProfileId, profile?.id, meName],
+  );
+
+  const myEmployees = useMemo(
+    () => (managerEmployee ? employees.filter((e: any) => e.id !== managerEmployee.id) : employees),
+    [employees, managerEmployee],
+  );
+
   const activeEmployees = useMemo(
-    () => employees.filter((e: any) => e.status === "active"),
-    [employees],
+    () => myEmployees.filter((e: any) => e.status === "active"),
+    [myEmployees],
   );
 
   const inactiveTeamMembers = useMemo(() => {

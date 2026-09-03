@@ -347,8 +347,7 @@ export function ProjectRequestDialog({
 
     let error;
     if (existingRequest) {
-      const { error: updateError } = await supabase
-        .from("project_requests")
+      const { error: updateError } = await (supabase.from("project_requests") as any)
         .update(payload)
         .eq("id", existingRequest.id);
       error = updateError;

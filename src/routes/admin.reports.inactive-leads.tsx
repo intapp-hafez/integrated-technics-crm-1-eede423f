@@ -61,7 +61,7 @@ export function InactiveLeadsReportPage() {
       .join("")
       .slice(0, 2)
       .toUpperCase(),
-    photo: profile?.avatar_url,
+    photo: profile?.avatar_url || undefined,
   };
 
   // Filters state

@@ -1038,7 +1038,9 @@ function QuickLeadModal({
       industry,
       city,
       source: "Manual",
-    });
+      lat: 0,
+      lng: 0,
+    } as any);
     toast.success(`Lead created and assigned to ${owner}`);
     onClose();
   };
