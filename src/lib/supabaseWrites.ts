@@ -74,6 +74,8 @@ export async function sbAddLead(id: string, l: Omit<Lead, "id" | "updatedAt">) {
     project_id: (l as any).projectId ?? null,
     consultant_id: (l as any).consultantId ?? null,
     deadline_date: (l as any).deadlineDate ?? null,
+    received_documents: (l as any).receivedDocuments ?? [],
+    received_documents_other: (l as any).receivedDocumentsOther ?? null,
 
     created_by: currentUserId,
   } as any);
@@ -105,6 +107,8 @@ export async function sbUpdateLead(id: string, patch: Partial<Lead>) {
   if ((patch as any).deadlineDate !== undefined) row.deadline_date = (patch as any).deadlineDate ?? null;
   if (patch.tag !== undefined) row.tag = patch.tag ?? null;
   if (patch.pendingWonApproval !== undefined) row.pending_won_approval = patch.pendingWonApproval;
+  if (patch.receivedDocuments !== undefined) row.received_documents = patch.receivedDocuments;
+  if (patch.receivedDocumentsOther !== undefined) row.received_documents_other = patch.receivedDocumentsOther ?? null;
   if (Object.keys(row).length === 0) return;
   const { error } = await supabase
     .from("leads")

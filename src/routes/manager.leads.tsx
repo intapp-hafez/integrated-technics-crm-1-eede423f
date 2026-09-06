@@ -1,5 +1,5 @@
 import { LeadFormModal } from "@/components/leads/LeadFormModal";
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState, useSearch } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -8,13 +8,14 @@ import { fmtMoney, type Lead, type LeadStatus } from "@/lib/mock-data";
 import { actions, useStoreState, type LocationCity } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
 import { shortId } from "@/lib/utils";
-import { Search, Filter, Plus, X, Pencil } from "lucide-react";
+import { Search, Filter, Plus, X, Pencil, RotateCcw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
 import { Download } from "lucide-react";
 import { filterMyProjects, isProjectMemberOf } from "@/lib/employeeProjects";
 import type { Project } from "@/lib/store";
+import { usePersistentState } from "@/lib/usePersistentFilter";
 
 const leadSchema = z.object({
   company: z
@@ -50,18 +51,55 @@ function ManagerLeadsListPage() {
   const { t, lang } = useI18n();
   const { leads, settings, projects, activities } = useStoreState();
   const { includesLead, teamEmployees } = useMyTeam();
-  const [q, setQ] = useState("");
-  const [status, setStatus] = useState<string>("all");
-  const [owner, setOwner] = useState<string>("all");
+  const searchParams = (useSearch({ strict: false }) || {}) as {
+    status?: string;
+    owner?: string;
+    q?: string;
+  };
+  const [q, setQ] = usePersistentState("int-crm:filter:manager-leads:q", "", searchParams.q);
+  const [status, setStatus] = usePersistentState("int-crm:filter:manager-leads:status", "all", searchParams.status);
+  const [owner, setOwner] = usePersistentState("int-crm:filter:manager-leads:owner", "all", searchParams.owner);
   const [editing, setEditing] = useState<Lead | "new" | null>(null);
   const [showImport, setShowImport] = useState(false);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = usePersistentState("int-crm:filter:manager-leads:page", 1);
   const pageSize = 20;
 
-  const [closingThisMonthFilter, setClosingThisMonthFilter] = useState(false);
-  const [next7DaysFilter, setNext7DaysFilter] = useState(false);
-  const [next15DaysFilter, setNext15DaysFilter] = useState(false);
-  const [noActivitiesFilter, setNoActivitiesFilter] = useState(false);
+  const [closingThisMonthFilter, setClosingThisMonthFilter] = usePersistentState(
+    "int-crm:filter:manager-leads:closingMonth",
+    false,
+  );
+  const [next7DaysFilter, setNext7DaysFilter] = usePersistentState(
+    "int-crm:filter:manager-leads:next7",
+    false,
+  );
+  const [next15DaysFilter, setNext15DaysFilter] = usePersistentState(
+    "int-crm:filter:manager-leads:next15",
+    false,
+  );
+  const [noActivitiesFilter, setNoActivitiesFilter] = usePersistentState(
+    "int-crm:filter:manager-leads:noAct",
+    false,
+  );
+
+  const hasActiveFilters =
+    status !== "all" ||
+    owner !== "all" ||
+    q.trim() !== "" ||
+    closingThisMonthFilter ||
+    next7DaysFilter ||
+    next15DaysFilter ||
+    noActivitiesFilter;
+
+  const clearFilters = () => {
+    setStatus("all");
+    setOwner("all");
+    setQ("");
+    setClosingThisMonthFilter(false);
+    setNext7DaysFilter(false);
+    setNext15DaysFilter(false);
+    setNoActivitiesFilter(false);
+    setPage(1);
+  };
 
   useEffect(() => {
     setPage(1);
@@ -255,10 +293,22 @@ function ManagerLeadsListPage() {
           >
             <Plus className="h-3.5 w-3.5" /> {t("addLead")}
           </button>
-          <span className="ms-auto inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
-            <Filter className="h-3 w-3" />
-            {filtered.length} / {teamLeads.length}
-          </span>
+          <div className="ms-auto flex items-center gap-2">
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                title={isAr ? "إعادة تعيين الفلاتر" : "Reset filters"}
+              >
+                <RotateCcw className="h-3 w-3" />
+                <span>{isAr ? "مسح التصفية" : "Clear filters"}</span>
+              </button>
+            )}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+              <Filter className="h-3 w-3" />
+              {filtered.length} / {teamLeads.length}
+            </span>
+          </div>
         </div>
         <div className="relative w-full max-w-sm">
           <Search className="pointer-events-none absolute start-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />

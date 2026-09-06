@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState } from "@/lib/store";
 import { useMemo, useState, useEffect } from "react";
+import { usePersistentState } from "@/lib/usePersistentFilter";
 import {
   Phone,
   Users2,
@@ -82,29 +83,36 @@ function ManagerActivitiesPage() {
     if (e?.photo) return e.photo;
     return undefined;
   };
-  const [view, setView] = useState<"table" | "cards">("table");
-  const [owner, setOwner] = useState("all");
-  const [status, setStatus] = useState<"all" | ActivityStatus>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [timeTab, setTimeTab] = useState<"today" | "working5" | "thisMonth" | "upcoming" | "past" | "all">("today");
-
   const searchParams = (useSearch({ strict: false }) || {}) as {
     type?: string;
     period?: string;
     owner?: string;
   };
-
-  useEffect(() => {
-    if (searchParams.owner) setOwner(searchParams.owner);
-    if (searchParams.type) setTypeFilter(searchParams.type);
-    if (
-      searchParams.period === "week" ||
-      searchParams.period === "upcoming" ||
-      searchParams.period === "all"
-    ) {
-      setTimeTab(searchParams.period as any);
-    }
-  }, [searchParams.owner, searchParams.period, searchParams.type]);
+  const [view, setView] = usePersistentState<"table" | "cards">(
+    "int-crm:filter:manager-activities:view",
+    "table",
+  );
+  const [owner, setOwner] = usePersistentState(
+    "int-crm:filter:manager-activities:owner",
+    "all",
+    searchParams.owner,
+  );
+  const [status, setStatus] = usePersistentState<"all" | ActivityStatus>(
+    "int-crm:filter:manager-activities:status",
+    "all",
+  );
+  const [typeFilter, setTypeFilter] = usePersistentState<string>(
+    "int-crm:filter:manager-activities:type",
+    "all",
+    searchParams.type,
+  );
+  const [timeTab, setTimeTab] = usePersistentState<"today" | "working5" | "thisMonth" | "upcoming" | "past" | "all">(
+    "int-crm:filter:manager-activities:timeTab",
+    "today",
+    (searchParams.period === "week" || searchParams.period === "upcoming" || searchParams.period === "all")
+      ? (searchParams.period as any)
+      : undefined,
+  );
   const [open, setOpen] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());

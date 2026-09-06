@@ -49,6 +49,7 @@ export const en = {
   status: "Status",
   owner: "Owner",
   value: "Value",
+  receivedDocumentsFromClient: "Recieved Documents from client",
   addLead: "New Lead",
   addProject: "New Account",
   new: "New",

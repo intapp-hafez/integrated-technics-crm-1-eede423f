@@ -310,6 +310,8 @@ export function useSupabaseSync() {
         tag: l.tag ?? undefined,
         consultantId: l.consultant_id ?? undefined,
         deadlineDate: l.deadline_date ?? undefined,
+        receivedDocuments: Array.isArray(l.received_documents) ? l.received_documents : [],
+        receivedDocumentsOther: l.received_documents_other ?? undefined,
       };
     });
 

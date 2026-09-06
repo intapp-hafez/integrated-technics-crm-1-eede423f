@@ -51,6 +51,7 @@ export const ar: Dict = {
   status: "الحالة",
   owner: "المسؤول",
   value: "القيمة",
+  receivedDocumentsFromClient: "المستندات المستلمة من العميل",
   addLead: "عميل جديد",
   addProject: "حساب جديد",
   new: "جديد",

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Check, FileCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState, getProbabilityForStatus } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
@@ -8,6 +8,17 @@ import type { Lead, LeadStatus } from "@/lib/mock-data";
 import { useRole } from "@/lib/role";
 import { sbValidateLeadWon } from "@/lib/supabaseWrites";
 import { toast } from "sonner";
+
+const RECEIVED_DOCUMENT_OPTIONS = [
+  { id: "BOQ", label: "BOQ", labelAr: "جدول الكميات" },
+  { id: "SLD", label: "SLD", labelAr: "مخطط أحادي الخط" },
+  { id: "Specs", label: "Specs", labelAr: "المواصفات" },
+  { id: "Layouts", label: "Layouts", labelAr: "المخططات" },
+  { id: "Elevations", label: "Elevations", labelAr: "الواجهات" },
+  { id: "3D", label: "3D", labelAr: "ثلاثي الأبعاد" },
+  { id: "Presentation", altId: "Presentation", label: "Presentation", labelAr: "عرض تقديمي" },
+  { id: "Other", label: "Other", labelAr: "أخرى" },
+];
 
 interface Props {
   initial: Lead | null;
@@ -141,6 +152,12 @@ export function LeadFormModal({
   const [owner, setOwner] = useState<string>(
     initial?.owner ?? (defaultOwner || (teamEmployees[0]?.name ?? "")),
   );
+  const [receivedDocuments, setReceivedDocuments] = useState<string[]>(
+    initial?.receivedDocuments ?? (initial as any)?.received_documents ?? [],
+  );
+  const [receivedDocumentsOther, setReceivedDocumentsOther] = useState<string>(
+    initial?.receivedDocumentsOther ?? (initial as any)?.received_documents_other ?? "",
+  );
   const districts = locations.find((c) => c.name === city)?.districts ?? [];
 
   const selectedProject = projects.find((p) => p.id === projectId);
@@ -245,6 +262,8 @@ export function LeadFormModal({
         tag: tag || undefined,
         consultantId: consultantId || undefined,
         deadlineDate: deadlineDate || undefined,
+        receivedDocuments,
+        receivedDocumentsOther: receivedDocumentsOther || undefined,
       } as any);
       leadId = initial.id;
     } else {
@@ -271,6 +290,8 @@ export function LeadFormModal({
         tag: tag || undefined,
         consultantId: consultantId || undefined,
         deadlineDate: deadlineDate || undefined,
+        receivedDocuments,
+        receivedDocumentsOther: receivedDocumentsOther || undefined,
       } as any);
       const latest = (
         typeof window !== "undefined"
@@ -547,6 +568,67 @@ export function LeadFormModal({
               className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm"
             />
           </label>
+
+          {/* Full-width: Received Documents from Client */}
+          <div className="col-span-3 rounded-xl border border-border/80 bg-secondary/20 p-3.5">
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <FileCheck className="h-3.5 w-3.5 text-primary" />
+                {lang === "ar" ? "المستندات المستلمة من العميل" : "Recieved Documents from client"}
+              </span>
+              <span className="font-mono text-xs font-semibold text-primary">
+                {receivedDocuments.length} / {RECEIVED_DOCUMENT_OPTIONS.length}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {RECEIVED_DOCUMENT_OPTIONS.map((doc) => {
+                const checked =
+                  receivedDocuments.includes(doc.id) ||
+                  (doc.altId ? receivedDocuments.includes(doc.altId) : false);
+                return (
+                  <button
+                    key={doc.id}
+                    type="button"
+                    onClick={() => {
+                      if (checked) {
+                        setReceivedDocuments((prev) =>
+                          prev.filter((d) => d !== doc.id && d !== doc.altId),
+                        );
+                      } else {
+                        setReceivedDocuments((prev) => [...prev, doc.id]);
+                      }
+                    }}
+                    className={`flex items-center gap-2 rounded-lg border p-2 text-start transition-colors cursor-pointer ${checked
+                      ? "border-primary/40 bg-primary/10 text-primary"
+                      : "border-border bg-background hover:bg-secondary/40 text-foreground"
+                      }`}
+                  >
+                    <div
+                      className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border transition-colors ${checked
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-muted-foreground/40 bg-background"
+                        }`}
+                    >
+                      {checked && <Check className="h-2.5 w-2.5 stroke-[3]" />}
+                    </div>
+                    <span className="truncate text-xs font-semibold">{doc.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {receivedDocuments.includes("Other") && (
+              <div className="mt-2.5 pt-2.5 border-t border-border/60">
+                <input
+                  type="text"
+                  value={receivedDocumentsOther}
+                  onChange={(e) => setReceivedDocumentsOther(e.target.value)}
+                  placeholder={lang === "ar" ? "حدد المستندات الأخرى..." : "Specify other documents..."}
+                  className="h-8 w-full rounded-lg border border-border bg-background px-3 text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Full-width: Description */}
           <label className="col-span-3 block">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">

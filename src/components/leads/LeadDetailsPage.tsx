@@ -57,12 +57,25 @@ import {
   ChevronDown,
   Box,
   ClipboardList,
+  Check,
+  FileCheck,
 } from "lucide-react";
 import { supabase as rawSupabase } from "@/integrations/supabase/client";
 const supabase = rawSupabase as any;
 
 import { sbDeleteLeadCatalogItem } from "@/lib/supabaseWrites";
 import { LeadCatalogModal } from "./LeadCatalogModal";
+
+const RECEIVED_DOCUMENT_OPTIONS = [
+  { id: "BOQ", label: "BOQ", labelAr: "جدول الكميات" },
+  { id: "SLD", label: "SLD", labelAr: "مخطط أحادي الخط" },
+  { id: "Specs", label: "Specs", labelAr: "المواصفات" },
+  { id: "Layouts", label: "Layouts", labelAr: "المخططات" },
+  { id: "Elevations", label: "Elevations", labelAr: "الواجهات" },
+  { id: "3D", label: "3D", labelAr: "ثلاثي الأبعاد" },
+  { id: "Presentation", altId: "Presentation", label: "Presentation", labelAr: "عرض تقديمي" },
+  { id: "Other", label: "Other", labelAr: "أخرى" },
+];
 
 const isUuid = (v: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
@@ -211,6 +224,28 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
       toast.error(e.message || "Failed to create technical case");
     } finally {
       setCreatingCase(false);
+    }
+  };
+
+  const [otherDocsText, setOtherDocsText] = useState(lead?.receivedDocumentsOther || "");
+
+  const handleToggleDocument = (docId: string, altId?: string) => {
+    if (!lead || isFrozen) return;
+    const currentDocs = lead.receivedDocuments || [];
+    const isChecked = currentDocs.includes(docId) || (altId ? currentDocs.includes(altId) : false);
+    const nextDocs = isChecked
+      ? currentDocs.filter((d) => d !== docId && d !== altId)
+      : [...currentDocs, docId];
+
+    actions.updateLead(lead.id, { receivedDocuments: nextDocs }, user.name);
+    toast.success(lang === "ar" ? "تم تحديث المستندات المستلمة" : "Received documents updated");
+  };
+
+  const handleSaveOtherDocs = () => {
+    if (!lead || isFrozen) return;
+    if (otherDocsText !== (lead.receivedDocumentsOther || "")) {
+      actions.updateLead(lead.id, { receivedDocumentsOther: otherDocsText }, user.name);
+      toast.success(lang === "ar" ? "تم حفظ ملاحظات المستندات الأخرى" : "Other documents saved");
     }
   };
 
@@ -1260,6 +1295,90 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Received Documents from client Card */}
+          <div className="mb-5 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileCheck className="h-4 w-4 text-primary" />
+                <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                  {lang === "ar" ? "المستندات المستلمة من العميل" : "Recieved Documents from client"}
+                </h3>
+              </div>
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold text-primary">
+                {(lead.receivedDocuments || []).length} / {RECEIVED_DOCUMENT_OPTIONS.length}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {RECEIVED_DOCUMENT_OPTIONS.map((doc) => {
+                const currentDocs = lead.receivedDocuments || [];
+                const checked =
+                  currentDocs.includes(doc.id) || (doc.altId ? currentDocs.includes(doc.altId) : false);
+                return (
+                  <button
+                    key={doc.id}
+                    type="button"
+                    disabled={isFrozen}
+                    onClick={() => handleToggleDocument(doc.id, doc.altId)}
+                    className={`group relative flex items-center gap-2.5 rounded-xl border p-2.5 text-start transition-all ${checked
+                      ? "border-primary/40 bg-primary/10 text-primary shadow-xs"
+                      : "border-border/70 bg-card hover:border-border hover:bg-secondary/40 text-foreground"
+                      } ${isFrozen ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+                  >
+                    <div
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${checked
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-muted-foreground/40 bg-background group-hover:border-muted-foreground"
+                        }`}
+                    >
+                      {checked && <Check className="h-3 w-3 stroke-[3]" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="truncate block text-xs font-semibold">{doc.label}</span>
+                      {isAr && doc.labelAr && (
+                        <span className="block text-[10px] text-muted-foreground truncate">
+                          {doc.labelAr}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Other details field if "Other" is checked */}
+            {(lead.receivedDocuments || []).includes("Other") && (
+              <div className="mt-3 border-t border-border/70 pt-3">
+                <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  {lang === "ar" ? "تفاصيل مستندات أخرى" : "Other Documents Details"}
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    disabled={isFrozen}
+                    value={otherDocsText}
+                    onChange={(e) => setOtherDocsText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveOtherDocs();
+                    }}
+                    onBlur={handleSaveOtherDocs}
+                    placeholder={lang === "ar" ? "حدد المستندات الأخرى..." : "Specify other documents..."}
+                    className="h-8 flex-1 rounded-lg border border-border bg-background px-3 text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                  {otherDocsText !== (lead.receivedDocumentsOther || "") && (
+                    <button
+                      type="button"
+                      onClick={handleSaveOtherDocs}
+                      className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs"
+                    >
+                      {lang === "ar" ? "حفظ" : "Save"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

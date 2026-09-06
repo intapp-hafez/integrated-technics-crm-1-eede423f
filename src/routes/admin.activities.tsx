@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState, type ActivityType, type ActivityStatus } from "@/lib/store";
 import { employees as employeesData } from "@/lib/mock-data";
 import { useMemo, useState, useEffect } from "react";
+import { usePersistentState } from "@/lib/usePersistentFilter";
 import {
   Phone,
   Users2,
@@ -158,26 +159,37 @@ function ActivitiesPage() {
       n.has(id) ? n.delete(id) : n.add(id);
       return n;
     });
-  const [filter, setFilter] = useState<"all" | ActivityType>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | ActivityStatus>("all");
-  const [period, setPeriod] = useState<Period>("today");
-  const [ownerFilter, setOwnerFilter] = useState<string | "all">("all");
-  const [view, setView] = useState<"table" | "cards">("table");
-  const [showImport, setShowImport] = useState(false);
-  const [page, setPage] = useState(1);
-  const pageSize = 20;
-
   const searchParams = (useSearch({ strict: false }) || {}) as {
     type?: string;
     period?: Period;
     owner?: string;
   };
-
-  useEffect(() => {
-    if (searchParams.type) setFilter(searchParams.type as ActivityType);
-    if (searchParams.period) setPeriod(searchParams.period as Period);
-    if (searchParams.owner) setOwnerFilter(searchParams.owner);
-  }, [searchParams.type, searchParams.period, searchParams.owner]);
+  const [filter, setFilter] = usePersistentState<"all" | ActivityType>(
+    "int-crm:filter:admin-activities:type",
+    "all",
+    searchParams.type as ActivityType | undefined,
+  );
+  const [statusFilter, setStatusFilter] = usePersistentState<"all" | ActivityStatus>(
+    "int-crm:filter:admin-activities:status",
+    "all",
+  );
+  const [period, setPeriod] = usePersistentState<Period>(
+    "int-crm:filter:admin-activities:period",
+    "today",
+    searchParams.period,
+  );
+  const [ownerFilter, setOwnerFilter] = usePersistentState<string | "all">(
+    "int-crm:filter:admin-activities:owner",
+    "all",
+    searchParams.owner,
+  );
+  const [view, setView] = usePersistentState<"table" | "cards">(
+    "int-crm:filter:admin-activities:view",
+    "table",
+  );
+  const [showImport, setShowImport] = useState(false);
+  const [page, setPage] = usePersistentState("int-crm:filter:admin-activities:page", 1);
+  const pageSize = 20;
 
   // Period-scoped list (used by employee strip & global KPIs)
   const periodList = useMemo(

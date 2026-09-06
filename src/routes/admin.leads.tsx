@@ -28,6 +28,7 @@ import { useConfirm } from "@/components/shared/ConfirmDialog";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { ExcelImportModal } from "@/components/ExcelImportModal";
+import { usePersistentState } from "@/lib/usePersistentFilter";
 
 export const Route = createFileRoute("/admin/leads")({
   component: LeadsPage,
@@ -113,30 +114,44 @@ function LeadsPage() {
   const isDetailRoute = useRouterState({
     select: (state) => state.location.pathname.startsWith("/admin/leads/"),
   });
-  const [tab, setTab] = useState<"list" | "map">("list");
   const searchParams = useSearch({ strict: false }) as Record<string, string>;
-  const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">(
-    (searchParams.status as LeadStatus | "all") || "all",
+  const [tab, setTab] = usePersistentState<"list" | "map">("int-crm:filter:admin-leads:tab", "list");
+  const [statusFilter, setStatusFilter] = usePersistentState<LeadStatus | "all">(
+    "int-crm:filter:admin-leads:status",
+    "all",
+    searchParams.status as LeadStatus | undefined,
   );
-  const [cityFilter, setCityFilter] = useState<string>("all");
-  const [ownerFilter, setOwnerFilter] = useState<string>(searchParams.owner || "all");
-  const [projectFilter, setProjectFilter] = useState<string>("all");
-  const [query, setQuery] = useState("");
+  const [cityFilter, setCityFilter] = usePersistentState<string>(
+    "int-crm:filter:admin-leads:city",
+    "all",
+    searchParams.city,
+  );
+  const [ownerFilter, setOwnerFilter] = usePersistentState<string>(
+    "int-crm:filter:admin-leads:owner",
+    "all",
+    searchParams.owner,
+  );
+  const [projectFilter, setProjectFilter] = usePersistentState<string>(
+    "int-crm:filter:admin-leads:project",
+    "all",
+    searchParams.project,
+  );
+  const [query, setQuery] = usePersistentState("int-crm:filter:admin-leads:q", "", searchParams.q);
   const [showImport, setShowImport] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [minValue, setMinValue] = useState<string>("");
-  const [maxValue, setMaxValue] = useState<string>("");
-  const [minProb, setMinProb] = useState<string>("");
-  const [closeFrom, setCloseFrom] = useState<string>("");
-  const [closeTo, setCloseTo] = useState<string>("");
-  const [noActivitiesFilter, setNoActivitiesFilter] = useState(false);
-  const [closingThisMonthFilter, setClosingThisMonthFilter] = useState(false);
-  const [next7DaysFilter, setNext7DaysFilter] = useState(false);
-  const [next15DaysFilter, setNext15DaysFilter] = useState(false);
+  const [showAdvanced, setShowAdvanced] = usePersistentState("int-crm:filter:admin-leads:showAdv", false);
+  const [minValue, setMinValue] = usePersistentState<string>("int-crm:filter:admin-leads:minVal", "");
+  const [maxValue, setMaxValue] = usePersistentState<string>("int-crm:filter:admin-leads:maxVal", "");
+  const [minProb, setMinProb] = usePersistentState<string>("int-crm:filter:admin-leads:minProb", "");
+  const [closeFrom, setCloseFrom] = usePersistentState<string>("int-crm:filter:admin-leads:closeFrom", "");
+  const [closeTo, setCloseTo] = usePersistentState<string>("int-crm:filter:admin-leads:closeTo", "");
+  const [noActivitiesFilter, setNoActivitiesFilter] = usePersistentState("int-crm:filter:admin-leads:noAct", false);
+  const [closingThisMonthFilter, setClosingThisMonthFilter] = usePersistentState("int-crm:filter:admin-leads:closingMonth", false);
+  const [next7DaysFilter, setNext7DaysFilter] = usePersistentState("int-crm:filter:admin-leads:next7", false);
+  const [next15DaysFilter, setNext15DaysFilter] = usePersistentState("int-crm:filter:admin-leads:next15", false);
   const [editing, setEditing] = useState<Lead | "new" | null>(null);
-  const [sortKey, setSortKey] = useState<string>("");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
+  const [sortKey, setSortKey] = usePersistentState<string>("int-crm:filter:admin-leads:sortKey", "");
+  const [sortDir, setSortDir] = usePersistentState<"asc" | "desc">("int-crm:filter:admin-leads:sortDir", "asc");
+  const [page, setPage] = usePersistentState("int-crm:filter:admin-leads:page", 1);
   const pageSize = 20;
   const toggleSort = (k: string) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");

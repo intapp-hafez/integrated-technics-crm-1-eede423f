@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
+import { usePersistentState } from "@/lib/usePersistentFilter";
 import {
   Plus,
   Users2,
@@ -50,7 +51,10 @@ function ProjectsPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [refresh, setRefresh] = useState(0);
-  const [displayView, setDisplayView] = useState<"table" | "grid" | "contacts">("table");
+  const [displayView, setDisplayView] = usePersistentState<"table" | "grid" | "contacts">(
+    "int-crm:filter:employee-projects:view",
+    "table",
+  );
   const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
 
   const getOwner = (p: Project) => getProjectOwner(p, users, employees);
@@ -92,7 +96,10 @@ function ProjectsPage() {
     ),
   );
 
-  const [activeTab, setActiveTab] = useState<"accounts" | "requests">("accounts");
+  const [activeTab, setActiveTab] = usePersistentState<"accounts" | "requests">(
+    "int-crm:filter:employee-projects:tab",
+    "accounts",
+  );
 
   const isDetailRoute = useRouterState({
     select: (state) => state.location.pathname.startsWith("/employee/projects/"),

@@ -17,6 +17,7 @@ import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import * as XLSX from "xlsx";
+import { usePersistentState } from "@/lib/usePersistentFilter";
 
 export const Route = createFileRoute("/admin/clients")({
   component: AdminClientsPage,
@@ -49,11 +50,11 @@ function AdminClientsPage() {
   const isAr = lang === "ar";
   const [rows, setRows] = useState<ClientRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [q, setQ] = useState("");
-  const [stageFilter, setStageFilter] = useState<string>("all");
-  const [sortKey, setSortKey] = useState<SortKey>("name");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [page, setPage] = useState(1);
+  const [q, setQ] = usePersistentState("int-crm:filter:admin-clients:q", "");
+  const [stageFilter, setStageFilter] = usePersistentState("int-crm:filter:admin-clients:stage", "all");
+  const [sortKey, setSortKey] = usePersistentState<SortKey>("int-crm:filter:admin-clients:sortKey", "name");
+  const [sortDir, setSortDir] = usePersistentState<SortDir>("int-crm:filter:admin-clients:sortDir", "asc");
+  const [page, setPage] = usePersistentState("int-crm:filter:admin-clients:page", 1);
 
   useEffect(() => {
     (async () => {

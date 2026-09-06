@@ -1,8 +1,9 @@
 import { formatDate } from "@/lib/utils";
 import { LeadFormModal } from "@/components/leads/LeadFormModal";
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState, useSearch } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
+import { usePersistentState } from "@/lib/usePersistentFilter";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney, type Lead, type LeadStatus } from "@/lib/mock-data";
 import {
@@ -69,9 +70,19 @@ function LeadsPage() {
       state.location.pathname.startsWith("/employee/leads/") &&
       state.location.pathname !== "/employee/leads/",
   });
-  const [view, setView] = useState<"cards" | "table">("cards");
+  const searchParams = (useSearch({ strict: false }) || {}) as {
+    status?: string;
+  };
+  const [view, setView] = usePersistentState<"cards" | "table">(
+    "int-crm:filter:employee-leads:view",
+    "cards",
+  );
   const [editing, setEditing] = useState<Lead | "new" | null>(null);
-  const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = usePersistentState<LeadStatus | "all">(
+    "int-crm:filter:employee-leads:status",
+    "all",
+    searchParams.status as LeadStatus | undefined,
+  );
   const [showImport, setShowImport] = useState(false);
   // All hooks MUST be declared before any early return
   const { profile } = useAuth();

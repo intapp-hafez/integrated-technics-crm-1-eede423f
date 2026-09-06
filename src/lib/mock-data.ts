@@ -58,6 +58,8 @@ export interface Lead {
   consultantId?: string;
   deadlineDate?: string;
   pendingWonApproval?: boolean;
+  receivedDocuments?: string[];
+  receivedDocumentsOther?: string;
 }
 
 export const leads: Lead[] = [

@@ -1,7 +1,8 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState, useSearch } from "@tanstack/react-router";
 import { ProjectRequestsPanel } from "@/components/ProjectRequestsPanel";
 import { shortId } from "@/lib/utils";
 import { AppShell } from "@/components/AppShell";
+import { usePersistentState } from "@/lib/usePersistentFilter";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
@@ -82,11 +83,23 @@ function ProjectsPage() {
   const isDetailRoute = useRouterState({
     select: (state) => state.location.pathname.startsWith("/manager/projects/"),
   });
+  const searchParams = (useSearch({ strict: false }) || {}) as {
+    owner?: string;
+    status?: string;
+    client?: string;
+    q?: string;
+  };
   const [editing, setEditing] = useState<Project | "new" | null>(null);
   const { confirm, ConfirmDialog } = useConfirm();
-  const [view, setView] = useState<"table" | "grid" | "contacts">("table");
+  const [view, setView] = usePersistentState<"table" | "grid" | "contacts">(
+    "int-crm:filter:manager-projects:view",
+    "table",
+  );
   const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
-  const [mainTab, setMainTab] = useState<"projects" | "pending">("projects");
+  const [mainTab, setMainTab] = usePersistentState<"projects" | "pending">(
+    "int-crm:filter:manager-projects:mainTab",
+    "projects",
+  );
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [showImport, setShowImport] = useState(false);
 
@@ -101,15 +114,27 @@ function ProjectsPage() {
   }, []);
 
   // Filters
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [clientFilter, setClientFilter] = useState<string>("all");
-  const [ownerFilter, setOwnerFilter] = useState<string>("all");
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [minBudget, setMinBudget] = useState<string>("");
-  const [maxBudget, setMaxBudget] = useState<string>("");
-  const [minProgress, setMinProgress] = useState<string>("");
-  const [maxProgress, setMaxProgress] = useState<string>("");
+  const [query, setQuery] = usePersistentState("int-crm:filter:manager-projects:q", "", searchParams.q);
+  const [statusFilter, setStatusFilter] = usePersistentState(
+    "int-crm:filter:manager-projects:status",
+    "all",
+    searchParams.status,
+  );
+  const [clientFilter, setClientFilter] = usePersistentState(
+    "int-crm:filter:manager-projects:client",
+    "all",
+    searchParams.client,
+  );
+  const [ownerFilter, setOwnerFilter] = usePersistentState(
+    "int-crm:filter:manager-projects:owner",
+    "all",
+    searchParams.owner,
+  );
+  const [showAdvanced, setShowAdvanced] = usePersistentState("int-crm:filter:manager-projects:showAdv", false);
+  const [minBudget, setMinBudget] = usePersistentState<string>("int-crm:filter:manager-projects:minBudget", "");
+  const [maxBudget, setMaxBudget] = usePersistentState<string>("int-crm:filter:manager-projects:maxBudget", "");
+  const [minProgress, setMinProgress] = usePersistentState<string>("int-crm:filter:manager-projects:minProg", "");
+  const [maxProgress, setMaxProgress] = usePersistentState<string>("int-crm:filter:manager-projects:maxProg", "");
 
   const STATUSES = ["On Track", "Delayed", "At Risk", "Completed", "Cancelled"];
 

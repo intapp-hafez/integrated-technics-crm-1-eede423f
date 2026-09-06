@@ -4,7 +4,8 @@ import { useI18n } from "@/lib/i18n";
 import { actions, useStoreState } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { isAssignedToEmployee } from "@/lib/activityFilters";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { usePersistentState } from "@/lib/usePersistentFilter";
 import {
   Phone,
   Mail,
@@ -21,6 +22,8 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  FileText,
   Pencil,
   Trash2,
   Download,
@@ -68,15 +71,35 @@ function MyActivitiesPage() {
   const me = useMemo(() => users.find((u) => u.id === user?.id), [users, user?.id]);
   const OWNER = profile?.name && profile.name !== "—" ? profile.name : (me?.name ?? "");
   const PROFILE_ID = me?.profileId;
-  const [bucket, setBucket] = useState<Bucket>("today");
-  const [view, setView] = useState<"table" | "grid" | "calendar">("table");
+  const searchParams = (useSearch({ strict: false }) || {}) as {
+    type?: string;
+    period?: string;
+  };
+  const overrideBucket =
+    searchParams.period === "week" || searchParams.period === "all" || searchParams.type
+      ? ("all" as Bucket)
+      : undefined;
+
+  const [bucket, setBucket] = usePersistentState<Bucket>(
+    "int-crm:filter:employee-activities:bucket",
+    "today",
+    overrideBucket,
+  );
+  const [view, setView] = usePersistentState<"table" | "grid" | "calendar">(
+    "int-crm:filter:employee-activities:view",
+    "table",
+  );
   const [editId, setEditId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = usePersistentState("int-crm:filter:employee-activities:page", 1);
   const [markDoneId, setMarkDoneId] = useState<string | null>(null);
   const [doneNote, setDoneNote] = useState("");
-  const [query, setQuery] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
+  const [query, setQuery] = usePersistentState("int-crm:filter:employee-activities:query", "");
+  const [dateFilter, setDateFilter] = usePersistentState("int-crm:filter:employee-activities:date", "");
+  const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({});
+  const toggleNote = (id: string) => {
+    setExpandedNotes((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
   const { confirm, ConfirmDialog } = useConfirm();
   const ITEMS_PER_PAGE = 20;
 
@@ -93,17 +116,6 @@ function MyActivitiesPage() {
   useEffect(() => {
     setToday(new Date().toISOString().slice(0, 10));
   }, []);
-
-  const searchParams = (useSearch({ strict: false }) || {}) as {
-    type?: string;
-    period?: string;
-  };
-
-  useEffect(() => {
-    if (searchParams.period === "week" || searchParams.period === "all" || searchParams.type) {
-      setBucket("all");
-    }
-  }, [searchParams.period, searchParams.type]);
 
   const mine = useMemo(() => {
     if (!PROFILE_ID && !OWNER) return [];
@@ -310,6 +322,9 @@ function MyActivitiesPage() {
                     const Icon = ICONS[a.type] ?? Bookmark;
                     const done = a.status === "done";
                     const lead = leads.find((l) => l.id === a.leadId);
+                    const isExpanded = !!expandedNotes[a.id];
+                    const hasNotes = Boolean(a.notes?.trim());
+
                     if (editId === a.id) {
                       return (
                         <tr key={a.id}>
@@ -320,107 +335,212 @@ function MyActivitiesPage() {
                       );
                     }
                     return (
-                      <tr
-                        key={a.id}
-                        className="hover:bg-primary/5 transition-colors group cursor-pointer"
-                        onClick={() =>
-                          navigate({
-                            to: "/employee/activities/$activityId",
-                            params: { activityId: a.id },
-                          })
-                        }
-                      >
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`flex h-7 w-7 items-center justify-center rounded-lg ${done ? "bg-emerald-50 text-emerald-600" : "bg-primary/10 text-primary"}`}
-                            >
-                              <Icon className="h-3.5 w-3.5" />
+                      <Fragment key={a.id}>
+                        <tr
+                          className={`hover:bg-primary/5 transition-colors group cursor-pointer ${
+                            isExpanded ? "bg-primary/5" : ""
+                          }`}
+                          onClick={() => {
+                            if (hasNotes) {
+                              toggleNote(a.id);
+                            } else {
+                              navigate({
+                                to: "/employee/activities/$activityId",
+                                params: { activityId: a.id },
+                              });
+                            }
+                          }}
+                        >
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              {hasNotes && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleNote(a.id);
+                                  }}
+                                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-all cursor-pointer ${
+                                    isExpanded
+                                      ? "border-primary/40 bg-primary/10 text-primary"
+                                      : "border-border/70 bg-secondary/60 text-muted-foreground hover:border-primary/40 hover:text-primary"
+                                  }`}
+                                  title={
+                                    isExpanded
+                                      ? isAr
+                                        ? "طي الملاحظات"
+                                        : "Collapse notes"
+                                      : isAr
+                                        ? "عرض الملاحظات"
+                                        : "Show notes"
+                                  }
+                                >
+                                  <ChevronRight
+                                    className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                                      isExpanded ? "rotate-90 text-primary" : ""
+                                    }`}
+                                  />
+                                </button>
+                              )}
+                              <div
+                                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${done ? "bg-emerald-50 text-emerald-600" : "bg-primary/10 text-primary"}`}
+                              >
+                                <Icon className="h-3.5 w-3.5" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate({
+                                        to: "/employee/activities/$activityId",
+                                        params: { activityId: a.id },
+                                      });
+                                    }}
+                                    className={`font-semibold text-start hover:text-primary hover:underline transition-colors ${done ? "text-foreground" : "text-foreground"}`}
+                                  >
+                                    {a.title}
+                                  </button>
+                                  {hasNotes && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleNote(a.id);
+                                      }}
+                                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold transition-colors cursor-pointer ${
+                                        isExpanded
+                                          ? "bg-primary/15 text-primary"
+                                          : "bg-secondary text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                      }`}
+                                      title={isExpanded ? (isAr ? "طي الملاحظة" : "Collapse note") : (isAr ? "عرض الملاحظة" : "Show note")}
+                                    >
+                                      <FileText className="h-2.5 w-2.5 text-primary" />
+                                      <span>{isAr ? "ملاحظة" : "Note"}</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                            <span
-                              className={`font-semibold ${done ? "text-foreground" : "text-foreground"}`}
-                            >
-                              {a.title}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {lead
+                              ? lead.company
+                              : a.projectId
+                                ? `Project: ${a.projectId.slice(0, 8)}`
+                                : "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                              {a.type}
                             </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {lead
-                            ? lead.company
-                            : a.projectId
-                              ? `Project: ${a.projectId.slice(0, 8)}`
-                              : "—"}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                            {a.type}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-xs font-medium text-foreground">
-                            {a.dueDate === today ? (
-                              <span className="text-primary font-bold">
-                                {t("today").toUpperCase()}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-xs font-medium text-foreground">
+                              {a.dueDate === today ? (
+                                <span className="text-primary font-bold">
+                                  {t("today").toUpperCase()}
+                                </span>
+                              ) : (
+                                a.dueDate
+                              )}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">{a.time}</div>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">
+                            {a.estMinutes ? fmtH(a.estMinutes) : "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            {done ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                                Done <Check className="h-3 w-3" />
                               </span>
                             ) : (
-                              a.dueDate
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600">
+                                Pending
+                              </span>
                             )}
-                          </div>
-                          <div className="text-[10px] text-muted-foreground">{a.time}</div>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground">
-                          {a.estMinutes ? fmtH(a.estMinutes) : "—"}
-                        </td>
-                        <td className="px-4 py-3">
-                          {done ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
-                              Done <Check className="h-3 w-3" />
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600">
-                              Pending
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-end">
-                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {!done && (
+                          </td>
+                          <td className="px-4 py-3 text-end">
+                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {!done && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDoneNote("");
+                                    setMarkDoneId(a.id);
+                                  }}
+                                  className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 transition"
+                                  title="Mark Done"
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                </button>
+                              )}
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setDoneNote("");
-                                  setMarkDoneId(a.id);
+                                  setEditId(a.id);
                                 }}
-                                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 transition"
-                                title="Mark Done"
+                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-primary transition"
                               >
-                                <Check className="h-3.5 w-3.5" />
+                                <Pencil className="h-3.5 w-3.5" />
                               </button>
-                            )}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditId(a.id);
-                              }}
-                              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-primary transition"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                if (
-                                  await confirm({ message: `${t("confirmDelete")} "${a.title}"` })
-                                )
-                                  actions.removeActivity(a.id);
-                              }}
-                              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-rose-50 hover:text-rose-600 transition"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (
+                                    await confirm({ message: `${t("confirmDelete")} "${a.title}"` })
+                                  )
+                                    actions.removeActivity(a.id);
+                                }}
+                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-rose-50 hover:text-rose-600 transition"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        {/* Collapsed Note Row */}
+                        {isExpanded && hasNotes && (
+                          <tr className="bg-secondary/25 border-b border-border transition-colors animate-in fade-in duration-200">
+                            <td colSpan={7} className="px-6 py-3">
+                              <div className="rounded-xl border border-border/80 bg-card p-3.5 shadow-xs">
+                                <div className="mb-1.5 flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                    <FileText className="h-3.5 w-3.5 text-primary" />
+                                    <span>{isAr ? "ملاحظات النشاط" : "Activity Notes"}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleNote(a.id);
+                                    }}
+                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                  >
+                                    <span>{isAr ? "إغلاق" : "Collapse"}</span>
+                                    <ChevronDown className="h-3 w-3 rotate-180" />
+                                  </button>
+                                </div>
+                                <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed pl-5.5">
+                                  {a.notes}
+                                </p>
+                                {a.reviewNote && (
+                                  <div className="mt-2.5 pt-2.5 border-t border-border/60 pl-5.5">
+                                    <div className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1">
+                                      {isAr ? "ملاحظة المشرف / الإدارة" : "Manager Review Note"}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                                      {a.reviewNote}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
                     );
                   })}
                   {paginated.length === 0 && (
@@ -446,24 +566,31 @@ function MyActivitiesPage() {
               const Icon = ICONS[a.type] ?? Bookmark;
               const lead = leads.find((l) => l.id === a.leadId);
               const done = a.status === "done";
+              const isExpanded = !!expandedNotes[a.id];
+              const hasNotes = Boolean(a.notes?.trim());
+
               if (editId === a.id) {
                 return <EditActivityCard key={a.id} activity={a} onClose={() => setEditId(null)} />;
               }
               return (
                 <div
                   key={a.id}
-                  onClick={() =>
-                    navigate({
-                      to: "/employee/activities/$activityId",
-                      params: { activityId: a.id },
-                    })
-                  }
-                  className={`group flex items-center gap-3 rounded-2xl border bg-card p-3.5 shadow-[var(--shadow-soft)] transition cursor-pointer ${
+                  onClick={() => {
+                    if (hasNotes) {
+                      toggleNote(a.id);
+                    } else {
+                      navigate({
+                        to: "/employee/activities/$activityId",
+                        params: { activityId: a.id },
+                      });
+                    }
+                  }}
+                  className={`group flex items-start gap-3 rounded-2xl border bg-card p-3.5 shadow-[var(--shadow-soft)] transition cursor-pointer ${
                     done ? "border-emerald-200" : "border-border hover:border-primary/40"
                   }`}
                 >
                   <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${done ? "bg-emerald-50 text-emerald-600" : "bg-primary/10 text-primary"}`}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${done ? "bg-emerald-50 text-emerald-600" : "bg-primary/10 text-primary"}`}
                   >
                     <Icon className="h-4 w-4" />
                   </div>
@@ -521,6 +648,36 @@ function MyActivitiesPage() {
                         </div>
                       )}
                     </div>
+                    {hasNotes && (
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleNote(a.id);
+                          }}
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold transition-colors cursor-pointer ${
+                            isExpanded
+                              ? "bg-primary/15 text-primary"
+                              : "bg-secondary text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                          }`}
+                          title={isExpanded ? (isAr ? "طي الملاحظة" : "Collapse note") : (isAr ? "عرض الملاحظة" : "Show note")}
+                        >
+                          <FileText className="h-2.5 w-2.5 text-primary" />
+                          <span>{isAr ? "ملاحظة" : "Note"}</span>
+                          <ChevronRight
+                            className={`h-2.5 w-2.5 transition-transform duration-200 ${
+                              isExpanded ? "rotate-90 text-primary" : ""
+                            }`}
+                          />
+                        </button>
+                        {isExpanded && (
+                          <div className="mt-1.5 rounded-lg border border-border/70 bg-secondary/30 p-2 text-xs text-foreground whitespace-pre-wrap leading-relaxed animate-in fade-in duration-200">
+                            {a.notes}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={(e) => {
