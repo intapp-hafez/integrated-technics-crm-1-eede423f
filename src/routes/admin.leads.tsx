@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
-import { actions, useStoreState, getProbabilityForStatus, type LocationCity } from "@/lib/store";
+import { actions, useStoreState, getProbabilityForStatus, getLeadProbability, type LocationCity } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { useAuth } from "@/lib/auth";
 import {
@@ -899,7 +899,7 @@ function LeadsPage() {
                         {(() => {
                           const isWon = l.status === "won";
                           const isLost = l.status === "lost";
-                          const pct = getProbabilityForStatus(l.status) ?? 0;
+                          const pct = getLeadProbability(l);
                           const barColor = isWon
                             ? "bg-emerald-500"
                             : isLost

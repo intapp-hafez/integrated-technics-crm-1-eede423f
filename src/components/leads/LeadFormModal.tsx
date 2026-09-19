@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Check, FileCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { actions, useStoreState, getProbabilityForStatus } from "@/lib/store";
+import { actions, useStoreState, getProbabilityForStatus, getLeadProbability } from "@/lib/store";
 import { useMyTeam } from "@/lib/useMyTeam";
 import type { LocationCity } from "@/lib/store";
 import type { Lead, LeadStatus } from "@/lib/mock-data";
@@ -133,7 +133,7 @@ export function LeadFormModal({
   const [source, setSource] = useState(initial?.source ?? "Website");
   const [status, setStatus] = useState<LeadStatus>(initial?.status ?? "new");
   const [value, setValue] = useState(initial?.value ?? 0);
-  const [probability, setProbability] = useState(initial?.probability ?? 0);
+  const [probability, setProbability] = useState(initial ? getLeadProbability(initial) : 0);
   const [expectedCloseDate, setExpectedCloseDate] = useState<string>(
     (initial as any)?.expectedCloseDate ?? "",
   );

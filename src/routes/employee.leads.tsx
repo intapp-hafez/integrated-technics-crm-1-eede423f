@@ -10,6 +10,7 @@ import {
   actions,
   useStoreState,
   getProbabilityForStatus,
+  getLeadProbability,
   type Project,
   type LocationCity,
 } from "@/lib/store";
@@ -199,7 +200,7 @@ function LeadsPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.map((l) => {
-                  const prob = getProbabilityForStatus(l.status) ?? 0;
+                  const prob = getLeadProbability(l);
                   const relProj = projects.find(
                     (p) =>
                       p.id === (l as any).projectId ||
@@ -472,7 +473,7 @@ function LeadCard({ lead: l, onEdit }: { lead: Lead; onEdit: () => void }) {
         {(() => {
           const isWon = (l.status === "won" || l.status === "lost");
           const isLost = l.status === "lost";
-          const pct = getProbabilityForStatus(l.status) ?? 0;
+          const pct = getLeadProbability(l);
           const barColor = isWon
             ? "bg-emerald-500"
             : isLost

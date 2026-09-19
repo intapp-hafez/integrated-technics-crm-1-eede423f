@@ -42,6 +42,7 @@ import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { RealtimeStatus } from "@/components/RealtimeStatus";
 import { GlobalSearch } from "@/components/shared/GlobalSearch";
 import { LeadWonCelebration } from "@/components/pipeline/LeadWonCelebration";
+import { PendingApprovalFloatingWidget } from "@/components/admin/PendingApprovalFloatingWidget";
 import { useStoreState } from "@/lib/store";
 
 type NavItem = { to: string; icon: typeof Users; key: any; search?: Record<string, string> };
@@ -390,6 +391,7 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
       </nav>
 
       <LeadWonCelebration />
+      {panel === "admin" && <PendingApprovalFloatingWidget />}
     </div>
   );
 }

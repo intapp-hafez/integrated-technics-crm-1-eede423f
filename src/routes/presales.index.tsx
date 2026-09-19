@@ -2,7 +2,7 @@ import { createFileRoute, useSearch, useNavigate, Link } from "@tanstack/react-r
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
-import { actions, useStoreState, getProbabilityForStatus, type Lead, type LeadStatus } from "@/lib/store";
+import { actions, useStoreState, getProbabilityForStatus, getLeadProbability, type Lead, type LeadStatus } from "@/lib/store";
 import { fmtMoney } from "@/lib/mock-data";
 import { shortId, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -2211,7 +2211,7 @@ function CrmLeadsTab({
                             {(() => {
                               const isWon = l.status === "won";
                               const isLost = l.status === "lost";
-                              const pct = getProbabilityForStatus(l.status) ?? 0;
+                              const pct = getLeadProbability(l);
                               const barColor = isWon
                                 ? "bg-emerald-500"
                                 : isLost

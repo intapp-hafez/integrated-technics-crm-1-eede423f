@@ -4,7 +4,7 @@ import { Sparkles, TrendingUp, AlertTriangle, CheckCircle2, User, Target } from 
 import { useI18n } from "@/lib/i18n";
 import { useMemo } from "react";
 import { fmtMoney } from "@/lib/mock-data";
-import { getProbabilityForStatus } from "@/lib/store";
+import { getProbabilityForStatus, getLeadProbability } from "@/lib/store";
 
 interface Props {
   leads: Lead[];
@@ -91,7 +91,7 @@ export function SmartInsights({ leads, employees, activities }: Props) {
     let expectedRevenue = 0;
     leads.forEach((l) => {
       if (l.status !== "lost" && l.status !== "won" && l.status !== "archived") {
-        const prob = getProbabilityForStatus(l.status) ?? 0;
+        const prob = getLeadProbability(l);
         expectedRevenue += (l.value || 0) * (prob / 100);
       }
     });

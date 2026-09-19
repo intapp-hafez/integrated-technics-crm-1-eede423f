@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
-import { useStoreState, getProbabilityForStatus, type LeadStatus } from "@/lib/store";
+import { useStoreState, getProbabilityForStatus, getLeadProbability, type LeadStatus } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { useMyTeam } from "@/lib/useMyTeam";
 import { MultiSelect } from "@/components/pipeline/PipelineFilters";
@@ -152,7 +152,7 @@ function PipelinePage() {
                   visibleLeads
                     .filter((l) => l.status === stage.key)
                     .map((l) => {
-                      const prob = getProbabilityForStatus(l.status) ?? 0;
+                      const prob = getLeadProbability(l);
                       return (
                         <tr
                           key={l.id}
@@ -353,7 +353,7 @@ function PipelinePage() {
                       </div>
                     </div>
                     {(() => {
-                      const prob = getProbabilityForStatus(l.status) ?? 0;
+                      const prob = getLeadProbability(l);
                       return (
                         <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-[10px] text-muted-foreground">
                           <span className="inline-flex items-center gap-1 font-semibold">

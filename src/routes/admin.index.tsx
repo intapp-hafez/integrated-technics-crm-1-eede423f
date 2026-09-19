@@ -150,12 +150,12 @@ function useDashboardData(range: RangeKey) {
             .eq("date", new Date().toISOString().slice(0, 10)),
         ]);
 
-      const allLeads = leadsRes.data ?? [];
-      const projects = projectsRes.data ?? [];
-      const quotations = quotationsRes.data ?? [];
-      const activities = activitiesRes.data ?? [];
-      const profiles = profilesRes.data ?? [];
-      const attendance = attendanceRes.data ?? [];
+      const allLeads = Array.isArray(leadsRes.data) ? leadsRes.data : [];
+      const projects = Array.isArray(projectsRes.data) ? projectsRes.data : [];
+      const quotations = Array.isArray(quotationsRes.data) ? quotationsRes.data : [];
+      const activities = Array.isArray(activitiesRes.data) ? activitiesRes.data : [];
+      const profiles = Array.isArray(profilesRes.data) ? profilesRes.data : [];
+      const attendance = Array.isArray(attendanceRes.data) ? attendanceRes.data : [];
 
       // Range-filtered leads (by created_at)
       const leads = startIso ? allLeads.filter((l) => l.created_at >= startIso) : allLeads;

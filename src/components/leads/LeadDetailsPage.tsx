@@ -13,7 +13,7 @@ import {
   StageTransitionDialog,
   type StageTransitionPayload,
 } from "@/components/pipeline/StageTransitionDialog";
-import { actions, useStoreState } from "@/lib/store";
+import { actions, useStoreState, getLeadProbability } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -367,7 +367,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
       ["Email", (lead as any).email || "—"],
       ["Source", (lead as any).source || "—"],
       ["Value", fmtMoney(lead.value)],
-      ["Probability", lead.probability != null ? `${lead.probability}%` : "—"],
+      ["Probability", `${getLeadProbability(lead)}%`],
       ["Expected Close", formatDate((lead as any).expectedCloseDate)],
       ["Location", [lead.city, leadDistricts[lead.id]].filter(Boolean).join(", ") || "—"],
       ["Phone", displayPhone || "—"],
@@ -1264,11 +1264,9 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
               </InfoRow>
               <InfoRow label="Value" icon={DollarSign}>
                 <span className="font-mono font-bold text-primary">{fmtMoney(lead.value)}</span>
-                {lead.probability !== undefined && (
-                  <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
-                    {lead.probability}%
-                  </span>
-                )}
+                <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                  {getLeadProbability(lead)}%
+                </span>
               </InfoRow>
               <InfoRow label="Expected Close" icon={CalendarCheck}>
                 {formatDate((lead as any).expectedCloseDate)}

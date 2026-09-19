@@ -868,7 +868,12 @@ function loadPersisted<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
   try {
     const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(fallback) && !Array.isArray(parsed)) {
+      return fallback;
+    }
+    return parsed as T;
   } catch {
     return fallback;
   }
@@ -973,6 +978,25 @@ export function getProbabilityForStatus(status: string): number | undefined {
   if (s === "lost") return 100;
   if (s === "archived") return 0;
   return undefined;
+}
+
+export function getLeadProbability(lead?: { probability?: number | string | null; status?: string } | null): number {
+  if (!lead) return 0;
+  if (typeof lead.probability === "number" && !isNaN(lead.probability)) {
+    return lead.probability;
+  }
+  if (
+    lead.probability !== null &&
+    lead.probability !== undefined &&
+    lead.probability !== "" &&
+    !isNaN(Number(lead.probability))
+  ) {
+    return Number(lead.probability);
+  }
+  if (lead.status) {
+    return getProbabilityForStatus(lead.status) ?? 0;
+  }
+  return 0;
 }
 
 export const actions = {

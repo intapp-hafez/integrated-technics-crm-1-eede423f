@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
 import { fmtMoney } from "@/lib/mock-data";
-import { useStoreState, getProbabilityForStatus, type LeadStatus } from "@/lib/store";
+import { useStoreState, getProbabilityForStatus, getLeadProbability, type LeadStatus } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { MultiSelect } from "@/components/pipeline/PipelineFilters";
 import { GripVertical, ExternalLink, ChevronLeft, ChevronRight, LayoutGrid, Table as TableIcon } from "lucide-react";
@@ -149,7 +149,7 @@ function PipelinePage() {
                   myLeads
                     .filter((l) => l.status === stage.key)
                     .map((l) => {
-                      const prob = getProbabilityForStatus(l.status) ?? 0;
+                      const prob = getLeadProbability(l);
                       return (
                         <tr
                           key={l.id}
@@ -341,7 +341,7 @@ function PipelinePage() {
                       </div>
                     </div>
                     {(() => {
-                      const prob = getProbabilityForStatus(l.status) ?? 0;
+                      const prob = getLeadProbability(l);
                       return (
                         <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-[10px] text-muted-foreground">
                           <span className="inline-flex items-center gap-1 font-semibold">

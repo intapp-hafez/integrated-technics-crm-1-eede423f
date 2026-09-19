@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { actions } from "@/lib/store";
+import { actions, getProbabilityForStatus } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { setProfileMap } from "@/lib/supabaseWrites";
@@ -303,7 +303,13 @@ export function useSupabaseSync() {
         email: l.email ?? undefined,
         phone: l.phone ?? undefined,
         street: pick(l.street_en, l.street_ar) || undefined,
-        probability: l.probability ?? undefined,
+        probability:
+          l.probability !== null &&
+          l.probability !== undefined &&
+          l.probability !== "" &&
+          !isNaN(Number(l.probability))
+            ? Number(l.probability)
+            : (getProbabilityForStatus(l.status) ?? 0),
         expectedCloseDate: l.expected_close_date ?? undefined,
         pendingWonApproval: l.pending_won_approval ?? false,
         projectId: l.project_id ?? undefined,

@@ -54,17 +54,36 @@ export function useI18n() {
   return ctx;
 }
 
-export function LangToggle() {
+export function LangToggle({ className }: { className?: string } = {}) {
   const { lang, setLang } = useI18n();
   return (
-    <button
-      onClick={() => setLang(lang === "en" ? "ar" : "en")}
-      className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs font-semibold text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-      aria-label="Toggle language"
+    <div
+      className={`inline-flex h-9 items-center rounded-lg border border-border bg-card p-0.5 text-xs font-semibold shadow-xs ${className ?? ""}`}
+      role="group"
+      aria-label="Language switch"
     >
-      <span className={lang === "en" ? "text-primary" : "text-muted-foreground"}>EN</span>
-      <span className="text-muted-foreground">/</span>
-      <span className={lang === "ar" ? "text-primary" : "text-muted-foreground"}>عربي</span>
-    </button>
+      <button
+        type="button"
+        onClick={() => setLang("en")}
+        className={`rounded-md px-2.5 py-1 text-xs transition-all duration-200 cursor-pointer font-bold ${
+          lang === "en"
+            ? "bg-[#F58220] text-white shadow-xs"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        EN
+      </button>
+      <button
+        type="button"
+        onClick={() => setLang("ar")}
+        className={`rounded-md px-2.5 py-1 text-xs transition-all duration-200 cursor-pointer font-bold ${
+          lang === "ar"
+            ? "bg-[#F58220] text-white shadow-xs"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        عربي
+      </button>
+    </div>
   );
 }
