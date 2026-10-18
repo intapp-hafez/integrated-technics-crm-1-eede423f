@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { MonthlyActivitiesTargetCard } from "@/components/MonthlyActivitiesTargetCard";
 
 export const Route = createFileRoute("/manager/employees/$employeeId")({
   component: ManagerEmployeeDetailsPage,
@@ -463,6 +464,18 @@ function ManagerEmployeeDetailsPage() {
               </div>
             </div>
           ) : null}
+
+          {/* Monthly Activities Target (Divided into 4 Weeks, Recurring Monthly) */}
+          <MonthlyActivitiesTargetCard
+            employeeId={emp.id}
+            employeeName={emp.name}
+            activities={empActivitiesRaw as any}
+            canEdit={false}
+            onSelectWeekRange={() => {
+              setTab("activities");
+              setActivitiesDateFilter("");
+            }}
+          />
 
           {/* 2-Column Previews */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

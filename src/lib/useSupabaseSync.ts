@@ -644,6 +644,13 @@ export function useSupabaseSync() {
         kpiTargetPeriod: p.kpi_target_period ?? "",
         kpiActivitiesPeriod: p.kpi_activities_period ?? "",
         kpiAttendancePeriod: p.kpi_attendance_period ?? "",
+        monthlyActivitiesTarget: Number(p.monthly_activities_target ?? 0),
+        activitiesWeek1Target: Number(p.activities_week1_target ?? 0),
+        activitiesWeek2Target: Number(p.activities_week2_target ?? 0),
+        activitiesWeek3Target: Number(p.activities_week3_target ?? 0),
+        activitiesWeek4Target: Number(p.activities_week4_target ?? 0),
+        activitiesTargetRecurring: p.activities_target_recurring !== false,
+        activitiesTargetTypes: p.activities_target_types ?? ["all"],
       } as any;
     });
 

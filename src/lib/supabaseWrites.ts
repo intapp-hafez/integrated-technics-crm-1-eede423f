@@ -708,6 +708,20 @@ export async function sbUpdateProfile(profileId: string | undefined, patch: Part
   if ((patch as any).q4Target !== undefined) row.q4_target = Number((patch as any).q4Target);
   if ((patch as any).weeklyMeetingsTarget !== undefined)
     row.weekly_meetings_target = Number((patch as any).weeklyMeetingsTarget);
+  if ((patch as any).monthlyActivitiesTarget !== undefined)
+    row.monthly_activities_target = Number((patch as any).monthlyActivitiesTarget);
+  if ((patch as any).activitiesWeek1Target !== undefined)
+    row.activities_week1_target = Number((patch as any).activitiesWeek1Target);
+  if ((patch as any).activitiesWeek2Target !== undefined)
+    row.activities_week2_target = Number((patch as any).activitiesWeek2Target);
+  if ((patch as any).activitiesWeek3Target !== undefined)
+    row.activities_week3_target = Number((patch as any).activitiesWeek3Target);
+  if ((patch as any).activitiesWeek4Target !== undefined)
+    row.activities_week4_target = Number((patch as any).activitiesWeek4Target);
+  if ((patch as any).activitiesTargetRecurring !== undefined)
+    row.activities_target_recurring = Boolean((patch as any).activitiesTargetRecurring);
+  if ((patch as any).activitiesTargetTypes !== undefined)
+    row.activities_target_types = (patch as any).activitiesTargetTypes;
   if ((patch as any).startDate !== undefined) row.start_date = (patch as any).startDate || null;
   if (patch.skills !== undefined) row.skills = patch.skills;
   if (patch.active !== undefined) row.active = patch.active;
@@ -719,6 +733,37 @@ export async function sbUpdateProfile(profileId: string | undefined, patch: Part
     .eq("id", profileId);
   if (error) {
     warn("Update profile", error);
+    throw error;
+  }
+}
+
+export async function sbUpdateActivitiesTarget(
+  profileId: string,
+  cfg: {
+    monthlyTarget: number;
+    week1Target: number;
+    week2Target: number;
+    week3Target: number;
+    week4Target: number;
+    repeatMonthly: boolean;
+    activityTypes: string[];
+  },
+) {
+  if (!isUuid(profileId)) return;
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      monthly_activities_target: cfg.monthlyTarget,
+      activities_week1_target: cfg.week1Target,
+      activities_week2_target: cfg.week2Target,
+      activities_week3_target: cfg.week3Target,
+      activities_week4_target: cfg.week4Target,
+      activities_target_recurring: cfg.repeatMonthly,
+      activities_target_types: cfg.activityTypes,
+    })
+    .eq("id", profileId);
+  if (error) {
+    warn("Update activities target", error);
     throw error;
   }
 }

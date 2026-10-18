@@ -1049,6 +1049,13 @@ export type Database = {
           updated_at: string;
           user_id: string;
           weekly_meetings_target: number | null;
+          monthly_activities_target: number | null;
+          activities_week1_target: number | null;
+          activities_week2_target: number | null;
+          activities_week3_target: number | null;
+          activities_week4_target: number | null;
+          activities_target_recurring: boolean | null;
+          activities_target_types: string[] | null;
         };
         Insert: {
           active?: boolean;
@@ -1078,6 +1085,13 @@ export type Database = {
           updated_at?: string;
           user_id: string;
           weekly_meetings_target?: number | null;
+          monthly_activities_target?: number | null;
+          activities_week1_target?: number | null;
+          activities_week2_target?: number | null;
+          activities_week3_target?: number | null;
+          activities_week4_target?: number | null;
+          activities_target_recurring?: boolean | null;
+          activities_target_types?: string[] | null;
         };
         Update: {
           active?: boolean;
@@ -1107,6 +1121,13 @@ export type Database = {
           updated_at?: string;
           user_id?: string;
           weekly_meetings_target?: number | null;
+          monthly_activities_target?: number | null;
+          activities_week1_target?: number | null;
+          activities_week2_target?: number | null;
+          activities_week3_target?: number | null;
+          activities_week4_target?: number | null;
+          activities_target_recurring?: boolean | null;
+          activities_target_types?: string[] | null;
         };
         Relationships: [
           {

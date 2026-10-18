@@ -80,6 +80,7 @@ export interface Activity {
   createdBy?: string;
   createdByName?: string;
   createdByPhoto?: string;
+  isGeneral?: boolean;
 }
 
 export interface Note {

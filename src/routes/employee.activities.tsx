@@ -425,11 +425,18 @@ function MyActivitiesPage() {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">
-                            {lead
-                              ? lead.company
-                              : a.projectId
-                                ? `Project: ${a.projectId.slice(0, 8)}`
-                                : "—"}
+                            {lead ? (
+                              lead.company
+                            ) : a.projectId ? (
+                              `Project: ${a.projectId.slice(0, 8)}`
+                            ) : a.isGeneral || (!a.leadId && a.notes?.includes("General")) ? (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-secondary border border-border px-2 py-0.5 text-[10px] font-bold text-foreground">
+                                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                                {isAr ? "عام" : "General"}
+                              </span>
+                            ) : (
+                              "—"
+                            )}
                           </td>
                           <td className="px-4 py-3">
                             <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -620,6 +627,12 @@ function MyActivitiesPage() {
                         {a.dueDate === today ? t("today").toUpperCase() : a.dueDate} · {a.time}
                         {a.estMinutes ? ` · ${fmtH(a.estMinutes)}` : ""}
                       </div>
+                      {!a.leadId && (a.isGeneral || a.notes?.includes("General")) && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-secondary border border-border px-1.5 py-0.5 text-[9px] font-bold text-foreground">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                          {isAr ? "عام" : "General"}
+                        </span>
+                      )}
                       {a.presalesTeam && a.presalesTeam.length > 0 && (
                         <div className="flex -space-x-1" title={t("presalesTeam")}>
                           {a.presalesTeam.map((p) => {
@@ -819,12 +832,16 @@ function EditActivityCard({
   activity: ReturnType<typeof useStoreState>["activities"][number];
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isAr = lang === "ar";
   const { settings, leads } = useStoreState();
   const [title, setTitle] = useState(activity.title);
   const [type, setType] = useState(activity.type);
   const [mins, setMins] = useState(activity.estMinutes ?? 0);
   const [leadId, setLeadId] = useState(activity.leadId ?? "");
+  const [isGeneral, setIsGeneral] = useState(() =>
+    Boolean(activity.isGeneral || (!activity.leadId && activity.notes?.includes("General"))),
+  );
   const [dueDate, setDueDate] = useState(activity.dueDate);
   const [time, setTime] = useState(activity.time);
   const save = () => {
@@ -834,6 +851,8 @@ function EditActivityCard({
       type,
       estMinutes: mins,
       leadId: leadId || undefined,
+      isGeneral: !leadId && isGeneral,
+      notes: !leadId && isGeneral ? "General activity" : activity.notes,
       dueDate,
       time,
     });
@@ -860,7 +879,13 @@ function EditActivityCard({
         </select>
         <select
           value={leadId}
-          onChange={(e) => setLeadId(e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value;
+            setLeadId(v);
+            if (v) {
+              setIsGeneral(false);
+            }
+          }}
           className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
         >
           <option value="">{t("noLead") || "No lead"}</option>
@@ -913,6 +938,35 @@ function EditActivityCard({
           className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
         />
       </div>
+
+      {!leadId && (
+        <div className="mt-2.5 flex items-center justify-between rounded-xl bg-secondary/40 border border-border px-3 py-2 animate-in fade-in duration-200">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={isGeneral}
+              onChange={(e) => setIsGeneral(e.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+            />
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="font-bold text-foreground">
+                {isAr ? "نشاط عام (General)" : "General"}
+              </span>
+              <span className="text-[11px] text-muted-foreground">
+                {isAr
+                  ? "— نشاط عام داخلي غير مرتبط بعميل محدد (لضمان نظافة ودقة البيانات)"
+                  : "— General internal activity, not tied to a specific lead (helps keep clean data)"}
+              </span>
+            </div>
+          </label>
+          {isGeneral && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600">
+              Clean Data ✓
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="mt-2 flex justify-end gap-2">
         <button
           onClick={onClose}
@@ -1065,13 +1119,15 @@ function CalendarView({
 }
 
 function NewQuickActivity({ owner }: { owner: string }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isAr = lang === "ar";
   const { leads, settings } = useStoreState();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [type, setType] = useState(settings.activityTypes[0]);
   const [mins, setMins] = useState(30);
   const [leadId, setLeadId] = useState("");
+  const [isGeneral, setIsGeneral] = useState(false);
   const [dueDate, setDueDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const submit = () => {
@@ -1084,9 +1140,12 @@ function NewQuickActivity({ owner }: { owner: string }) {
       time: new Date().toTimeString().slice(0, 5),
       owner,
       estMinutes: mins,
+      isGeneral: !leadId && isGeneral,
+      notes: !leadId && isGeneral ? "General activity" : undefined,
     });
     setTitle("");
     setMins(30);
+    setIsGeneral(false);
     setDueDate(new Date().toISOString().slice(0, 10));
     setOpen(false);
   };
@@ -1123,7 +1182,13 @@ function NewQuickActivity({ owner }: { owner: string }) {
         </select>
         <select
           value={leadId}
-          onChange={(e) => setLeadId(e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value;
+            setLeadId(v);
+            if (v) {
+              setIsGeneral(false);
+            }
+          }}
           className="h-9 rounded-lg border border-border bg-background px-2 text-xs focus:border-primary focus:outline-none"
         >
           <option value="">{t("noLead")}</option>
@@ -1176,6 +1241,35 @@ function NewQuickActivity({ owner }: { owner: string }) {
           <span className="text-muted-foreground">{t("min")}</span>
         </div>
       </div>
+
+      {!leadId && (
+        <div className="mt-2.5 flex items-center justify-between rounded-xl bg-secondary/40 border border-border px-3 py-2 animate-in fade-in duration-200">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={isGeneral}
+              onChange={(e) => setIsGeneral(e.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+            />
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="font-bold text-foreground">
+                {isAr ? "نشاط عام (General)" : "General"}
+              </span>
+              <span className="text-[11px] text-muted-foreground">
+                {isAr
+                  ? "— نشاط عام داخلي غير مرتبط بعميل محدد (لضمان نظافة ودقة البيانات)"
+                  : "— General internal activity, not tied to a specific lead (helps keep clean data)"}
+              </span>
+            </div>
+          </label>
+          {isGeneral && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600">
+              Clean Data ✓
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="mt-2 flex justify-end gap-2">
         <button
           onClick={() => setOpen(false)}

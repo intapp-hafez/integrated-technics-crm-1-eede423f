@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -40,6 +40,7 @@ import { PerformanceGuideModal } from "@/components/PerformanceGuideModal";
 import { isLeadRelatedToEmployee } from "@/lib/employeeTargets";
 import { filterMyProjects } from "@/lib/employeeProjects";
 import { EmployeeTargetsCard } from "@/components/EmployeeTargetsCard";
+import { MonthlyActivitiesTargetCard } from "@/components/MonthlyActivitiesTargetCard";
 import { getLeadLastActivity } from "@/lib/utils";
 import {
   getCurrentPosition,
@@ -65,6 +66,7 @@ export const Route = createFileRoute("/employee/")({
 
 function EmployeeDashboard() {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const queryClient = useQueryClient();
   const { leads, activities, projects, attendance, profile, history } = useStoreState();
@@ -711,6 +713,19 @@ function EmployeeDashboard() {
           profileId={profile.profileId}
           leads={myLeads as any}
           activities={myActivities as any}
+        />
+      </div>
+
+      {/* Monthly Activities Target (Divided into 4 Weeks, Recurring Monthly) */}
+      <div className="mt-6">
+        <MonthlyActivitiesTargetCard
+          employeeId={profile.profileId || authUser?.id || ""}
+          employeeName={profile.name}
+          activities={myActivities as any}
+          canEdit={false}
+          onSelectWeekRange={() => {
+            navigate({ to: "/employee/activities" as any });
+          }}
         />
       </div>
 

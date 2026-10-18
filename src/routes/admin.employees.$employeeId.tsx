@@ -57,6 +57,7 @@ import {
   CAIRO_TZ,
 } from "@/lib/cairoTime";
 import { EmployeeTargetsCard } from "@/components/EmployeeTargetsCard";
+import { MonthlyActivitiesTargetCard } from "@/components/MonthlyActivitiesTargetCard";
 import { PerformanceGuideModal } from "@/components/PerformanceGuideModal";
 
 const ACTIVE_KEY = "int-crm:emp-active";
@@ -133,6 +134,11 @@ function EmployeeDetailsPage() {
   const [filterNext7Days, setFilterNext7Days] = useState(false);
   const [filterNext15Days, setFilterNext15Days] = useState(false);
   const [activitiesDateFilter, setActivitiesDateFilter] = useState("");
+  const [activitiesRangeFilter, setActivitiesRangeFilter] = useState<{
+    start: string;
+    end: string;
+    label?: string;
+  } | null>(null);
   const [showPerfGuide, setShowPerfGuide] = useState(false);
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>({});
@@ -206,7 +212,14 @@ function EmployeeDetailsPage() {
 
   const ITEMS_PER_PAGE = 20;
   
-  const filteredEmpActivities = empActivities.filter(a => !activitiesDateFilter || a.dueDate === activitiesDateFilter);
+  const filteredEmpActivities = empActivities.filter((a) => {
+    if (activitiesRangeFilter) {
+      const d = (a.dueDate || a.createdAt || "").slice(0, 10);
+      if (d < activitiesRangeFilter.start || d > activitiesRangeFilter.end) return false;
+    }
+    if (activitiesDateFilter && a.dueDate !== activitiesDateFilter) return false;
+    return true;
+  });
 
   const paginatedActivities = filteredEmpActivities.slice(
     (page - 1) * ITEMS_PER_PAGE,
@@ -769,13 +782,27 @@ function EmployeeDetailsPage() {
               />
               <button
                 onClick={() => setShowImport("activities")}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
-            >
-              <Download className="h-3.5 w-3.5 rotate-180" />
-              {t("importExcel")}
-            </button>
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
+              >
+                <Download className="h-3.5 w-3.5 rotate-180" />
+                {t("importExcel")}
+              </button>
+            </div>
           </div>
-          </div>
+          {activitiesRangeFilter && (
+            <div className="mb-4 flex items-center justify-between rounded-xl bg-primary/10 border border-primary/20 px-3.5 py-2 text-xs text-primary">
+              <span className="font-semibold flex items-center gap-1.5">
+                <CalendarDays className="h-4 w-4" />
+                Filtered by Week: {activitiesRangeFilter.start} → {activitiesRangeFilter.end}
+              </span>
+              <button
+                onClick={() => setActivitiesRangeFilter(null)}
+                className="font-bold underline hover:opacity-85"
+              >
+                Clear filter
+              </button>
+            </div>
+          )}
           {empActivities.length === 0 && (
             <p className="text-sm text-muted-foreground">{t("noActivitiesOwned")}</p>
           )}
@@ -1252,6 +1279,22 @@ function EmployeeDetailsPage() {
               leads={empLeads as any}
               activities={empActivities as any}
               canEdit
+            />
+          </div>
+
+          {/* Monthly Activities Target (Divided into 4 Weeks, Recurring Monthly) */}
+          <div className="lg:col-span-2">
+            <MonthlyActivitiesTargetCard
+              employeeId={emp.id}
+              employeeName={emp.name}
+              activities={empActivities as any}
+              canEdit
+              onSelectWeekRange={(startIso, endIso) => {
+                setActivitiesRangeFilter({ start: startIso, end: endIso });
+                setActivitiesDateFilter("");
+                setTab("activities");
+                setPage(1);
+              }}
             />
           </div>
 
