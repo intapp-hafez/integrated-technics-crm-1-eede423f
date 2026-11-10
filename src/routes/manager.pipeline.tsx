@@ -7,7 +7,7 @@ import { useStoreState, getProbabilityForStatus, getLeadProbability, type LeadSt
 import { useRole } from "@/lib/role";
 import { useMyTeam } from "@/lib/useMyTeam";
 import { MultiSelect } from "@/components/pipeline/PipelineFilters";
-import { GripVertical, ExternalLink, ChevronLeft, ChevronRight, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { GripVertical, ExternalLink, ChevronLeft, ChevronRight, LayoutGrid, Table as TableIcon, DollarSign, Briefcase } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,15 +64,42 @@ function PipelinePage() {
       ? teamLeads
       : teamLeads.filter((l) => employeeFilter.includes(l.owner));
 
+  const isEmployeeFiltered = employeeFilter.length > 0;
+  const employeeAllLeads = isEmployeeFiltered
+    ? teamLeads.filter((l) => employeeFilter.includes(l.owner))
+    : [];
+  const employeeTotalValueAllStages = employeeAllLeads.reduce(
+    (sum, l) => sum + (Number(l.value) || 0),
+    0,
+  );
+  const employeeTotalCount = employeeAllLeads.length;
+
   return (
     <AppShell panel={panel} user={user} pageTitle={t("pipeline")}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          {isEmployeeFiltered && (
+            <div className="inline-flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium text-foreground shadow-xs">
+              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" />
+              <span>
+                <span className="text-muted-foreground">
+                  {(t("sumOfAllStages" as any) as string) || "Total (All Stages)"}:
+                </span>{" "}
+                <strong className="font-mono text-sm font-bold text-primary">
+                  {fmtMoney(employeeTotalValueAllStages)}
+                </strong>
+              </span>
+              <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                {employeeTotalCount}{" "}
+                {(t("deals" as any) as string) || (t("leads" as any) as string) || "Deals"}
+              </span>
+            </div>
+          )}
           {view === "board" && (
-            <>
+            <span className="hidden items-center gap-1.5 sm:inline-flex">
               <GripVertical className="h-3.5 w-3.5" />
               {t("dragCardHint")}
-            </>
+            </span>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -233,154 +260,153 @@ function PipelinePage() {
         </div>
       ) : (
         <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-2 scroll-smooth">
-        {stages.map((stage) => {
-          const stageLeads = visibleLeads.filter((l) => l.status === stage.key);
-          const totalValue = stageLeads.reduce((sum, l) => sum + l.value, 0);
-          const isOver = overStage === stage.key;
-          const isActive = activeStage === stage.key;
-          return (
-            <div
-              key={stage.key}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setOverStage(stage.key as LeadStatus);
-              }}
-              onDragLeave={() => setOverStage((s) => (s === stage.key ? null : s))}
-              onDrop={(e) => {
-                e.preventDefault();
-                const lid = e.dataTransfer.getData("text/lead-id") || dragId;
-                if (lid) {
-                  const lead = teamLeads.find((l) => l.id === lid);
-                  if (lead && lead.status !== stage.key) {
-                    setPending({
-                      lead,
-                      toStage: stage.key as LeadStatus,
-                      toLabel: (t(stage.key as any) as string) ?? stage.label,
-                    });
+          {stages.map((stage) => {
+            const stageLeads = visibleLeads.filter((l) => l.status === stage.key);
+            const totalValue = stageLeads.reduce((sum, l) => sum + l.value, 0);
+            const isOver = overStage === stage.key;
+            const isActive = activeStage === stage.key;
+            return (
+              <div
+                key={stage.key}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setOverStage(stage.key as LeadStatus);
+                }}
+                onDragLeave={() => setOverStage((s) => (s === stage.key ? null : s))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const lid = e.dataTransfer.getData("text/lead-id") || dragId;
+                  if (lid) {
+                    const lead = teamLeads.find((l) => l.id === lid);
+                    if (lead && lead.status !== stage.key) {
+                      setPending({
+                        lead,
+                        toStage: stage.key as LeadStatus,
+                        toLabel: (t(stage.key as any) as string) ?? stage.label,
+                      });
+                    }
                   }
-                }
-                setDragId(null);
-                setOverStage(null);
-              }}
-              className={`w-[310px] min-w-[310px] max-w-[310px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
-              style={{
-                borderTopColor: stage.color,
-                backgroundColor: isOver
-                  ? `${stage.color}20`
-                  : isActive
-                    ? `${stage.color}15`
-                    : `${stage.color}05`,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setActiveStage((s) => (s === stage.key ? null : stage.key))}
-                className={`sticky top-0 z-10 -mx-3 -mt-3 mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between rounded-t-xl px-4 py-2 text-left backdrop-blur transition`}
-                style={{ backgroundColor: isActive ? `${stage.color}25` : `${stage.color}15` }}
-                aria-pressed={isActive}
+                  setDragId(null);
+                  setOverStage(null);
+                }}
+                className={`w-[310px] min-w-[310px] max-w-[310px] shrink-0 rounded-xl p-3 transition border-t-4 shadow-sm ${isOver ? "ring-2 ring-primary" : isActive ? "ring-2 ring-primary/60" : ""}`}
+                style={{
+                  borderTopColor: stage.color,
+                  backgroundColor: isOver
+                    ? `${stage.color}20`
+                    : isActive
+                      ? `${stage.color}15`
+                      : `${stage.color}05`,
+                }}
               >
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full" style={{ background: stage.color }} />
-                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">
-                    {t(stage.key as any) ?? stage.label}
-                  </span>
-                  <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground ring-1 ring-border">
-                    {stageLeads.length}
-                  </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveStage((s) => (s === stage.key ? null : stage.key))}
+                  className={`sticky top-0 z-10 -mx-3 -mt-3 mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between rounded-t-xl px-4 py-2 text-left backdrop-blur transition`}
+                  style={{ backgroundColor: isActive ? `${stage.color}25` : `${stage.color}15` }}
+                  aria-pressed={isActive}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full" style={{ background: stage.color }} />
+                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                      {t(stage.key as any) ?? stage.label}
+                    </span>
+                    <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground ring-1 ring-border">
+                      {stageLeads.length}
+                    </span>
+                  </div>
+                  {isActive && (
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden />
+                  )}
+                </button>
+                <div className="mb-2 px-1 font-mono text-[10px] text-muted-foreground">
+                  {fmtMoney(totalValue)}
                 </div>
-                {isActive && (
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden />
-                )}
-              </button>
-              <div className="mb-2 px-1 font-mono text-[10px] text-muted-foreground">
-                {fmtMoney(totalValue)}
-              </div>
-              <div className="min-h-[80px] space-y-2">
-                {stageLeads.map((l) => {
-                  const isWonOrLost = l.status === "won" || l.status === "lost";
-                  return (
-                  <div
-                    key={l.id}
-                    draggable={!isWonOrLost}
-                    onDragStart={(e) => {
-                      if (isWonOrLost) {
-                        e.preventDefault();
-                        return;
-                      }
-                      setDragId(l.id);
-                      e.dataTransfer.effectAllowed = "move";
-                      e.dataTransfer.setData("text/lead-id", l.id);
-                    }}
-                    onDragEnd={() => {
-                      setDragId(null);
-                      setOverStage(null);
-                    }}
-                    onClick={() => {
-                      navigate({ to: "/manager/leads/$leadId", params: { leadId: l.id } });
-                    }}
-                    className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition ${!isWonOrLost ? "active:cursor-grabbing" : ""} ${
-                      dragId === l.id
-                        ? "opacity-50 border-primary"
-                        : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1 overflow-hidden">
-                        <div className="line-clamp-3 font-semibold text-foreground leading-snug break-words">
-                          {l.code || l.company}
-                        </div>
-                        <div className="truncate text-xs text-muted-foreground">{l.contact}</div>
-                      </div>
-                      <Link
-                        to="/manager/leads/$leadId"
-                        params={{ leadId: l.id }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-primary"
-                        aria-label={t("openLead")}
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="font-mono text-xs font-bold text-primary">
-                        {fmtMoney(l.value)}
-                      </span>
+                <div className="min-h-[80px] space-y-2">
+                  {stageLeads.map((l) => {
+                    const isWonOrLost = l.status === "won" || l.status === "lost";
+                    return (
                       <div
-                        className="text-[10px] font-medium text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full truncate max-w-[120px]"
-                        title={l.owner}
+                        key={l.id}
+                        draggable={!isWonOrLost}
+                        onDragStart={(e) => {
+                          if (isWonOrLost) {
+                            e.preventDefault();
+                            return;
+                          }
+                          setDragId(l.id);
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.setData("text/lead-id", l.id);
+                        }}
+                        onDragEnd={() => {
+                          setDragId(null);
+                          setOverStage(null);
+                        }}
+                        onClick={() => {
+                          navigate({ to: "/manager/leads/$leadId", params: { leadId: l.id } });
+                        }}
+                        className={`group cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition ${!isWonOrLost ? "active:cursor-grabbing" : ""} ${dragId === l.id
+                            ? "opacity-50 border-primary"
+                            : "border-border hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+                          }`}
                       >
-                        {l.owner}
-                      </div>
-                    </div>
-                    {(() => {
-                      const prob = getLeadProbability(l);
-                      return (
-                        <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-[10px] text-muted-foreground">
-                          <span className="inline-flex items-center gap-1 font-semibold">
-                            <div
-                              className={`h-1.5 w-1.5 rounded-full ${prob >= 70 ? "bg-emerald-500" : prob >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
-                            />
-                            {prob}% {t("probability")}
-                          </span>
-                          {l.expectedCloseDate && (
-                            <span className="font-mono">{formatDate(l.expectedCloseDate)}</span>
-                          )}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1 overflow-hidden">
+                            <div className="line-clamp-3 font-semibold text-foreground leading-snug break-words">
+                              {l.code || l.company}
+                            </div>
+                            <div className="truncate text-xs text-muted-foreground">{l.contact}</div>
+                          </div>
+                          <Link
+                            to="/manager/leads/$leadId"
+                            params={{ leadId: l.id }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-primary"
+                            aria-label={t("openLead")}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </Link>
                         </div>
-                      );
-                    })()}
-                  </div>
-                );
-                })}
-                {stageLeads.length === 0 && (
-                  <div className="rounded-lg border border-dashed border-border py-6 text-center text-[11px] text-muted-foreground">
-                    {t("dropLeadsHere")}
-                  </div>
-                )}
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="font-mono text-xs font-bold text-primary">
+                            {fmtMoney(l.value)}
+                          </span>
+                          <div
+                            className="text-[10px] font-medium text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full truncate max-w-[120px]"
+                            title={l.owner}
+                          >
+                            {l.owner}
+                          </div>
+                        </div>
+                        {(() => {
+                          const prob = getLeadProbability(l);
+                          return (
+                            <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-[10px] text-muted-foreground">
+                              <span className="inline-flex items-center gap-1 font-semibold">
+                                <div
+                                  className={`h-1.5 w-1.5 rounded-full ${prob >= 70 ? "bg-emerald-500" : prob >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
+                                />
+                                {prob}% {t("probability")}
+                              </span>
+                              {l.expectedCloseDate && (
+                                <span className="font-mono">{formatDate(l.expectedCloseDate)}</span>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    );
+                  })}
+                  {stageLeads.length === 0 && (
+                    <div className="rounded-lg border border-dashed border-border py-6 text-center text-[11px] text-muted-foreground">
+                      {t("dropLeadsHere")}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
       )}
       <StageTransitionDialog open={!!pending} payload={pending} onClose={() => setPending(null)} />
     </AppShell>

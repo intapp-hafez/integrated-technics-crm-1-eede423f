@@ -116,6 +116,18 @@ function ManagerActivitiesPage() {
   const [open, setOpen] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const PAGE_SIZE_OPTIONS = [25, 50, 75, 100, 250];
+  const [pageSize, setPageSize] = usePersistentState<number>(
+    "int-crm:filter:manager-activities:pageSize",
+    25,
+  );
+  const [page, setPage] = useState<number>(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [owner, status, typeFilter, timeTab, pageSize]);
+
   const toggle = (id: string) =>
     setExpanded((s) => {
       const n = new Set(s);
@@ -212,21 +224,110 @@ function ManagerActivitiesPage() {
       });
   }, [teamActivities, owner, status, typeFilter, timeTab, today, working5Days, currentMonth]);
 
+  const totalRows = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalRows);
+  const paginatedList = filtered.slice(startIndex, endIndex);
+
   const grouped = useMemo(() => {
-    const map = new Map<string, typeof filtered>();
-    for (const a of filtered) {
+    const map = new Map<string, typeof paginatedList>();
+    for (const a of paginatedList) {
       const arr = map.get(a.dueDate) ?? [];
       arr.push(a);
       map.set(a.dueDate, arr);
     }
     return Array.from(map.entries());
-  }, [filtered]);
+  }, [paginatedList]);
 
   const fmtH = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     return h ? `${h}h ${m ? `${m}m` : ""}`.trim() : `${m}m`;
   };
+
+  const paginationBar = (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card/50 p-4 text-xs">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="text-muted-foreground">
+          {isAr ? (
+            <>
+              عرض <span className="font-semibold text-foreground">{totalRows > 0 ? startIndex + 1 : 0}</span> إلى{" "}
+              <span className="font-semibold text-foreground">{endIndex}</span> من إجمالي{" "}
+              <span className="font-semibold text-foreground">{totalRows}</span> سجل
+            </>
+          ) : (
+            <>
+              Showing <span className="font-semibold text-foreground">{totalRows > 0 ? startIndex + 1 : 0}</span> to{" "}
+              <span className="font-semibold text-foreground">{endIndex}</span> of{" "}
+              <span className="font-semibold text-foreground">{totalRows}</span> entries
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 text-muted-foreground">
+          <span>{isAr ? "لكل صفحة:" : "Rows per page:"}</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+            className="h-8 rounded-md border border-border bg-card px-2 text-xs font-semibold text-foreground focus:border-primary focus:outline-none"
+          >
+            {PAGE_SIZE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setPage(1)}
+            disabled={safePage === 1}
+            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+            title={isAr ? "الصفحة الأولى" : "First page"}
+          >
+            {isAr ? "الأولى" : "First"}
+          </button>
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage === 1}
+            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+            title={isAr ? "الصفحة السابقة" : "Previous page"}
+          >
+            {isAr ? "السابق" : "Prev"}
+          </button>
+
+          <span className="px-2 text-xs font-semibold text-foreground">
+            {safePage} / {totalPages}
+          </span>
+
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage === totalPages}
+            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+            title={isAr ? "الصفحة التالية" : "Next page"}
+          >
+            {isAr ? "التالي" : "Next"}
+          </button>
+          <button
+            onClick={() => setPage(totalPages)}
+            disabled={safePage === totalPages}
+            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+            title={isAr ? "الصفحة الأخيرة" : "Last page"}
+          >
+            {isAr ? "الأخيرة" : "Last"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <AppShell
@@ -391,7 +492,7 @@ function ManagerActivitiesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((a) => {
+                {paginatedList.map((a) => {
                   const Icon = ICONS[a.type] ?? Circle;
                   const SIcon = STATUS_ICON[a.status];
                   const lead = leads.find((l) => l.id === a.leadId);
@@ -507,6 +608,7 @@ function ManagerActivitiesPage() {
               </TableBody>
             </Table>
           </div>
+          {paginationBar}
         </div>
       ) : (
         <div className="space-y-6">
@@ -633,6 +735,11 @@ function ManagerActivitiesPage() {
           {grouped.length === 0 && (
             <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center text-sm text-muted-foreground">
               {t("nothingHere")}
+            </div>
+          )}
+          {grouped.length > 0 && (
+            <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)]">
+              {paginationBar}
             </div>
           )}
         </div>

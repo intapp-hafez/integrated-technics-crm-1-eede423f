@@ -6,7 +6,7 @@ import { fmtMoney } from "@/lib/mock-data";
 import { useStoreState, getProbabilityForStatus, getLeadProbability, type LeadStatus } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { MultiSelect } from "@/components/pipeline/PipelineFilters";
-import { GripVertical, ExternalLink, ChevronLeft, ChevronRight, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { GripVertical, ExternalLink, ChevronLeft, ChevronRight, LayoutGrid, Table as TableIcon, DollarSign, Briefcase } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,15 +68,42 @@ function PipelinePage() {
   const visibleLeads =
     employeeFilter.length === 0 ? leads : leads.filter((l) => employeeFilter.includes(l.owner));
 
+  const isEmployeeFiltered = employeeFilter.length > 0;
+  const employeeAllLeads = isEmployeeFiltered
+    ? leads.filter((l) => employeeFilter.includes(l.owner))
+    : [];
+  const employeeTotalValueAllStages = employeeAllLeads.reduce(
+    (sum, l) => sum + (Number(l.value) || 0),
+    0,
+  );
+  const employeeTotalCount = employeeAllLeads.length;
+
   return (
     <AppShell panel={panel} user={user} pageTitle={t("pipeline")}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          {isEmployeeFiltered && (
+            <div className="inline-flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium text-foreground shadow-xs">
+              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" />
+              <span>
+                <span className="text-muted-foreground">
+                  {(t("sumOfAllStages" as any) as string) || "Total (All Stages)"}:
+                </span>{" "}
+                <strong className="font-mono text-sm font-bold text-primary">
+                  {fmtMoney(employeeTotalValueAllStages)}
+                </strong>
+              </span>
+              <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                {employeeTotalCount}{" "}
+                {(t("deals" as any) as string) || (t("leads" as any) as string) || "Deals"}
+              </span>
+            </div>
+          )}
           {view === "board" && (
-            <>
+            <span className="hidden items-center gap-1.5 sm:inline-flex">
               <GripVertical className="h-3.5 w-3.5" />
               {t("dragCardHint")}
-            </>
+            </span>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
