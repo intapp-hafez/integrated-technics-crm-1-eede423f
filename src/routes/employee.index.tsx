@@ -739,7 +739,7 @@ function EmployeeDashboard() {
           label={isAr ? "التقييم العام" : "Overall Score"}
           value={`${overallKpi}%`}
           icon={Award}
-          accent="warning"
+          accent="purple"
           subText={
             <span>
               {isAr ? "المستهدف" : "Target"}: {periodAchieveRate.toFixed(0)}% · {isAr ? "الحضور" : "Attendance"}: {attendanceRate.toFixed(0)}%
