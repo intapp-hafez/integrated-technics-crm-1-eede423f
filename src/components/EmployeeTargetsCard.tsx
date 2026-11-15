@@ -147,6 +147,14 @@ function Bar({
   );
 }
 
+function fmtGapByK(val: number) {
+  if (!val || Math.abs(val) < 1) return "$0K";
+  const isNeg = val < 0;
+  const abs = Math.abs(val);
+  const kVal = Math.round(abs / 1000);
+  return `${isNeg ? "-$" : "+$"}${kVal.toLocaleString()}K`;
+}
+
 export function EmployeeTargetsCard({
   userId,
   profileId,
@@ -627,8 +635,7 @@ export function EmployeeTargetsCard({
                         className={`py-2.5 text-end font-mono text-xs font-semibold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}
                         dir="ltr"
                       >
-                        {gap >= 0 ? "+" : ""}
-                        {fmtMoney(gap)}
+                        {fmtGapByK(gap)}
                       </td>
                       <td className="py-2.5 text-end text-xs text-foreground" dir="ltr">
                         {qWonCounts[i]}
@@ -680,8 +687,7 @@ export function EmployeeTargetsCard({
                         className={`py-2.5 text-end font-mono text-xs font-bold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}
                         dir="ltr"
                       >
-                        {gap >= 0 ? "+" : ""}
-                        {fmtMoney(gap)}
+                        {fmtGapByK(gap)}
                       </td>
                       <td className="py-2.5 text-end text-xs font-bold text-foreground" dir="ltr">
                         {qWonCounts.reduce((s, v) => s + v, 0)}

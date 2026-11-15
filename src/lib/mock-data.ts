@@ -563,7 +563,12 @@ export const quotations: Quotation[] = [
 export const trendSeries = [38, 42, 51, 47, 58, 64, 71, 68, 76, 82, 79, 91];
 
 export function fmtMoney(n: number) {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
-  return `$${n}`;
+  if (isNaN(n) || n == null) return "$0";
+  const isNeg = n < 0;
+  const abs = Math.abs(n);
+  let formatted = "";
+  if (abs >= 1_000_000) formatted = `$${(abs / 1_000_000).toFixed(2)}M`;
+  else if (abs >= 1_000) formatted = `$${(abs / 1_000).toFixed(0)}K`;
+  else formatted = `$${Math.round(abs)}`;
+  return isNeg ? `-${formatted}` : formatted;
 }
