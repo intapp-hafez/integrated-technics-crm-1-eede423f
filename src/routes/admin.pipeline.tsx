@@ -69,31 +69,46 @@ function PipelinePage() {
     employeeFilter.length === 0 ? leads : leads.filter((l) => employeeFilter.includes(l.owner));
 
   const isEmployeeFiltered = employeeFilter.length > 0;
-  const employeeAllLeads = isEmployeeFiltered
-    ? leads.filter((l) => employeeFilter.includes(l.owner))
+  const employeeActiveLeads = isEmployeeFiltered
+    ? leads.filter((l) => {
+        if (!employeeFilter.includes(l.owner)) return false;
+        const st = (l.status || "").toLowerCase().trim();
+        const stage = ((l as any).stage || "").toLowerCase().trim();
+        return (
+          st !== "won" &&
+          st !== "lost" &&
+          st !== "archived" &&
+          stage !== "won" &&
+          stage !== "lost" &&
+          stage !== "archived"
+        );
+      })
     : [];
-  const employeeTotalValueAllStages = employeeAllLeads.reduce(
+  const employeeTotalValueAllStages = employeeActiveLeads.reduce(
     (sum, l) => sum + (Number(l.value) || 0),
     0,
   );
-  const employeeTotalCount = employeeAllLeads.length;
+  const employeeTotalCount = employeeActiveLeads.length;
 
   return (
     <AppShell panel={panel} user={user} pageTitle={t("pipeline")}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           {isEmployeeFiltered && (
-            <div className="inline-flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium text-foreground shadow-xs">
-              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" />
-              <span>
-                <span className="text-muted-foreground">
-                  {(t("sumOfAllStages" as any) as string) || "Total (All Stages)"}:
-                </span>{" "}
-                <strong className="font-mono text-sm font-bold text-primary">
-                  {fmtMoney(employeeTotalValueAllStages)}
-                </strong>
+            <div className="inline-flex items-center gap-2.5 rounded-xl border-2 border-primary/40 bg-primary/15 dark:bg-primary/25 px-3.5 py-1.5 text-xs font-semibold text-foreground shadow-sm ring-1 ring-primary/20">
+              <span className="relative flex h-2.5 w-2.5 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
               </span>
-              <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[11px] font-semibold text-primary">
+              <span className="flex items-center gap-1.5">
+                <span className="font-bold text-foreground">
+                  {(t("sumOfActiveStages" as any) as string) || (t("sumOfAllStages" as any) as string) || "Active Pipeline Sum"}:
+                </span>
+                <span className="font-mono text-base font-black text-primary tracking-tight">
+                  {fmtMoney(employeeTotalValueAllStages)}
+                </span>
+              </span>
+              <span className="rounded-md border border-primary/30 bg-primary/25 dark:bg-primary/35 px-2.5 py-0.5 text-xs font-extrabold text-primary shadow-2xs">
                 {employeeTotalCount}{" "}
                 {(t("deals" as any) as string) || (t("leads" as any) as string) || "Deals"}
               </span>
