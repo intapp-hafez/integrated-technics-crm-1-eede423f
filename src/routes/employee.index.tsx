@@ -679,9 +679,9 @@ function EmployeeDashboard() {
             tone: "bg-secondary text-foreground",
           },
           {
-            to: "/employee/offers",
-            label: "Offers",
-            icon: FileBadge,
+            to: "/employee/projects",
+            label: "Accounts",
+            icon: Briefcase,
             tone: "bg-secondary text-foreground",
           },
         ].map((a) => {

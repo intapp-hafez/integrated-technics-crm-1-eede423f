@@ -31,6 +31,10 @@ import {
   ClipboardList,
   UserX,
   UserCheck,
+  ChevronLeft,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { LangToggle, useI18n } from "@/lib/i18n";
@@ -79,7 +83,6 @@ const employeeNav: NavItem[] = [
   { to: "/employee/pipeline", icon: Workflow, key: "pipeline" },
   { to: "/employee/activities", icon: CalendarCheck, key: "myActivities" },
   { to: "/employee/projects", icon: Briefcase, key: "myProjects" },
-  { to: "/employee/offers", icon: FileBadge, key: "offers" },
   { to: "/employee/attendance", icon: Clock4, key: "attendance" },
   { to: "/employee/chat", icon: MessageSquare, key: "chat" as any },
   { to: "/employee/send-email", icon: Mail, key: "sendEmail" as any },
@@ -184,6 +187,24 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
   const pathname = router.location.pathname;
   const currentSearch = router.location.search as Record<string, any>;
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("int_crm_sidebar_collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleCollapse = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("int_crm_sidebar_collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  };
+
   const panelLabel =
     panel === "admin"
       ? t("adminPanel")
@@ -200,32 +221,61 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
     <div className="flex min-h-screen bg-background" dir={dir}>
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 z-30 w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground shadow-xl transition-transform md:relative md:flex ${
+        className={`fixed inset-y-0 z-30 shrink-0 flex-col bg-sidebar text-sidebar-foreground shadow-xl transition-all duration-300 ease-in-out md:relative md:flex ${
           open ? "flex translate-x-0" : "hidden md:flex"
-        } ${dir === "rtl" ? "right-0" : "left-0"}`}
+        } ${collapsed ? "md:w-20" : "md:w-64"} w-64 ${dir === "rtl" ? "right-0" : "left-0"}`}
         style={{ backgroundImage: "var(--gradient-sidebar)" }}
       >
-        <div className="flex items-center gap-3 border-b border-sidebar-border px-5 py-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm">
-            <img src={logo} alt="INT-CRM" className="h-8 w-8 object-contain" />
-          </div>
-          <div className="leading-tight">
-            <div className="font-display text-lg font-extrabold tracking-tight">INT-CRM</div>
-            <div className="text-[11px] uppercase tracking-widest text-sidebar-foreground/60">
-              {panel === "admin"
-                ? t("adminPanel")
-                : panel === "manager"
-                  ? t("managerPanel")
-                  : panel === "finance"
-                    ? t("financePanel")
-                    : panel === "presales"
-                      ? t("presalesPanel" as any)
-                      : t("employeePanel")}
+        <div
+          className={`flex items-center border-b border-sidebar-border py-4 transition-all duration-300 ${
+            collapsed ? "flex-col gap-3 px-2" : "justify-between px-4"
+          }`}
+        >
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+              <img src={logo} alt="INT-CRM" className="h-8 w-8 object-contain" />
             </div>
+            {!collapsed && (
+              <div className="leading-tight min-w-0 transition-opacity duration-200">
+                <div className="font-display text-lg font-extrabold tracking-tight truncate">INT-CRM</div>
+                <div className="text-[11px] uppercase tracking-widest text-sidebar-foreground/60 truncate">
+                  {panelLabel}
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Desktop collapse toggle button */}
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className="hidden md:flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+            title={
+              collapsed
+                ? dir === "rtl"
+                  ? "توسيع القائمة"
+                  : "Expand sidebar"
+                : dir === "rtl"
+                  ? "طي القائمة"
+                  : "Collapse sidebar"
+            }
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {dir === "rtl" ? (
+              collapsed ? (
+                <ChevronLeft className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )
+            ) : collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
           {nav.map((item, idx) => {
             let active: boolean;
             if (item.search) {
@@ -252,39 +302,48 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
               }
             }
             const Icon = item.icon;
+            const itemLabel = t(item.key);
             return (
               <Link
                 key={`${item.to}-${idx}`}
                 to={item.to}
                 search={item.search as any}
                 onClick={() => setOpen(false)}
-                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+                title={collapsed ? itemLabel : undefined}
+                className={`group flex items-center rounded-xl text-sm font-medium transition-all ${
+                  collapsed ? "justify-center px-0 py-3" : "gap-3 px-3 py-2.5"
+                } ${
                   active
                     ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]"
                     : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
               >
-                <Icon className="h-[18px] w-[18px]" />
-                <span>{t(item.key)}</span>
+                <Icon className="h-5 w-5 shrink-0" />
+                {!collapsed && <span className="truncate">{itemLabel}</span>}
               </Link>
             );
           })}
         </nav>
 
-        <div className="border-t border-sidebar-border p-4">
+        <div className={`border-t border-sidebar-border p-3 ${collapsed ? "flex flex-col items-center" : ""}`}>
           <button
             type="button"
             onClick={() => {
               void signOut();
             }}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent"
+            title={t("logout")}
+            className={`flex items-center rounded-xl text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent transition-all ${
+              collapsed ? "h-10 w-10 justify-center p-0" : "w-full gap-3 px-3 py-2"
+            }`}
           >
-            <LogOut className="h-4 w-4" />
-            <span>{t("logout")}</span>
+            <LogOut className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>{t("logout")}</span>}
           </button>
-          <div className="mt-3 text-[10px] leading-snug text-sidebar-foreground/40">
-            {t("developedBy")}
-          </div>
+          {!collapsed && (
+            <div className="mt-3 px-3 text-[10px] leading-snug text-sidebar-foreground/40">
+              {t("developedBy")}
+            </div>
+          )}
         </div>
       </aside>
 
@@ -294,6 +353,29 @@ export function AppShell({ panel, user, children, pageTitle }: Props) {
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
           <button className="md:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu">
             <Menu className="h-5 w-5" />
+          </button>
+
+          {/* Desktop collapse toggle button in topbar */}
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className="hidden md:inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border/80 bg-card text-muted-foreground hover:bg-accent hover:text-foreground transition-colors shadow-2xs"
+            title={
+              collapsed
+                ? dir === "rtl"
+                  ? "توسيع القائمة الجانبية"
+                  : "Expand sidebar"
+                : dir === "rtl"
+                  ? "طي القائمة الجانبية"
+                  : "Collapse sidebar"
+            }
+            aria-label="Toggle sidebar"
+          >
+            {collapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
           </button>
           <div className="min-w-0">
             <h1 className="truncate font-display text-base font-bold text-foreground md:text-lg">
