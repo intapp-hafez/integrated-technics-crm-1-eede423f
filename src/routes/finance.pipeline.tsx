@@ -16,9 +16,12 @@ import {
   Handshake,
   CheckCircle2,
   Calendar,
+  Download,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import * as XLSX from "xlsx";
+import { toast } from "sonner";
 import {
   StageTransitionDialog,
   type StageTransitionPayload,
@@ -114,6 +117,103 @@ function FinancePipelinePage() {
   const totalFinancialPipeline = negotiationTotal + wonTotal;
 
   const isEmployeeFiltered = employeeFilter.length > 0;
+
+  const handleExportToExcel = () => {
+    if (!visibleLeads || visibleLeads.length === 0) {
+      toast.error(isAr ? "لا توجد صفقات لتصديرها" : "No deals to export");
+      return;
+    }
+
+    const rows = visibleLeads.map((l) => {
+      const prob = getLeadProbability(l);
+      const val = Number(l.value) || 0;
+      const stageObj = settings.stages.find((s) => s.key === l.status);
+      const stageLabel = (t(l.status as any) as string) ?? stageObj?.label ?? l.status;
+
+      return isAr
+        ? {
+            "رمز الصفقة": l.code || l.id,
+            "العميل / الشركة": l.company || "—",
+            "جهة الاتصال": l.contact || "—",
+            "الهاتف": l.phone || (l as any).clientPhone || "—",
+            "البريد الإلكتروني": (l as any).email || "—",
+            "المسؤول": l.owner || "—",
+            "المرحلة": stageLabel,
+            "القيمة ($)": val,
+            "نسبة النجاح %": prob,
+            "القيمة المرجحة ($)": Math.round((val * prob) / 100),
+            "تاريخ الإغلاق المتوقع": (l as any).expectedCloseDate ? formatDate((l as any).expectedCloseDate) : "—",
+            "المدينة": l.city || "—",
+            "تاريخ التحديث": l.updatedAt ? formatDate(l.updatedAt) : "—",
+          }
+        : {
+            "Deal Code": l.code || l.id,
+            "Account / Company": l.company || "—",
+            "Contact Person": l.contact || "—",
+            "Phone": l.phone || (l as any).clientPhone || "—",
+            "Email": (l as any).email || "—",
+            "Owner": l.owner || "—",
+            "Stage": stageLabel,
+            "Value ($)": val,
+            "Probability (%)": prob,
+            "Weighted Value ($)": Math.round((val * prob) / 100),
+            "Expected Close Date": (l as any).expectedCloseDate ? formatDate((l as any).expectedCloseDate) : "—",
+            "City": l.city || "—",
+            "Last Updated": l.updatedAt ? formatDate(l.updatedAt) : "—",
+          };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+
+    ws["!cols"] = [
+      { wch: 14 },
+      { wch: 28 },
+      { wch: 20 },
+      { wch: 16 },
+      { wch: 22 },
+      { wch: 18 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 14 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 14 },
+      { wch: 16 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, isAr ? "صفقات المالية" : "Finance Deals");
+
+    const summaryRows = [
+      {
+        [isAr ? "المؤشر المالي" : "Metric"]: isAr ? "إجمالي خط صفقات المالية" : "Total Finance Pipeline",
+        [isAr ? "عدد الصفقات" : "Deals"]: visibleLeads.length,
+        [isAr ? "القيمة الإجمالية ($)" : "Total Value ($)"]: totalFinancialPipeline,
+      },
+      {
+        [isAr ? "المؤشر المالي" : "Metric"]: isAr ? "صفقات مكتسبة (Won)" : "Won Deals",
+        [isAr ? "عدد الصفقات" : "Deals"]: wonLeads.length,
+        [isAr ? "القيمة الإجمالية ($)" : "Total Value ($)"]: wonTotal,
+      },
+      {
+        [isAr ? "المؤشر المالي" : "Metric"]: isAr ? "قيد التفاوض (Negotiation)" : "Negotiation Deals",
+        [isAr ? "عدد الصفقات" : "Deals"]: negotiationLeads.length,
+        [isAr ? "القيمة الإجمالية ($)" : "Total Value ($)"]: negotiationTotal,
+      },
+    ];
+    const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+    wsSummary["!cols"] = [{ wch: 30 }, { wch: 14 }, { wch: 22 }];
+    XLSX.utils.book_append_sheet(wb, wsSummary, isAr ? "ملخص مالي" : "Financial Summary");
+
+    const stamp = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `Finance-Pipeline-${stamp}.xlsx`);
+
+    toast.success(
+      isAr
+        ? `تم تصدير ${visibleLeads.length} صفقة إلى إكسل بنجاح`
+        : `Successfully exported ${visibleLeads.length} deals to Excel`
+    );
+  };
 
   return (
     <AppShell panel="finance" user={user} pageTitle={t("pipeline")}>
@@ -222,6 +322,17 @@ function FinancePipelinePage() {
             selected={stageFilter}
             onChange={setStageFilter}
           />
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportToExcel}
+            className="h-9 gap-2 rounded-xl border-border bg-card px-3 text-xs font-semibold text-foreground shadow-2xs hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
+            title={isAr ? "تصدير إلى إكسل" : "Export to Excel"}
+          >
+            <Download className="h-3.5 w-3.5 text-primary" />
+            <span>{isAr ? "تصدير إلى إكسل" : "Export to Excel"}</span>
+          </Button>
         </div>
       </div>
 
