@@ -30,17 +30,22 @@ import { ChangePasswordModal } from "@/components/ChangePasswordModal";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
-type Tab = "dashboard" | "quotations" | "chat" | "reports" | "profile";
+type Tab = "dashboard" | "chat" | "reports" | "profile";
 
 export const Route = createFileRoute("/finance/")({
   component: FinancePage,
-  validateSearch: (s: Record<string, unknown>) => ({ tab: (s.tab as Tab) ?? "dashboard" }),
+  validateSearch: (s: Record<string, unknown>) => {
+    const raw = s.tab as string;
+    if (raw === "quotations" || !["dashboard", "chat", "reports", "profile"].includes(raw)) {
+      return { tab: "dashboard" as Tab };
+    }
+    return { tab: raw as Tab };
+  },
   head: () => ({ meta: [{ title: "Finance Panel · INT-CRM" }] }),
 });
 
 const TABS: { key: Tab; label: string; labelAr: string; icon: any }[] = [
   { key: "dashboard", label: "Dashboard", labelAr: "لوحة التحكم", icon: Wallet },
-  { key: "quotations", label: "Quotations", labelAr: "العروض", icon: FileBadge },
   { key: "chat", label: "Chat", labelAr: "المحادثة", icon: MessageSquare },
   { key: "reports", label: "Reports", labelAr: "التقارير", icon: FileSpreadsheet },
   { key: "profile", label: "Profile", labelAr: "الملف", icon: UserCircle2 },
@@ -129,7 +134,6 @@ function FinancePage() {
       </div>
 
       {tab === "dashboard" && <Dashboard quotations={quotations} leads={leads} />}
-      {tab === "quotations" && <QuotationsView quotations={quotations} />}
       {tab === "chat" && <FinanceChatTab />}
       {tab === "reports" && <ReportsView quotations={quotations} />}
       {tab === "profile" && (
@@ -186,32 +190,32 @@ function Dashboard({ quotations, leads }: { quotations: any[]; leads: any[] }) {
   }, [quotations]);
   const cards = [
     {
-      label: dir === "rtl" ? "إجمالي العروض" : "Total Pipeline",
-      v: fmtMoney(totals.total),
+      label: dir === "rtl" ? "إجمالي القيمة المالية" : "Total Deal Value",
+      v: fmtMoney(financePipeline.totalSum),
       icon: TrendingUp,
       tone: "text-primary",
       bg: "from-primary/10",
     },
     {
-      label: dir === "rtl" ? "مقبول" : "Accepted",
-      v: fmtMoney(totals.accepted),
+      label: dir === "rtl" ? "الصفقات المكتسبة" : "Won Revenue",
+      v: fmtMoney(financePipeline.wonSum),
       icon: CheckCircle2,
       tone: "text-emerald-600",
       bg: "from-emerald-100",
     },
     {
-      label: dir === "rtl" ? "قيد المراجعة" : "Pending",
-      v: fmtMoney(totals.pending),
+      label: dir === "rtl" ? "قيد التفاوض" : "In Negotiation",
+      v: fmtMoney(financePipeline.negSum),
       icon: Clock,
       tone: "text-amber-600",
       bg: "from-amber-100",
     },
     {
-      label: dir === "rtl" ? "مرفوض" : "Rejected",
-      v: fmtMoney(totals.rejected),
-      icon: AlertTriangle,
-      tone: "text-rose-600",
-      bg: "from-rose-100",
+      label: dir === "rtl" ? "عدد الصفقات المؤكدة" : "Active Deals",
+      v: `${financePipeline.negCount + financePipeline.wonCount}`,
+      icon: Workflow,
+      tone: "text-blue-600 dark:text-blue-400",
+      bg: "from-blue-100 dark:from-blue-950/40",
     },
   ];
   return (
@@ -305,35 +309,6 @@ function Dashboard({ quotations, leads }: { quotations: any[]; leads: any[] }) {
               </span>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-        <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-          {dir === "rtl" ? "آخر العروض" : "Recent Quotations"}
-        </h3>
-        <div className="mt-3 space-y-2">
-          {quotations.slice(0, 5).map((q) => (
-            <Link
-              key={q.id}
-              to="/finance/quotations/$quotationId"
-              params={{ quotationId: q.id }}
-              className="flex items-center justify-between rounded-lg border border-border bg-background p-3 transition hover:border-primary/40 hover:bg-secondary/40"
-            >
-              <div>
-                <div className="text-sm font-semibold text-foreground">{q.client}</div>
-                <div className="text-[11px] text-muted-foreground">
-                  {shortId(q.id)} · {q.owner}
-                </div>
-              </div>
-              <div className="text-end">
-                <div className="font-mono text-sm font-bold text-primary">{fmtMoney(q.value)}</div>
-                <div className="text-[10px] uppercase text-muted-foreground">
-                  {q.status.replace("_", " ")}
-                </div>
-              </div>
-            </Link>
-          ))}
         </div>
       </div>
     </div>

@@ -111,8 +111,13 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const router = useRouter();
-  const { role } = useRole();
+  const { role, isFinance } = useRole();
   const panel = role;
+  const isFinancePanel =
+    Boolean(isFinance) ||
+    panel === "finance" ||
+    (typeof window !== "undefined" && window.location.pathname.startsWith("/finance")) ||
+    Boolean(router.state?.location?.pathname?.startsWith("/finance"));
   const isAdmin = role === "admin";
   const { profile } = useAuth();
   const user = {
@@ -152,7 +157,9 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
   const persistable = isUuid(leadId);
-  const isFrozen = panel === "employee" && (lead?.status === "won" || lead?.status === "lost");
+  const isFrozen =
+    (panel === "employee" && (lead?.status === "won" || lead?.status === "lost")) ||
+    isFinancePanel;
 
   const notesQuery = useQuery({
     queryKey: ["lead-notes", leadId],
@@ -1157,7 +1164,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                   <Workflow className="h-3.5 w-3.5" />
                   Stage
                 </div>
-                {panel === "presales" ? (
+                {panel === "presales" || isFinancePanel ? (
                   <div className="flex-1 py-0.5">
                     <StatusBadge
                       status={lead.status}
@@ -1170,6 +1177,7 @@ export function LeadDetailsPage({ leadId }: { leadId: string }) {
                       value={lead.status}
                       disabled={isFrozen || changingStatus}
                       onChange={(e) => {
+                        if (isFinancePanel) return;
                         const next = e.target.value as any;
                         if (next === lead.status) return;
                         setTransitionPayload({
