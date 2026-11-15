@@ -112,6 +112,7 @@ const managerNav: NavItem[] = [
 
 const financeNav: NavItem[] = [
   { to: "/finance", icon: Wallet, key: "dashboard", search: { tab: "dashboard" } },
+  { to: "/finance/pipeline", icon: Workflow, key: "pipeline" },
   { to: "/finance", icon: FileBadge, key: "offers", search: { tab: "quotations" } },
   { to: "/finance", icon: MessageSquare, key: "chat" as any, search: { tab: "chat" } },
   { to: "/finance", icon: FileSpreadsheet, key: "reports", search: { tab: "reports" } },

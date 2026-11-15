@@ -39,6 +39,7 @@ import { Route as ManagerChatRouteImport } from './routes/manager.chat'
 import { Route as ManagerAttendanceRouteImport } from './routes/manager.attendance'
 import { Route as ManagerActivitiesRouteImport } from './routes/manager.activities'
 import { Route as FinanceSendEmailRouteImport } from './routes/finance.send-email'
+import { Route as FinancePipelineRouteImport } from './routes/finance.pipeline'
 import { Route as FinanceNotificationsRouteImport } from './routes/finance.notifications'
 import { Route as FinanceEmailInboxRouteImport } from './routes/finance.email-inbox'
 import { Route as EmployeeSendEmailRouteImport } from './routes/employee.send-email'
@@ -254,6 +255,11 @@ const ManagerActivitiesRoute = ManagerActivitiesRouteImport.update({
 const FinanceSendEmailRoute = FinanceSendEmailRouteImport.update({
   id: '/send-email',
   path: '/send-email',
+  getParentRoute: () => FinanceRoute,
+} as any)
+const FinancePipelineRoute = FinancePipelineRouteImport.update({
+  id: '/pipeline',
+  path: '/pipeline',
   getParentRoute: () => FinanceRoute,
 } as any)
 const FinanceNotificationsRoute = FinanceNotificationsRouteImport.update({
@@ -643,6 +649,7 @@ export interface FileRoutesByFullPath {
   '/employee/send-email': typeof EmployeeSendEmailRoute
   '/finance/email-inbox': typeof FinanceEmailInboxRoute
   '/finance/notifications': typeof FinanceNotificationsRouteWithChildren
+  '/finance/pipeline': typeof FinancePipelineRoute
   '/finance/send-email': typeof FinanceSendEmailRoute
   '/manager/activities': typeof ManagerActivitiesRoute
   '/manager/attendance': typeof ManagerAttendanceRoute
@@ -734,6 +741,7 @@ export interface FileRoutesByTo {
   '/employee/send-email': typeof EmployeeSendEmailRoute
   '/finance/email-inbox': typeof FinanceEmailInboxRoute
   '/finance/notifications': typeof FinanceNotificationsRouteWithChildren
+  '/finance/pipeline': typeof FinancePipelineRoute
   '/finance/send-email': typeof FinanceSendEmailRoute
   '/manager/activities': typeof ManagerActivitiesRoute
   '/manager/attendance': typeof ManagerAttendanceRoute
@@ -831,6 +839,7 @@ export interface FileRoutesById {
   '/employee/send-email': typeof EmployeeSendEmailRoute
   '/finance/email-inbox': typeof FinanceEmailInboxRoute
   '/finance/notifications': typeof FinanceNotificationsRouteWithChildren
+  '/finance/pipeline': typeof FinancePipelineRoute
   '/finance/send-email': typeof FinanceSendEmailRoute
   '/manager/activities': typeof ManagerActivitiesRoute
   '/manager/attendance': typeof ManagerAttendanceRoute
@@ -930,6 +939,7 @@ export interface FileRouteTypes {
     | '/employee/send-email'
     | '/finance/email-inbox'
     | '/finance/notifications'
+    | '/finance/pipeline'
     | '/finance/send-email'
     | '/manager/activities'
     | '/manager/attendance'
@@ -1021,6 +1031,7 @@ export interface FileRouteTypes {
     | '/employee/send-email'
     | '/finance/email-inbox'
     | '/finance/notifications'
+    | '/finance/pipeline'
     | '/finance/send-email'
     | '/manager/activities'
     | '/manager/attendance'
@@ -1117,6 +1128,7 @@ export interface FileRouteTypes {
     | '/employee/send-email'
     | '/finance/email-inbox'
     | '/finance/notifications'
+    | '/finance/pipeline'
     | '/finance/send-email'
     | '/manager/activities'
     | '/manager/attendance'
@@ -1390,6 +1402,13 @@ declare module '@tanstack/react-router' {
       path: '/send-email'
       fullPath: '/finance/send-email'
       preLoaderRoute: typeof FinanceSendEmailRouteImport
+      parentRoute: typeof FinanceRoute
+    }
+    '/finance/pipeline': {
+      id: '/finance/pipeline'
+      path: '/pipeline'
+      fullPath: '/finance/pipeline'
+      preLoaderRoute: typeof FinancePipelineRouteImport
       parentRoute: typeof FinanceRoute
     }
     '/finance/notifications': {
@@ -2114,6 +2133,7 @@ const FinanceNotificationsRouteWithChildren =
 interface FinanceRouteChildren {
   FinanceEmailInboxRoute: typeof FinanceEmailInboxRoute
   FinanceNotificationsRoute: typeof FinanceNotificationsRouteWithChildren
+  FinancePipelineRoute: typeof FinancePipelineRoute
   FinanceSendEmailRoute: typeof FinanceSendEmailRoute
   FinanceIndexRoute: typeof FinanceIndexRoute
   FinanceLeadsLeadIdRoute: typeof FinanceLeadsLeadIdRoute
@@ -2123,6 +2143,7 @@ interface FinanceRouteChildren {
 const FinanceRouteChildren: FinanceRouteChildren = {
   FinanceEmailInboxRoute: FinanceEmailInboxRoute,
   FinanceNotificationsRoute: FinanceNotificationsRouteWithChildren,
+  FinancePipelineRoute: FinancePipelineRoute,
   FinanceSendEmailRoute: FinanceSendEmailRoute,
   FinanceIndexRoute: FinanceIndexRoute,
   FinanceLeadsLeadIdRoute: FinanceLeadsLeadIdRoute,

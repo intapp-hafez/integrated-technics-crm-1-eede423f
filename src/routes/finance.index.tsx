@@ -22,6 +22,8 @@ import {
   Phone,
   Building2,
   KeyRound,
+  Workflow,
+  ArrowRight,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { ChangePasswordModal } from "@/components/ChangePasswordModal";
@@ -50,7 +52,7 @@ function FinancePage() {
   const navigate = useNavigate();
   const tab: Tab = search.tab ?? "dashboard";
   const setTab = (t: Tab) => navigate({ to: "/finance", search: { tab: t } });
-  const { quotations } = useStoreState();
+  const { quotations, leads } = useStoreState();
   const me = employees[0]; // demo finance user uses admin photo
   const { profile, user: authUser, refresh } = useAuth();
   const [profileExtra, setProfileExtra] = useState<{
@@ -126,7 +128,7 @@ function FinancePage() {
         })}
       </div>
 
-      {tab === "dashboard" && <Dashboard quotations={quotations} />}
+      {tab === "dashboard" && <Dashboard quotations={quotations} leads={leads} />}
       {tab === "quotations" && <QuotationsView quotations={quotations} />}
       {tab === "chat" && <FinanceChatTab />}
       {tab === "reports" && <ReportsView quotations={quotations} />}
@@ -151,8 +153,24 @@ function FinancePage() {
   );
 }
 
-function Dashboard({ quotations }: { quotations: any[] }) {
+function Dashboard({ quotations, leads }: { quotations: any[]; leads: any[] }) {
   const { dir } = useI18n();
+  const isAr = dir === "rtl";
+
+  const financePipeline = useMemo(() => {
+    const neg = (leads || []).filter((l) => (l.status || "").toLowerCase().trim() === "negotiation");
+    const won = (leads || []).filter((l) => (l.status || "").toLowerCase().trim() === "won");
+    const negSum = neg.reduce((s, l) => s + (Number(l.value) || 0), 0);
+    const wonSum = won.reduce((s, l) => s + (Number(l.value) || 0), 0);
+    return {
+      negCount: neg.length,
+      negSum,
+      wonCount: won.length,
+      wonSum,
+      totalSum: negSum + wonSum,
+      deals: [...neg, ...won].slice(0, 4),
+    };
+  }, [leads]);
   const totals = useMemo(() => {
     const total = quotations.reduce((s, q) => s + q.value, 0);
     const accepted = quotations
@@ -217,6 +235,79 @@ function Dashboard({ quotations }: { quotations: any[] }) {
           );
         })}
       </div>
+
+      {/* Finance Pipeline (Negotiation & Won) Widget */}
+      <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                {isAr ? "خط صفقات المالية (التفاوض والمكتسبة)" : "Finance Pipeline (Negotiation & Won)"}
+              </h3>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {isAr
+                ? "متابعة صفقات التفاوض المتقدمة والصفقات المكتسبة للمراجعة المالية وإصدار الفواتير"
+                : "Active pipeline deals in advanced negotiation and closed-won status for financial tracking"}
+            </p>
+          </div>
+
+          <Link
+            to="/finance/pipeline"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition"
+          >
+            <span>{isAr ? "عرض خط الصفقات بالكامل" : "View Full Pipeline"}</span>
+            <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+          </Link>
+        </div>
+
+        {/* 3 Summary metrics */}
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {isAr ? "قيد التفاوض" : "In Negotiation"}
+            </span>
+            <div className="mt-1 flex items-baseline justify-between">
+              <span className="font-mono text-lg font-bold text-amber-700 dark:text-amber-300">
+                {fmtMoney(financePipeline.negSum)}
+              </span>
+              <span className="text-xs font-semibold text-muted-foreground">
+                {financePipeline.negCount} {isAr ? "صفقة" : "deals"}
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-3.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {isAr ? "صفقات مكتسبة" : "Closed Won"}
+            </span>
+            <div className="mt-1 flex items-baseline justify-between">
+              <span className="font-mono text-lg font-bold text-emerald-700 dark:text-emerald-300">
+                {fmtMoney(financePipeline.wonSum)}
+              </span>
+              <span className="text-xs font-semibold text-muted-foreground">
+                {financePipeline.wonCount} {isAr ? "صفقة" : "deals"}
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-primary/25 bg-primary/10 p-3.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {isAr ? "إجمالي القيمة المالية" : "Total Combined Value"}
+            </span>
+            <div className="mt-1 flex items-baseline justify-between">
+              <span className="font-mono text-lg font-bold text-primary">
+                {fmtMoney(financePipeline.totalSum)}
+              </span>
+              <span className="text-xs font-semibold text-primary">
+                {financePipeline.negCount + financePipeline.wonCount} {isAr ? "صفقة" : "deals"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
         <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
           {dir === "rtl" ? "آخر العروض" : "Recent Quotations"}
