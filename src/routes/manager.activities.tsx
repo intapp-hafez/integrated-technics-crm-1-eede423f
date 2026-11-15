@@ -22,9 +22,11 @@ import {
   ChevronUp,
   LayoutList,
   Grid3X3,
+  Pencil,
 } from "lucide-react";
-import type { ActivityStatus } from "@/lib/store";
+import type { Activity, ActivityStatus } from "@/lib/store";
 import { NewActivityDialog } from "@/components/activities/NewActivityDialog";
+import { EditActivityModal } from "@/components/activities/EditActivityModal";
 import { ActivityApprovalCard } from "@/components/activities/ActivityApprovalCard";
 import { useRole } from "@/lib/role";
 import { cairoIsoDate } from "@/lib/cairoTime";
@@ -114,6 +116,7 @@ function ManagerActivitiesPage() {
       : undefined,
   );
   const [open, setOpen] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -566,20 +569,35 @@ function ManagerActivitiesPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <button
-                            onClick={() => toggle(a.id)}
-                            className="inline-flex items-center gap-1 rounded-md bg-secondary px-2.5 py-1 text-[11px] font-semibold text-foreground ring-1 ring-border hover:bg-accent"
-                          >
-                            {isOpen ? (
-                              <>
-                                <ChevronUp className="h-3.5 w-3.5" /> Hide
-                              </>
-                            ) : (
-                              <>
-                                <ChevronDown className="h-3.5 w-3.5" /> Review
-                              </>
-                            )}
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingActivity(a);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground hover:border-primary hover:bg-primary/5 hover:text-primary transition"
+                              title={isAr ? "تعديل النشاط" : "Edit Activity"}
+                            >
+                              <Pencil className="h-3 w-3 text-primary" />
+                              <span>{isAr ? "تعديل" : "Edit"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => toggle(a.id)}
+                              className="inline-flex items-center gap-1 rounded-md bg-secondary px-2.5 py-1 text-[11px] font-semibold text-foreground ring-1 ring-border hover:bg-accent"
+                            >
+                              {isOpen ? (
+                                <>
+                                  <ChevronUp className="h-3.5 w-3.5" /> {isAr ? "إخفاء" : "Hide"}
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="h-3.5 w-3.5" /> {isAr ? "مراجعة" : "Review"}
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </TableCell>
                       </TableRow>
                       {isOpen && (
@@ -706,20 +724,34 @@ function ManagerActivitiesPage() {
                             Rejected
                           </span>
                         )} */}
-                        <button
-                          onClick={() => toggle(a.id)}
-                          className="inline-flex items-center gap-1 rounded-md bg-secondary px-2.5 py-1 text-[11px] font-semibold text-foreground ring-1 ring-border hover:bg-accent"
-                        >
-                          {isOpen ? (
-                            <>
-                              <ChevronUp className="h-3.5 w-3.5" /> Hide
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="h-3.5 w-3.5" /> Review
-                            </>
-                          )}
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingActivity(a);
+                            }}
+                            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground hover:border-primary hover:bg-primary/5 hover:text-primary transition"
+                            title={isAr ? "تعديل النشاط" : "Edit Activity"}
+                          >
+                            <Pencil className="h-3 w-3 text-primary" />
+                            <span>{isAr ? "تعديل" : "Edit"}</span>
+                          </button>
+                          <button
+                            onClick={() => toggle(a.id)}
+                            className="inline-flex items-center gap-1 rounded-md bg-secondary px-2.5 py-1 text-[11px] font-semibold text-foreground ring-1 ring-border hover:bg-accent"
+                          >
+                            {isOpen ? (
+                              <>
+                                <ChevronUp className="h-3.5 w-3.5" /> {isAr ? "إخفاء" : "Hide"}
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className="h-3.5 w-3.5" /> {isAr ? "مراجعة" : "Review"}
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
                       {isOpen && (
                         <div className="border-t border-border px-4 pb-4">
@@ -746,6 +778,12 @@ function ManagerActivitiesPage() {
       )}
       {open && <NewActivityDialog onClose={() => setOpen(false)} />}
       {showImport && <ExcelImportModal type="activities" onClose={() => setShowImport(false)} />}
+      {editingActivity && (
+        <EditActivityModal
+          activity={editingActivity}
+          onClose={() => setEditingActivity(null)}
+        />
+      )}
     </AppShell>
   );
 }

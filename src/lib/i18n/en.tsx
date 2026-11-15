@@ -154,6 +154,7 @@ export const en = {
   selectDistrict: "Select district",
   filterByStatus: "Filter by status",
   edit: "Edit",
+  editActivity: "Edit Activity",
   delete: "Delete",
   create: "Create",
   confirmDelete: "Delete this record?",

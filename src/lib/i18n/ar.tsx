@@ -157,6 +157,7 @@ export const ar: Dict = {
   selectDistrict: "اختر الحي",
   filterByStatus: "تصفية حسب الحالة",
   edit: "تعديل",
+  editActivity: "تعديل النشاط",
   delete: "حذف",
   create: "إنشاء",
   confirmDelete: "هل تريد حذف هذا السجل؟",

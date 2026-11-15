@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
@@ -5,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { shortId, formatDate } from "@/lib/utils";
 import { CopyIdButton } from "@/components/shared/CopyIdButton";
 import { actions, useStoreState, type ActivityStatus } from "@/lib/store";
+import { EditActivityModal } from "./EditActivityModal";
 import {
   ArrowLeft,
   Phone,
@@ -22,6 +24,7 @@ import {
   User as UserIcon,
   Briefcase,
   Building2,
+  Pencil,
 } from "lucide-react";
 
 const ICONS: Record<string, any> = {
@@ -62,6 +65,7 @@ export function ActivityDetailView({
   panel: "admin" | "employee" | "manager" | "finance" | "presales";
 }) {
   const { t } = useI18n();
+  const [editOpen, setEditOpen] = useState(false);
   const { activities, leads, history, users, employees } = useStoreState();
   const a = activities.find((x) => x.id === activityId);
   const backTo =
@@ -135,11 +139,22 @@ export function ActivityDetailView({
                   </div>
                 </div>
               </div>
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ring-1 ${meta.tone}`}
-              >
-                <SIcon className="h-4 w-4" /> {meta.label}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:border-primary hover:bg-primary/5 hover:text-primary transition"
+                  title="Edit Activity"
+                >
+                  <Pencil className="h-3.5 w-3.5 text-primary" />
+                  <span>Edit</span>
+                </button>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ring-1 ${meta.tone}`}
+                >
+                  <SIcon className="h-4 w-4" /> {meta.label}
+                </span>
+              </div>
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -244,6 +259,7 @@ export function ActivityDetailView({
           </ul>
         </div>
       </div>
+      {editOpen && <EditActivityModal activity={a} onClose={() => setEditOpen(false)} />}
     </AppShell>
   );
 }

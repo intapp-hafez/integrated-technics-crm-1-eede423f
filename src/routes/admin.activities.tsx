@@ -31,7 +31,10 @@ import {
   ChevronUp,
   LayoutList,
   Grid3X3,
+  Pencil,
 } from "lucide-react";
+import { EditActivityModal } from "@/components/activities/EditActivityModal";
+import type { Activity } from "@/lib/store";
 import { useRole } from "@/lib/role";
 import { NewActivityDialog } from "@/components/activities/NewActivityDialog";
 import { ActivityApprovalCard } from "@/components/activities/ActivityApprovalCard";
@@ -150,6 +153,7 @@ function ActivitiesPage() {
   };
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [reminderFor, setReminderFor] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<{ id: string; title: string } | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -845,6 +849,15 @@ function ActivitiesPage() {
                       </TableCell>
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setEditingActivity(a)}
+                            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground hover:border-primary hover:bg-primary/5 hover:text-primary transition"
+                            title={isAr ? "تعديل النشاط" : "Edit Activity"}
+                          >
+                            <Pencil className="h-3 w-3 text-primary" />
+                            <span>{isAr ? "تعديل" : "Edit"}</span>
+                          </button>
                           {a.approvalStatus === "pending" && canApprove && (
                             <>
                               <button
@@ -1066,6 +1079,17 @@ function ActivitiesPage() {
                           {t("approvalRejected")}
                         </span>
                       )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingActivity(a);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground hover:border-primary hover:bg-primary/5 hover:text-primary transition"
+                        title={isAr ? "تعديل النشاط" : "Edit Activity"}
+                      >
+                        <Pencil className="h-3 w-3 text-primary" /> {isAr ? "تعديل" : "Edit"}
+                      </button>
                       {a.status !== "done" && (
                         <button
                           onClick={(e) => {
@@ -1113,6 +1137,12 @@ function ActivitiesPage() {
           activityId={rejectFor.id}
           activityTitle={rejectFor.title}
           onClose={() => setRejectFor(null)}
+        />
+      )}
+      {editingActivity && (
+        <EditActivityModal
+          activity={editingActivity}
+          onClose={() => setEditingActivity(null)}
         />
       )}
     </AppShell>

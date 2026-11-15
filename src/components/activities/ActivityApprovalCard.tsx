@@ -10,11 +10,13 @@ import {
   ShieldX,
   Clock,
   FileText,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { actions, useStoreState, type Activity } from "@/lib/store";
 import { RejectActivityDialog } from "./RejectActivityDialog";
+import { EditActivityModal } from "./EditActivityModal";
 
 type AttachmentRow = {
   id: string;
@@ -54,6 +56,7 @@ export function ActivityApprovalCard({
   const [uploading, setUploading] = useState(false);
   const { users, employees } = useStoreState();
   const [rejectOpen, setRejectOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
     setNote(activity.reviewNote ?? "");
@@ -153,48 +156,59 @@ export function ActivityApprovalCard({
       className="mt-2 w-full rounded-xl border border-border bg-secondary/30 p-3"
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Creator chip */}
-      <div className="flex flex-wrap items-center gap-3 text-xs">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          Created by
-        </span>
-        {(() => {
-          const ownerName = activity.createdByName ?? activity.owner ?? "Unknown";
-          const norm = ownerName.trim().toLowerCase();
-          const userMatch = users?.find((u) => u.name?.trim().toLowerCase() === norm);
-          const empMatch = employees?.find((e) => e.name?.trim().toLowerCase() === norm);
-          const displayPhoto = activity.createdByPhoto || userMatch?.avatarUrl || empMatch?.photo;
-          return (
-            <div className="flex items-center gap-2 rounded-full bg-card px-2 py-1 ring-1 ring-border">
-              {displayPhoto ? (
-                <img
-                  src={displayPhoto}
-                  alt={`${ownerName} avatar`}
-                  aria-label={`Created by ${ownerName}`}
-                  className="h-6 w-6 rounded-full object-cover"
-                />
-              ) : (
-                <div
-                  role="img"
-                  aria-label={`Created by ${ownerName}`}
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary"
-                >
-                  {ownerName
-                    .split(" ")
-                    .map((w) => w[0])
-                    .join("")
-                    .slice(0, 2)}
-                </div>
-              )}
-              <span className="font-semibold text-foreground">{ownerName}</span>
-            </div>
-          );
-        })()}
-        {activity.createdAt && (
-          <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-            <Clock className="h-3 w-3" /> {new Date(activity.createdAt).toLocaleString()}
+      {/* Creator chip & Edit action */}
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Created by
           </span>
-        )}
+          {(() => {
+            const ownerName = activity.createdByName ?? activity.owner ?? "Unknown";
+            const norm = ownerName.trim().toLowerCase();
+            const userMatch = users?.find((u) => u.name?.trim().toLowerCase() === norm);
+            const empMatch = employees?.find((e) => e.name?.trim().toLowerCase() === norm);
+            const displayPhoto = activity.createdByPhoto || userMatch?.avatarUrl || empMatch?.photo;
+            return (
+              <div className="flex items-center gap-2 rounded-full bg-card px-2 py-1 ring-1 ring-border">
+                {displayPhoto ? (
+                  <img
+                    src={displayPhoto}
+                    alt={`${ownerName} avatar`}
+                    aria-label={`Created by ${ownerName}`}
+                    className="h-6 w-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <div
+                    role="img"
+                    aria-label={`Created by ${ownerName}`}
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary"
+                  >
+                    {ownerName
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </div>
+                )}
+                <span className="font-semibold text-foreground">{ownerName}</span>
+              </div>
+            );
+          })()}
+          {activity.createdAt && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+              <Clock className="h-3 w-3" /> {new Date(activity.createdAt).toLocaleString()}
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setEditModalOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground hover:border-primary hover:bg-primary/5 hover:text-primary transition shadow-2xs"
+          title="Edit Activity"
+        >
+          <Pencil className="h-3.5 w-3.5 text-primary" />
+          <span>Edit</span>
+        </button>
       </div>
 
       {/* Resolution history block */}
@@ -343,6 +357,13 @@ export function ActivityApprovalCard({
           activityTitle={activity.title}
           actor={actor}
           onClose={() => setRejectOpen(false)}
+        />
+      )}
+
+      {editModalOpen && (
+        <EditActivityModal
+          activity={activity}
+          onClose={() => setEditModalOpen(false)}
         />
       )}
     </div>
