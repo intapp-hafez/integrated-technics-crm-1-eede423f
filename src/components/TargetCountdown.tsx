@@ -25,37 +25,32 @@ function toneClasses(tone: Tone) {
   switch (tone) {
     case "green":
       return {
-        ring: "ring-emerald-300/60",
-        bg: "from-emerald-500/10 via-emerald-400/5 to-transparent",
-        text: "text-emerald-700",
         accent: "bg-emerald-500",
-        chip: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-        glow: "shadow-[0_10px_40px_-12px_rgba(16,185,129,0.45)]",
+        text: "text-emerald-600 dark:text-emerald-400",
+        chip: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/25",
+        statusText: "On Track",
+        indicatorBar: "bg-emerald-500",
       };
     case "yellow":
       return {
-        ring: "ring-amber-300/60",
-        bg: "from-amber-500/10 via-amber-400/5 to-transparent",
-        text: "text-amber-700",
         accent: "bg-amber-500",
-        chip: "bg-amber-50 text-amber-700 ring-amber-200",
-        glow: "shadow-[0_10px_40px_-12px_rgba(245,158,11,0.45)]",
+        text: "text-amber-600 dark:text-amber-400",
+        chip: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25",
+        statusText: "Watch Pacing",
+        indicatorBar: "bg-amber-500",
       };
     case "red":
       return {
-        ring: "ring-rose-300/60",
-        bg: "from-rose-500/10 via-rose-400/5 to-transparent",
-        text: "text-rose-700",
         accent: "bg-rose-500",
-        chip: "bg-rose-50 text-rose-700 ring-rose-200",
-        glow: "shadow-[0_10px_40px_-12px_rgba(244,63,94,0.45)]",
+        text: "text-rose-600 dark:text-rose-400",
+        chip: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/25",
+        statusText: "Action Needed",
+        indicatorBar: "bg-rose-500",
       };
   }
 }
 
 function computeTone(achievePct: number, elapsedPct: number, daysLeft: number): Tone {
-  // Compare achievement % vs time-elapsed %.
-  // Ahead or on track = green, slightly behind = yellow, badly behind / out of time = red.
   const delta = achievePct - elapsedPct;
   if (achievePct >= 100) return "green";
   if (daysLeft <= 7 && achievePct < 90) return "red";
@@ -94,16 +89,16 @@ export function TargetRefreshIndicator({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border border-border bg-card/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground ${className}`}
     >
       <RefreshCw
-        className={`h-3 w-3 ${isRefreshing ? "animate-spin text-primary" : "text-primary"}`}
+        className={`h-3 w-3 ${isRefreshing ? "animate-spin text-primary" : "text-muted-foreground"}`}
       />
       {isRefreshing
         ? "Refreshing…"
         : hasUpdate
           ? `Updated ${elapsedSec}s ago · next ${nextSec}s`
-          : `Updates every ${Math.ceil(refreshIntervalMs / 1000)}s`}
+          : `Syncs every ${Math.ceil(refreshIntervalMs / 1000)}s`}
     </span>
   );
 }
@@ -120,13 +115,12 @@ export function TargetCountdown({
   lastUpdatedAt,
   refreshIntervalMs = 30_000,
 }: Props) {
-  // Deadline: end of current year by default
   const endIso = deadline ?? `${new Date().getFullYear()}-12-31T23:59:59`;
   const startIso = periodStart ?? `${new Date().getFullYear()}-01-01T00:00:00`;
   const startMs = new Date(startIso).getTime();
   const endMs = new Date(endIso).getTime();
 
-  const [now, setNow] = useState<number>(() => endMs); // SSR-safe: render "0" until mount
+  const [now, setNow] = useState<number>(() => endMs);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -151,109 +145,140 @@ export function TargetCountdown({
   const c = toneClasses(tone);
   const remaining = Math.max(0, target - achieved);
 
-  const Cell = ({ v, l }: { v: number; l: string }) => (
-    <div
-      className={`flex flex-col items-center justify-center rounded-xl bg-card/80 px-3 py-2 ring-1 ${c.ring} backdrop-blur min-w-[64px]`}
-    >
-      <div className={`font-mono text-2xl font-extrabold tabular-nums ${c.text}`}>
+  const Cell = ({ v, l, isFirst }: { v: number; l: string; isFirst?: boolean }) => (
+    <div className="flex flex-col items-center justify-center rounded-2xl bg-slate-900 dark:bg-slate-800 text-white px-3 py-2.5 sm:px-4 sm:py-3 min-w-[62px] sm:min-w-[72px] shadow-sm border border-slate-800 dark:border-slate-700/60 transition-transform hover:scale-105">
+      <span
+        className={`font-mono text-2xl sm:text-3xl font-black tabular-nums tracking-tight ${
+          isFirst ? "text-amber-400" : "text-slate-100"
+        }`}
+      >
         {mounted ? String(v).padStart(2, "0") : "--"}
-      </div>
-      <div className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+      </span>
+      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">
         {l}
-      </div>
+      </span>
     </div>
   );
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-2xl border border-border bg-card p-5 ${c.glow}`}
-    >
-      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${c.bg}`} />
-      <div className="relative">
+    <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-[var(--shadow-soft)] hover:shadow-md transition-shadow">
+      {/* Accent left indicator line */}
+      <div className={`absolute inset-y-0 start-0 w-1.5 ${c.indicatorBar}`} />
+
+      <div className="space-y-5">
+        {/* Header Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-lg ${c.accent} text-white shadow-md`}
-            >
-              <Target className="h-4 w-4" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs">
+              <Target className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-                {label ?? "Target Countdown"}
+              <div className="flex items-center gap-2">
+                <h3 className="font-display text-base font-bold text-foreground">
+                  {label ?? "Annual Sales Target"}
+                </h3>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${c.chip}`}
+                >
+                  <Clock className="h-3 w-3" />
+                  {c.statusText}
+                </span>
               </div>
-              <div className="text-[11px] text-muted-foreground">
+              <div className="text-xs text-muted-foreground mt-0.5">
                 {deadlineLabel ??
                   `Deadline · ${new Date(endIso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`}
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+
+          <div className="flex items-center gap-2">
             <TargetRefreshIndicator
               isRefreshing={isRefreshing}
               lastUpdatedAt={lastUpdatedAt}
               refreshIntervalMs={refreshIntervalMs}
             />
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ring-1 ${c.chip}`}
-            >
-              <Clock className="h-3 w-3" />
-              {tone === "green" ? "On Track" : tone === "yellow" ? "Watch" : "At Risk"}
+          </div>
+        </div>
+
+        {/* Countdown Ticker & Key Financials */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center pt-1">
+          {/* Countdown Clock Tiles (7 cols on lg) */}
+          <div className="lg:col-span-7 flex flex-wrap items-center justify-start sm:justify-center gap-2 sm:gap-2.5">
+            <Cell v={days} l="Days" isFirst />
+            <span className="hidden sm:inline text-2xl font-black text-muted-foreground/40">:</span>
+            <Cell v={hours} l="Hours" />
+            <span className="hidden sm:inline text-2xl font-black text-muted-foreground/40">:</span>
+            <Cell v={minutes} l="Mins" />
+            <span className="hidden sm:inline text-2xl font-black text-muted-foreground/40">:</span>
+            <Cell v={seconds} l="Secs" />
+          </div>
+
+          {/* Financial summary metrics (5 cols on lg) */}
+          {!compact && (
+            <div className="lg:col-span-5 grid grid-cols-3 gap-3 border-t lg:border-t-0 lg:border-s border-border/70 pt-4 lg:pt-0 lg:ps-6">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Achieved
+                </div>
+                <div className="font-mono text-base sm:text-lg font-black text-foreground mt-0.5">
+                  {fmtMoney(achieved)}
+                </div>
+                <div className="text-[10px] text-muted-foreground font-medium">
+                  {achievePct.toFixed(1)}% achieved
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Remaining
+                </div>
+                <div className={`font-mono text-base sm:text-lg font-black mt-0.5 ${c.text}`}>
+                  {fmtMoney(remaining)}
+                </div>
+                <div className="text-[10px] text-muted-foreground font-medium">To hit target</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Target Goal
+                </div>
+                <div className="font-mono text-base sm:text-lg font-black text-foreground mt-0.5">
+                  {fmtMoney(target)}
+                </div>
+                <div className="flex items-center gap-1 text-[10px] text-primary font-bold">
+                  <TrendingUp className="h-3 w-3" /> Period
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Dual Pacing Progress Bar */}
+        <div className="space-y-1.5 pt-2 border-t border-border/50">
+          <div className="flex justify-between items-center text-xs font-semibold">
+            <span className="text-muted-foreground">
+              Achievement Progress ({achievePct.toFixed(1)}%)
+            </span>
+            <span className="text-foreground font-mono text-xs">
+              Time Elapsed: <strong className="text-foreground">{elapsedPct.toFixed(0)}%</strong> (
+              {days}d left)
             </span>
           </div>
-        </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-          <Cell v={days} l="Days" />
-          <span className={`hidden text-2xl font-extrabold ${c.text} sm:inline`}>:</span>
-          <Cell v={hours} l="Hours" />
-          <span className={`hidden text-2xl font-extrabold ${c.text} sm:inline`}>:</span>
-          <Cell v={minutes} l="Min" />
-          <span className={`hidden text-2xl font-extrabold ${c.text} sm:inline`}>:</span>
-          <Cell v={seconds} l="Sec" />
-        </div>
-
-        {!compact && (
-          <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Achieved
-              </div>
-              <div className="font-mono text-sm font-bold text-foreground">
-                {fmtMoney(achieved)}
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Remaining
-              </div>
-              <div className={`font-mono text-sm font-bold ${c.text}`}>{fmtMoney(remaining)}</div>
-            </div>
-            <div className="col-span-2 sm:col-span-1">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Achievement
-              </div>
-              <div className={`flex items-center gap-1.5 font-mono text-sm font-bold ${c.text}`}>
-                <TrendingUp className="h-3.5 w-3.5" /> {achievePct.toFixed(1)}%
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-4">
-          <div className="mb-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            <span>Achievement</span>
-            <span>Time Elapsed {elapsedPct.toFixed(0)}%</span>
-          </div>
-          <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
+          <div className="relative h-2.5 w-full bg-secondary rounded-full overflow-hidden">
             <div
-              className={`h-full ${c.accent} transition-all`}
+              className={`h-full ${c.accent} rounded-full transition-all duration-500`}
               style={{ width: `${Math.min(100, achievePct)}%` }}
             />
             <div
-              className="absolute top-0 h-full w-0.5 bg-foreground/70"
+              className="absolute top-0 bottom-0 w-1 bg-foreground rounded-full shadow-xs"
               style={{ left: `${Math.min(100, elapsedPct)}%` }}
-              title="Time elapsed marker"
+              title={`Time elapsed: ${elapsedPct.toFixed(0)}%`}
             />
+          </div>
+
+          <div className="flex justify-between text-[10px] text-muted-foreground font-medium pt-0.5">
+            <span>0% achieved</span>
+            <span className="hidden sm:inline">Indicator line marks calendar timeline ({elapsedPct.toFixed(0)}%)</span>
+            <span>100% target</span>
           </div>
         </div>
       </div>

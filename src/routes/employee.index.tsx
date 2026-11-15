@@ -65,7 +65,8 @@ export const Route = createFileRoute("/employee/")({
 });
 
 function EmployeeDashboard() {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
+  const isAr = dir === "rtl";
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const queryClient = useQueryClient();
@@ -488,42 +489,48 @@ function EmployeeDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Check-in card */}
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-        {/* Accent: full-width strip on mobile, right-half on md+ */}
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-1 md:inset-y-0 md:h-auto md:w-1/2 md:opacity-90"
-          style={{ insetInlineEnd: 0, background: "var(--gradient-brand)" }}
-        />
+      {/* Executive Check-in & Shift Header */}
+      <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card p-5 md:p-6 shadow-[var(--shadow-soft)] hover:shadow-md transition-shadow">
+        {/* Subtle top brand accent line */}
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-amber-500 to-primary" />
 
-        <div className="relative grid grid-cols-1 gap-5 p-5 md:grid-cols-3 md:items-center md:gap-4 md:p-6">
-          {/* Status + meta */}
-          <div className="md:col-span-2">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          {/* Status + Meta & Greeting */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2.5">
               {todayRec ? (
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider ${
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
                     todayRec.checkOut
-                      ? "bg-foreground/10 text-foreground"
-                      : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                      ? "bg-muted text-foreground border border-border"
+                      : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25"
                   }`}
                 >
-                  <span className="relative flex h-1.5 w-1.5">
+                  <span className="relative flex h-2 w-2">
                     {!todayRec.checkOut && (
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
                     )}
                     <span
-                      className={`relative inline-flex h-1.5 w-1.5 rounded-full ${todayRec.checkOut ? "bg-foreground/60" : "bg-emerald-500"}`}
+                      className={`relative inline-flex h-2 w-2 rounded-full ${
+                        todayRec.checkOut ? "bg-muted-foreground" : "bg-emerald-500"
+                      }`}
                     />
                   </span>
-                  {todayRec.checkOut ? "Checked out" : "Checked in"}
+                  {todayRec.checkOut
+                    ? isAr
+                      ? "تم تسجيل الانصراف"
+                      : "Checked out"
+                    : isAr
+                      ? `تم الحضور (${todayRec.checkIn})`
+                      : `Checked in (${todayRec.checkIn})`}
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                  Not checked in
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-400 border border-amber-500/25">
+                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                  {isAr ? "في انتظار تسجيل الحضور" : "Ready to Check In"}
                 </span>
               )}
-              <span className="text-[11px] font-medium uppercase tracking-widest text-foreground/80">
+              <span className="text-xs font-medium text-muted-foreground">
                 {t("today")}
                 {todayRec?.location
                   ? ` · ${todayRec.location}`
@@ -533,26 +540,40 @@ function EmployeeDashboard() {
               </span>
             </div>
 
-            <div className="mt-2 flex items-baseline gap-2">
-              <h2 className="font-display text-3xl font-bold leading-none tracking-tight text-foreground md:text-4xl">
-                {inDisplay.time}
+            <div className="flex items-baseline gap-3">
+              <h2 className="font-display text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
+                {nowLocal.getHours() < 12
+                  ? isAr
+                    ? "صباح الخير"
+                    : "Good morning"
+                  : nowLocal.getHours() < 18
+                    ? isAr
+                      ? "مساء الخير"
+                      : "Good afternoon"
+                    : isAr
+                      ? "مساء النور"
+                      : "Good evening"}
+                , {(profile.name || "").split(" ")[0] || profile.name}
               </h2>
-              {inDisplay.suffix && (
-                <span className="text-sm font-semibold text-foreground/80">{inDisplay.suffix}</span>
-              )}
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-foreground/80">
-              <span className="font-semibold text-foreground">
-                {todayRec?.checkIn ? elapsedFrom(todayRec.checkIn, todayRec.checkOut) : "—"}
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground pt-0.5">
+              <span className="flex items-center gap-1.5 font-semibold text-foreground">
+                <Clock4 className="h-4 w-4 text-primary" />
+                <span>{t("workingHours")}:</span>
+                <span className="font-mono text-foreground font-black text-sm">
+                  {todayRec?.checkIn ? elapsedFrom(todayRec.checkIn, todayRec.checkOut) : "0h 00m"}
+                </span>
               </span>
-              <span aria-hidden>•</span>
-              <span>{t("workingHours")}</span>
               {punctuality && (
                 <>
                   <span aria-hidden>•</span>
                   <span
-                    className={`font-semibold ${punctuality === "On time" ? "text-emerald-900 dark:text-emerald-300" : "text-[#cee3f8]"}`}
+                    className={`font-bold ${
+                      punctuality === "On time"
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-amber-600 dark:text-amber-400"
+                    }`}
                   >
                     {punctuality}
                   </span>
@@ -561,41 +582,50 @@ function EmployeeDashboard() {
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="relative z-10 flex flex-col gap-2 md:items-end">
-            <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur md:self-end">
+          {/* Actions & GPS Verification */}
+          <div className="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end gap-3 shrink-0">
+            <div className="inline-flex items-center gap-2 self-start rounded-xl border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs sm:self-auto lg:self-end">
               {todayRec?.lat != null ? (
                 <>
-                  <Check className="h-3 w-3 text-emerald-600" /> GPS Verified
+                  <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>GPS Verified</span>
                 </>
               ) : gps.status === "locating" ? (
                 <>
-                  <Loader2 className="h-3 w-3 animate-spin text-primary" /> Locating…
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                  <span>Locating…</span>
                 </>
               ) : gps.status === "ready" ? (
                 <>
-                  <Navigation className="h-3 w-3 text-emerald-600" /> GPS Ready
+                  <Navigation className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>GPS Ready</span>
                 </>
               ) : gps.status === "ip-fallback" ? (
                 <>
-                  <Wifi className="h-3 w-3 text-amber-500" /> Approx. Location
+                  <Wifi className="h-3.5 w-3.5 text-amber-500" />
+                  <span>Approx. Location</span>
                 </>
               ) : gps.status === "denied" ? (
-                <button onClick={fetchGps} className="flex items-center gap-1 text-rose-600">
-                  <AlertTriangle className="h-3 w-3" /> Retry GPS
+                <button
+                  onClick={fetchGps}
+                  className="flex items-center gap-1 text-rose-600 font-bold hover:underline"
+                >
+                  <AlertTriangle className="h-3.5 w-3.5" /> Retry GPS
                 </button>
               ) : (
                 <>
-                  <MapPin className="h-3 w-3" /> GPS Pending
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>GPS Pending</span>
                 </>
               )}
             </div>
+
             {!todayRec ? (
               <button
                 type="button"
                 disabled={attLoading}
                 onClick={handleCheckIn}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold text-background shadow-md transition active:scale-[0.98] hover:bg-foreground/90 disabled:opacity-60 md:w-auto"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-slate-100 hover:bg-primary dark:hover:bg-primary text-white dark:text-slate-900 hover:text-white px-6 text-sm font-bold shadow-sm transition active:scale-[0.98] disabled:opacity-60 md:w-auto"
               >
                 {attLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -609,7 +639,7 @@ function EmployeeDashboard() {
                 type="button"
                 disabled={attLoading}
                 onClick={handleCheckOut}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold text-background shadow-md transition active:scale-[0.98] hover:bg-foreground/90 disabled:opacity-60 md:w-auto"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-slate-100 hover:bg-rose-600 dark:hover:bg-rose-600 text-white dark:text-slate-900 hover:text-white px-6 text-sm font-bold shadow-sm transition active:scale-[0.98] disabled:opacity-60 md:w-auto"
               >
                 {attLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -619,7 +649,7 @@ function EmployeeDashboard() {
                 {t("checkOut")}
               </button>
             ) : (
-              <span className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-semibold text-white md:w-auto">
+              <span className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-bold text-white shadow-xs md:w-auto">
                 <Check className="h-4 w-4" /> Done for today
               </span>
             )}
@@ -676,20 +706,46 @@ function EmployeeDashboard() {
           value={String(myLeads.length)}
           icon={Users}
           accent="primary"
+          subText={
+            <span>
+              {myLeads.filter((l: any) => l.status !== "won" && l.status !== "lost").length}{" "}
+              {isAr ? "نشط في خط المبيعات" : "active in pipeline"}
+            </span>
+          }
         />
         <KpiCard
           label={t("myActivities")}
           value={String(myActivities.length)}
           icon={CalendarCheck}
           accent="info"
+          subText={
+            <span>
+              {completedActs} {isAr ? "مكتمل من" : "completed of"} {totalActs}
+            </span>
+          }
         />
         <KpiCard
           label={t("myProjects")}
           value={String(myProjects.length)}
           icon={Briefcase}
           accent="success"
+          subText={
+            <span>
+              {myProjects.length} {isAr ? "حساب مسجل" : "registered accounts"}
+            </span>
+          }
         />
-        <KpiCard label="Overall Score" value={`${overallKpi}%`} icon={Award} accent="warning" />
+        <KpiCard
+          label={isAr ? "التقييم العام" : "Overall Score"}
+          value={`${overallKpi}%`}
+          icon={Award}
+          accent="warning"
+          subText={
+            <span>
+              {isAr ? "المستهدف" : "Target"}: {periodAchieveRate.toFixed(0)}% · {isAr ? "الحضور" : "Attendance"}: {attendanceRate.toFixed(0)}%
+            </span>
+          }
+        />
       </div>
 
       {/* Target Countdown */}
