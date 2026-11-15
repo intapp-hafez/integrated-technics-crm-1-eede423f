@@ -577,14 +577,14 @@ export function EmployeeTargetsCard({
                 <tr
                   className={`border-b border-border text-[10px] uppercase ${isAr ? "" : "tracking-wider"} text-muted-foreground`}
                 >
-                  <th className="py-2 text-start font-semibold">{L.quarter}</th>
-                  <th className="py-2 text-start font-semibold">{L.period}</th>
-                  <th className="py-2 text-end font-semibold">{L.target}</th>
-                  <th className="py-2 text-end font-semibold">{L.achieved}</th>
-                  <th className="py-2 text-end font-semibold">{L.gap}</th>
-                  <th className="py-2 text-end font-semibold">{L.wonDeals}</th>
-                  <th className="py-2 text-end font-semibold">{L.meetings}</th>
-                  <th className="py-2 px-2 text-start font-semibold w-[28%]">{L.progress}</th>
+                  <th className="py-2.5 px-3 text-start font-semibold">{L.quarter}</th>
+                  <th className="py-2.5 px-3 text-start font-semibold">{L.period}</th>
+                  <th className="py-2.5 px-3 text-end font-semibold">{L.target}</th>
+                  <th className="py-2.5 px-3 text-end font-semibold">{L.achieved}</th>
+                  <th className="py-2.5 px-3 text-end font-semibold">{L.gap}</th>
+                  <th className="py-2.5 px-3 text-end font-semibold">{L.wonDeals}</th>
+                  <th className="py-2.5 px-3 text-end font-semibold">{L.meetings}</th>
+                  <th className="py-2.5 px-3 text-start font-semibold w-[26%]">{L.progress}</th>
                 </tr>
               </thead>
               <tbody>
@@ -609,47 +609,45 @@ export function EmployeeTargetsCard({
                       key={qn}
                       className={`border-b border-border/60 last:border-0 ${isCurrent ? "bg-primary/5" : ""}`}
                     >
-                      <td className="py-2.5 font-bold text-foreground">
-                        Q{qn}
+                      <td className="py-2.5 px-3 font-bold text-foreground">
+                        <span>Q{qn}</span>
                         {isCurrent && (
                           <span
-                            className={`${isAr ? "mr-1" : "ml-1"} rounded-sm bg-primary/15 px-1 py-0.5 text-[9px] uppercase tracking-wider text-primary`}
+                            className={`${isAr ? "mr-1.5" : "ml-1.5"} rounded-sm bg-primary/15 px-1 py-0.5 text-[9px] uppercase tracking-wider text-primary`}
                           >
                             {L.now}
                           </span>
                         )}
                       </td>
-                      <td className="py-2.5 text-xs text-muted-foreground" dir="ltr">
-                        {period}
+                      <td className="py-2.5 px-3 text-start text-xs text-muted-foreground font-mono">
+                        <span dir="ltr" className="inline-block">{period}</span>
                       </td>
-                      <td className="py-2.5 text-end font-mono text-xs text-foreground" dir="ltr">
-                        {fmtMoney(tg)}
-                      </td>
-                      <td
-                        className="py-2.5 text-end font-mono text-xs font-bold text-foreground"
-                        dir="ltr"
-                      >
-                        {fmtMoney(ach)}
+                      <td className="py-2.5 px-3 text-end font-mono text-xs text-foreground">
+                        <span dir="ltr" className="inline-block">{fmtMoney(tg)}</span>
                       </td>
                       <td
-                        className={`py-2.5 text-end font-mono text-xs font-semibold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}
-                        dir="ltr"
+                        className="py-2.5 px-3 text-end font-mono text-xs font-bold text-foreground"
                       >
-                        {fmtGapByK(gap)}
+                        <span dir="ltr" className="inline-block">{fmtMoney(ach)}</span>
                       </td>
-                      <td className="py-2.5 text-end text-xs text-foreground" dir="ltr">
-                        {qWonCounts[i]}
+                      <td
+                        className={`py-2.5 px-3 text-end font-mono text-xs font-semibold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}
+                      >
+                        <span dir="ltr" className="inline-block">{fmtGapByK(gap)}</span>
                       </td>
-                      <td className="py-2.5 text-end text-xs text-foreground" dir="ltr">
-                        {qMeetings[i]}
+                      <td className="py-2.5 px-3 text-end text-xs text-foreground font-mono">
+                        <span dir="ltr" className="inline-block">{qWonCounts[i]}</span>
                       </td>
-                      <td className="py-2.5 px-2">
+                      <td className="py-2.5 px-3 text-end text-xs text-foreground font-mono">
+                        <span dir="ltr" className="inline-block">{qMeetings[i]}</span>
+                      </td>
+                      <td className="py-2.5 px-3 text-start">
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
                             <Bar value={ach} max={tg} tone={tone} />
                           </div>
                           <span
-                            className={`w-10 text-end text-[11px] font-bold ${pct >= 100 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-rose-600"}`}
+                            className={`w-10 shrink-0 text-end font-mono text-[11px] font-bold ${pct >= 100 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-rose-600"}`}
                             dir="ltr"
                           >
                             {pct.toFixed(0)}%
@@ -667,41 +665,38 @@ export function EmployeeTargetsCard({
                   const tone: Parameters<typeof Bar>[0]["tone"] =
                     pct >= 100 ? "emerald" : pct >= 60 ? "amber" : "primary";
                   return (
-                    <tr className="bg-secondary/40">
-                      <td className="py-2.5 font-bold text-foreground" colSpan={2}>
+                    <tr className="bg-secondary/40 font-bold">
+                      <td className="py-2.5 px-3 font-bold text-foreground" colSpan={2}>
                         {L.yearTotal}
                       </td>
                       <td
-                        className="py-2.5 text-end font-mono text-xs font-bold text-foreground"
-                        dir="ltr"
+                        className="py-2.5 px-3 text-end font-mono text-xs font-bold text-foreground"
                       >
-                        {fmtMoney(tg)}
+                        <span dir="ltr" className="inline-block">{fmtMoney(tg)}</span>
                       </td>
                       <td
-                        className="py-2.5 text-end font-mono text-xs font-bold text-foreground"
-                        dir="ltr"
+                        className="py-2.5 px-3 text-end font-mono text-xs font-bold text-foreground"
                       >
-                        {fmtMoney(ach)}
+                        <span dir="ltr" className="inline-block">{fmtMoney(ach)}</span>
                       </td>
                       <td
-                        className={`py-2.5 text-end font-mono text-xs font-bold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}
-                        dir="ltr"
+                        className={`py-2.5 px-3 text-end font-mono text-xs font-bold ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}
                       >
-                        {fmtGapByK(gap)}
+                        <span dir="ltr" className="inline-block">{fmtGapByK(gap)}</span>
                       </td>
-                      <td className="py-2.5 text-end text-xs font-bold text-foreground" dir="ltr">
-                        {qWonCounts.reduce((s, v) => s + v, 0)}
+                      <td className="py-2.5 px-3 text-end text-xs font-bold text-foreground font-mono">
+                        <span dir="ltr" className="inline-block">{qWonCounts.reduce((s, v) => s + v, 0)}</span>
                       </td>
-                      <td className="py-2.5 text-end text-xs font-bold text-foreground" dir="ltr">
-                        {qMeetings.reduce((s, v) => s + v, 0)}
+                      <td className="py-2.5 px-3 text-end text-xs font-bold text-foreground font-mono">
+                        <span dir="ltr" className="inline-block">{qMeetings.reduce((s, v) => s + v, 0)}</span>
                       </td>
-                      <td className="py-2.5 px-2">
+                      <td className="py-2.5 px-3 text-start">
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
                             <Bar value={ach} max={tg} tone={tone} />
                           </div>
                           <span
-                            className={`w-10 text-end text-[11px] font-bold ${pct >= 100 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-rose-600"}`}
+                            className={`w-10 shrink-0 text-end font-mono text-[11px] font-bold ${pct >= 100 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-rose-600"}`}
                             dir="ltr"
                           >
                             {pct.toFixed(0)}%
